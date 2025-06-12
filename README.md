@@ -63,7 +63,7 @@ super-digimon/
 - [`IMPLEMENTATION.md`](IMPLEMENTATION.md) - Development roadmap and phases
 
 ### **Specifications**
-- [`new_docs/SUPER_DIGIMON_COMPLETE_TOOL_SPECIFICATIONS.md`](new_docs/SUPER_DIGIMON_COMPLETE_TOOL_SPECIFICATIONS.md) - Complete 106 tool specifications
+- [`docs/specifications/SUPER_DIGIMON_COMPLETE_TOOL_SPECIFICATIONS.md`](docs/specifications/SUPER_DIGIMON_COMPLETE_TOOL_SPECIFICATIONS.md) - Complete 106 tool specifications
 - [`docs/specifications/OPTIMIZED_TOOL_SPECIFICATIONS.md`](docs/specifications/OPTIMIZED_TOOL_SPECIFICATIONS.md) - Optimized architecture (102 tools)
 
 ### **Decisions**
@@ -95,7 +95,7 @@ super-digimon/
 1. **Understanding**: Read [`CLAUDE.md`](CLAUDE.md) for development context
 2. **Architecture**: Review [`ARCHITECTURE.md`](ARCHITECTURE.md) for system design
 3. **Implementation**: Follow [`IMPLEMENTATION.md`](IMPLEMENTATION.md) roadmap
-4. **Tools**: Check [`new_docs/`](new_docs/) for complete tool specifications
+4. **Tools**: Check [`docs/specifications/`](docs/specifications/) for complete tool specifications
 
 ## References
 
