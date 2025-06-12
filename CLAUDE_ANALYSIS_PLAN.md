@@ -1,5 +1,8 @@
 # CLAUDE.md - Comparative Analysis Plan for Super-Digimon
 
+⚠️ **HISTORICAL DOCUMENT** ⚠️  
+This document references implementations that have been deleted (CC2, StructGPT, etc.). Preserved for historical context only.
+
 ## Overview
 
 This document outlines the comprehensive comparative analysis I will perform on the existing digimon implementations to determine the optimal foundation for the Super-Digimon system.

@@ -54,36 +54,35 @@ This document is the **single source of truth** for Super-Digimon's architecture
 
 ### 4. Tool Architecture
 
-**Total: 26 Tools** organized as:
+**Total: 106 Tools** organized as:
 
-#### Infrastructure Tools (T01-T08)
-Foundation for building and managing graph data:
-- T01: Document loader
-- T02: Text chunker
-- T03: Node creator
-- T04: Entity extractor
-- T05: Relationship extractor
-- T06: Graph builder
-- T07: Embedding generator
-- T08: Vector index builder
+#### Phase 1: Ingestion (T01-T12) 
+Document loading and data import:
+- T01-T12: PDF, Word, HTML, CSV, JSON, Excel loaders, API connectors
 
-#### Retrieval Operators (T09-T19)
-Core GraphRAG operations from JayLZhou paper:
-- T09: Similarity search (entity_vdb_search)
-- T10: Community detector
-- T11: Community summarizer
-- T12: Graph traversal (entity_onehop)
-- T13: Context retriever
-- T17: PPR calculator (entity_ppr)
-- T19: Relationship vector search
-- (etc.)
+#### Phase 2: Processing (T13-T30)
+Text processing and NLP:
+- T13-T30: Text cleaning, entity extraction, relationship extraction, NLP
 
-#### Processing & Extensions (T14-T16, T20-T26)
-Output generation and advanced features:
-- T14: Response generator
-- T15: Result synthesizer
-- T16: Visualizer
-- T20-T26: Advanced algorithms and transformations
+#### Phase 3: Construction (T31-T48)
+Graph building and embeddings:
+- T31-T48: Node/edge builders, embeddings, vector indexing
+
+#### Phase 4: Retrieval (T49-T67)
+Core GraphRAG operations (JayLZhou operators):
+- T49-T67: The 19 GraphRAG operators plus infrastructure
+
+#### Phase 5: Analysis (T68-T75)
+Advanced graph algorithms:
+- T68-T75: Centrality measures, clustering, path algorithms
+
+#### Phase 6: Storage (T76-T81)
+Database management:
+- T76-T81: Neo4j, SQLite, FAISS management, backup, caching
+
+#### Phase 7: Interface (T82-T106)
+User interaction and advanced features:
+- T82-T106: Natural language processing, monitoring, export, SQL generation
 
 ### 5. Development Approach
 
@@ -138,7 +137,7 @@ docker-compose -f docker-compose.prod.yml up -d
 
 ### 8. Success Criteria
 
-1. **Functional**: All 26 tools working via Claude Code
+1. **Functional**: All 106 tools working via Claude Code
 2. **Natural Language**: Complex queries understood and executed
 3. **Flexible**: Multiple graph types supported via attributes
 4. **Traceable**: Full lineage for all operations
@@ -164,7 +163,7 @@ docker-compose -f docker-compose.prod.yml up -d
 ```
 super-digimon/
 ├── mcp_servers/          # Python MCP implementations
-│   ├── graphrag.py       # Main 26 tools
+│   ├── graphrag.py       # Main 106 tools
 │   └── viz.py           # Visualization server
 ├── docker/               # Docker configurations
 │   ├── docker-compose.yml
@@ -178,11 +177,11 @@ super-digimon/
 
 ## For Developers
 
-1. **Clone Digimon CC2** - Has all 26 tools implemented
-2. **Install Dependencies** - `pip install -r requirements.txt`
-3. **Start Services** - `docker-compose up -d neo4j`
-4. **Run Tests** - `pytest tests/`
-5. **Launch Claude Code** - `./super-digimon`
+1. **Review Specifications** - Read `new_docs/SUPER_DIGIMON_COMPLETE_TOOL_SPECIFICATIONS.md`
+2. **Install Dependencies** - `pip install -r tools/cc_automator/requirements.txt`
+3. **Start Services** - `cd tools/cc_automator && docker-compose up -d neo4j`
+4. **Run Connection Tests** - `pytest tools/cc_automator/test_files/test_simple_neo4j.py -v`
+5. **Begin Implementation** - Start with Phase 1 tools (T01-T12)
 
 ## Living Document
 

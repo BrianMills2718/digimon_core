@@ -1,13 +1,16 @@
 # UKRF Integration Coordination Plan
 ## Universal Knowledge Reasoning Framework
 
-**Distribution**: This document should be shared with all Claude Code agents working on DIGIMON, Autocoder, and StructGPT for coordinated integration planning.
+⚠️ **HISTORICAL DOCUMENT - LONG-TERM VISION CONTEXT** ⚠️  
+This document references systems (DIGIMON, StructGPT, Autocoder) as if they exist, but they are part of a long-term vision. Currently preserved for architectural insights and future integration planning when multiple GraphRAG systems exist.
+
+**Original Distribution Note**: This document should be shared with all Claude Code agents working on DIGIMON, Autocoder, and StructGPT for coordinated integration planning.
 
 ---
 
 ## Executive Summary
 
-We are integrating three AI systems into a unified Universal Knowledge Reasoning Framework (UKRF):
+This document outlines a vision for integrating three AI systems into a unified Universal Knowledge Reasoning Framework (UKRF):
 
 - **DIGIMON**: Master orchestrator and knowledge graph engine
 - **StructGPT**: Structured data reasoning (SQL, tables, cross-modal linking)

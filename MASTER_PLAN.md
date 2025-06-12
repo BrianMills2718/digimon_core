@@ -40,36 +40,30 @@ Instead of fixed graph types (KG, TKG, RKG), Super-Digimon uses composable attri
 
 Operators declare required/optional attributes rather than compatible graph types.
 
-#### C. MCP Tool Library (26 Core Tools)
+#### C. MCP Tool Library (106 Total Tools)
 
-**Entity Operators** (7 tools)
-- `entity_vdb_search`: Vector database entity retrieval
-- `entity_relnode`: Extract nodes from relationships
-- `entity_ppr`: Personalized PageRank scoring
-- `entity_agent`: LLM-based entity discovery
-- `entity_onehop`: One-hop neighbor selection
-- `entity_link`: Similar entity matching
-- `entity_tfidf`: TF-IDF based entity ranking
+**Phase 1: Ingestion Tools** (T01-T12)  
+- Document loaders, API connectors, database integration
 
-**Relationship Operators** (4 tools)
-- `relationship_vdb_search`: Vector-based relationship retrieval
-- `relationship_onehop`: One-hop relationship discovery
-- `relationship_aggregator`: Score-based relationship ranking
-- `relationship_agent`: LLM-based relationship finding
+**Phase 2: Processing Tools** (T13-T30)
+- Text cleaning, NLP, entity/relationship extraction
 
-**Chunk Operators** (3 tools)
-- `chunk_aggregator`: Score-based chunk selection
-- `chunk_fromrel`: Chunks containing relationships
-- `chunk_occurrence`: Entity co-occurrence ranking
+**Phase 3: Construction Tools** (T31-T48)
+- Graph building, embeddings, vector indexing
 
-**Subgraph Operators** (3 tools)
-- `subgraph_khop_path`: K-hop path finding
-- `subgraph_steiner`: Steiner tree computation
-- `subgraph_agent_path`: LLM-guided path filtering
+**Phase 4: Core GraphRAG Tools** (T49-T67)
+- The 19 JayLZhou operators plus infrastructure
+- Entity search, relationship discovery, community detection
+- Subgraph extraction, chunk processing
 
-**Community Operators** (2 tools)
-- `community_entity`: Entity-based community detection
-- `community_layer`: Hierarchical community retrieval
+**Phase 5: Analysis Tools** (T68-T75)
+- Advanced graph algorithms, centrality measures
+
+**Phase 6: Storage Tools** (T76-T81)
+- Neo4j, SQLite, FAISS management
+
+**Phase 7: Interface Tools** (T82-T106)
+- Natural language processing, monitoring, export
 
 #### D. Core Transformation Tools
 
@@ -151,37 +145,56 @@ Practical domain support:
 - **Hypergraph analysis**: For complex n-ary relationships
 - **Specialized ontologies**: DOLCE, BFO, etc.
 
-### 5. Implementation Strategy
+### 5. Implementation Milestones
 
-#### Priority 1: Core Foundation (Highest Priority)
-**Dependencies**: None - This is the starting point
-1. Fork Digimon CC2 (best operator coverage)
-2. Implement basic data structures
-3. Build core transformations
-4. Create attribute compatibility system
-5. Port first 10 operators
-6. Integrate Claude Code runtime via MCP
+#### Milestone 1: Foundation Infrastructure
+**Prerequisites**: None - Starting point
+**Deliverables**:
+1. Core data structures (Graph, Table, Document)
+2. MCP server framework
+3. Basic tool scaffolding
+4. Neo4j + SQLite + FAISS integration
+5. Attribute compatibility system
 
-#### Priority 2: Intelligence & All Operators
-**Dependencies**: Core Foundation must be complete
-1. Build intelligent orchestrator
-2. Natural language query interface
-3. Port remaining 16 operators
+#### Milestone 2: Data Pipeline
+**Prerequisites**: Foundation Infrastructure complete
+**Deliverables**:
+1. Phase 1 tools (T01-T12): Ingestion capabilities
+2. Phase 2 tools (T13-T30): Processing pipeline
+3. Phase 3 tools (T31-T48): Graph construction
+4. Basic end-to-end data flow working
+
+#### Milestone 3: Core GraphRAG
+**Prerequisites**: Data Pipeline operational
+**Deliverables**:
+1. Phase 4 tools (T49-T67): All JayLZhou operators
+2. Intelligent orchestrator
+3. Natural language query interface
 4. Meta-graph tracking system
 
-#### Priority 3: Production Ready
-**Dependencies**: Intelligence & Operators must be functional
-1. Flexible ontology system
-2. Performance optimization
-3. Enhanced UI
-4. Comprehensive testing
+#### Milestone 4: Advanced Capabilities
+**Prerequisites**: Core GraphRAG functional
+**Deliverables**:
+1. Phase 5 tools (T68-T75): Analysis algorithms
+2. Phase 6 tools (T76-T81): Storage management
+3. Phase 7 tools (T82-T106): Interface and monitoring
+4. Performance optimization
 
-#### Priority 4: Optional Modules (Lowest Priority)
-**Dependencies**: Production system must be stable
+#### Milestone 5: Production Readiness
+**Prerequisites**: All 106 tools implemented
+**Deliverables**:
+1. Comprehensive testing suite
+2. Documentation and examples
+3. Deployment infrastructure
+4. Performance benchmarking
+
+#### Milestone 6: Optional Extensions (Future)
+**Prerequisites**: Production system validated
+**Deliverables**:
 1. Hypergraph module (if needed)
-2. Advanced reasoning (if needed)
-3. Specialized analysis tools
-4. Domain-specific plugins
+2. Advanced reasoning capabilities
+3. Specialized domain plugins
+4. Enterprise features
 
 ### 6. Technical Specifications
 
@@ -189,18 +202,18 @@ Practical domain support:
 - **Type System**: Python type hints
 - **Protocol**: Model Context Protocol (MCP)
 - **Runtime**: Claude Code (via MCP)
-- **Base**: Digimon CC2 (26 tools)
-- **Database**: Neo4j + SQLite + FAISS
-- **Approach**: Prototype-first, iterate based on usage
+- **Tools**: 106 tools across 7 phases
+- **Database**: Neo4j + SQLite + FAISS (all via MCP)
+- **Approach**: Milestone-driven, validate at each stage
 
 ### 7. Success Metrics
 
 #### Core System (Must Have)
 1. **Basic Operations**: Graph/table/document handling works
-2. **All Tools**: 26 core tools functioning
+2. **All Tools**: 106 tools functioning across 7 phases
 3. **Transformations**: Seamless structure conversion
 4. **Natural Language**: Queries produce accurate results
-5. **Performance**: Sub-second for common operations
+5. **Architecture**: MCP-based tool coordination working
 
 #### Advanced Features (Nice to Have)
 1. **Flexibility**: Handle any domain without code changes
@@ -208,24 +221,24 @@ Practical domain support:
 3. **Hypergraphs**: N-ary relationships when required
 4. **Specialization**: Domain-specific modules available
 
-## Next Steps
+## Implementation Approach
 
-1. ✅ Comparative analysis complete (CC2 selected)
-2. ✅ Architecture decisions made (pragmatic approach)
-3. Fork CC2 and begin core implementation
-4. Build basic data structures and transformations
-5. Create intelligent orchestrator
+**Milestone-Driven Development**:
+1. Complete each milestone before proceeding
+2. Validate functionality at each stage
+3. Maintain working system throughout
+4. Add complexity incrementally
 
-## Key Decisions Made
-
-1. **Base System**: Digimon CC2 (100% operator coverage)
-2. **Architecture**: Core features + optional modules
-3. **Philosophy**: Pragmatic over philosophical
-4. **Priority**: Common use cases first
+**Key Architectural Decisions**:
+1. **Tool Architecture**: 106 tools across 7 phases
+2. **Communication**: MCP protocol for all tool interactions
+3. **Storage**: Triple database (Neo4j, SQLite, FAISS) via MCP
+4. **Philosophy**: Pragmatic over philosophical complexity
+5. **Priority**: Foundation first, then core GraphRAG, then advanced features
 
 ## References
 
-- JayLZhou GraphRAG: https://github.com/JayLZhou/GraphRAG
-- Digimon CC2: Best implementation for our needs
-- Model Context Protocol: https://modelcontextprotocol.io/
-- StructGPT: Table analysis integration
+- **JayLZhou GraphRAG**: https://github.com/JayLZhou/GraphRAG (19 core operators)
+- **Model Context Protocol**: https://modelcontextprotocol.io/ (communication framework)
+- **Tool Specifications**: `new_docs/SUPER_DIGIMON_COMPLETE_TOOL_SPECIFICATIONS.md` (106 tools)
+- **Architecture Details**: `SUPER_DIGIMON_CANONICAL_ARCHITECTURE.md`
