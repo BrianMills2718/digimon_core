@@ -89,6 +89,16 @@ Thumbs.db
 *.crt
 *.p12
 
+# Directories to exclude from this repository
+tools/
+test_data/
+scripts/
+future_work_not_for_v1/
+docker/
+config/
+docs/reference/structgpt_paper.txt
+docs/reference/agent_research/
+
 # Keep example files
 !.env.example
 !mcp_config.example.json
