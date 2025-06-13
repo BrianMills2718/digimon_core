@@ -24,7 +24,7 @@ Claude Code (Natural Language Agent)
            ↓
     MCP Protocol Communication  
            ↓
-106 Python Tools (5 Phases)
+106 Python Tools (7 Phases)
            ↓
 Neo4j (Graphs) + SQLite (Metadata) + FAISS (Vectors)
 ```
@@ -51,7 +51,7 @@ super-digimon/
 │   ├── specifications/         # Technical specifications  
 │   ├── planning/              # Planning documents
 │   └── reference/             # Reference materials
-├── new_docs/                   # Authoritative tool specifications
+├── docs/specifications/        # Authoritative tool specifications
 ├── tools/cc_automator/         # Implementation and tests
 ├── test_data/                  # Sample datasets
 └── config/                     # Configuration files
@@ -65,8 +65,8 @@ super-digimon/
 - [`IMPLEMENTATION.md`](IMPLEMENTATION.md) - Development roadmap and phases
 
 ### **Specifications**
-- [`docs/specifications/SUPER_DIGIMON_COMPLETE_TOOL_SPECIFICATIONS.md`](docs/specifications/SUPER_DIGIMON_COMPLETE_TOOL_SPECIFICATIONS.md) - Complete 106 tool specifications
-- [`docs/specifications/OPTIMIZED_TOOL_SPECIFICATIONS.md`](docs/specifications/OPTIMIZED_TOOL_SPECIFICATIONS.md) - Optimized architecture (102 tools)
+- [`docs/specifications/SUPER_DIGIMON_COMPLETE_TOOL_SPECIFICATIONS.md`](docs/specifications/SUPER_DIGIMON_COMPLETE_TOOL_SPECIFICATIONS.md) - Complete 106 tool specifications (canonical)
+- [`docs/specifications/TOOL_ARCHITECTURE_SUMMARY.md`](docs/specifications/TOOL_ARCHITECTURE_SUMMARY.md) - Phase organization and tool breakdown
 
 ### **Decisions**
 - [`docs/decisions/ARCHITECTURAL_DECISIONS.md`](docs/decisions/ARCHITECTURAL_DECISIONS.md) - Key architectural decisions and rationale
@@ -74,8 +74,9 @@ super-digimon/
 ## Current Status
 
 **Phase**: Specification complete, ready for implementation
-**Implementation**: 0 of 106 tools implemented  
-**Next**: Begin Phase 0 infrastructure setup
+**Implementation**: 0 of 106 Super-Digimon tools implemented
+**Development Code**: CC_Automator exists as separate development/testing tool
+**Next**: Begin Phase 0 infrastructure setup for 106-tool system
 **Scope**: Prototype (functionally complete, not production-ready)
 
 ## Development Approach

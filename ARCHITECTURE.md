@@ -178,7 +178,7 @@ super-digimon/
 
 ## For Developers
 
-1. **Review Specifications** - Read `new_docs/SUPER_DIGIMON_COMPLETE_TOOL_SPECIFICATIONS.md`
+1. **Review Specifications** - Read `docs/specifications/SUPER_DIGIMON_COMPLETE_TOOL_SPECIFICATIONS.md`
 2. **Install Dependencies** - `pip install -r tools/cc_automator/requirements.txt`
 3. **Start Services** - `cd tools/cc_automator && docker-compose up -d neo4j`
 4. **Run Connection Tests** - `pytest tools/cc_automator/test_files/test_simple_neo4j.py -v`

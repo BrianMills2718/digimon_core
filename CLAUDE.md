@@ -76,14 +76,14 @@ Neo4j (Graphs) + SQLite (Metadata) + FAISS (Vectors)
 ## Key Files and Directories
 
 ### Codebase Structure
-- `new_docs/`: **AUTHORITATIVE SPECIFICATIONS** for 106 tools
+- `docs/specifications/`: **AUTHORITATIVE SPECIFICATIONS** for 106 tools
 - `tools/cc_automator/`: Neo4j connection code and test infrastructure  
 - `test_data/celestial_council/`: Sample datasets for testing
 - `config/`: MCP configuration examples
 
 ### Architecture Documentation  
-- `new_docs/SUPER_DIGIMON_COMPLETE_TOOL_SPECIFICATIONS.md`: **Complete 106 tool specifications**
-- `new_docs/TOOL_ARCHITECTURE_SUMMARY.md`: **Phase breakdown and tool organization**
+- `docs/specifications/SUPER_DIGIMON_COMPLETE_TOOL_SPECIFICATIONS.md`: **Complete 106 tool specifications**
+- `docs/specifications/TOOL_ARCHITECTURE_SUMMARY.md`: **Phase breakdown and tool organization**
 - `DOCUMENTATION_REVIEW_MASTER.md`: **Multi-pass documentation review tracking**
 
 
@@ -162,8 +162,8 @@ pytest tools/cc_automator/test_files/test_neo4j_integration.py -v
 ## Quick Start for New Contributors
 
 ### Understanding the System
-1. **Read specifications**: `new_docs/SUPER_DIGIMON_COMPLETE_TOOL_SPECIFICATIONS.md`
-2. **Understand tool organization**: `new_docs/TOOL_ARCHITECTURE_SUMMARY.md`
+1. **Read specifications**: `docs/specifications/SUPER_DIGIMON_COMPLETE_TOOL_SPECIFICATIONS.md`
+2. **Understand tool organization**: `docs/specifications/TOOL_ARCHITECTURE_SUMMARY.md`
 3. **Review architecture**: `docs/architecture/CANONICAL_ARCHITECTURE.md`
 
 ### Development Setup
@@ -219,6 +219,6 @@ C) Hybrid approach - Balanced complexity/scalability
 
 Key areas for planning:
 1. **Architecture validation**: Confirm technical approach is sound
-2. **Tool dependencies**: Understand inter-tool relationships
-3. **Resource requirements**: Assess complexity of 102-tool system
+2. **Tool dependencies**: Understand relationships between 106 tools
+3. **Resource requirements**: Assess complexity of 106-tool system implementation
 4. **Testing strategy**: Comprehensive validation approach
