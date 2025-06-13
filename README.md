@@ -69,7 +69,7 @@ super-digimon/
 - [`docs/specifications/TOOL_ARCHITECTURE_SUMMARY.md`](docs/specifications/TOOL_ARCHITECTURE_SUMMARY.md) - Phase organization and tool breakdown
 
 ### **Decisions**
-- [`docs/decisions/ARCHITECTURAL_DECISIONS.md`](docs/decisions/ARCHITECTURAL_DECISIONS.md) - Key architectural decisions and rationale
+- [`docs/decisions/CANONICAL_DECISIONS_2025.md`](docs/decisions/CANONICAL_DECISIONS_2025.md) - Authoritative architectural decisions and final scope
 
 ## Current Status
 

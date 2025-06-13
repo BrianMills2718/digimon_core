@@ -54,21 +54,28 @@ This document is the **single source of truth** for Super-Digimon's architecture
 
 ### 4. Tool Architecture
 
-**Core: 26 Tools** (T01-T26) for essential GraphRAG operations
-**Vision: 106 Tools** organized by lifecycle phase (future expansion):
+**Complete: 106 Tools** (T01-T106) organized across 7 lifecycle phases:
 
-#### Core Tools (T01-T26) - Current Focus:
-- **T01-T08**: Document loading, chunking, entity/relationship extraction, graph building
-- **T09-T15**: Similarity search, community detection, traversal, context retrieval
-- **T16-T26**: Advanced algorithms, PPR, visualization, specialized operators
+#### Phase 1: Ingestion (T01-T12)
+- Document loading, API connectors, database integration
 
-#### Future Expansion (T27-T106) - Vision:
-- **Ingestion Tools**: Multi-format loaders, API connectors, streaming
-- **Processing Tools**: Advanced NLP, disambiguation, multi-language
-- **Construction Tools**: Complex graph operations, schema management
-- **Analysis Tools**: Deep graph algorithms, ML integration
-- **Storage Tools**: Advanced persistence, caching, optimization
-- **Interface Tools**: CLI, monitoring, SQL analysis, provenance
+#### Phase 2: Processing (T13-T30) 
+- Text cleaning, NLP, entity/relationship extraction
+
+#### Phase 3: Construction (T31-T48)
+- Graph building, embeddings, vector indexing
+
+#### Phase 4: Retrieval (T49-T67)
+- JayLZhou GraphRAG operators (19 core operators + infrastructure)
+
+#### Phase 5: Analysis (T68-T75)
+- Advanced graph algorithms, centrality measures
+
+#### Phase 6: Storage (T76-T81)
+- Database management, backup, caching
+
+#### Phase 7: Interface (T82-T106)
+- Natural language processing, monitoring, export
 
 ### 5. Development Approach
 
@@ -123,7 +130,7 @@ docker-compose -f docker-compose.prod.yml up -d
 
 ### 8. Success Criteria
 
-1. **Functional**: All 26 core tools working via Claude Code
+1. **Functional**: All 106 tools working via Claude Code across 7 phases
 2. **Natural Language**: Complex queries understood and executed
 3. **Flexible**: Multiple graph types supported via attributes
 4. **Traceable**: Full lineage for all operations
@@ -149,7 +156,7 @@ docker-compose -f docker-compose.prod.yml up -d
 ```
 super-digimon/
 ├── mcp_servers/          # Python MCP implementations
-│   ├── graphrag.py       # Core 26 GraphRAG tools
+│   ├── graphrag.py       # 106 GraphRAG tools across 7 phases
 │   └── viz.py           # Visualization server
 ├── docker/               # Docker configurations
 │   ├── docker-compose.yml
@@ -163,7 +170,7 @@ super-digimon/
 
 ## For Developers
 
-1. **Build from Specifications** - Implement 26 core tools
+1. **Build from Specifications** - Implement 106 tools across 7 phases
 2. **Install Dependencies** - `pip install -r requirements.txt`
 3. **Start Services** - `docker-compose up -d neo4j`
 4. **Run Tests** - `pytest tests/`

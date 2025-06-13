@@ -2,11 +2,11 @@
 
 ## Overview
 
-This document maps the 26 core tools needed for Super-Digimon's GraphRAG functionality. This includes:
-- 19 retrieval operators from the JayLZhou GraphRAG paper
-- 7 additional infrastructure and transformation tools
+This document maps the JayLZhou GraphRAG operators within Super-Digimon's 106-tool system. This includes:
+- 19 retrieval operators from the JayLZhou GraphRAG paper (Phase 4 core operators)
+- Additional infrastructure and transformation tools across other phases
 
-**Note**: Tools 1-19 are from JayLZhou paper. Tools 20-26 are Super-Digimon extensions.
+**Note**: These 19 operators form the core of Phase 4 (T49-T67) within the complete 106-tool system.
 
 ## Entity Operators (7 Tools)
 

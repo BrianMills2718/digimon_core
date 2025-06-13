@@ -1,6 +1,16 @@
 # Super-Digimon Optimized Tool Specifications
 
-## Overview
+## ⚠️ DEPRECATED - DO NOT USE
+
+**This document has been superseded and should not be used for current development.**
+
+**Use Instead**: `docs/specifications/SUPER_DIGIMON_COMPLETE_TOOL_SPECIFICATIONS.md` - The canonical 106-tool specification.
+
+**Deprecation Reason**: This optimization attempt was rejected in favor of the complete 106-tool system as decided in `docs/decisions/CANONICAL_DECISIONS_2025.md`.
+
+---
+
+## Overview (Historical)
 
 Based on technical optimization analysis, this document provides the revised tool specifications that reduce complexity from 106 → 102 tools while improving architecture and maintainability.
 
