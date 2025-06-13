@@ -2,17 +2,19 @@
 
 ## Overview
 
-This roadmap implements the optimized 102-tool system across 5 phases with federated MCP architecture, based on technical optimization analysis and architectural decisions AD-001 through AD-005.
+This roadmap implements the canonical 106-tool system across 7 phases with single MCP server architecture, based on canonical decisions established 2025-06-12.
 
 ## Implementation Strategy
 
-### **Approach: Proof-of-Concept → Core → Full System**
-1. **Phase 0**: Infrastructure foundation and T01 PoC
-2. **Phase 1**: Data ingestion layer (T01-T03)  
-3. **Phase 2**: Processing pipeline (T04-T25)
-4. **Phase 3**: Graph construction (T26-T48)
-5. **Phase 4**: Core GraphRAG (T49-T67) 
-6. **Phase 5**: Advanced & interface (T68-T102)
+### **Approach: Infrastructure → Pipeline → Core → Advanced**
+1. **Phase 0**: Infrastructure foundation (Docker, databases, single MCP server)
+2. **Phase 1**: Ingestion (T01-T12) - 12 tools
+3. **Phase 2**: Processing (T13-T30) - 18 tools  
+4. **Phase 3**: Construction (T31-T48) - 18 tools
+5. **Phase 4**: Retrieval (T49-T67) - 19 tools (JayLZhou operators)
+6. **Phase 5**: Analysis (T68-T75) - 8 tools
+7. **Phase 6**: Storage (T76-T81) - 6 tools
+8. **Phase 7**: Interface (T82-T106) - 25 tools
 
 ## Phase 0: Foundation & Proof-of-Concept
 

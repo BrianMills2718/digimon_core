@@ -54,39 +54,40 @@ This document is the **single source of truth** for Super-Digimon's architecture
 
 ### 4. Tool Architecture
 
-**Total: 106 Tools** organized as:
+**Total: 106 Tools (Canonical)** organized across 7 phases:
 
-#### Phase 1: Ingestion (T01-T12) 
-Document loading and data import:
-- T01-T12: PDF, Word, HTML, CSV, JSON, Excel loaders, API connectors
+**Phase 1: Ingestion (T01-T12)** - 12 tools  
+Document loading and API connectors
 
-#### Phase 2: Processing (T13-T30)
-Text processing and NLP:
-- T13-T30: Text cleaning, entity extraction, relationship extraction, NLP
+**Phase 2: Processing (T13-T30)** - 18 tools  
+Text processing, NLP, entity/relationship extraction
 
-#### Phase 3: Construction (T31-T48)
-Graph building and embeddings:
-- T31-T48: Node/edge builders, embeddings, vector indexing
+**Phase 3: Construction (T31-T48)** - 18 tools  
+Graph building, embeddings, vector indexing
 
-#### Phase 4: Retrieval (T49-T67)
-Core GraphRAG operations (JayLZhou operators):
-- T49-T67: The 19 GraphRAG operators plus infrastructure
+**Phase 4: Retrieval (T49-T67)** - 19 tools  
+Core GraphRAG operations (JayLZhou operators + infrastructure)
 
-#### Phase 5: Analysis (T68-T75)
-Advanced graph algorithms:
-- T68-T75: Centrality measures, clustering, path algorithms
+**Phase 5: Analysis (T68-T75)** - 8 tools  
+Advanced graph algorithms, centrality measures
 
-#### Phase 6: Storage (T76-T81)
-Database management:
-- T76-T81: Neo4j, SQLite, FAISS management, backup, caching
+**Phase 6: Storage (T76-T81)** - 6 tools  
+Database management, backup, caching
 
-#### Phase 7: Interface (T82-T106)
-User interaction and advanced features:
-- T82-T106: Natural language processing, monitoring, export, SQL generation
+**Phase 7: Interface (T82-T106)** - 25 tools  
+Natural language processing, monitoring, export
 
 ### 5. Development Approach
 
-- **Prototype, Not MVP**: Complete functionality, not production-ready
+**Scope**: Prototype (functionally complete, not production-ready)
+- All 106 tools functional
+- Demonstrates complete GraphRAG workflow  
+- Not optimized for scale or production deployment
+
+**Development Environment**: Hybrid workflow
+- Local Python development for rapid iteration
+- Docker services for stateful components (Neo4j)
+- Single MCP server exposing all tools
 - **No Timelines**: Priority-based development
 - **Explicit Non-Goals**:
   - No multi-user support

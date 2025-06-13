@@ -17,7 +17,7 @@ pytest tools/cc_automator/test_files/test_simple_neo4j.py -v
 
 ## Architecture Overview
 
-**System**: 106 tools across 5 phases with MCP (Model Context Protocol) communication
+**System**: 106 tools across 7 phases with single MCP server communication
 
 ```
 Claude Code (Natural Language Agent)
@@ -29,12 +29,14 @@ Claude Code (Natural Language Agent)
 Neo4j (Graphs) + SQLite (Metadata) + FAISS (Vectors)
 ```
 
-### Tool Phases
-- **Phase 1**: Data Ingestion (T01-T03) - Document loading, API connections
-- **Phase 2**: Data Processing (T04-T25) - NLP, entity extraction  
-- **Phase 3**: Graph Construction (T26-T48) - Graph building, embeddings
-- **Phase 4**: Core GraphRAG (T49-T67) - 19 JayLZhou operators
-- **Phase 5**: Advanced & Interface (T68-T102) - Analysis, storage, UI
+### Tool Phases (106 Tools Total)
+- **Phase 1**: Ingestion (T01-T12) - Document loading, API connectors  
+- **Phase 2**: Processing (T13-T30) - NLP, entity extraction
+- **Phase 3**: Construction (T31-T48) - Graph building, embeddings
+- **Phase 4**: Retrieval (T49-T67) - 19 JayLZhou operators + infrastructure
+- **Phase 5**: Analysis (T68-T75) - Graph algorithms, centrality measures
+- **Phase 6**: Storage (T76-T81) - Database management, backup, caching
+- **Phase 7**: Interface (T82-T106) - Natural language processing, monitoring, export
 
 ## Project Structure
 
@@ -71,23 +73,24 @@ super-digimon/
 
 ## Current Status
 
-**Phase**: Foundation setup and T01 proof-of-concept planning
-**Implementation**: 0 of 106 tools implemented
-**Next**: Begin Phase 0 with T01 Universal Document Loader PoC
+**Phase**: Specification complete, ready for implementation
+**Implementation**: 0 of 106 tools implemented  
+**Next**: Begin Phase 0 infrastructure setup
+**Scope**: Prototype (functionally complete, not production-ready)
 
 ## Development Approach
 
-1. **Phase 0**: Foundation infrastructure + T01 PoC validation
-2. **Phase 1-3**: Data pipeline (ingestion → processing → graph construction)  
-3. **Phase 4**: Core GraphRAG operators (19 JayLZhou tools)
-4. **Phase 5**: Advanced features and interface
+1. **Phase 0**: Infrastructure setup (Docker, databases, MCP framework)
+2. **Phase 1-3**: Data pipeline (T01-T48) - Ingestion through construction
+3. **Phase 4**: Core GraphRAG (T49-T67) - JayLZhou operators  
+4. **Phase 5-7**: Advanced features (T68-T106) - Analysis and interface
 
 ## Technology Stack
 
 - **Language**: Python 3.11+
-- **Protocol**: Model Context Protocol (MCP)
-- **Databases**: Neo4j (graphs), SQLite (metadata), FAISS (vectors)
-- **Framework**: FastAPI for MCP servers
+- **Protocol**: Model Context Protocol (MCP) - Single server
+- **Databases**: Neo4j (graphs) + SQLite (metadata) + FAISS (vectors)
+- **Development**: Hybrid workflow (local code + Docker services)
 - **Runtime**: Claude Code (claude.ai/code)
 
 ## Contributing
