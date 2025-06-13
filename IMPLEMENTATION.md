@@ -27,16 +27,16 @@ This roadmap implements the canonical 106-tool system across 7 phases with singl
 
 **Technical Requirements:**
 ```yaml
-containers:
-  mcp-server-1: # Data & Processing (Port 8765)
+architecture:
+  mcp-server: # Single MCP Server (Port 8765)
     base: python:3.11-slim
-    dependencies: [pandas, requests, beautifulsoup4, pdfplumber]
-  mcp-server-2: # Graph & Retrieval (Port 8766)  
-    base: python:3.11-slim
-    dependencies: [neo4j, faiss-cpu, networkx, sentence-transformers]
-  mcp-server-3: # Analysis & Interface (Port 8767)
-    base: python:3.11-slim
-    dependencies: [streamlit, matplotlib, plotly]
+    dependencies: [pandas, requests, beautifulsoup4, pdfplumber, neo4j, faiss-cpu, networkx, sentence-transformers, streamlit, matplotlib, plotly]
+    tools: all-106-tools # All tools exposed via single MCP endpoint
+    
+support-services:
+  neo4j: # Graph database
+    image: neo4j:5-community
+    ports: ["7474:7474", "7687:7687"]
 ```
 
 **Key Components:**

@@ -39,11 +39,12 @@ cd UKRF_1
 
 #### 4.1 Install Python Dependencies
 ```bash
-# Navigate to implementation directory
+# Super-Digimon development dependencies (for testing Neo4j connection)
 cd tools/cc_automator
-
-# Install requirements
 pip install -r requirements.txt
+
+# NOTE: When Super-Digimon implementation begins, 
+# main project dependencies will be in root requirements.txt
 ```
 
 #### 4.2 Start Database Services
