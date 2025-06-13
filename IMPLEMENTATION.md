@@ -343,7 +343,7 @@ class TextProcessor(BaseMCPTool):
 - **Data Quality Issues**: Comprehensive validation at each phase
 
 ### **Project Risks**
-- **Scope Creep**: Stick to optimized 102-tool specification
+- **Scope Creep**: Stick to canonical 106-tool specification
 - **Dependency Conflicts**: Containerization isolates tool dependencies
 - **Integration Complexity**: Phase-by-phase testing and validation
 

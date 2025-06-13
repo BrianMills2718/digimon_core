@@ -4,7 +4,7 @@
 ```
 Digimons/
 ├── README.md                 # Project overview and entry point
-├── QUICK_START.md           # 5-minute introduction
+├── GETTING_STARTED.md       # Getting started guide
 ├── docker-compose.yml       # Docker services configuration
 ├── requirements.txt         # Python dependencies
 ├── .env.example            # Environment variables template
@@ -31,10 +31,9 @@ Digimons/
 │   │   ├── IMPLEMENTATION_STATUS.md
 │   │   └── DOCKER_WORKFLOW.md
 │   ├── reference/         # Reference documentation
-│   │   ├── CLAUDE.md
 │   │   ├── PROJECT_OVERVIEW.md
 │   │   └── agent_research/
-│   ├── technical/         # Technical specifications
+│   ├── specifications/    # Technical specifications
 │   ├── planning/          # Planning documents
 │   ├── analysis/          # Analysis reports
 │   ├── integration/       # Integration guides
@@ -54,14 +53,14 @@ Digimons/
 ## Key Locations
 
 ### For Users
-- Start with `README.md` and `QUICK_START.md`
+- Start with `README.md` and `GETTING_STARTED.md`
 - Example in `examples/celestial_council/`
 - Configuration template in `config/mcp_config.example.json`
 
 ### For Developers  
 - Architecture: `docs/architecture/CANONICAL_ARCHITECTURE.md`
 - Progress: `docs/development/IMPLEMENTATION_STATUS.md`
-- Tools specs: `docs/technical/SUPER_DIGIMON_COMPLETE_TOOL_SPECIFICATIONS.md`
+- Tools specs: `docs/specifications/SUPER_DIGIMON_COMPLETE_TOOL_SPECIFICATIONS.md`
 - Docker setup: `docs/development/DOCKER_WORKFLOW.md`
 
 ### For Contributors

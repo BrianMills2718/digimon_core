@@ -2,7 +2,7 @@
 
 Last Updated: January 6, 2025
 
-**NOTE**: See [STATUS.md](/STATUS.md) in root directory for authoritative project status.
+**NOTE**: See [docs/decisions/CANONICAL_DECISIONS_2025.md](../decisions/CANONICAL_DECISIONS_2025.md) for authoritative project status and decisions.
 
 ## 🎯 Current Status: Specification Phase
 
@@ -17,7 +17,7 @@ Last Updated: January 6, 2025
 
 #### Documentation & Specifications
 - Complete architectural documentation
-- Tool specifications for all 26 tools (T01-T26)
+- Tool specifications for all 106 tools across 7 phases (T01-T106)
 - Integration patterns and best practices
 - Docker development workflow
 
@@ -68,42 +68,45 @@ Last Updated: January 6, 2025
 - [ ] Documentation
 - [ ] Deployment setup
 
-## 🛠️ Tool Specifications (26 Core Tools)
+## 🛠️ Tool Specifications (106 Tools Across 7 Phases)
 
-### Infrastructure Tools (T01-T08)
-Foundation for building and managing graph data:
-- **T01**: DocumentLoader - Multi-format document ingestion
-- **T02**: TextChunker - Intelligent text segmentation
-- **T03**: NodeCreator - Graph node generation
-- **T04**: EntityExtractor - Named entity recognition
-- **T05**: RelationshipExtractor - Relationship discovery
-- **T06**: GraphBuilder - Graph construction
-- **T07**: EmbeddingGenerator - Vector embeddings
-- **T08**: VectorIndex - FAISS index management
+### Phase 1: Ingestion (T01-T12)
+Document loading, API connectors, database integration:
+- 12 tools for data import from various sources
+- PDF, Word, HTML, CSV, JSON, Excel, APIs, databases
 
-### Retrieval Operators (T09-T19)
-Core GraphRAG operations from JayLZhou paper:
-- **T09**: SimilaritySearch - Vector similarity search
-- **T10**: CommunityDetector - Graph community detection
-- **T11**: CommunitySummarizer - Community summarization
-- **T12**: GraphTraversal - Path finding and traversal
-- **T13**: ContextRetriever - Hybrid retrieval
-- **T17**: PPRCalculator - Personalized PageRank
-- **T18**: AdvancedGraphAlgorithms - Steiner trees, centrality
-- **T19**: RelationshipVectorSearch - Relationship similarity
+### Phase 2: Processing (T13-T30)
+Text processing, NLP, entity/relationship extraction:
+- 18 tools for understanding and processing data
+- Text cleaning, tokenization, entity extraction, relationship extraction
 
-### Processing & Extensions (T14-T16, T20-T26)
-Output generation and advanced features:
-- **T14**: ResponseGenerator - LLM response generation
-- **T15**: ResultSynthesizer - Multi-result synthesis
-- **T16**: Visualizer - Graph visualization
-- **T20**: ChunkAggregator - Chunk scoring
-- **T21**: HierarchicalCommunity - Multi-level clustering
-- **T22**: AgentPathFinder - LLM-guided paths
-- **T23**: RelNodeOperator - Relation node extraction
-- **T24**: LinkOperator - Entity linking
-- **T25**: RelationshipOnehop - One-hop traversal
-- **T26**: FromRelChunkOperator - Relation-to-chunk mapping
+### Phase 3: Construction (T31-T48)
+Graph building, embeddings, vector indexing:
+- 18 tools for building knowledge graphs
+- Node/edge builders, embeddings, vector indexing
+
+### Phase 4: Retrieval (T49-T67)
+Core GraphRAG operations (JayLZhou operators):
+- 19 tools - the core retrieval functionality from GraphRAG paper
+- Entity search, relationship discovery, community detection
+- Subgraph extraction, chunk processing
+
+### Phase 5: Analysis (T68-T75)
+Advanced graph algorithms, centrality measures:
+- 8 tools for deep graph analysis
+- Centrality, clustering, path algorithms
+
+### Phase 6: Storage (T76-T81)
+Database management, backup, caching:
+- 6 tools for data persistence
+- Neo4j, SQLite, FAISS management
+
+### Phase 7: Interface (T82-T106)
+Natural language processing, monitoring, export:
+- 25 tools for user interaction and advanced features
+- Query processing, response generation, monitoring
+
+**Complete specifications**: See [docs/specifications/SUPER_DIGIMON_COMPLETE_TOOL_SPECIFICATIONS.md](../specifications/SUPER_DIGIMON_COMPLETE_TOOL_SPECIFICATIONS.md)
 
 ## 📊 Storage Architecture
 
@@ -126,10 +129,10 @@ Output generation and advanced features:
 
 ## 📚 Resources
 
-- **Specifications**: [`SUPER_DIGIMON_CANONICAL_ARCHITECTURE.md`](SUPER_DIGIMON_CANONICAL_ARCHITECTURE.md)
-- **Tool Mapping**: [`docs/technical/JAYZHOU_MCP_TOOL_MAPPING.md`](docs/technical/JAYZHOU_MCP_TOOL_MAPPING.md)
-- **Docker Workflow**: [`docs/development/DOCKER_DEVELOPMENT_WORKFLOW.md`](docs/development/DOCKER_DEVELOPMENT_WORKFLOW.md)
-- **cc_automator**: [`cc_automator/README.md`](cc_automator/README.md)
+- **Architecture**: [ARCHITECTURE.md](../../ARCHITECTURE.md)
+- **Tool Mapping**: [docs/specifications/JAYZHOU_MCP_TOOL_MAPPING.md](../specifications/JAYZHOU_MCP_TOOL_MAPPING.md)
+- **Docker Workflow**: [docs/development/DOCKER_WORKFLOW.md](DOCKER_WORKFLOW.md)
+- **CC_Automator**: [tools/cc_automator/README.md](../../tools/cc_automator/README.md)
 
 ---
 

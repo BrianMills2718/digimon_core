@@ -1,7 +1,7 @@
 # Super-Digimon Operator Specifications
 
 ## Overview
-This document specifies the attribute requirements for all 26+ operators needed for Super-Digimon, based on analysis of JayLZhou GraphRAG.
+This document specifies the attribute requirements for all 106 tools across 7 phases needed for Super-Digimon, with special focus on the 19 JayLZhou GraphRAG operators in Phase 4.
 
 ## Core Data Structure Attributes
 

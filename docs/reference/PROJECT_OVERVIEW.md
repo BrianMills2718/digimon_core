@@ -13,10 +13,12 @@ Natural Language → Claude Code → MCP Tools → Storage → Response
 - **SQLite**: Metadata (documents, config, history)
 - **FAISS**: Vector embeddings
 
-### Tools Needed: 26 Core Tools
-- **Infrastructure (T01-T08)**: Data ingestion, graph construction
-- **Retrieval (T09-T19)**: 16 JayLZhou operators
-- **Extensions (T20-T26)**: Advanced algorithms and processing
+### Tools Needed: 106 Tools Across 7 Phases
+- **Phase 1-3 (T01-T48)**: Data pipeline - ingestion, processing, construction
+- **Phase 4 (T49-T67)**: Core GraphRAG retrieval operators
+- **Phase 5-7 (T68-T106)**: Advanced analysis, storage, and interface tools
+
+**Complete specifications**: See `docs/specifications/SUPER_DIGIMON_COMPLETE_TOOL_SPECIFICATIONS.md`
 
 ## Docker Development Approach
 **Key Decision**: Hybrid approach - Docker for services + local Python for development
@@ -64,7 +66,7 @@ python -m super_digimon.mcp_server
 4. **Prototype first** - Make it work, then optimize
 
 ## Foundation Resources
-- **Archived CC2**: Reference patterns for 26 tools
+- **Historical Patterns**: Reference patterns documented in archive
 - **cc_automator**: Development framework with Neo4j integration
 - **Specifications**: Complete tool and architecture documentation
 - **Test Data**: Celestial Council dataset ready to use
@@ -74,7 +76,7 @@ python -m super_digimon.mcp_server
 2. **Base infrastructure** (MCP server, tool interface)
 3. **Storage connections** (Neo4j, SQLite, FAISS)
 4. **Core tools** (T01-T08: ingestion and construction)
-5. **Retrieval operators** (T09-T19: the 16 JayLZhou operators)
+5. **Retrieval operators** (T49-T67: the 19 JayLZhou operators in Phase 4)
 6. **Extensions** (T20-T26+: additional capabilities)
 
 ## Next Immediate Steps
@@ -85,7 +87,7 @@ python -m super_digimon.mcp_server
 5. Start with T01: Document Loader
 
 ## Remember
-- We have complete implementations to build upon (archived CC2)
+- We have complete specifications to implement from scratch
 - Docker is for databases only during development
 - Claude Code is the runtime, not something we implement
 - 106 tools covering GraphRAG, SQL/table analysis, monitoring, and more

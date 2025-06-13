@@ -11,7 +11,7 @@ Your Question → Claude Code → Python Tools → Graph/Vector/SQL → Answer
 ```
 
 - **Claude Code**: Understands your question and orchestrates tools
-- **Python Tools**: 26 operators that search, traverse, and analyze
+- **Python Tools**: 106 tools across 7 phases for comprehensive GraphRAG functionality
 - **Storage**: Neo4j (graphs) + SQLite (metadata) + FAISS (vectors)
 
 ## Why Three Databases?
@@ -21,23 +21,32 @@ Each is optimized for different operations:
 - **FAISS**: Vector search (find similar entities) - ESSENTIAL for GraphRAG!
 - **SQLite**: Simple tables (config, evaluation data)
 
-## The 26 Tools Explained
+## The 106 Tools Explained
 
-### Building Tools (T01-T08)
-Create and index your graph:
-- Load documents → Extract entities → Build graph → Create embeddings
+The complete system includes 106 tools organized across 7 phases:
 
-### Search Tools (T09-T13, T17, T19)
-Find things in your graph:
-- Vector search entities/relationships
-- Graph traversal (neighbors, paths)
-- Community detection
+### Phase 1: Ingestion (T01-T12)
+Document loading, API connectors, database integration
 
-### Analysis Tools (T14-T16, T18, T20-T26)
-Process and present results:
-- Generate responses
-- Visualize graphs
-- Advanced algorithms
+### Phase 2: Processing (T13-T30) 
+Text cleaning, NLP, entity/relationship extraction
+
+### Phase 3: Construction (T31-T48)
+Graph building, embeddings, vector indexing
+
+### Phase 4: Retrieval (T49-T67)
+GraphRAG operators for querying and traversal
+
+### Phase 5: Analysis (T68-T75)
+Advanced graph algorithms, centrality measures
+
+### Phase 6: Storage (T76-T81)
+Database management, backup, caching
+
+### Phase 7: Interface (T82-T106)
+Natural language processing, monitoring, export
+
+**For complete specifications**: See `docs/specifications/SUPER_DIGIMON_COMPLETE_TOOL_SPECIFICATIONS.md`
 
 ## Example Workflow
 
@@ -109,6 +118,6 @@ Then Super-Digimon lets you do this through conversation, not code.
 
 ## Next Steps
 
-1. See [CANONICAL_ARCHITECTURE.md](SUPER_DIGIMON_CANONICAL_ARCHITECTURE.md) for technical details
-2. See [Celestial Council Demo](demos/celestial_council.md) for full example
+1. See [ARCHITECTURE.md](../../ARCHITECTURE.md) for technical details
+2. See [Celestial Council Dataset](../../test_data/celestial_council/) for sample data
 3. Start with simple questions, build complexity gradually

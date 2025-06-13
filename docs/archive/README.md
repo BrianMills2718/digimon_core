@@ -34,6 +34,8 @@ Documents from various planning iterations that have been superseded:
 #### Deprecated Architectural Decisions
 - `ARCHITECTURAL_DECISIONS_HISTORICAL.md` - Mixed current/superseded decisions (use CANONICAL_DECISIONS_2025.md instead)
 - `DEPRECATED_DOCUMENTS.md` - List of deprecated documents (moved to archive)
+- `OPTIMIZED_TOOL_SPECIFICATIONS.md` - 102-tool optimization (rejected for 106-tool canonical)
+- `TECHNICAL_OPTIMIZATION_ANALYSIS.md` - Optimization analysis (superseded by canonical decisions)
 
 #### Historical Context
 - `CLAUDE_HISTORICAL.md` - Early Claude guidance (superseded by root CLAUDE.md)

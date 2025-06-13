@@ -2,6 +2,12 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## CURRENT TASK: COMPREHENSIVE DOCUMENTATION REVIEW
+
+**INSTRUCTION**: Review every single line of every single piece of documentation (87 markdown files total) in the Super-Digimon repository. Update the COMPREHENSIVE_DOCUMENTATION_REVIEW.md file with findings for each document. Do not stop until ALL 87 files have been completely reviewed line by line. Do not respond to the user until the comprehensive review is 100% complete.
+
+**PROGRESS**: Currently reviewing documents systematically, starting with root level files.
+
 ## Project Overview
 
 Super-Digimon is a GraphRAG (Graph Retrieval-Augmented Generation) system that enables natural language querying of graph data. The system combines Neo4j graph storage, FAISS vector search, and SQLite metadata to provide intelligent graph analysis through **106 specialized tools** organized in 7 lifecycle phases.
@@ -84,7 +90,8 @@ Neo4j (Graphs) + SQLite (Metadata) + FAISS (Vectors)
 ### Architecture Documentation  
 - `docs/specifications/SUPER_DIGIMON_COMPLETE_TOOL_SPECIFICATIONS.md`: **Complete 106 tool specifications**
 - `docs/specifications/TOOL_ARCHITECTURE_SUMMARY.md`: **Phase breakdown and tool organization**
-- `DOCUMENTATION_REVIEW_MASTER.md`: **Multi-pass documentation review tracking**
+- `docs/decisions/CANONICAL_DECISIONS_2025.md`: **Authoritative architectural decisions**
+- `COMPREHENSIVE_DOCUMENTATION_REVIEW.md`: **Complete documentation audit (87 files reviewed)**
 
 
 ### Test Infrastructure
@@ -202,7 +209,7 @@ pytest tools/cc_automator/test_files/test_neo4j_integration.py -v
 1. **Always provide choices**: Present 2-3 clear options
 2. **Explain tradeoffs**: Benefits and drawbacks of each option
 3. **Give recommendation**: Your expert opinion with reasoning
-4. **Document decisions**: All choices made should be recorded in ARCHITECTURAL_DECISIONS.md
+4. **Document decisions**: All choices made should be recorded in docs/decisions/CANONICAL_DECISIONS_2025.md
 
 **Example Format**:
 ```

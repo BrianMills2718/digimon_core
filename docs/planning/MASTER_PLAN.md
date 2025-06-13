@@ -240,5 +240,5 @@ Practical domain support:
 
 - **JayLZhou GraphRAG**: https://github.com/JayLZhou/GraphRAG (19 core operators)
 - **Model Context Protocol**: https://modelcontextprotocol.io/ (communication framework)
-- **Tool Specifications**: `new_docs/SUPER_DIGIMON_COMPLETE_TOOL_SPECIFICATIONS.md` (106 tools)
-- **Architecture Details**: `SUPER_DIGIMON_CANONICAL_ARCHITECTURE.md`
+- **Tool Specifications**: `docs/specifications/SUPER_DIGIMON_COMPLETE_TOOL_SPECIFICATIONS.md` (106 tools)
+- **Architecture Details**: `ARCHITECTURE.md`

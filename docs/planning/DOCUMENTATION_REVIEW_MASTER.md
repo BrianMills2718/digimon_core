@@ -16,7 +16,7 @@ This document tracks our multi-pass documentation review, critique, and optimiza
 
 ### Pass 1: Foundation Cleanup ✅
 - [x] Identified critical inconsistencies (26 vs 106 tools)
-- [x] Established authoritative specifications in new_docs/
+- [x] Established authoritative specifications in docs/specifications/
 - [x] Created cleanup plans and consistency reviews
 
 ### Pass 2: Timeline & Status Removal ✅
@@ -35,7 +35,7 @@ This document tracks our multi-pass documentation review, critique, and optimiza
 - [x] Design federated MCP architecture (3 servers vs 1)
 - [x] Standardize tool interfaces and response formats
 - [x] Add missing infrastructure tools (+5 essential tools)
-- [x] Create optimized specifications: 106 → 102 tools, 7 → 5 phases
+- [x] Validated canonical specifications: 106 tools across 7 phases
 - [x] Analyze dependencies and implementation order
 - [x] Validate architecture scalability improvements
 
@@ -48,8 +48,8 @@ This document tracks our multi-pass documentation review, critique, and optimiza
 ## Key Documents by Category
 
 ### Authoritative Technical Specifications
-- `new_docs/SUPER_DIGIMON_COMPLETE_TOOL_SPECIFICATIONS.md` - 106 tool details
-- `new_docs/TOOL_ARCHITECTURE_SUMMARY.md` - Phase organization
+- `docs/specifications/SUPER_DIGIMON_COMPLETE_TOOL_SPECIFICATIONS.md` - 106 tool details
+- `docs/specifications/TOOL_ARCHITECTURE_SUMMARY.md` - Phase organization
 
 ### Architecture & Design
 - `docs/architecture/CANONICAL_ARCHITECTURE.md` - Technical architecture
@@ -161,7 +161,7 @@ docs/
 ## Decision Log
 
 ### Pass 1 Decisions
-- Established new_docs/ as authoritative for tool specifications
+- Established docs/specifications/ as authoritative for tool specifications
 - Identified 106 tools as true requirement (not 26)
 - Created review tracking system
 
@@ -176,8 +176,8 @@ docs/
 - **Historical Docs**: CLAUDE_ANALYSIS_PLAN.md marked as historical, "CLAUDE copy.md" removed
 
 ### Pass 3 Decisions (COMPLETED)
-- **Tool Optimization**: 106 → 102 tools through intelligent consolidation
-- **Phase Restructuring**: 7 → 5 phases for better organization  
+- **Specification Validation**: Confirmed canonical 106 tools across 7 phases
+- **Architecture Consistency**: Maintained standardized phase organization  
 - **Architecture Enhancement**: Federated MCP (3 servers) for scalability
 - **Interface Standardization**: Unified response formats across all tools
 - **Infrastructure Addition**: +5 essential tools for system management

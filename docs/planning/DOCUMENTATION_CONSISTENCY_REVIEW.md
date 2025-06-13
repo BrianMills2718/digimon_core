@@ -10,10 +10,10 @@ The Super-Digimon project suffers from significant documentation inconsistencies
 
 **The Problem**: Three different tool counts referenced across documents:
 - **26 tools**: Mentioned in MASTER_PLAN.md, CANONICAL_ARCHITECTURE.md, CLAUDE.md
-- **106 tools**: Specified in new_docs/SUPER_DIGIMON_COMPLETE_TOOL_SPECIFICATIONS.md  
+- **106 tools**: Specified in docs/specifications/SUPER_DIGIMON_COMPLETE_TOOL_SPECIFICATIONS.md  
 - **19 operators**: The actual JayLZhou GraphRAG operators from original paper
 
-**The Truth** (from new_docs/TOOL_ARCHITECTURE_SUMMARY.md):
+**The Truth** (from docs/specifications/TOOL_ARCHITECTURE_SUMMARY.md):
 - **106 tools total** = Complete system vision
 - **26 tools** = Original confusion (actually should be 19 JayLZhou operators + 7 infrastructure)
 - **19 tools** = Core GraphRAG operators (Phase 4: T49-T67)
@@ -52,7 +52,7 @@ The Super-Digimon project suffers from significant documentation inconsistencies
 
 ## Phase-by-Phase Tool Breakdown (TRUE SPECIFICATION)
 
-Based on new_docs/SUPER_DIGIMON_COMPLETE_TOOL_SPECIFICATIONS.md:
+Based on docs/specifications/SUPER_DIGIMON_COMPLETE_TOOL_SPECIFICATIONS.md:
 
 ### Phase 1: Ingestion (T01-T12)
 - **12 tools** for data import
@@ -93,7 +93,7 @@ Based on new_docs/SUPER_DIGIMON_COMPLETE_TOOL_SPECIFICATIONS.md:
 - **Previous implementations**: Deleted/archived
 
 ### Tool Specifications  
-- **SOURCE OF TRUTH**: new_docs/SUPER_DIGIMON_COMPLETE_TOOL_SPECIFICATIONS.md
+- **SOURCE OF TRUTH**: docs/specifications/SUPER_DIGIMON_COMPLETE_TOOL_SPECIFICATIONS.md
 - **Tool Count**: 106 tools total
 - **Core GraphRAG**: Phase 4 (T49-T67) = 19 tools
 
@@ -104,7 +104,7 @@ Based on new_docs/SUPER_DIGIMON_COMPLETE_TOOL_SPECIFICATIONS.md:
 - **Language**: Python 3.11+
 
 ### Tool Architecture Understanding
-- **SOURCE OF TRUTH**: new_docs/TOOL_ARCHITECTURE_SUMMARY.md
+- **SOURCE OF TRUTH**: docs/specifications/TOOL_ARCHITECTURE_SUMMARY.md
 - **Clarifies**: 26 vs 106 confusion
 - **Phases**: 7 phases with specific tool counts
 
@@ -177,6 +177,6 @@ The documentation requires immediate cleanup to establish:
 2. **Current status**: Specification phase, no implementation
 3. **Realistic timeline**: 20 weeks for complete system
 4. **Clear phases**: 7 phases with specific tool counts
-5. **Source of truth**: new_docs/ contains accurate specifications
+5. **Source of truth**: docs/specifications/ contains accurate specifications
 
 Without this cleanup, development efforts will be misdirected based on fundamentally incorrect assumptions about scope and implementation status.

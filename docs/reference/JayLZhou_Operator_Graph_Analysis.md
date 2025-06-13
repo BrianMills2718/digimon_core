@@ -1,6 +1,8 @@
 Operator-Graph Compatibility Table (Revised)
 Date: May 31, 2025
-This table provides a high-level overview of the compatibility and meaningfulness of analyzed retrieval operators with different graph types within the DIGIMON/GraphRAG project. Detailed analysis for each operator can be found in its respective blueprint document.
+This table provides a high-level overview of the compatibility and meaningfulness of analyzed retrieval operators with different graph types within the Super-Digimon GraphRAG project.
+
+**Note**: This analysis covers the core GraphRAG operators from the JayLZhou paper (Phase 4: T49-T67 in the complete 106-tool Super-Digimon system). The full system includes 106 tools across 7 phases for comprehensive GraphRAG functionality. Detailed analysis for each operator can be found in its respective blueprint document.
 Graph Types Considered:
 	• ChunkTree: Hierarchical summary tree (created by TreeGraph.py, TreeGraphBalanced.py). Nodes are TreeNode objects representing text chunks (at leaves) or summaries of underlying clusters (at higher levels). Storage is TreeGraphStorage.
 	• PassageGraph: Nodes are passages/chunks (chunk_key identifying a TextChunk). Edges represent shared, externally linked entities (e.g., Wikipedia entities via WAT service) between these passages. Storage is NetworkXStorage.
@@ -396,7 +398,7 @@ Key Observations:
 	• The k_hop parameter from Dalk.yaml (via QueryConfig) controls the cutoff in pathfinding.
 We have now analyzed the three initial operators: Entity.VDB, Chunk.Occurrence, and Subgraph.KhopPath.
 What would you like to do next? We can:
-	1. Select another batch of operators from the original 16 to analyze.
+	1. Select another batch of operators from the 19 JayLZhou GraphRAG operators (Phase 4: T49-T67 in the 106-tool system) to analyze.
 	2. Focus on any specific gaps identified in the current analyses (e.g., reviewing PassageGraph.py or BaseIndex.py).
 	3. Discuss how to proceed with refactoring one of these analyzed operators into a standalone agent tool.
 	4. Address any other questions or priorities you have.
