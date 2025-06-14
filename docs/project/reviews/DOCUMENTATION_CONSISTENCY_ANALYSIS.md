@@ -106,7 +106,7 @@ All cross-references between documents are accurate:
 
 ## Minor Observations
 
-1. **Character Encoding**: Some documents show encoding artifacts (�) in ASCII diagrams, but these don't affect content accuracy.
+1. **Character Encoding**: Some documents previously showed encoding artifacts in ASCII diagrams, but these have been cleaned up.
 
 2. **Review Status**: COMPREHENSIVE_DOCUMENTATION_REVIEW.md shows "IN PROGRESS" which is expected given the scope of reviewing 87 files.
 

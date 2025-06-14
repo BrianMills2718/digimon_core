@@ -136,7 +136,7 @@ docs/ (11 files):
 ## Minor Observations (Not Issues)
 
 ### 1. Character Encoding
-Some ASCII diagrams show encoding artifacts (�) but don't affect functionality or readability.
+Some ASCII diagrams previously showed encoding artifacts but these have been cleaned up.
 
 ### 2. Future File References
 Some commands reference files that will be created during implementation (e.g., `src/mcp_server.py`) - this is appropriate and expected.

@@ -58,11 +58,11 @@ docker-compose down
 ### Storage Architecture
 ```
 Claude Code (Agent)
-      �
+      ↓
 MCP Protocol  
-      �
+      ↓
 Python MCP Servers (106 Tools)
-      �
+      ↓
 Neo4j (Graphs) + SQLite (Metadata) + FAISS (Vectors)
 ```
 
@@ -176,9 +176,9 @@ pytest --cov=src tests/
 
 ## Data Flow
 
-1. **Ingestion**: Documents � Chunks � Entities/Relationships � Graph
-2. **Indexing**: Entities � Embeddings � FAISS Vector Index
-3. **Query**: Natural Language � Tool Selection � Graph Operations � Response
+1. **Ingestion**: Documents → Chunks → Entities/Relationships → Graph
+2. **Indexing**: Entities → Embeddings → FAISS Vector Index
+3. **Query**: Natural Language → Tool Selection → Graph Operations → Response
 4. **Storage**: Neo4j (structure) + FAISS (semantics) + SQLite (metadata)
 
 ## Quick Start for New Contributors
