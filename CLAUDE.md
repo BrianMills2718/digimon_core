@@ -2,11 +2,11 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## CURRENT TASK: COMPREHENSIVE DOCUMENTATION REVIEW
+## Current Status
 
-**INSTRUCTION**: Review every single line of every single piece of documentation (87 markdown files total) in the Super-Digimon repository. Update the COMPREHENSIVE_DOCUMENTATION_REVIEW.md file with findings for each document. Do not stop until ALL 87 files have been completely reviewed line by line. Do not respond to the user until the comprehensive review is 100% complete.
-
-**PROGRESS**: Currently reviewing documents systematically, starting with root level files.
+**Documentation**: Refactored from 87 files to <20 core files (January 13, 2025)  
+**Implementation**: Starting fresh - 0% complete  
+**Next Step**: See IMPLEMENTATION_ROADMAP.md
 
 ## Project Overview
 
@@ -18,19 +18,16 @@ Super-Digimon is a GraphRAG (Graph Retrieval-Augmented Generation) system that e
 ### Development Environment
 ```bash
 # Start Neo4j database
-cd tools/cc_automator && docker-compose up -d neo4j
+docker-compose up -d neo4j
 
 # Install dependencies
-pip install -r tools/cc_automator/requirements.txt
+pip install -r requirements.txt
 
 # Run tests
-cd tools/cc_automator && pytest test_files/ -v
-
-# Run specific test
-pytest test_files/test_neo4j_integration.py -v
+pytest tests/ -v
 
 # Check Neo4j status
-docker-compose ps neo4j
+docker-compose ps
 
 # View Neo4j logs
 docker-compose logs neo4j
@@ -39,12 +36,11 @@ docker-compose logs neo4j
 ### Development Workflow
 ```bash
 # Start development environment
-cd tools/cc_automator
-docker-compose up -d neo4j
-python mcp_server.py
+docker-compose up -d
+python -m src.mcp_server
 
-# Run validation tests
-./run_verification.sh
+# Run tests
+pytest
 
 # Clean up Docker containers
 docker-compose down
@@ -81,23 +77,36 @@ Neo4j (Graphs) + SQLite (Metadata) + FAISS (Vectors)
 
 ## Key Files and Directories
 
-### Codebase Structure
-- `docs/specifications/`: **AUTHORITATIVE SPECIFICATIONS** for 106 tools
-- `tools/cc_automator/`: Neo4j connection code and test infrastructure  
-- `test_data/celestial_council/`: Sample datasets for testing
-- `config/`: MCP configuration examples
+### Documentation Structure (Consolidated)
+```
+Digimons/
+├── README.md                       # Project overview
+├── CLAUDE.md                       # This file
+├── IMPLEMENTATION_ROADMAP.md       # Development plan
+└── docs/
+    ├── core/                       # Essential documentation
+    │   ├── ARCHITECTURE.md         # System design
+    │   ├── SPECIFICATIONS.md       # All 106 tools
+    │   ├── DEVELOPMENT_GUIDE.md    # How to develop
+    │   └── DESIGN_PATTERNS.md      # Key patterns
+    ├── project/                    # Project management
+    │   └── HISTORY.md             # Evolution story
+    └── archive/                   # Historical docs
 
-### Architecture Documentation  
-- `docs/specifications/SUPER_DIGIMON_COMPLETE_TOOL_SPECIFICATIONS.md`: **Complete 106 tool specifications**
-- `docs/specifications/TOOL_ARCHITECTURE_SUMMARY.md`: **Phase breakdown and tool organization**
-- `docs/decisions/CANONICAL_DECISIONS_2025.md`: **Authoritative architectural decisions**
-- `COMPREHENSIVE_DOCUMENTATION_REVIEW.md`: **Complete documentation audit (87 files reviewed)**
+```
 
+### Key Documentation
+- **Architecture**: `docs/core/ARCHITECTURE.md`
+- **Tool Specs**: `docs/core/SPECIFICATIONS.md` (all 106 tools)
+- **Dev Guide**: `docs/core/DEVELOPMENT_GUIDE.md`
+- **Patterns**: `docs/core/DESIGN_PATTERNS.md`
+- **Roadmap**: `IMPLEMENTATION_ROADMAP.md`
 
-### Test Infrastructure
-- `tools/cc_automator/test_files/`: Comprehensive test suite
-- `tools/cc_automator/run_verification.sh`: Automated validation script
-- `test_data/celestial_council/`: Sample datasets for testing
+### Future Code Structure
+- `src/`: Source code (to be created)
+- `tests/`: Test files (to be created)
+- `test_data/`: Sample datasets for testing
+- `scripts/`: Utility scripts (to be created)
 
 ## Development Approach
 
@@ -121,9 +130,12 @@ Based on the 106 tool specification:
 - HTTP interface: `http://localhost:7474`
 
 ### Environment Variables
-Key variables in `tools/cc_automator/.env`:
-- `NEO4J_URI`, `NEO4J_USER`, `NEO4J_PASSWORD`
-- `NEO4J_DATABASE`, `COMPOSE_PROJECT_NAME`
+Create `.env` file in project root:
+- `NEO4J_URI=bolt://localhost:7687`
+- `NEO4J_USER=neo4j`
+- `NEO4J_PASSWORD=password`
+- `FAISS_INDEX_PATH=./data/faiss_index`
+- `SQLITE_DB_PATH=./data/metadata.db`
 
 ## Testing Strategy
 
@@ -136,13 +148,16 @@ Key variables in `tools/cc_automator/.env`:
 ### Running Tests
 ```bash
 # All tests
-pytest tools/cc_automator/test_files/ -v
+pytest tests/ -v
 
-# Specific milestone tests
-pytest tools/cc_automator/test_files/test_m2_*.py -v
+# Unit tests only
+pytest tests/unit/ -v
 
-# Neo4j integration only
-pytest tools/cc_automator/test_files/test_neo4j_integration.py -v
+# Integration tests
+pytest tests/integration/ -v
+
+# With coverage
+pytest --cov=src tests/
 ```
 
 ## Important Constraints
@@ -169,63 +184,35 @@ pytest tools/cc_automator/test_files/test_neo4j_integration.py -v
 ## Quick Start for New Contributors
 
 ### Understanding the System
-1. **Read specifications**: `docs/specifications/SUPER_DIGIMON_COMPLETE_TOOL_SPECIFICATIONS.md`
-2. **Understand tool organization**: `docs/specifications/TOOL_ARCHITECTURE_SUMMARY.md`
-3. **Review architecture**: `docs/architecture/CANONICAL_ARCHITECTURE.md`
+1. **Read roadmap**: `IMPLEMENTATION_ROADMAP.md`
+2. **Review architecture**: `docs/core/ARCHITECTURE.md`
+3. **Study specifications**: `docs/core/SPECIFICATIONS.md`
+4. **Follow patterns**: `docs/core/DESIGN_PATTERNS.md`
 
 ### Development Setup
-1. Start Neo4j: `cd tools/cc_automator && docker-compose up -d neo4j`
-2. Install deps: `pip install -r tools/cc_automator/requirements.txt`
-3. Run connection tests: `pytest tools/cc_automator/test_files/test_simple_neo4j.py -v`
-4. Begin with Phase 1 tools (T01-T12) - Ingestion
+1. **Read the guide**: `docs/core/DEVELOPMENT_GUIDE.md`
+2. **Set up environment**: Create venv, install deps
+3. **Start services**: `docker-compose up -d`
+4. **Implement T01**: Start with text loader as proof of concept
 
-## Implementation Roadmap
+## Implementation Status
 
-### Phase 1: Foundation
-- Implement T01-T12 (Ingestion): Document loaders, API connectors
-- Implement T76-T81 (Storage): Database management
-- Set up basic infrastructure
+See `IMPLEMENTATION_ROADMAP.md` for detailed plan and milestones.
 
-### Phase 2: Processing
-- Implement T13-T30 (Processing): NLP, entity extraction
-- Build text processing pipeline
+**Current Phase**: Starting Phase 0 (Foundation)  
+**Next Milestone**: First working tool (T01) with MCP integration
 
-### Phase 3: Graph Construction
-- Implement T31-T48 (Construction): Graph building, embeddings
-- Create vector indexing system
+## Key Principles
 
-### Phase 4: Core GraphRAG
-- Implement T49-T67 (Retrieval): JayLZhou operators
-- Core GraphRAG functionality
+1. **Start Simple**: Implement T01 first, prove the architecture works
+2. **Test First**: Write tests before implementation (TDD)
+3. **Follow Patterns**: Use patterns from `docs/core/DESIGN_PATTERNS.md`
+4. **Document Changes**: Update specs if implementation differs
+5. **Incremental Progress**: One tool at a time, commit working code
 
-### Phase 5: Advanced Features
-- Implement T68-T75 (Analysis): Graph algorithms
-- Implement T82-T106 (Interface): UI, monitoring, export
+## Notes
 
-## Communication Guidelines for Technical Discussions
-
-**IMPORTANT**: When discussing technical topics or architecture decisions with the user:
-
-1. **Always provide choices**: Present 2-3 clear options
-2. **Explain tradeoffs**: Benefits and drawbacks of each option
-3. **Give recommendation**: Your expert opinion with reasoning
-4. **Document decisions**: All choices made should be recorded in docs/decisions/CANONICAL_DECISIONS_2025.md
-
-**Example Format**:
-```
-**Options**:
-A) Single MCP server - Simple but less scalable
-B) Federated MCP - Complex but more scalable  
-C) Hybrid approach - Balanced complexity/scalability
-
-**Tradeoffs**: [Detailed comparison]
-**Recommendation**: Option B because [reasoning]
-```
-
-## Development Considerations
-
-Key areas for planning:
-1. **Architecture validation**: Confirm technical approach is sound
-2. **Tool dependencies**: Understand relationships between 106 tools
-3. **Resource requirements**: Assess complexity of 106-tool system implementation
-4. **Testing strategy**: Comprehensive validation approach
+- **No implementation exists yet** - Starting from scratch
+- **Documentation is complete** - All 106 tools fully specified
+- **Architecture is final** - Single MCP server, triple database
+- **Begin with Phase 0** - Set up infrastructure first
