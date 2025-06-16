@@ -5,14 +5,18 @@ A GraphRAG (Graph Retrieval-Augmented Generation) system that enables natural la
 ## Quick Start
 
 ```bash
-# 1. Start Neo4j database  
-cd tools/cc_automator && docker-compose up -d neo4j
+# 1. Create Python virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 
-# 2. Install dependencies
-pip install -r tools/cc_automator/requirements.txt
+# 2. Start Neo4j database
+docker-compose up -d neo4j
 
-# 3. Run connection test
-pytest tools/cc_automator/test_files/test_simple_neo4j.py -v
+# 3. Install dependencies
+pip install -r requirements.txt
+
+# 4. Verify setup
+python -m tools.test_connection
 ```
 
 ## Architecture Overview
@@ -41,42 +45,38 @@ Neo4j (Graphs) + SQLite (Metadata) + FAISS (Vectors)
 ## Project Structure
 
 ```
-super-digimon/
+Digimons/
 ├── README.md                    # This file
 ├── CLAUDE.md                    # Claude Code guidance
-├── ARCHITECTURE.md              # System architecture  
-├── IMPLEMENTATION.md            # Development roadmap
-├── docs/                        # Organized documentation
-│   ├── decisions/              # Architecture decisions
-│   ├── specifications/         # Technical specifications  
-│   ├── planning/              # Planning documents
-│   └── reference/             # Reference materials
-├── docs/specifications/        # Authoritative tool specifications
-├── tools/cc_automator/         # Implementation and tests
-├── test_data/                  # Sample datasets
-└── config/                     # Configuration files
+├── IMPLEMENTATION_ROADMAP.md    # Development roadmap
+├── docs/                        # Documentation
+│   ├── core/                   # Essential technical docs
+│   │   ├── ARCHITECTURE.md     # System design
+│   │   ├── SPECIFICATIONS.md   # All 106 tools
+│   │   ├── DEVELOPMENT_GUIDE.md # Setup guide
+│   │   └── DESIGN_PATTERNS.md  # Best practices
+│   ├── project/                # Project management
+│   └── archive/                # Historical docs
+└── test_data/                  # Sample datasets
 ```
 
 ## Key Documents
 
 ### **For Developers**
 - [`CLAUDE.md`](CLAUDE.md) - Guidance for Claude Code development
-- [`ARCHITECTURE.md`](ARCHITECTURE.md) - System architecture and design
-- [`IMPLEMENTATION.md`](IMPLEMENTATION.md) - Development roadmap and phases
+- [`IMPLEMENTATION_ROADMAP.md`](IMPLEMENTATION_ROADMAP.md) - Development roadmap and phases
+- [`docs/core/ARCHITECTURE.md`](docs/core/ARCHITECTURE.md) - System architecture and design
+- [`docs/core/DEVELOPMENT_GUIDE.md`](docs/core/DEVELOPMENT_GUIDE.md) - Setup and development guide
 
 ### **Specifications**
-- [`docs/specifications/SUPER_DIGIMON_COMPLETE_TOOL_SPECIFICATIONS.md`](docs/specifications/SUPER_DIGIMON_COMPLETE_TOOL_SPECIFICATIONS.md) - Complete 106 tool specifications (canonical)
-- [`docs/specifications/TOOL_ARCHITECTURE_SUMMARY.md`](docs/specifications/TOOL_ARCHITECTURE_SUMMARY.md) - Phase organization and tool breakdown
-
-### **Decisions**
-- [`docs/decisions/CANONICAL_DECISIONS_2025.md`](docs/decisions/CANONICAL_DECISIONS_2025.md) - Authoritative architectural decisions and final scope
+- [`docs/core/SPECIFICATIONS.md`](docs/core/SPECIFICATIONS.md) - Complete 106 tool specifications
+- [`docs/core/DESIGN_PATTERNS.md`](docs/core/DESIGN_PATTERNS.md) - Implementation patterns and best practices
 
 ## Current Status
 
-**Phase**: Specification complete, ready for implementation
-**Implementation**: 0 of 106 Super-Digimon tools implemented
-**Development Code**: CC_Automator exists as separate development/testing tool
-**Next**: Begin Phase 0 infrastructure setup for 106-tool system
+**Phase**: Specification complete, ready for implementation  
+**Implementation**: 0 of 106 tools implemented  
+**Next Step**: Begin Phase 0 infrastructure setup (see [IMPLEMENTATION_ROADMAP.md](IMPLEMENTATION_ROADMAP.md))  
 **Scope**: Prototype (functionally complete, not production-ready)
 
 ## Development Approach

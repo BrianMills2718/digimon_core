@@ -1,79 +1,46 @@
 # Super-Digimon Development Guide
 
-**Last Updated**: January 13, 2025  
-**Purpose**: Practical guide for developers working on Super-Digimon
-
-## Overview
-
-Super-Digimon is a GraphRAG system that enables natural language querying of graph data. This guide consolidates all development-related information into one practical resource.
-
 ## System Requirements
 
 - **Python**: 3.11 or higher
-- **Docker**: Latest stable version with Docker Compose
-- **RAM**: 8GB minimum (Neo4j requires significant memory)
-- **Disk**: 10GB free space
-- **OS**: Linux, macOS, or Windows with WSL2
+- **Docker**: 20.10+ with Docker Compose
+- **Neo4j**: 5.x (via Docker)
+- **Git**: For version control
+- **Memory**: Minimum 8GB RAM
+- **Storage**: 10GB+ free space
 
 ## Quick Start
 
-### 1. Clone and Setup
-
 ```bash
-# Clone repository
+# 1. Clone the repository
 git clone https://github.com/BrianMills2718/UKRF_1.git
-cd UKRF_1
+cd Digimons
 
-# Create Python virtual environment
+# 2. Create Python virtual environment
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
-```
 
-### 2. Start Neo4j Database
+# 3. Create project structure
+mkdir -p src/{core,tools,utils}
+mkdir -p tests/{unit,integration,e2e}
+mkdir -p data scripts
 
-```bash
-# Navigate to tools directory
-cd tools/cc_automator
-
-# Start Neo4j via Docker
+# 4. Start Neo4j database
 docker-compose up -d neo4j
 
-# Verify Neo4j is running
-docker-compose ps neo4j
-
-# Check logs if needed
-docker-compose logs neo4j
-```
-
-### 3. Install Dependencies
-
-```bash
-# Install current test dependencies
+# 5. Install dependencies
 pip install -r requirements.txt
 
-# Test Neo4j connection
-pytest test_files/test_simple_neo4j.py -v
-```
-
-### 4. Verify Setup
-
-```bash
-# Open Neo4j Browser
-# Navigate to: http://localhost:7474
-# Login: neo4j / password
-
-# Run connection test
-python test_files/test_simple_neo4j.py
+# 6. Verify Neo4j connection
+python -m scripts.test_connection
 ```
 
 ## Environment Setup
 
 ### Docker Configuration
 
-The project uses Docker for database services while running Python code locally for faster development:
-
+Create `docker-compose.yml` in project root:
 ```yaml
-# docker-compose.yml (in tools/cc_automator/)
 version: '3.8'
 
 services:
@@ -81,432 +48,385 @@ services:
     image: neo4j:5-community
     container_name: super-digimon-neo4j
     ports:
-      - "7474:7474"  # HTTP interface
-      - "7687:7687"  # Bolt protocol
+      - "7474:7474"  # HTTP
+      - "7687:7687"  # Bolt
     environment:
       - NEO4J_AUTH=neo4j/password
       - NEO4J_PLUGINS=["graph-data-science"]
-      - NEO4J_dbms_memory_heap_initial__size=512m
-      - NEO4J_dbms_memory_heap_max__size=2G
     volumes:
       - neo4j_data:/data
       - neo4j_logs:/logs
+
+volumes:
+  neo4j_data:
+  neo4j_logs:
+```
+
+### Python Dependencies
+
+Create `requirements.txt` in project root:
+```
+# Core dependencies
+mcp==0.9.0
+neo4j==5.14.0
+faiss-cpu==1.7.4
+sqlalchemy==2.0.23
+pydantic==2.5.0
+
+# NLP tools
+spacy==3.7.2
+nltk==3.8.1
+transformers==4.35.0
+
+# Utilities
+python-dotenv==1.0.0
+click==8.1.7
+rich==13.7.0
+
+# Testing
+pytest==7.4.3
+pytest-asyncio==0.21.1
+pytest-mock==3.12.0
 ```
 
 ### Environment Variables
 
-Create a `.env` file in `tools/cc_automator/`:
-
+Create `.env` in project root:
 ```bash
+# Neo4j Configuration
 NEO4J_URI=bolt://localhost:7687
 NEO4J_USER=neo4j
 NEO4J_PASSWORD=password
-NEO4J_DATABASE=neo4j
-COMPOSE_PROJECT_NAME=super-digimon
+
+# FAISS Configuration
+FAISS_INDEX_PATH=./data/faiss_index
+
+# SQLite Configuration
+SQLITE_DB_PATH=./data/metadata.db
+
+# MCP Server Configuration
+MCP_SERVER_PORT=3333
 ```
 
 ## Development Workflow
 
-### Daily Development Setup
-
+### 1. Daily Setup
 ```bash
-# 1. Start database services
-cd tools/cc_automator
-docker-compose up -d neo4j
+# Start services
+docker-compose up -d
 
-# 2. Activate Python environment
-source venv/bin/activate  # From project root
+# Activate virtual environment
+source venv/bin/activate
 
-# 3. Verify everything is working
-pytest tools/cc_automator/test_files/test_simple_neo4j.py -v
+# Check service health
+docker-compose ps
+python -m scripts.health_check
 ```
 
-### Project Structure
+### 2. Project Structure
+```
+Digimons/
+├── src/
+│   ├── core/           # Core functionality
+│   ├── tools/          # Tool implementations (T01-T106)
+│   │   ├── phase1/     # Ingestion tools
+│   │   ├── phase2/     # Processing tools
+│   │   └── ...
+│   └── mcp_server.py   # MCP server
+├── tests/              # Test files
+├── data/               # Local data storage
+├── scripts/            # Utility scripts
+└── config/             # Configuration files
+```
 
-```
-super-digimon/
-├── docs/                       # Documentation
-│   ├── specifications/        # 106 tool specifications (authoritative)
-│   ├── decisions/            # Architectural decisions
-│   └── reference/            # Additional guides
-├── tools/cc_automator/        # Current development/testing tool
-│   ├── test_files/           # Test suite
-│   ├── docker-compose.yml    # Docker services
-│   └── requirements.txt      # Python dependencies
-├── test_data/                 # Sample datasets
-│   └── celestial_council/    # Test dataset
-├── config/                    # Configuration examples
-└── super_digimon/            # Future main package location
-    ├── tools/                # Tool implementations (T01-T106)
-    ├── mcp_server.py        # MCP server
-    └── config.py            # Configuration
-```
+### 3. Development Cycle
+1. Pick a tool to implement (start with T01)
+2. Write tests first (TDD approach)
+3. Implement the tool
+4. Test with MCP server
+5. Document any changes
+6. Commit with descriptive message
 
 ## Implementing Your First Tool
 
-### Step 1: Understand the Architecture
+### Example: T01 - Text Document Loader
 
-Read these key documents in order:
-1. `docs/specifications/SUPER_DIGIMON_COMPLETE_TOOL_SPECIFICATIONS.md` - All 106 tools
-2. `docs/specifications/TOOL_ARCHITECTURE_SUMMARY.md` - Tool organization
-3. `docs/decisions/CANONICAL_DECISIONS_2025.md` - Architectural decisions
-
-### Step 2: Create Basic MCP Server
-
+1. **Create tool file** `src/tools/phase1/t01_text_loader.py`:
 ```python
-#!/usr/bin/env python3
-"""
-Basic MCP server for Super-Digimon tool
-"""
+from pathlib import Path
+from typing import Dict, Any
+from pydantic import BaseModel, Field
 
-import asyncio
-import json
-import sys
-from typing import Any, Dict
+class TextLoaderInput(BaseModel):
+    file_path: str = Field(description="Path to text file")
+    encoding: str = Field(default="utf-8", description="Text encoding")
+    chunk_size: int = Field(default=1000, description="Size of text chunks")
 
-class SuperDigimonMCPServer:
-    def __init__(self):
-        self.tools = {
-            "T01_LoadDocument": {
-                "description": "Load various document formats into the system",
-                "inputSchema": {
-                    "type": "object",
-                    "properties": {
-                        "path": {"type": "string", "description": "Document path"},
-                        "format": {"type": "string", "enum": ["txt", "pdf", "html", "md"]}
-                    },
-                    "required": ["path", "format"]
-                }
+class TextLoaderOutput(BaseModel):
+    status: str
+    chunks: list[str]
+    metadata: Dict[str, Any]
+
+def load_text_document(params: TextLoaderInput) -> TextLoaderOutput:
+    """T01: Load text document and split into chunks."""
+    try:
+        path = Path(params.file_path)
+        
+        # Read file
+        with open(path, 'r', encoding=params.encoding) as f:
+            content = f.read()
+        
+        # Split into chunks
+        chunks = [
+            content[i:i + params.chunk_size] 
+            for i in range(0, len(content), params.chunk_size)
+        ]
+        
+        return TextLoaderOutput(
+            status="success",
+            chunks=chunks,
+            metadata={
+                "file_name": path.name,
+                "file_size": path.stat().st_size,
+                "chunk_count": len(chunks),
+                "encoding": params.encoding
             }
-        }
-    
-    async def handle_request(self, request: Dict[str, Any]) -> Dict[str, Any]:
-        method = request.get("method")
-        
-        if method == "tools/list":
-            return {"tools": [{"name": name, **info} for name, info in self.tools.items()]}
-        
-        elif method == "tools/call":
-            tool_name = request["params"]["name"]
-            arguments = request["params"]["arguments"]
-            
-            if tool_name == "T01_LoadDocument":
-                # Implement actual document loading logic here
-                result = f"Loaded {arguments['format']} document from {arguments['path']}"
-                return {"content": [{"type": "text", "text": result}]}
-        
-        return {"error": {"code": -32601, "message": "Method not found"}}
-    
-    async def run(self):
-        while True:
-            line = sys.stdin.readline()
-            if not line:
-                break
-            
-            try:
-                request = json.loads(line)
-                response = await self.handle_request(request)
-                response["jsonrpc"] = "2.0"
-                response["id"] = request.get("id")
-                
-                print(json.dumps(response))
-                sys.stdout.flush()
-            except Exception as e:
-                error_response = {
-                    "jsonrpc": "2.0",
-                    "id": request.get("id"),
-                    "error": {"code": -32603, "message": str(e)}
-                }
-                print(json.dumps(error_response))
-                sys.stdout.flush()
-
-if __name__ == "__main__":
-    server = SuperDigimonMCPServer()
-    asyncio.run(server.run())
+        )
+    except Exception as e:
+        return TextLoaderOutput(
+            status="error",
+            chunks=[],
+            metadata={"error": str(e)}
+        )
 ```
 
-### Step 3: Test Your Tool
-
+2. **Add to MCP server** `src/mcp_server.py`:
 ```python
-# test_tool.py
-import subprocess
-import json
+from mcp.server import Server
+from mcp.server.stdio import stdio_server
+from src.tools.phase1.t01_text_loader import load_text_document, TextLoaderInput
 
-def test_mcp_tool():
-    # Start the MCP server
-    process = subprocess.Popen(
-        ['python', 'mcp_server.py'],
-        stdin=subprocess.PIPE,
-        stdout=subprocess.PIPE,
-        text=True
+# Create server
+server = Server("super-digimon")
+
+# Register tools
+@server.tool()
+async def t01_text_document_loader(file_path: str, encoding: str = "utf-8", chunk_size: int = 1000) -> dict:
+    """Load text documents from local filesystem."""
+    params = TextLoaderInput(
+        file_path=file_path,
+        encoding=encoding,
+        chunk_size=chunk_size
     )
-    
-    # Test tools/list
-    request = {
-        "jsonrpc": "2.0",
-        "id": 1,
-        "method": "tools/list"
-    }
-    
-    process.stdin.write(json.dumps(request) + '\n')
-    process.stdin.flush()
-    
-    response = json.loads(process.stdout.readline())
-    print("Tools available:", response)
-    
-    # Clean up
-    process.terminate()
+    result = load_text_document(params)
+    return result.model_dump()
+
+# Run server
+async def main():
+    async with stdio_server() as (read_stream, write_stream):
+        await server.run(read_stream, write_stream)
 
 if __name__ == "__main__":
-    test_mcp_tool()
+    import asyncio
+    asyncio.run(main())
+```
+
+3. **Test the tool**:
+```python
+# tests/unit/test_t01_text_loader.py
+import pytest
+from src.tools.phase1.t01_text_loader import load_text_document, TextLoaderInput
+
+def test_load_text_document(tmp_path):
+    # Create test file
+    test_file = tmp_path / "test.txt"
+    test_file.write_text("Hello World! " * 100)
+    
+    # Test loading
+    params = TextLoaderInput(
+        file_path=str(test_file),
+        chunk_size=50
+    )
+    result = load_text_document(params)
+    
+    assert result.status == "success"
+    assert len(result.chunks) > 1
+    assert result.metadata["file_name"] == "test.txt"
 ```
 
 ## Testing Approach
 
-### Test Categories
+### Unit Tests
+```bash
+# Run all tests
+pytest
 
-1. **Unit Tests**: Test individual functions with mocks
-   ```bash
-   pytest tests/unit/ -v
-   ```
+# Run specific test file
+pytest tests/unit/test_t01_text_loader.py
 
-2. **Integration Tests**: Test tool interactions
-   ```bash
-   pytest tests/integration/ -v
-   ```
+# Run with coverage
+pytest --cov=src tests/
+```
 
-3. **E2E Tests**: Test complete workflows with real databases
-   ```bash
-   pytest tests/e2e/ -v
-   ```
+### Integration Tests
+```bash
+# Test Neo4j connection
+python -m pytest tests/integration/test_neo4j.py
 
-### Writing Tests
+# Test MCP server
+python -m pytest tests/integration/test_mcp_server.py
+```
 
-```python
-# test_document_loader.py
-import pytest
-from super_digimon.tools import T01_DocumentLoader
-
-def test_load_text_document():
-    loader = T01_DocumentLoader()
-    result = loader.load("test.txt", format="txt")
-    assert result is not None
-    assert "content" in result
-
-@pytest.mark.integration
-def test_load_document_to_neo4j():
-    # Test with real Neo4j connection
-    loader = T01_DocumentLoader(neo4j_uri="bolt://localhost:7687")
-    result = loader.load_and_store("test.txt")
-    assert result["status"] == "success"
+### End-to-End Tests
+```bash
+# Test complete workflow
+python -m pytest tests/e2e/test_ingestion_pipeline.py -v
 ```
 
 ## Common Commands
 
 ### Docker Management
-
 ```bash
 # Start services
-docker-compose up -d neo4j
-
-# Stop services
-docker-compose down
-
-# Reset Neo4j (delete all data)
-docker-compose down -v
-docker-compose up -d neo4j
+docker-compose up -d
 
 # View logs
 docker-compose logs -f neo4j
 
-# Execute Cypher in Neo4j
-docker exec -it super-digimon-neo4j cypher-shell -u neo4j -p password
+# Stop services
+docker-compose down
+
+# Clean volumes
+docker-compose down -v
 ```
 
-### Python Development
-
+### Neo4j Queries
 ```bash
-# Install dependencies
-pip install -r requirements.txt
+# Access Neo4j browser
+open http://localhost:7474
 
-# Run all tests
-pytest -v
+# Clear database (Cypher)
+MATCH (n) DETACH DELETE n
 
-# Run specific test file
-pytest test_files/test_neo4j_integration.py -v
+# Count nodes
+MATCH (n) RETURN count(n)
+```
 
-# Run with coverage
-pytest --cov=super_digimon tests/
-
+### Development Commands
+```bash
 # Format code
-black .
+black src/ tests/
 
-# Check types
-mypy super_digimon/
-```
+# Lint code
+flake8 src/ tests/
 
-### MCP Development
-
-```bash
-# Test MCP server manually
-echo '{"jsonrpc":"2.0","id":1,"method":"tools/list"}' | python mcp_server.py
+# Type check
+mypy src/
 
 # Run MCP server
-python -m super_digimon.mcp_server
-
-# Configure Claude Code
-# Add to Claude Code's MCP configuration
+python -m src.mcp_server
 ```
 
 ## Troubleshooting
 
-### Neo4j Issues
-
-**Problem**: Neo4j won't start
+### Neo4j Connection Issues
 ```bash
-# Check if port is in use
-lsof -i :7687
-lsof -i :7474
-
-# Check Docker logs
-docker-compose logs neo4j
-
-# Reset and restart
-docker-compose down -v
-docker-compose up -d neo4j
-```
-
-**Problem**: Connection refused
-```bash
-# Wait for Neo4j to fully start (can take 30-60 seconds)
-# Check status
-docker-compose ps neo4j
+# Check if Neo4j is running
+docker-compose ps
 
 # Test connection
 python -c "from neo4j import GraphDatabase; driver = GraphDatabase.driver('bolt://localhost:7687', auth=('neo4j', 'password')); driver.verify_connectivity()"
+
+# Check logs
+docker-compose logs neo4j
 ```
 
-### Python Issues
-
-**Problem**: Import errors
+### Python Import Errors
 ```bash
 # Ensure virtual environment is activated
 which python  # Should show venv path
 
 # Reinstall dependencies
-pip install --upgrade pip
-pip install -r requirements.txt --force-reinstall
+pip install -r requirements.txt --upgrade
+
+# Add project to Python path
+export PYTHONPATH="${PYTHONPATH}:${PWD}"
 ```
 
-**Problem**: Tests failing
+### MCP Server Issues
 ```bash
-# Run in verbose mode
-pytest -vv test_file.py
+# Test MCP server directly
+mcp dev src/mcp_server.py
 
-# Check test database is clean
-docker-compose down -v
-docker-compose up -d neo4j
-```
+# Check server logs
+python -m src.mcp_server 2>&1 | tee mcp_server.log
 
-### Docker Issues
-
-**Problem**: Out of memory
-```bash
-# Increase Docker Desktop memory allocation
-# Settings -> Resources -> Memory -> 8GB recommended
-
-# Or reduce Neo4j heap size in docker-compose.yml
-NEO4J_dbms_memory_heap_max__size=1G
+# Validate tool registration
+mcp list-tools src/mcp_server.py
 ```
 
 ## Implementation Roadmap
 
-Based on the 106 tool specification:
+### Phase 0: Infrastructure (Week 1)
+- [ ] Set up development environment
+- [ ] Configure Docker services
+- [ ] Create basic MCP server
+- [ ] Implement logging system
+- [ ] Set up testing framework
 
-### Phase 0: Infrastructure Setup (Current)
-- [ ] Create MCP server framework
-- [ ] Set up database connections
-- [ ] Implement tool registry system
-- [ ] Create basic tool template
+### Phase 1: Basic Pipeline (Weeks 2-3)
+- [ ] Implement T01-T12 (Ingestion tools)
+- [ ] Create basic storage managers (T76-T77)
+- [ ] Build simple test datasets
+- [ ] Verify end-to-end data flow
 
-### Phase 1: Ingestion Tools (T01-T12)
-- [ ] T01_DocumentLoader
-- [ ] T02_TextChunker
-- [ ] T03_PDFExtractor
-- [ ] Continue through T12...
+### Phase 2: Processing (Weeks 4-5)
+- [ ] Implement T13-T30 (Processing tools)
+- [ ] Add NLP model integration
+- [ ] Create processing pipelines
+- [ ] Performance optimization
 
-### Phase 2: Processing Tools (T13-T30)
-- [ ] T13_TextCleaner
-- [ ] T14_SentenceSplitter
-- [ ] Continue through T30...
+### Phase 3: Graph Construction (Weeks 6-7)
+- [ ] Implement T31-T48 (Construction tools)
+- [ ] Neo4j integration
+- [ ] FAISS index creation
+- [ ] Graph validation
 
-### Phase 3: Construction Tools (T31-T48)
-- [ ] T31_GraphBuilder
-- [ ] T32_EntityLinker
-- [ ] Continue through T48...
+### Phase 4: Core Retrieval (Weeks 8-10)
+- [ ] Implement T49-T67 (GraphRAG operators)
+- [ ] Query optimization
+- [ ] Result ranking
+- [ ] Performance testing
 
-### Phase 4: Core GraphRAG (T49-T67)
-- [ ] Implement JayLZhou operators
-- [ ] Core retrieval functionality
-
-### Phase 5-7: Advanced Features (T68-T106)
-- [ ] Analysis tools
-- [ ] Interface tools
-- [ ] Monitoring and export
+### Phase 5: Advanced Features (Weeks 11-12)
+- [ ] Implement T68-T106 (Analysis & Interface)
+- [ ] Natural language interface
+- [ ] Monitoring dashboard
+- [ ] System optimization
 
 ## Best Practices
 
 ### Code Organization
-- One tool per file in `super_digimon/tools/`
-- Follow naming convention: `t01_document_loader.py`
-- Include comprehensive docstrings
-- Add type hints for all functions
-
-### Testing
-- Write tests before implementation (TDD)
-- Mock external dependencies in unit tests
-- Use real connections only in integration tests
-- Maintain test coverage above 80%
+- One file per tool
+- Clear input/output models
+- Comprehensive error handling
+- Detailed logging
 
 ### Documentation
-- Update tool specifications as you implement
-- Document any deviations from spec
-- Add examples for each tool
-- Keep README files current
+- Docstrings for all functions
+- Type hints everywhere
+- Update specs if behavior changes
+- Example usage in tests
 
 ### Version Control
-- Make atomic commits (one logical change)
-- Write clear commit messages
-- Create feature branches for new tools
-- Run tests before pushing
+- Feature branches for new tools
+- Descriptive commit messages
+- PR reviews before merging
+- Tag releases
 
 ## Resources
 
-### Essential Documentation
-- [Tool Specifications](docs/specifications/SUPER_DIGIMON_COMPLETE_TOOL_SPECIFICATIONS.md)
-- [Architecture Decisions](docs/decisions/CANONICAL_DECISIONS_2025.md)
-- [JayLZhou GraphRAG](https://github.com/JayLZhou/GraphRAG)
-
-### External Resources
+- [MCP Documentation](https://modelcontextprotocol.io/docs)
 - [Neo4j Python Driver](https://neo4j.com/docs/python-manual/current/)
-- [MCP Protocol](https://modelcontextprotocol.io/)
-- [Docker Documentation](https://docs.docker.com/)
-- [pytest Documentation](https://docs.pytest.org/)
-
-## Getting Help
-
-1. **Check existing tests**: Look in `tools/cc_automator/test_files/`
-2. **Review specifications**: Ensure you understand the tool requirements
-3. **Examine Docker logs**: `docker-compose logs neo4j`
-4. **Verify environment**: Ensure all services are running
-
-Remember: This is a prototype system. Focus on functionality over optimization. Build iteratively and test frequently.
-
----
-
-**Next Steps**: 
-1. Complete environment setup
-2. Review tool specifications
-3. Implement your first tool (T01_DocumentLoader)
-4. Create tests for your implementation
-5. Submit for review
+- [FAISS Documentation](https://github.com/facebookresearch/faiss/wiki)
+- [Project Repository](https://github.com/BrianMills2718/UKRF_1)
