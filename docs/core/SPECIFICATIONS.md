@@ -2,7 +2,9 @@
 
 ## Overview
 
-Super-Digimon is a GraphRAG system with **106 specialized tools** organized into 7 lifecycle phases. This document provides the authoritative specification for all tools.
+Super-Digimon is a GraphRAG system with **120 specialized tools** organized into 7 lifecycle phases plus critical infrastructure services. This document provides the authoritative specification for all tools.
+
+**Update**: Added 14 new tools (T107-T120) based on mock workflow analysis, including identity services, format converters, and advanced capabilities.
 
 ## Tool Organization by Phase
 
@@ -26,6 +28,32 @@ Manage persistent data stores.
 
 ### Phase 7: Interface (25 tools)
 Handle user interactions and system monitoring.
+
+### Phase 8: Core Services (14 tools)
+Infrastructure services supporting all phases.
+
+## Tool Variants
+
+Many tools offer multiple implementation variants to balance quality, speed, and cost:
+
+### Entity/Relationship Extraction Variants
+- **T23a**: Traditional NER (spaCy/transformers) - Fast, cheap, good for standard entities
+- **T23b**: LLM Entity/Relationship Extractor - Better quality, handles custom types and relationships
+
+### Chunking Variants  
+- **T15a**: Sliding Window Chunker - Simple, fast, predictable
+- **T15b**: Semantic Chunker - Uses embeddings to find natural boundaries
+- **T15c**: LLM-based Chunker - Understands topics and structure
+
+### Coreference Variants
+- **T25a**: Rule-based Coreference - Fast, deterministic
+- **T25b**: Neural Coreference - Better accuracy, handles complex cases
+- **T25c**: LLM-based Coreference - Best quality, understands context
+
+### Disambiguation Variants
+- **T29a**: Embedding-based Disambiguation - Fast, works offline
+- **T29b**: Knowledge Base Disambiguation - Links to existing KB
+- **T29c**: LLM-based Disambiguation - Reasons about context
 
 ---
 
@@ -165,10 +193,13 @@ Assess text quality and coherence
 - `check_grammar`: boolean (default: true)
 - `check_coherence`: boolean (default: true)
 
-### T23: SpaCy Entity Recognizer
-Extract named entities using SpaCy
-- `text`: string - Input text
-- `model`: string (default: "en_core_web_sm")
+### T23: Entity Recognizer
+Extract named entities (see variants T23a/T23b above)
+- `text`: string OR `chunk_refs`: list - Input text or chunk references
+- `model`: string (default: "en_core_web_sm") - For T23a
+- `entity_types`: list - Types to extract
+- `create_mentions`: boolean (default: true) - Create mention objects
+- `confidence_threshold`: float (default: 0.7)
 
 ### T24: Custom Entity Recognizer
 Extract domain-specific entities
@@ -186,17 +217,13 @@ Link entities to knowledge base
 - `entities`: list - Extracted entities
 - `knowledge_base`: string - KB identifier
 
-### T27: Rule-based Relationship Extractor
-Extract relationships using patterns
-- `text`: string - Input text
-- `entities`: list - Extracted entities
-- `patterns`: dict - Relationship patterns
-
-### T28: ML-based Relationship Extractor
-Extract relationships using ML models
-- `text`: string - Input text
-- `entities`: list - Extracted entities
-- `model`: string (default: "rebel-base")
+### T27: Relationship Extractor
+Extract relationships between entities (often combined with T23b)
+- `text`: string OR `chunk_refs`: list - Input text or chunks
+- `entity_refs`: list - Previously extracted entities
+- `patterns`: dict - Relationship patterns (for rule-based)
+- `model`: string - Model name (for ML-based)
+- `extract_with_entities`: boolean - Extract entities and relationships together
 
 ### T29: Entity Disambiguator
 Resolve entity ambiguity
@@ -647,3 +674,136 @@ Explore transformation history
 - **SQLite**: Metadata storage (documents, configuration)
 - **FAISS**: Vector search indices
 - **Cache**: Computation results (Redis/DiskCache)
+
+### Key Architectural Patterns
+
+#### Three-Level Identity System
+All text processing follows: Surface Form → Mention → Entity
+- **Surface**: Text as it appears ("Apple", "AAPL")
+- **Mention**: Specific occurrence with context
+- **Entity**: Resolved canonical entity
+
+#### Reference-Based Architecture
+Tools pass references, not full data objects:
+```python
+{"entity_refs": ["ent_001", ...], "count": 1000, "sample": [...]}
+```
+
+#### Universal Quality Tracking
+Every data object includes:
+- `confidence`: float (0.0-1.0)
+- `quality_tier`: "high" | "medium" | "low"
+- `warnings`: list of issues
+- `evidence`: supporting data
+
+#### Format Agnostic Processing
+Same data can be Graph, Table, or Vector based on analysis needs:
+- Use T115 for Graph → Table conversion
+- Use T116 for Table → Graph conversion
+- Use T117 for automatic format selection
+
+---
+
+## Phase 8: Core Services and Infrastructure (T107-T120)
+
+Critical services identified through mock workflow analysis that support all other tools.
+
+### T107: Identity Service
+Manage three-level identity system (Surface → Mention → Entity)
+- `operation`: string - "create_mention", "resolve_mention", "create_entity", "merge_entities"
+- `surface_text`: string - Text as it appears
+- `context`: dict - Document ID, position, surrounding text
+- `entity_candidates`: list - Possible entity resolutions with confidence
+
+### T108: Version Service
+Handle four-level versioning (schema, data, graph, analysis)
+- `operation`: string - "create_version", "get_version", "diff_versions", "rollback"
+- `object_type`: string - "schema", "data", "graph", "analysis"
+- `object_id`: string - ID of object to version
+- `metadata`: dict - Version metadata
+
+### T109: Entity Normalizer
+Normalize entity variations to canonical forms
+- `entity_name`: string - Name to normalize
+- `entity_type`: string - Type for context
+- `normalization_rules`: dict - Custom rules (optional)
+- `case_sensitive`: boolean (default: false)
+
+### T110: Provenance Service
+Track complete operation lineage
+- `operation`: string - "record", "trace_lineage", "find_affected"
+- `tool_id`: string - Tool that performed operation
+- `inputs`: list - Input references
+- `outputs`: list - Output references
+- `parameters`: dict - Operation parameters
+
+### T111: Quality Service
+Assess and propagate confidence scores
+- `operation`: string - "assess", "propagate", "aggregate"
+- `object`: dict - Object to assess
+- `upstream_scores`: list - Previous confidence scores
+- `method`: string - Assessment method
+
+### T112: Constraint Engine
+Manage and check data constraints
+- `operation`: string - "register", "check", "find_violations"
+- `constraints`: dict - Constraint definitions
+- `data`: dict - Data to validate
+- `mode`: string - "strict" or "soft" matching
+
+### T113: Ontology Manager
+Define and enforce graph ontologies
+- `operation`: string - "create", "update", "validate", "query"
+- `ontology`: dict - Ontology definition
+- `mode`: string - "strict", "extensible", "ad_hoc"
+- `domain_range`: dict - Property constraints
+
+### T114: Provenance Tracker
+Enhanced provenance with impact analysis
+- `entity_id`: string - Entity to track
+- `include_derivatives`: boolean - Track downstream impacts
+- `time_range`: tuple - Historical range
+- `confidence_threshold`: float - Minimum confidence
+
+### T115: Graph to Table Converter
+Convert graph data to tabular format for statistical analysis
+- `entity_refs`: list - Entities to include
+- `relationship_refs`: list - Relationships to include
+- `output_format`: string - "wide", "long", "edge_list"
+- `aggregations`: dict - How to aggregate relationships
+
+### T116: Table to Graph Builder
+Build graph from tabular data
+- `table_ref`: string - Reference to table
+- `source_column`: string - Column for source nodes
+- `target_column`: string - Column for target nodes
+- `relationship_type`: string - Type of relationship to create
+- `attribute_columns`: list - Additional columns as properties
+
+### T117: Format Auto-Selector
+Intelligently select optimal data format for analysis
+- `analysis_type`: string - Type of analysis planned
+- `data_characteristics`: dict - Data properties
+- `constraints`: dict - Memory, time constraints
+- `return_rationale`: boolean - Explain format choice
+
+### T118: Temporal Reasoner
+Handle temporal logic and paradoxes
+- `temporal_data`: dict - Time-stamped facts
+- `query`: string - Temporal query
+- `resolve_paradoxes`: boolean - Attempt resolution
+- `timeline_mode`: string - "single", "multi", "branching"
+
+### T119: Semantic Evolution Tracker
+Track meaning changes over time
+- `concept`: string - Concept to track
+- `time_range`: tuple - Period to analyze
+- `sources`: list - Document sources
+- `include_context`: boolean - Include usage context
+
+### T120: Uncertainty Propagation Service
+Propagate uncertainty through analysis chains
+- `confidence_scores`: list - Input confidences
+- `operations`: list - Operations performed
+- `method`: string - "monte_carlo", "gaussian", "min_max"
+- `return_distribution`: boolean - Full distribution vs point estimate
