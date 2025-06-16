@@ -1,5 +1,7 @@
 # Super-Digimon Design Patterns
 
+This document captures design patterns discovered through mock workflow analysis and implementation planning.
+
 ## Core Architectural Patterns
 
 ### Pass-by-Reference Pattern
@@ -22,6 +24,67 @@
   def temporal_analysis(graph_id: str) -> Results:
       # Tool validates graph has required attributes
       # Gracefully handles optional attributes
+  ```
+
+### Three-Level Identity Pattern
+- **Problem**: Same text can refer to different entities; same entity has multiple surface forms
+- **Solution**: Track Surface Form → Mention → Entity hierarchy
+- **Implementation**:
+  ```python
+  # Surface form: "Apple"
+  mention = Mention(
+      id="mention_001",
+      surface_text="Apple",
+      document_ref="doc_001",
+      position=1234,
+      context="Apple announced record profits"
+  )
+  
+  # Entity resolution
+  entity = Entity(
+      id="ent_apple_inc",
+      canonical_name="Apple Inc.",
+      mention_refs=["mention_001", "mention_002", "mention_003"],
+      surface_forms=["Apple", "AAPL", "Apple Computer"]
+  )
+  ```
+
+### Universal Quality Tracking Pattern
+- **Problem**: Quality degradation invisible until final results
+- **Solution**: Every object tracks confidence and quality metadata
+- **Implementation**:
+  ```python
+  class QualityTracked:
+      def __init__(self, data, confidence=1.0):
+          self.data = data
+          self.confidence = confidence
+          self.quality_tier = self._compute_tier(confidence)
+          self.warnings = []
+          self.evidence = []
+          self.extraction_method = ""
+      
+      def _compute_tier(self, conf):
+          if conf >= 0.8: return "high"
+          elif conf >= 0.6: return "medium"
+          else: return "low"
+  ```
+
+### Format-Agnostic Processing Pattern
+- **Problem**: Different analyses need different data structures
+- **Solution**: Seamless conversion between Graph ↔ Table ↔ Vector
+- **Implementation**:
+  ```python
+  # Automatic format selection
+  def analyze_data(data_ref, analysis_type):
+      optimal_format = T117_format_selector(analysis_type, data_ref)
+      
+      if optimal_format == "table":
+          table_ref = T115_graph_to_table(data_ref)
+          return statistical_analysis(table_ref)
+      elif optimal_format == "graph":
+          return graph_algorithm(data_ref)
+      else:  # vector
+          return similarity_search(data_ref)
   ```
 
 ## Data Handling Patterns
@@ -71,6 +134,44 @@
       result = simple_connected_components(graph)
   except:
       result = sample_based_detection(graph, sample_size=1000)
+  ```
+
+### Partial Results Pattern
+- **Problem**: All-or-nothing processing loses valuable partial work
+- **Solution**: Always return what succeeded, failed, and partially completed
+- **Implementation**:
+  ```python
+  def process_documents(doc_refs):
+      results = {
+          "successful": [],
+          "failed": [],
+          "partial": [],
+          "summary": {}
+      }
+      
+      for doc_ref in doc_refs:
+          try:
+              result = process_document(doc_ref)
+              results["successful"].append(result)
+          except PartialProcessingError as e:
+              results["partial"].append({
+                  "doc_ref": doc_ref,
+                  "completed_steps": e.completed,
+                  "failed_at": e.failed_step
+              })
+          except Exception as e:
+              results["failed"].append({
+                  "doc_ref": doc_ref,
+                  "error": str(e)
+              })
+      
+      results["summary"] = {
+          "total": len(doc_refs),
+          "successful": len(results["successful"]),
+          "failed": len(results["failed"]),
+          "partial": len(results["partial"])
+      }
+      return results
   ```
 
 ### Multi-Level Validation
@@ -144,6 +245,94 @@
       
       def is_read_only(self) -> bool
       async def execute(self, **kwargs) -> Result
+  ```
+
+## Advanced Patterns
+
+### Confidence Propagation Pattern
+- **Problem**: Uncertainty compounds through pipeline but isn't tracked
+- **Solution**: Propagate confidence with operation-specific rules
+- **Implementation**:
+  ```python
+  class ConfidencePropagator:
+      def propagate(self, upstream_scores, operation_type):
+          if operation_type == "extraction":
+              # Extraction reduces confidence
+              return min(upstream_scores) * 0.95
+          elif operation_type == "aggregation":
+              # Aggregation averages confidence
+              return sum(upstream_scores) / len(upstream_scores)
+          elif operation_type == "filtering":
+              # Filtering preserves best confidence
+              return max(upstream_scores)
+          elif operation_type == "inference":
+              # Inference compounds uncertainty
+              return min(upstream_scores) * 0.85
+  ```
+
+### Versioning Pattern
+- **Problem**: Changes break reproducibility and knowledge evolves
+- **Solution**: Four-level versioning system
+- **Implementation**:
+  ```python
+  class Versioned:
+      def __init__(self):
+          self.schema_version = "1.0"  # Data structure version
+          self.data_version = 1        # Content version
+          self.graph_version = None    # Graph snapshot version
+          self.analysis_version = None # Analysis result version
+      
+      def create_version(self, level):
+          if level == "data":
+              self.data_version += 1
+              self.invalidate_downstream()
+  ```
+
+### Reference Resolution Pattern
+- **Problem**: Tools need data but shouldn't load everything
+- **Solution**: Lazy loading through reference resolution
+- **Implementation**:
+  ```python
+  class ReferenceResolver:
+      def resolve(self, ref: str, fields: List[str] = None):
+          # Parse reference type
+          storage, type, id = ref.split("://")[1].split("/")
+          
+          # Load only requested fields
+          if storage == "neo4j":
+              return self.neo4j.get_partial(type, id, fields)
+          elif storage == "sqlite":
+              return self.sqlite.get_partial(type, id, fields)
+          
+      def resolve_batch(self, refs: List[str], fields: List[str] = None):
+          # Group by storage for efficiency
+          by_storage = defaultdict(list)
+          for ref in refs:
+              storage = ref.split("://")[1].split("/")[0]
+              by_storage[storage].append(ref)
+          
+          # Batch load from each storage
+          results = {}
+          for storage, storage_refs in by_storage.items():
+              results.update(self.batch_load(storage, storage_refs, fields))
+          return results
+  ```
+
+### Tool Variant Selection Pattern
+- **Problem**: Multiple tool variants (fast/cheap vs slow/accurate)
+- **Solution**: Agent-driven selection based on context
+- **Implementation**:
+  ```python
+  class ToolSelector:
+      def select_variant(self, tool_base: str, context: dict) -> str:
+          if tool_base == "T23":  # Entity extraction
+              if context.get("volume") > 10000:
+                  return "T23a"  # Fast spaCy variant
+              elif context.get("domain") == "specialized":
+                  return "T23b"  # LLM variant for custom entities
+              else:
+                  # Let agent decide based on quality needs
+                  return None  # Agent will choose
   ```
 
 ### Aggregate Tools Pattern
