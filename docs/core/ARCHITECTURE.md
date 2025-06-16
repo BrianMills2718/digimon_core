@@ -2,7 +2,9 @@
 
 ## System Overview
 
-Super-Digimon is a GraphRAG (Graph Retrieval-Augmented Generation) system that enables natural language querying of graph data through **106 specialized tools** organized in **7 lifecycle phases**. The system combines graph storage, vector search, and metadata management to provide intelligent graph analysis capabilities.
+Super-Digimon is a GraphRAG (Graph Retrieval-Augmented Generation) system that enables natural language querying of graph data through **120 specialized tools** organized in **8 phases**. The system combines graph storage, vector search, and metadata management to provide intelligent graph analysis capabilities.
+
+**Key Innovation**: The system can perform virtually any analytical method through flexible data structuring - seamlessly converting between graphs, tables, and vectors based on the analysis needs.
 
 ## Core Architecture
 
@@ -20,7 +22,7 @@ Super-Digimon is a GraphRAG (Graph Retrieval-Augmented Generation) system that e
          ▼
 ┌─────────────────┐
 │ Python MCP      │  Single MCP Server
-│    Server       │  106 Tools (T01-T106)
+│    Server       │  120 Tools (T01-T120)
 └────────┬────────┘
          │
     ┌────┴────┬─────────┐
@@ -41,7 +43,7 @@ Super-Digimon is a GraphRAG (Graph Retrieval-Augmented Generation) system that e
 - **Metadata Store**: SQLite
 - **Containerization**: Docker & Docker Compose
 
-## Tool Organization (106 Tools)
+## Tool Organization (120 Tools)
 
 ### Phase Distribution
 - **Phase 1 - Ingestion** (T01-T12): 12 tools for data loading
@@ -51,6 +53,7 @@ Super-Digimon is a GraphRAG (Graph Retrieval-Augmented Generation) system that e
 - **Phase 5 - Analysis** (T68-T75): 8 tools for graph algorithms
 - **Phase 6 - Storage** (T76-T81): 6 tools for data management
 - **Phase 7 - Interface** (T82-T106): 25 tools for UI/monitoring/export
+- **Phase 8 - Core Services** (T107-T120): 14 tools for infrastructure support
 
 ## Key Architectural Decisions
 
@@ -82,21 +85,104 @@ return {
 }
 ```
 
+### 5. Three-Level Identity System
+All text processing maintains three levels of identification:
+```
+Surface Form → Mention → Entity
+
+Example:
+"Apple announced..." → Mention_001 (pos: 0-5) → Entity: Apple Inc.
+"AAPL rose 5%..."   → Mention_002 (pos: 0-4) → Entity: Apple Inc.
+```
+
+This enables:
+- Exact provenance tracking
+- Handling ambiguity (Apple Inc. vs apple fruit)
+- Multiple surface forms for same entity
+- Correction without losing original data
+
+### 6. Universal Quality Tracking
+Every data object includes quality metadata:
+```python
+{
+    "data": {...},
+    "confidence": 0.87,
+    "quality_tier": "high",
+    "extraction_method": "llm_v2",
+    "warnings": ["OCR quality degraded on page 3"],
+    "evidence": ["source_doc_001", "source_doc_002"]
+}
+```
+
+### 7. Format-Agnostic Processing
+Data seamlessly transforms between formats based on analytical needs:
+```
+Documents → Chunks → Entities/Relations → Graph
+                ↓                          ↓
+            Embeddings                  Tables
+                ↓                          ↓
+            Vectors                   Statistics
+```
+
+Key tools:
+- T115: Graph → Table (for statistical analysis)
+- T116: Table → Graph (for graph algorithms)
+- T117: Format Auto-Selector
+
+## Core Services Layer
+
+Critical services that support all tools:
+
+### Identity Service (T107)
+- Manages three-level identity system
+- Creates and resolves mentions
+- Merges duplicate entities
+- Tracks all surface forms
+
+### Provenance Service (T110)
+- Records every operation
+- Traces complete lineage
+- Enables impact analysis
+- Supports reproducibility
+
+### Quality Service (T111)
+- Assesses confidence scores
+- Propagates uncertainty
+- Aggregates quality metrics
+- Filters by quality thresholds
+
+### Version Service (T108)
+- Four-level versioning (schema, data, graph, analysis)
+- Tracks all changes
+- Enables rollback
+- Supports knowledge evolution
+
 ## Data Flow
 
 1. **Ingestion**: Documents → Chunks → Text Processing
-2. **Construction**: Entities/Relations → Graph Building → Embeddings
-3. **Storage**: Graph → Neo4j, Vectors → FAISS, Metadata → SQLite
-4. **Retrieval**: Query → Tool Selection → Graph Operations → Response
-5. **Analysis**: Graph → Algorithms → Insights → Natural Language
+2. **Identity Resolution**: Surface Forms → Mentions → Entities
+3. **Construction**: Entities/Relations → Graph Building → Embeddings
+4. **Storage**: Graph → Neo4j, Vectors → FAISS, Metadata → SQLite
+5. **Retrieval**: Query → Tool Selection → Graph Operations → Response
+6. **Analysis**: Graph → Algorithms → Insights → Natural Language
 
 ## Development Approach
 
-### Implementation Priority
-1. **Infrastructure First**: Docker, databases, basic MCP server
-2. **Core Pipeline**: Phases 1-3 (ingestion, processing, construction)
-3. **GraphRAG Core**: Phase 4 (JayLZhou operators)
-4. **Advanced Features**: Phases 5-7 (analysis, interface)
+### Implementation Priority (11-week roadmap)
+1. **Week 1-2**: Foundation - Core data models, services (T107-T111)
+2. **Week 3-4**: Ingestion & Processing - Basic pipeline (T01, T05, T15, T23)
+3. **Week 5-6**: Construction & Storage - Graph building (T31, T34, T76-T78)
+4. **Week 7-8**: Core Analysis - GraphRAG operators (T49-T56, T68)
+5. **Week 9**: Quality & Robustness - Confidence, partial results
+6. **Week 10**: Temporal & Causal - Advanced features (T118)
+7. **Week 11**: Integration & Polish - End-to-end testing
+
+### Key Implementation Patterns
+- **Reference-based I/O**: All tools use references, not full objects
+- **Streaming support**: Handle large datasets incrementally
+- **Quality propagation**: Track confidence through pipeline
+- **Partial results**: Always return what succeeded
+- **Format flexibility**: Convert between graph/table/vector as needed
 
 ### Prototype Scope
 - **Is**: Functionally complete GraphRAG system
