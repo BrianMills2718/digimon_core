@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Super-Digimon Tool Compatibility Matrix</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+    <link href="https://unpkg.com/vis-network/styles/vis-network.min.css" rel="stylesheet" type="text/css" />
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid #ddd;
+            margin-bottom: 20px;
+        }
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #f0f0f0;
+            border: 1px solid #ddd;
+            border-bottom: none;
+            margin-right: 5px;
+            border-radius: 5px 5px 0 0;
+        }
+        .tab.active {
+            background-color: white;
+            border-bottom: 2px solid white;
+            margin-bottom: -2px;
+        }
+        .view {
+            display: none;
+            min-height: 600px;
+        }
+        .view.active {
+            display: block;
+        }
+        #network {
+            height: 600px;
+            border: 1px solid #ddd;
+            background-color: #fafafa;
+        }
+        .matrix-table {
+            overflow-x: auto;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            font-size: 14px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        .tool-header {
+            background-color: #e3f2fd;
+            text-align: left;
+        }
+        .compatible {
+            background-color: #c8e6c9;
+            font-weight: bold;
+        }
+        .incompatible {
+            background-color: #ffcdd2;
+        }
+        .pipeline-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .pipeline {
+            background-color: #f5f5f5;
+            padding: 20px;
+            border-radius: 8px;
+            border: 2px solid #ddd;
+        }
+        .pipeline h3 {
+            margin-top: 0;
+            color: #1976d2;
+        }
+        .pipeline-flow {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .pipeline-node {
+            background-color: #fff;
+            border: 2px solid #666;
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .pipeline-arrow {
+            font-size: 20px;
+            color: #666;
+        }
+        .data-type {
+            background-color: #e1f5fe;
+            border-color: #01579b;
+        }
+        .tool {
+            background-color: #fff3e0;
+            border-color: #e65100;
+        }
+        .legend {
+            display: flex;
+            gap: 20px;
+            margin: 20px 0;
+            justify-content: center;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .legend-box {
+            width: 20px;
+            height: 20px;
+            border: 2px solid;
+        }
+        .info-panel {
+            background-color: #e8f5e9;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .confidence-flow {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        .confidence-node {
+            text-align: center;
+            padding: 10px;
+            border-radius: 5px;
+            background-color: #fff;
+            border: 2px solid #333;
+        }
+        .confidence-value {
+            font-size: 18px;
+            font-weight: bold;
+            color: #d32f2f;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Super-Digimon Tool Compatibility Matrix</h1>
+        
+        <div class="info-panel">
+            <strong>Note:</strong> This visualization shows ~30 of 106 tools as a proof of concept. 
+            The patterns shown here apply to all tools in the system.
+        </div>
+
+        <div class="tabs">
+            <div class="tab active" onclick="showView('network')">Network View</div>
+            <div class="tab" onclick="showView('matrix')">Matrix View</div>
+            <div class="tab" onclick="showView('pipeline')">Pipeline View</div>
+        </div>
+
+        <div id="network-view" class="view active">
+            <h2>Tool Compatibility Network</h2>
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-box" style="background-color: #e1f5fe; border-color: #01579b;"></div>
+                    <span>Data Type</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-box" style="background-color: #fff3e0; border-color: #e65100;"></div>
+                    <span>Tool</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-box" style="background-color: #f3e5f5; border-color: #4a148c;"></div>
+                    <span>Converter</span>
+                </div>
+            </div>
+            <div id="network"></div>
+        </div>
+
+        <div id="matrix-view" class="view">
+            <h2>Tool-to-Data Type Compatibility Matrix</h2>
+            <div class="matrix-table">
+                <table id="compatibility-matrix">
+                    <!-- Will be populated by JavaScript -->
+                </table>
+            </div>
+        </div>
+
+        <div id="pipeline-view" class="view">
+            <h2>Common Pipeline Patterns</h2>
+            
+            <div class="pipeline-container">
+                <div class="pipeline">
+                    <h3>Pattern 1: Document to Knowledge Graph</h3>
+                    <div class="pipeline-flow">
+                        <div class="pipeline-node tool">T01: PDF</div>
+                        <div class="pipeline-arrow">→</div>
+                        <div class="pipeline-node data-type">Document</div>
+                        <div class="pipeline-arrow">→</div>
+                        <div class="pipeline-node tool">T15: Chunker</div>
+                        <div class="pipeline-arrow">→</div>
+                        <div class="pipeline-node data-type">Chunks</div>
+                        <div class="pipeline-arrow">→</div>
+                        <div class="pipeline-node tool">T23: NER</div>
+                        <div class="pipeline-arrow">→</div>
+                        <div class="pipeline-node data-type">Mentions</div>
+                        <div class="pipeline-arrow">→</div>
+                        <div class="pipeline-node tool">T31: Builder</div>
+                        <div class="pipeline-arrow">→</div>
+                        <div class="pipeline-node data-type">Entities</div>
+                    </div>
+                </div>
+
+                <div class="pipeline">
+                    <h3>Pattern 2: Three-Level Identity System</h3>
+                    <div class="pipeline-flow">
+                        <div class="pipeline-node" style="background-color: #ffebee;">Surface: "Apple"</div>
+                        <div class="pipeline-arrow">→</div>
+                        <div class="pipeline-node" style="background-color: #fff8e1;">Mention_001<br><small>pos: 1234</small></div>
+                        <div class="pipeline-arrow">→</div>
+                        <div class="pipeline-node" style="background-color: #e8f5e9;">Entity: Apple Inc.<br><small>conf: 0.92</small></div>
+                    </div>
+                </div>
+
+                <div class="pipeline">
+                    <h3>Pattern 3: Quality Degradation Flow</h3>
+                    <div class="confidence-flow">
+                        <div class="confidence-node">
+                            <div>Document</div>
+                            <div class="confidence-value">0.95</div>
+                        </div>
+                        <div class="pipeline-arrow">→</div>
+                        <div class="confidence-node">
+                            <div>Chunks</div>
+                            <div class="confidence-value">0.95</div>
+                        </div>
+                        <div class="pipeline-arrow">→</div>
+                        <div class="confidence-node">
+                            <div>Mentions</div>
+                            <div class="confidence-value">0.87</div>
+                        </div>
+                        <div class="pipeline-arrow">→</div>
+                        <div class="confidence-node">
+                            <div>Entities</div>
+                            <div class="confidence-value">0.82</div>
+                        </div>
+                        <div class="pipeline-arrow">→</div>
+                        <div class="confidence-node">
+                            <div>Analysis</div>
+                            <div class="confidence-value">0.78</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data definitions
+        const tools = [
+            // Ingestion
+            {id: 'T01', label: 'T01: PDF\nLoader', group: 'ingestion', outputs: ['document']},
+            {id: 'T05', label: 'T05: CSV\nLoader', group: 'ingestion', outputs: ['document', 'table']},
+            {id: 'T06', label: 'T06: JSON\nLoader', group: 'ingestion', outputs: ['document']},
+            
+            // Processing
+            {id: 'T15', label: 'T15: Document\nChunker', group: 'processing', inputs: ['document'], outputs: ['chunk']},
+            {id: 'T23', label: 'T23: Entity\nRecognizer', group: 'processing', inputs: ['chunk'], outputs: ['mention']},
+            {id: 'T25', label: 'T25: Coreference\nResolver', group: 'processing', inputs: ['mention'], outputs: ['mention']},
+            
+            // Construction
+            {id: 'T31', label: 'T31: Entity\nBuilder', group: 'construction', inputs: ['mention'], outputs: ['entity']},
+            {id: 'T34', label: 'T34: Relationship\nBuilder', group: 'construction', inputs: ['entity', 'chunk'], outputs: ['relationship']},
+            
+            // Analysis
+            {id: 'T49', label: 'T49: Entity\nSearch', group: 'analysis', inputs: ['entity'], outputs: ['entity']},
+            {id: 'T68', label: 'T68: PageRank', group: 'analysis', inputs: ['entity', 'relationship'], outputs: ['analysis']},
+            
+            // Converters
+            {id: 'T115', label: 'T115: Graph→\nTable', group: 'converter', inputs: ['entity', 'relationship'], outputs: ['table']},
+            {id: 'T116', label: 'T116: Table→\nGraph', group: 'converter', inputs: ['table'], outputs: ['entity', 'relationship']}
+        ];
+
+        const dataTypes = [
+            {id: 'document', label: 'Document', group: 'data'},
+            {id: 'chunk', label: 'Chunk', group: 'data'},
+            {id: 'mention', label: 'Mention', group: 'data'},
+            {id: 'entity', label: 'Entity', group: 'data'},
+            {id: 'relationship', label: 'Relationship', group: 'data'},
+            {id: 'table', label: 'Table', group: 'data'},
+            {id: 'analysis', label: 'Analysis\nResult', group: 'data'}
+        ];
+
+        // Build network data
+        function buildNetworkData() {
+            const nodes = [];
+            const edges = [];
+            
+            // Add data type nodes
+            dataTypes.forEach(dt => {
+                nodes.push({
+                    id: dt.id,
+                    label: dt.label,
+                    group: 'data',
+                    shape: 'box',
+                    color: {
+                        background: '#e1f5fe',
+                        border: '#01579b'
+                    }
+                });
+            });
+            
+            // Add tool nodes
+            tools.forEach(tool => {
+                let color = {
+                    background: '#fff3e0',
+                    border: '#e65100'
+                };
+                if (tool.group === 'converter') {
+                    color = {
+                        background: '#f3e5f5',
+                        border: '#4a148c'
+                    };
+                }
+                
+                nodes.push({
+                    id: tool.id,
+                    label: tool.label,
+                    shape: 'box',
+                    color: color
+                });
+                
+                // Add edges from inputs to tool
+                if (tool.inputs) {
+                    tool.inputs.forEach(input => {
+                        edges.push({
+                            from: input,
+                            to: tool.id,
+                            arrows: 'to',
+                            color: '#666'
+                        });
+                    });
+                }
+                
+                // Add edges from tool to outputs
+                if (tool.outputs) {
+                    tool.outputs.forEach(output => {
+                        edges.push({
+                            from: tool.id,
+                            to: output,
+                            arrows: 'to',
+                            color: '#666'
+                        });
+                    });
+                }
+            });
+            
+            return {nodes, edges};
+        }
+
+        // Build compatibility matrix
+        function buildMatrix() {
+            const table = document.getElementById('compatibility-matrix');
+            
+            // Header row with data types
+            let headerRow = '<tr><th>Tool</th>';
+            dataTypes.forEach(dt => {
+                headerRow += `<th>${dt.label}</th>`;
+            });
+            headerRow += '</tr>';
+            table.innerHTML = headerRow;
+            
+            // Tool rows
+            tools.forEach(tool => {
+                let row = `<tr><td class="tool-header">${tool.label.replace('\n', ' ')}</td>`;
+                
+                dataTypes.forEach(dt => {
+                    const canInput = tool.inputs && tool.inputs.includes(dt.id);
+                    const canOutput = tool.outputs && tool.outputs.includes(dt.id);
+                    
+                    if (canInput && canOutput) {
+                        row += '<td class="compatible">↔</td>';
+                    } else if (canInput) {
+                        row += '<td class="compatible">←</td>';
+                    } else if (canOutput) {
+                        row += '<td class="compatible">→</td>';
+                    } else {
+                        row += '<td class="incompatible">✗</td>';
+                    }
+                });
+                
+                row += '</tr>';
+                table.innerHTML += row;
+            });
+        }
+
+        // Initialize network visualization
+        function initNetwork() {
+            const container = document.getElementById('network');
+            const data = buildNetworkData();
+            
+            const options = {
+                nodes: {
+                    font: {
+                        size: 14
+                    },
+                    borderWidth: 2
+                },
+                edges: {
+                    width: 2,
+                    smooth: {
+                        type: 'curvedCW',
+                        roundness: 0.2
+                    }
+                },
+                layout: {
+                    hierarchical: {
+                        direction: 'LR',
+                        sortMethod: 'directed',
+                        levelSeparation: 200,
+                        nodeSpacing: 150
+                    }
+                },
+                physics: {
+                    enabled: false
+                }
+            };
+            
+            new vis.Network(container, data, options);
+        }
+
+        // View switching
+        function showView(viewName) {
+            // Update tabs
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Update views
+            document.querySelectorAll('.view').forEach(view => {
+                view.classList.remove('active');
+            });
+            document.getElementById(viewName + '-view').classList.add('active');
+        }
+
+        // Initialize on load
+        window.onload = function() {
+            initNetwork();
+            buildMatrix();
+        };
+    </script>
+</body>
+</html>

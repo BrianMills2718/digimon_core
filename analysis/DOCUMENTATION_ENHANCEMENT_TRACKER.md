@@ -658,6 +658,434 @@ Create example YAML files:
 
 ---
 
+## 14. Critical Discoveries from Mock Workflows
+
+### 14.1 Three-Level Identity System
+**Source**: Mock workflow analysis (Examples 1-15)
+**Priority**: CRITICAL
+**Location**: New section in ARCHITECTURE.md and SPECIFICATIONS.md
+
+- [ ] Implement three levels of identification:
+  - [ ] Surface forms (text as it appears)
+  - [ ] Mentions (specific occurrences with context)
+  - [ ] Entities (canonical resolved entities)
+- [ ] Create mapping system between levels
+- [ ] Handle same surface → multiple entities (Apple Inc. vs apple)
+- [ ] Handle same entity → multiple surfaces (Apple, AAPL)
+
+### 14.2 Universal Quality/Confidence Framework
+**Source**: Mock workflows showing OCR errors, conflicts, ambiguity
+**Priority**: CRITICAL
+**Location**: Add to all data schemas
+
+- [ ] Every object needs:
+  - [ ] confidence: float (0.0-1.0)
+  - [ ] quality_tier: high/medium/low
+  - [ ] extraction_method: str
+  - [ ] evidence: List[str]
+  - [ ] warnings: List[str]
+- [ ] Quality propagation rules through pipeline
+- [ ] Preserve alternatives, not just winners
+
+### 14.3 Comprehensive Versioning System
+**Source**: Mock workflows showing data corrections, schema evolution
+**Priority**: HIGH
+**Location**: New VERSIONING.md file
+
+- [ ] Four types of versioning:
+  - [ ] Schema versioning (with migrations)
+  - [ ] Data versioning (for corrections)
+  - [ ] Graph versioning (for time travel)
+  - [ ] Analysis versioning (for reproducibility)
+- [ ] Version lineage tracking
+- [ ] Rollback capabilities
+
+### 14.4 Streaming-First Architecture
+**Source**: 10M tweets example, memory constraints
+**Priority**: HIGH
+**Location**: Update all tool specifications
+
+- [ ] All tools need streaming variants
+- [ ] Batch processing with yields
+- [ ] Bounded memory usage patterns
+- [ ] Approximate algorithms when needed
+- [ ] Incremental update support
+
+### 14.5 Conflict Resolution Framework
+**Source**: Multiple sources reporting different values
+**Priority**: HIGH
+**Location**: New component in ARCHITECTURE.md
+
+- [ ] Resolution strategies:
+  - [ ] source_hierarchy (primary sources win)
+  - [ ] recency (newest wins)
+  - [ ] consensus (majority wins)
+  - [ ] confidence_weighted
+- [ ] Always preserve alternatives
+- [ ] Sensitivity analysis support
+
+### 14.6 Cross-Format Entity Registry
+**Source**: Same entity in Neo4j, SQLite, FAISS
+**Priority**: CRITICAL
+**Location**: New service in ARCHITECTURE.md
+
+- [ ] Unified entity registry tracking locations
+- [ ] Entity exists in multiple stores simultaneously
+- [ ] Consistent ID across all formats
+- [ ] Cross-store query support
+
+### 14.7 Core Services Layer
+**Source**: Mock workflows revealing service needs
+**Priority**: CRITICAL - BUILD FIRST
+**Location**: New CORE_SERVICES.md
+
+- [ ] Identity Service:
+  - [ ] Mention creation and resolution
+  - [ ] Entity creation and merging
+  - [ ] Surface form management
+
+- [ ] Version Service:
+  - [ ] Version creation and tracking
+  - [ ] Diff and rollback
+  - [ ] Lineage management
+
+- [ ] Provenance Service:
+  - [ ] Operation recording
+  - [ ] Lineage tracing
+  - [ ] Impact analysis
+  - [ ] Cascade invalidation
+
+- [ ] Quality Service:
+  - [ ] Confidence assessment
+  - [ ] Tier assignment
+  - [ ] Confidence propagation
+  - [ ] Aggregation methods
+
+### 14.8 Checkpoint and Recovery Patterns
+**Source**: Long workflow failure scenarios
+**Priority**: HIGH
+**Location**: Add to DESIGN_PATTERNS.md
+
+- [ ] Checkpoint after major phases
+- [ ] State serialization patterns
+- [ ] Recovery from partial completion
+- [ ] Progress tracking
+
+### 14.9 Partial Results and Graceful Degradation
+**Source**: Corrupted PDFs, OCR errors examples
+**Priority**: HIGH
+**Location**: Update tool specifications
+
+- [ ] Always return partial results
+- [ ] Clear failure reporting
+- [ ] Quality degradation tracking
+- [ ] User-controlled quality filtering
+
+### 14.10 Enhanced Data Schema Requirements
+**Source**: All mock workflow discoveries
+**Priority**: CRITICAL
+**Location**: Update DATA_SCHEMAS.md
+
+- [ ] BaseObject with all common fields
+- [ ] Mention as first-class object
+- [ ] Flexible attribute system
+- [ ] Disambiguation tracking
+- [ ] Temporal attributes
+- [ ] Conflict preservation
+
+---
+
+## 15. Advanced Scenario Discoveries
+
+### 15.1 Meta-Analysis and Self-Reference
+**Source**: Mock workflow Example 16 - Recursive analysis
+**Priority**: HIGH
+**Location**: Add to ARCHITECTURE.md
+
+- [ ] Meta-analysis service to detect self-reference
+- [ ] Recursion prevention mechanisms
+- [ ] Self-improvement suggestions without auto-modification
+- [ ] Clear boundaries on system self-awareness
+
+### 15.2 Multi-Language Entity Alignment
+**Source**: Mock workflow Example 17 - Multi-language documents
+**Priority**: HIGH
+**Location**: Add to Entity specifications
+
+- [ ] Multi-language name storage per entity
+- [ ] Cross-language entity resolution
+- [ ] Cultural context preservation
+- [ ] Language-specific confidence scores
+- [ ] Temporal alignment across cultures
+
+### 15.3 Dynamic Constraint Management
+**Source**: Mock workflow Example 18 - Real-time constraints
+**Priority**: HIGH
+**Location**: New CONSTRAINT_ENGINE.md
+
+- [ ] Constraint versioning and diffing
+- [ ] Incremental revalidation
+- [ ] Differential results (what changed and why)
+- [ ] "Almost qualified" tracking
+- [ ] Real-time monitoring hooks
+
+### 15.4 Hypothesis Testing Framework
+**Source**: Mock workflow Example 19 - Hypothesis with counterfactuals
+**Priority**: MEDIUM
+**Location**: New HYPOTHESIS_SERVICE.md
+
+- [ ] Hypothesis registration and versioning
+- [ ] Multiple operationalization support
+- [ ] Counterfactual exploration
+- [ ] Sensitivity analysis
+- [ ] Hypothesis evolution tracking
+
+### 15.5 Privacy-Preserving Federation
+**Source**: Mock workflow Example 20 - Federated analysis
+**Priority**: MEDIUM
+**Location**: Add to ARCHITECTURE.md
+
+- [ ] Aggregate-only entity definitions
+- [ ] Differential privacy integration
+- [ ] Privacy budget tracking
+- [ ] Federated computation patterns
+- [ ] Compliant audit trails
+
+### 15.6 Live Correction Protocol
+**Source**: Mock workflow Example 21 - Live presentation corrections
+**Priority**: HIGH
+**Location**: Add to DESIGN_PATTERNS.md
+
+- [ ] Real-time correction application
+- [ ] Impact cascade analysis
+- [ ] Presentation mode with annotations
+- [ ] Partial regeneration strategies
+- [ ] Transparent correction tracking
+
+---
+
+## 16. Extreme Edge Case Discoveries
+
+### 16.1 Circular Dependency Handling
+**Source**: Mock workflow Example 22 - Circular ownership
+**Priority**: HIGH
+**Location**: Add to graph processing tools
+
+- [ ] Cycle detection algorithms
+- [ ] Eigenvalue-based calculations for cycles
+- [ ] DAG conversion when needed
+- [ ] Convergence checking for iterative algorithms
+- [ ] Multiple graph representations
+
+### 16.2 Extreme Cardinality Management
+**Source**: Mock workflow Example 23 - 10M followers
+**Priority**: HIGH
+**Location**: Update storage patterns
+
+- [ ] High-degree node detection
+- [ ] Sampling strategies for extreme relationships
+- [ ] Partitioned storage for large edge sets
+- [ ] Modified algorithms for skewed distributions
+- [ ] Hierarchical aggregation patterns
+
+### 16.3 Temporal Paradox Resolution
+**Source**: Mock workflow Example 24 - Conflicting timelines
+**Priority**: MEDIUM
+**Location**: New TEMPORAL_REASONING.md
+
+- [ ] Temporal constraint graphs
+- [ ] Paradox detection algorithms
+- [ ] Multi-timeline representation
+- [ ] Source reliability in temporal conflicts
+- [ ] Partial truth hypothesis generation
+
+### 16.4 Absence and Negation Analysis
+**Source**: Mock workflow Example 25 - Proving negatives
+**Priority**: MEDIUM
+**Location**: Add to relationship specifications
+
+- [ ] Negative relationship types
+- [ ] Absence verification strategies
+- [ ] Confidence decay for absence claims
+- [ ] Universe completeness checking
+- [ ] Temporal validity of negations
+
+### 16.5 Emergence Detection
+**Source**: Mock workflow Example 26 - Weak signal aggregation
+**Priority**: MEDIUM
+**Location**: New EMERGENCE_DETECTION.md
+
+- [ ] Weak signal collection and scoring
+- [ ] Synergy effect calculations
+- [ ] Emergence threshold detection
+- [ ] Temporal trajectory tracking
+- [ ] Comparative emergence analysis
+
+### 16.6 Knowledge Evolution Tracking
+**Source**: Mock workflow Example 27 - Paradigm shifts
+**Priority**: HIGH
+**Location**: New KNOWLEDGE_EVOLUTION.md
+
+- [ ] Consensus establishment methods
+- [ ] Contradiction quality scoring
+- [ ] Paradigm shift detection
+- [ ] Knowledge versioning over time
+- [ ] Methodology improvement tracking
+
+---
+
+## 17. Unexplored Dimensions Discoveries
+
+### 17.1 Uncertainty Quantification System
+**Source**: Mock workflow Example 28 - Uncertainty propagation
+**Priority**: HIGH
+**Location**: New UNCERTAINTY_FRAMEWORK.md
+
+- [ ] Track uncertainty types (measurement, entity, extraction)
+- [ ] Uncertainty propagation methods (Monte Carlo, Gaussian)
+- [ ] Joint uncertainty calculation
+- [ ] Distribution tracking through pipeline
+- [ ] Decision support with confidence intervals
+
+### 17.2 Continuous Learning Infrastructure
+**Source**: Mock workflow Example 29 - Model drift
+**Priority**: HIGH
+**Location**: New CONTINUOUS_LEARNING.md
+
+- [ ] Performance tracking over time
+- [ ] Drift detection algorithms
+- [ ] Drift type classification
+- [ ] Adaptive model management
+- [ ] Ensemble approaches for stability
+
+### 17.3 Causality-Preserving Transformations
+**Source**: Mock workflow Example 30 - Graph to table with causality
+**Priority**: CRITICAL
+**Location**: Update transformation tools
+
+- [ ] Causal metadata in all formats
+- [ ] DAG structure preservation
+- [ ] Confounder/mediator distinction
+- [ ] Adjustment set calculation
+- [ ] Bidirectional causal updates
+
+### 17.4 Temporal Semantics Management
+**Source**: Mock workflow Example 31 - Semantic drift
+**Priority**: HIGH
+**Location**: New TEMPORAL_SEMANTICS.md
+
+- [ ] Temporal term dictionaries
+- [ ] Context-dependent disambiguation
+- [ ] Retroactive reinterpretation
+- [ ] Semantic evolution tracking
+- [ ] Cross-temporal concept mapping
+
+### 17.5 Multi-Ontology Reconciliation
+**Source**: Mock workflow Example 32 - Competing ontologies
+**Priority**: MEDIUM
+**Location**: New ONTOLOGY_RECONCILIATION.md
+
+- [ ] Multi-ontology entity representation
+- [ ] Relationship conflict resolution
+- [ ] Hierarchical alignment algorithms
+- [ ] Query translation across ontologies
+- [ ] Evidence-based unification
+
+---
+
+## 18. Final Frontier Discoveries
+
+### 18.1 Explainable AI with Counterfactuals
+**Source**: Mock workflow Example 33 - Loan rejection explanation
+**Priority**: HIGH
+**Location**: New EXPLAINABILITY_FRAMEWORK.md
+
+- [ ] Counterfactual generation with feasibility
+- [ ] Actionable recommendation paths
+- [ ] Timeline estimation for changes
+- [ ] Fairness-aware explanations
+- [ ] Multiple explanation strategies
+
+### 18.2 Graph Compression for Edge Deployment
+**Source**: Mock workflow Example 34 - Bandwidth-limited analysis
+**Priority**: MEDIUM
+**Location**: New COMPRESSION_STRATEGIES.md
+
+- [ ] Multi-level compression methods
+- [ ] Query-aware compression
+- [ ] Progressive loading patterns
+- [ ] Edge-cloud hybrid execution
+- [ ] Graph sketching algorithms
+
+### 18.3 Adversarial Robustness
+**Source**: Mock workflow Example 35 - Attack detection
+**Priority**: HIGH
+**Location**: New SECURITY_FRAMEWORK.md
+
+- [ ] Anomaly detection in data streams
+- [ ] Source credibility scoring system
+- [ ] Adversarial pattern recognition
+- [ ] Defensive analysis techniques
+- [ ] Attack attribution methods
+
+### 18.4 Collaborative Knowledge Construction
+**Source**: Mock workflow Example 36 - Multi-analyst collaboration
+**Priority**: MEDIUM
+**Location**: New COLLABORATION_FRAMEWORK.md
+
+- [ ] Concurrent edit detection and resolution
+- [ ] Consensus building mechanisms
+- [ ] Multi-analyst attribution
+- [ ] Branch-based analysis
+- [ ] Peer review workflows
+
+### 18.5 Resource-Aware Adaptive Analysis
+**Source**: Mock workflow Example 37 - Dynamic resource adaptation
+**Priority**: HIGH
+**Location**: Update ARCHITECTURE.md
+
+- [ ] Resource assessment and profiling
+- [ ] Adaptive algorithm selection
+- [ ] Progressive execution planning
+- [ ] Quality degradation strategies
+- [ ] Enhancement option generation
+
+---
+
+## 19. Cross-Cutting Architectural Requirements
+
+### 19.1 Quality as First-Class Citizen
+**Source**: All mock workflows
+**Priority**: CRITICAL
+**Location**: Core architecture principle
+
+- [ ] Every operation tracks quality/confidence
+- [ ] Quality degradation is explicit
+- [ ] Users can filter by quality thresholds
+- [ ] Quality-aware algorithm selection
+
+### 19.2 Provenance Everything
+**Source**: All mock workflows
+**Priority**: CRITICAL
+**Location**: Core architecture principle
+
+- [ ] Complete audit trail for all operations
+- [ ] Lineage tracking for all data
+- [ ] Impact analysis for changes
+- [ ] Reproducibility guarantees
+
+### 19.3 Adaptive Everything
+**Source**: Multiple scenarios
+**Priority**: HIGH
+**Location**: Core design pattern
+
+- [ ] Algorithms adapt to data characteristics
+- [ ] Processing adapts to resources
+- [ ] Interfaces adapt to user expertise
+- [ ] Models adapt to drift
+
+---
+
 ## Notes
 
 - This tracker will be updated as we discover more insights
