@@ -23,26 +23,74 @@ Super-Digimon is a GraphRAG (Graph Retrieval-Augmented Generation) system that e
 - **10GB+ disk space** for databases and indices
 - **No GPU required** - CPU-based processing only
 
-## Success Criteria
+## Success Criteria (Granular + Adversarial Testing)
 
 ### Phase 0: Foundation (Week 1)
-- [ ] Core services implemented (T107, T110, T111, T121) - MINIMAL versions
-- [ ] MCP server functional with tool registration
-- [ ] Database connections working (Neo4j, SQLite, FAISS)
-- [ ] Reference system operational (storage://type/id format)
+**Core Services (Each Must Pass Adversarial Testing)**:
+- [ ] **T107 Identity Service**: Creates mentions, links to entities, handles duplicates
+  - ✅ Test: 100 random entity names, verify no false merges
+  - ✅ Test: Identical entities with different surface forms merge correctly
+  - ✅ Adversarial: Unicode names, special characters, very long names
+- [ ] **T110 Provenance Service**: Records all operations with full lineage
+  - ✅ Test: Track 50 operations, verify complete audit trail
+  - ✅ Adversarial: Concurrent operations, memory pressure, large payloads
+- [ ] **T111 Quality Service**: Propagates confidence through pipeline
+  - ✅ Test: Confidence degrades predictably through 5-step pipeline
+  - ✅ Adversarial: Extreme confidence values (0.0001, 0.9999), negative numbers
+- [ ] **T121 Workflow State**: Checkpoints and restores reliably
+  - ✅ Test: 10 checkpoints, restore from each successfully
+  - ✅ Adversarial: Disk full, corrupted checkpoints, missing files
 
-### Phase 1: Vertical Slice (Weeks 2-3) 
-- [ ] PDF → PageRank → Answer workflow functional end-to-end
-- [ ] Minimal tools implemented: T01, T15a, T23a, T27, T31, T34, T68, T49
-- [ ] Cross-database references working (neo4j:// sqlite:// faiss://)
-- [ ] Quality scores propagate correctly through pipeline
-- [ ] One complete test case working start-to-finish
+**Infrastructure (Must Handle Edge Cases)**:
+- [ ] **MCP Server**: All 4 core tools registered and responding
+  - ✅ Test: Tool discovery, parameter validation, error responses
+  - ✅ Adversarial: Malformed requests, timeout handling, concurrent calls
+- [ ] **Database Integration**: All 3 databases operational
+  - ✅ Test: Neo4j/SQLite/FAISS create/read/update operations
+  - ✅ Adversarial: Connection drops, full disk, memory exhaustion
 
-### Phase 2: Horizontal Expansion (Ongoing)
-- [ ] Additional tool variants based on needs
-- [ ] Enhanced error handling and recovery
-- [ ] Performance optimization of hot spots
-- [ ] Complete tool contract validation
+### Phase 1: Vertical Slice (Weeks 2-3)
+**Each Tool Must Pass Individual + Integration Tests**:
+- [ ] **T01 PDF Loader**: Extracts clean text with confidence scores
+  - ✅ Test: 5 different PDF types (text, scanned, multi-column)
+  - ✅ Adversarial: Corrupted PDFs, 0-byte files, 100MB+ documents
+- [ ] **T15a Text Chunker**: Creates overlapping chunks with position tracking
+  - ✅ Test: Chunk boundaries respect token limits, overlap works
+  - ✅ Adversarial: Single-token text, massive paragraphs, Unicode edge cases
+- [ ] **T23a spaCy NER**: Extracts entities with position and confidence
+  - ✅ Test: Standard entities detected in 10 test documents
+  - ✅ Adversarial: No entities, entity-only text, nested entities
+- [ ] **T27 Relationship Extractor**: Links entities with confidence weighting
+  - ✅ Test: Basic subject-verb-object patterns work
+  - ✅ Adversarial: Complex sentences, no relationships, ambiguous pronouns
+- [ ] **T31 Entity Builder**: Converts mentions to graph nodes
+  - ✅ Test: 100 mentions → entities, verify deduplication
+  - ✅ Adversarial: Identical text different contexts, empty mentions
+- [ ] **T34 Edge Builder**: Creates weighted relationships in graph
+  - ✅ Test: Relationships match extractions, weights preserved
+  - ✅ Adversarial: Self-relationships, circular dependencies, zero weights
+- [ ] **T68 PageRank**: Ranks entities by centrality
+  - ✅ Test: Results match NetworkX implementation ±0.001
+  - ✅ Adversarial: Disconnected graphs, single nodes, identical weights
+- [ ] **T49 Multi-hop Query**: Traverses graph to find answers
+  - ✅ Test: 2-hop and 3-hop queries return correct paths
+  - ✅ Adversarial: No paths exist, circular queries, infinite loops
+
+**End-to-End Workflow (Critical Integration Tests)**:
+- [ ] **PDF → Answer Pipeline**: Complete workflow with real test data
+  - ✅ Test: 3 different PDFs → meaningful answers with <5min processing
+  - ✅ Adversarial: Malformed PDFs, empty results, system failures
+- [ ] **Cross-Database Integrity**: References work across Neo4j/SQLite/FAISS
+  - ✅ Test: Entity in Neo4j matches SQLite metadata and FAISS embedding
+  - ✅ Adversarial: Missing references, orphaned data, corrupted indices
+- [ ] **Quality Propagation**: Confidence tracked through entire pipeline
+  - ✅ Test: Input confidence 0.9 → output confidence documented at each step
+  - ✅ Adversarial: Conflicting confidences, quality degradation, zero confidence
+
+### Phase 2: Horizontal Expansion (Validation Required)
+- [ ] **Additional Tools**: Only implement after Phase 1 passes ALL tests
+- [ ] **Performance Optimization**: Based on real bottlenecks, not assumptions
+- [ ] **Error Recovery**: Graceful degradation tested under failure conditions
 
 ### Thesis Defense Ready
 - [ ] Can demonstrate all mock workflows from analysis
@@ -172,11 +220,50 @@ Digimons/
 
 **Critical**: Do NOT implement full tools initially. Use minimal viable implementations to prove architecture works.
 
-### Technical Patterns
+### Technical Patterns (Granular Implementation Standards)
 - **Attribute-Based Tool System**: Tools declare requirements, not fixed graph types
-- **MCP Protocol**: All 121 tools exposed via Model Context Protocol
-- **Pass-by-Reference**: Efficient handling of large graph data
-- **Phase-Based Development**: Implement tools in dependency order
+- **MCP Protocol**: All tools exposed via Model Context Protocol with full validation
+- **Pass-by-Reference**: Efficient handling using storage://type/id format
+- **Adversarial-First Development**: Each tool must handle edge cases before integration
+
+### Granular Implementation Criteria (Per Tool)
+**Every tool must meet these specific standards**:
+
+1. **Input Validation**:
+   - [ ] Parameter type checking with informative errors
+   - [ ] Range validation for numerical inputs
+   - [ ] Required field validation with specific missing field messages
+   - [ ] Adversarial: Handle None, empty strings, extreme values gracefully
+
+2. **Output Consistency**:
+   - [ ] Always return Dict[str, Any] with standardized structure
+   - [ ] Include confidence score (0.0-1.0) for all operations
+   - [ ] Provide partial results on failure with detailed error information
+   - [ ] Adversarial: Consistent output format even under error conditions
+
+3. **Quality Tracking**:
+   - [ ] Input confidence propagated to output with documented degradation
+   - [ ] Operation metadata included (timestamp, tool_id, parameters)
+   - [ ] Lineage references to source data maintained
+   - [ ] Adversarial: Quality tracking works under resource pressure
+
+4. **Error Handling**:
+   - [ ] Specific exception types for different failure modes
+   - [ ] Graceful degradation with partial results when possible
+   - [ ] Resource cleanup on failure (connections, file handles)
+   - [ ] Adversarial: Recovery from disk full, memory exhaustion, network issues
+
+5. **Performance Requirements**:
+   - [ ] Response time logged and monitored
+   - [ ] Memory usage bounded and documented
+   - [ ] Batch operations for efficiency when processing multiple items
+   - [ ] Adversarial: Performance maintained under stress conditions
+
+6. **Integration Standards**:
+   - [ ] Provenance tracking via T110 for all operations
+   - [ ] Identity resolution via T107 for entity references
+   - [ ] Quality assessment via T111 for confidence management
+   - [ ] Adversarial: Integration works during service degradation
 
 ## Database Configuration
 
@@ -193,28 +280,51 @@ Create `.env` file in project root:
 - `FAISS_INDEX_PATH=./data/faiss_index`
 - `SQLITE_DB_PATH=./data/metadata.db`
 
-## Testing Strategy
+## Testing Strategy (Adversarial-First Approach)
 
-### Test Categories
-- Unit tests: Individual component functionality
-- Integration tests: Multi-component interactions  
-- E2E tests: Complete workflow validation
-- Performance tests: System benchmarking
+### Test Categories (All Include Adversarial Cases)
+- **Unit Tests**: Individual tool functionality + edge case handling
+- **Integration Tests**: Multi-tool workflows + failure propagation
+- **End-to-End Tests**: Complete pipeline + system-level failures
+- **Adversarial Tests**: Deliberate attempts to break each component
 
-### Running Tests
+### Adversarial Testing Requirements
+**Every tool implementation must pass adversarial tests BEFORE integration**:
+
+1. **Input Validation**: Malformed data, extreme values, empty inputs
+2. **Resource Limits**: Memory pressure, disk full, timeout scenarios
+3. **Concurrency**: Race conditions, deadlocks, data corruption
+4. **Error Propagation**: Graceful degradation, partial results, recovery
+5. **Edge Cases**: Unicode, special characters, boundary conditions
+
+### Running Tests (Development Workflow)
 ```bash
-# All tests
-pytest tests/ -v
+# Core adversarial test suite (must pass for each tool)
+pytest tests/adversarial/ -v --tool=T107
 
-# Unit tests only
-pytest tests/unit/ -v
+# All tests including adversarial
+pytest tests/ -v --include-adversarial
 
-# Integration tests
-pytest tests/integration/ -v
+# Unit tests only (with adversarial cases)
+pytest tests/unit/ -v -k "adversarial or edge_case"
 
-# With coverage
-pytest --cov=src tests/
+# Integration tests with failure injection
+pytest tests/integration/ -v --failure-injection
+
+# End-to-end with system stress
+pytest tests/e2e/ -v --stress-test
+
+# Coverage (must be >85% including adversarial paths)
+pytest --cov=src tests/ --cov-fail-under=85
 ```
+
+### Validation Gates
+**No tool proceeds to next phase without passing**:
+- [ ] All unit tests (including adversarial)
+- [ ] Integration tests with 2+ tools
+- [ ] Resource exhaustion scenarios
+- [ ] Error recovery validation
+- [ ] Performance under stress
 
 ## Important Constraints
 
@@ -258,13 +368,39 @@ See `IMPLEMENTATION_ROADMAP.md` for detailed plan and milestones.
 **Current Phase**: Starting Vertical Slice (PDF → PageRank → Answer)  
 **Next Milestone**: Complete workflow demonstrating all layers
 
-## Key Principles
+## Key Principles (Adversarial Development Mindset)
 
-1. **Start Simple**: Implement T01 first, prove the architecture works
-2. **Test First**: Write tests before implementation (TDD)
-3. **Follow Patterns**: Use patterns from `docs/core/DESIGN_PATTERNS.md`
-4. **Document Changes**: Update specs if implementation differs
-5. **Incremental Progress**: One tool at a time, commit working code
+1. **Adversarial First**: Before implementing any tool, design tests to break it
+2. **Granular Validation**: Each tool must pass 6+ specific criteria before integration
+3. **Minimal + Robust**: Simple implementations that handle edge cases gracefully
+4. **Test-Driven Development**: Write adversarial tests before implementation
+5. **Incremental + Validated**: One tool at a time, fully validated before proceeding
+
+### Development Checklist (Per Tool)
+**Complete this checklist before marking any tool as "done"**:
+
+- [ ] **Design Phase**: List 5+ ways the tool could fail or be misused
+- [ ] **Test Suite**: Write adversarial tests for identified failure modes
+- [ ] **Implementation**: Code with explicit error handling for each failure mode
+- [ ] **Unit Validation**: All tests pass including adversarial cases
+- [ ] **Integration Testing**: Tool works with core services under stress
+- [ ] **Performance Validation**: Tool performs within documented bounds
+- [ ] **Documentation**: Failure modes and recovery procedures documented
+- [ ] **Code Review**: Implementation reviewed for missing edge cases
+
+### Red Flags (Stop Development If You See These)
+- ❌ "This edge case is unlikely to happen in practice"
+- ❌ "We can handle error cases later"
+- ❌ "The test suite is comprehensive enough"
+- ❌ "Performance is acceptable for now"
+- ❌ "Integration works in the happy path"
+
+### Green Flags (Good Adversarial Thinking)
+- ✅ "What happens if the input is malformed?"
+- ✅ "How does this behave under memory pressure?"
+- ✅ "Can we recover gracefully from this failure?"
+- ✅ "What partial results can we return on error?"
+- ✅ "How do we maintain data integrity during crashes?"
 
 ## Notes
 
