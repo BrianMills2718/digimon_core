@@ -16,7 +16,7 @@ docker-compose up -d neo4j
 pip install -r requirements.txt
 
 # 4. Verify setup
-python -m tools.test_connection
+python -m scripts.test_connection
 ```
 
 ## Architecture Overview
@@ -53,7 +53,10 @@ Digimons/
 ├── docs/                        # Documentation
 │   ├── core/                   # Essential technical docs
 │   │   ├── ARCHITECTURE.md     # System design
-│   │   ├── SPECIFICATIONS.md   # All 106 tools
+│   │   ├── SPECIFICATIONS.md   # All 121 tools
+│   │   ├── COMPATIBILITY_MATRIX.md # Tool integration matrix
+│   │   ├── DATABASE_INTEGRATION.md # Database integration planning
+│   │   ├── IMPLEMENTATION_REQUIREMENTS.md # Complete implementation checklist
 │   │   ├── DEVELOPMENT_GUIDE.md # Setup guide
 │   │   └── DESIGN_PATTERNS.md  # Best practices
 │   ├── project/                # Project management
@@ -71,7 +74,9 @@ Digimons/
 
 ### **Specifications**
 - [`docs/core/SPECIFICATIONS.md`](docs/core/SPECIFICATIONS.md) - Complete 121 tool specifications
-- [`docs/core/COMPATIBILITY_MATRIX.md`](docs/core/COMPATIBILITY_MATRIX.md) - Tool input/output compatibility (authoritative)
+- [`docs/core/COMPATIBILITY_MATRIX.md`](docs/core/COMPATIBILITY_MATRIX.md) - Tool integration and compatibility matrix
+- [`docs/core/DATABASE_INTEGRATION.md`](docs/core/DATABASE_INTEGRATION.md) - Comprehensive database integration planning
+- [`docs/core/IMPLEMENTATION_REQUIREMENTS.md`](docs/core/IMPLEMENTATION_REQUIREMENTS.md) - Complete implementation checklist
 - [`docs/core/DESIGN_PATTERNS.md`](docs/core/DESIGN_PATTERNS.md) - Implementation patterns and best practices
 
 ## Current Status

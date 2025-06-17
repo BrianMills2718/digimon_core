@@ -225,6 +225,14 @@ Extract relationships between entities (often combined with T23b)
 - `model`: string - Model name (for ML-based)
 - `extract_with_entities`: boolean - Extract entities and relationships together
 
+### T28: Entity Confidence Scorer
+Assess and assign confidence scores to extracted entities
+- `entity_refs`: list - References to entities to score
+- `context_refs`: list - Context chunks for scoring
+- `scoring_method`: string - "frequency", "coherence", "external_kb"
+- `boost_factors`: dict - Factors to boost confidence
+- `penalty_factors`: dict - Factors to reduce confidence
+
 ### T29: Entity Disambiguator
 Resolve entity ambiguity
 - `entity`: dict - Entity to disambiguate

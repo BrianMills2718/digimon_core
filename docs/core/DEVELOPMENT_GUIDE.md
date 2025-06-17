@@ -13,7 +13,7 @@
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/BrianMills2718/UKRF_1.git
+git clone <repository-url>
 cd Digimons
 
 # 2. Create Python virtual environment

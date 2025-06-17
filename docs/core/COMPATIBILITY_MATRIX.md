@@ -122,6 +122,7 @@ All data types inherit from BaseObject and include quality tracking:
 | T23a: Traditional NER | Chunk refs | Mention refs | confidence: ~0.85 |
 | T23b: LLM Extractor | Chunk refs | Mention + Relationship refs | confidence: ~0.90 |
 | T25: Coreference | Mention refs | Updated Mention refs | Propagates lowest confidence |
+| T28: Confidence Scorer | Entity + Context refs | Enhanced Entity refs | Reassesses confidence |
 
 ### Phase 3: Construction (T31-T48)
 
@@ -186,18 +187,22 @@ All data types inherit from BaseObject and include quality tracking:
 ### 1. Document to Knowledge Graph (Most Common)
 ```
 T01/T05/T06 (Ingestion) 
-    ↓ [Document with initial confidence]
+    ↓ [Document with initial confidence] → SQLite storage
 T15a/b (Chunking)
-    ↓ [Chunks inherit document confidence]
+    ↓ [Chunks inherit document confidence] → SQLite storage
 T23a/b (Entity/Relationship Extraction)
-    ↓ [Mentions with extraction confidence]
+    ↓ [Mentions with extraction confidence] → SQLite storage
+T28 (Entity Confidence Scoring)
+    ↓ [Enhanced confidence scores]
 T25 (Coreference)
     ↓ [Linked mentions, confidence propagated]
 T31 (Entity Building) - Uses T107 Identity Service
-    ↓ [Entities with aggregated confidence]
+    ↓ [Entities with aggregated confidence] → Neo4j storage
 T34 (Relationship Building)
-    ↓ [Relationships with min entity confidence]
-T76 (Neo4j Storage)
+    ↓ [Relationships with min entity confidence] → Neo4j storage
+T41 (Entity Embeddings)
+    ↓ [Vector representations] → FAISS storage
+T76 (Neo4j Storage) + T77 (SQLite Storage) + T78 (FAISS Storage)
 ```
 
 ### 2. Graph to Statistical Analysis
@@ -327,5 +332,67 @@ This contract system enables:
 - Intelligent error recovery with alternative tools
 - Domain-adaptive workflows
 - Pre-flight validation before execution
+
+## Database Integration Requirements
+
+### Storage Distribution Strategy
+- **Neo4j**: Entities, relationships, communities, graph structure
+- **SQLite**: Mentions, documents, chunks, workflow state, provenance, quality scores
+- **FAISS**: Entity embeddings, chunk embeddings, similarity indices
+
+### Reference Resolution System
+All tools must use the universal reference format:
+```
+neo4j://entity/ent_12345
+sqlite://mention/mention_67890  
+faiss://embedding/vec_54321
+```
+
+### Quality Tracking Integration
+Every database operation must:
+1. Preserve confidence scores
+2. Update quality metadata
+3. Record provenance via T110
+4. Support quality filtering
+
+### Transaction Coordination
+Multi-database operations require:
+1. FAISS operations first (non-transactional)
+2. Neo4j and SQLite in coordinated transactions
+3. Rollback procedures for partial failures
+4. Integrity validation across databases
+
+### Performance Requirements
+- Reference resolution: <10ms for single objects
+- Batch operations: Handle 1000+ objects efficiently
+- Search operations: Sub-second response times
+- Quality propagation: Async for large dependency chains
+
+### Error Recovery
+- Checkpoint workflow state every 100 operations
+- Validate reference integrity on startup
+- Support partial result recovery
+- Log database-specific errors with context
+
+## Integration Testing Requirements
+
+### Multi-Database Workflows
+Test complete data flows across all three databases:
+1. Document → SQLite → Entity extraction → Neo4j → Embeddings → FAISS
+2. Query → FAISS search → Neo4j enrichment → SQLite provenance
+3. Analysis → Neo4j algorithms → Statistical conversion → Results storage
+
+### Consistency Validation
+Regular checks for:
+- Orphaned references between databases
+- Quality score consistency
+- Provenance chain completeness
+- Version synchronization
+
+### Performance Benchmarks
+- 10MB PDF processing: <2 minutes end-to-end
+- 1000 entity search: <1 second
+- Graph analysis (10K nodes): <30 seconds
+- Quality propagation (1000 objects): <5 seconds
 
 This matrix supersedes all previous compatibility documentation and aligns with the 121-tool architecture defined in SPECIFICATIONS.md.

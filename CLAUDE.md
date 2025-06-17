@@ -88,6 +88,9 @@ Digimons/
     ├── core/                       # Essential documentation
     │   ├── ARCHITECTURE.md         # System design
     │   ├── SPECIFICATIONS.md       # All 121 tools
+    │   ├── COMPATIBILITY_MATRIX.md # Tool integration matrix
+    │   ├── DATABASE_INTEGRATION.md # Database integration planning
+    │   ├── IMPLEMENTATION_REQUIREMENTS.md # Complete implementation checklist
     │   ├── DEVELOPMENT_GUIDE.md    # How to develop
     │   └── DESIGN_PATTERNS.md      # Key patterns
     ├── project/                    # Project management
@@ -99,6 +102,9 @@ Digimons/
 ### Key Documentation
 - **Architecture**: `docs/core/ARCHITECTURE.md`
 - **Tool Specs**: `docs/core/SPECIFICATIONS.md` (all 121 tools)
+- **Integration**: `docs/core/DATABASE_INTEGRATION.md`
+- **Requirements**: `docs/core/IMPLEMENTATION_REQUIREMENTS.md`
+- **Compatibility**: `docs/core/COMPATIBILITY_MATRIX.md`
 - **Dev Guide**: `docs/core/DEVELOPMENT_GUIDE.md`
 - **Patterns**: `docs/core/DESIGN_PATTERNS.md`
 - **Roadmap**: `IMPLEMENTATION_ROADMAP.md`
