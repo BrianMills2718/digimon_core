@@ -396,14 +396,173 @@ def test_question_answering_workflow(all_services):
     assert len(answer.sources) > 0
 ```
 
-### Performance Benchmarks
+### Performance Monitoring (Not Hard Limits)
 ```python
-@pytest.mark.benchmark
-def test_performance_with_real_data(benchmark, large_dataset):
-    """Benchmark with actual data volumes."""
-    result = benchmark(process_documents, large_dataset)
-    assert result.processing_time < 30  # seconds
-    assert result.memory_usage < 1024  # MB
+import time
+import logging
+
+def test_performance_trend_monitoring():
+    """Monitor performance trends, not absolute thresholds."""
+    start_time = time.time()
+    result = process_test_documents()
+    elapsed = time.time() - start_time
+    
+    # Log for trend analysis, don't fail on absolute time
+    logging.info(f"Document processing took {elapsed:.2f}s")
+    
+    # Only fail on obvious regressions
+    assert elapsed < 300, f"Processing too slow: {elapsed}s (likely regression)"
+    assert result.success, "Processing failed"
+
+def test_core_service_performance():
+    """Monitor core services for bottlenecks."""
+    identity_service = IdentityService()
+    
+    start = time.time()
+    for i in range(100):  # Reasonable test size
+        identity_service.resolve_mention(f"entity_{i}", "test_context")
+    elapsed = time.time() - start
+    
+    # Log performance, identify trends
+    logging.info(f"Identity service: {elapsed/100*1000:.1f}ms per call")
+    
+    # Only hard fail on extreme slowness
+    assert elapsed < 10, f"Identity service too slow: {elapsed}s for 100 calls"
+```
+
+## Implementation Risk Mitigation
+
+### Preventing Specification Drift
+
+#### Simple Tool Validation
+```python
+# tools/base_tool.py
+import json
+from jsonschema import validate
+
+class BaseTool:
+    def __init__(self, tool_id: str):
+        self.tool_id = tool_id
+        self.schema = self._load_schema()
+    
+    def _load_schema(self):
+        """Load simple JSON schema for tool."""
+        with open(f"schemas/{self.tool_id}.json") as f:
+            return json.load(f)
+    
+    def validate_input(self, data):
+        """Basic input validation."""
+        validate(data, self.schema["input"])
+    
+    def validate_output(self, data):
+        """Basic output validation."""
+        validate(data, self.schema["output"])
+```
+
+#### Tool Schema Example
+```json
+# schemas/T01.json
+{
+  "tool_id": "T01",
+  "input": {
+    "type": "object",
+    "properties": {
+      "file_path": {"type": "string"},
+      "encoding": {"type": "string", "default": "utf-8"}
+    },
+    "required": ["file_path"]
+  },
+  "output": {
+    "type": "object",
+    "properties": {
+      "document_id": {"type": "string"},
+      "confidence": {"type": "number", "minimum": 0, "maximum": 1}
+    },
+    "required": ["document_id", "confidence"]
+  }
+}
+```
+
+### Performance Optimization Strategy
+
+#### Core Services Design Principles
+```python
+# Simple, fast core services
+class IdentityService:
+    def __init__(self):
+        # Simple in-memory cache for prototype
+        self.cache = {}
+        self.max_cache_size = 1000
+    
+    def resolve_mention(self, surface_text: str, context: str) -> str:
+        cache_key = f"{surface_text}:{hash(context)}"
+        
+        # Fast cache lookup
+        if cache_key in self.cache:
+            return self.cache[cache_key]
+        
+        # Simple resolution logic for prototype
+        entity_id = self._simple_resolution(surface_text)
+        
+        # Basic cache management
+        if len(self.cache) > self.max_cache_size:
+            self.cache.clear()  # Simple eviction
+        
+        self.cache[cache_key] = entity_id
+        return entity_id
+    
+    def _simple_resolution(self, surface_text: str) -> str:
+        # Start with simple exact matching
+        # Optimize later based on actual performance data
+        return f"entity_{surface_text.lower().replace(' ', '_')}"
+```
+
+#### Performance Monitoring (Not Enforcement)
+```python
+# utils/performance_monitor.py
+import time
+import logging
+from collections import defaultdict
+
+class SimplePerformanceMonitor:
+    def __init__(self):
+        self.timings = defaultdict(list)
+    
+    def time_operation(self, operation_name: str):
+        """Context manager for timing operations."""
+        return self.Timer(operation_name, self.timings)
+    
+    class Timer:
+        def __init__(self, name, timings_dict):
+            self.name = name
+            self.timings = timings_dict
+        
+        def __enter__(self):
+            self.start = time.time()
+            return self
+        
+        def __exit__(self, *args):
+            elapsed = time.time() - self.start
+            self.timings[self.name].append(elapsed)
+            
+            # Log slow operations
+            if elapsed > 1.0:
+                logging.warning(f"Slow operation {self.name}: {elapsed:.2f}s")
+    
+    def report(self):
+        """Generate simple performance report."""
+        for operation, times in self.timings.items():
+            avg_time = sum(times) / len(times)
+            max_time = max(times)
+            logging.info(f"{operation}: avg={avg_time:.3f}s, max={max_time:.3f}s, calls={len(times)}")
+
+# Usage in tools
+monitor = SimplePerformanceMonitor()
+
+def some_tool_function():
+    with monitor.time_operation("entity_extraction"):
+        # Tool implementation
+        pass
 ```
 
 ## Common Commands

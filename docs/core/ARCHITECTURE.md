@@ -126,6 +126,24 @@ config = {"resolve_entities": true}
 # Result: Unified view of corporate entity
 ```
 
+## Implementation Risk Mitigation
+
+### Specification Drift Prevention
+- **JSON Schema Validation**: Each tool validates against simple schema
+- **Lightweight Contracts**: Basic input/output validation, not full frameworks
+- **Manual Review Process**: Regular alignment checks during development
+
+### Performance Bottleneck Prevention
+- **Core Services Optimization**: Profile during vertical slice, optimize hot spots
+- **Reference-Based Architecture**: Pass IDs, not full objects
+- **Async Where Beneficial**: Use asyncio for I/O bound operations
+- **Simple Monitoring**: Log timing patterns, identify trends
+
+### PhD-Appropriate Scope
+- **Essential Mitigations Only**: Prevent catastrophic problems
+- **Defer Complex Infrastructure**: Focus on research goals first
+- **Iterative Optimization**: Start simple, optimize when proven necessary
+
 ### 7. Universal Quality Tracking
 Every data object includes quality metadata:
 ```python

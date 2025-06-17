@@ -264,6 +264,13 @@ After vertical slice validation:
 2. **Test with real data** - Actual PDFs, real text
 3. **Full integration tests** - Complete data flows
 4. **Docker test environments** - Isolated but real
+5. **Performance monitoring** - Track trends, not absolute limits
+
+### Risk Mitigation Requirements
+1. **Simple specification validation** - JSON schemas, not complex frameworks
+2. **Lightweight monitoring** - Log patterns, identify bottlenecks
+3. **PhD-appropriate scope** - Essential mitigations only
+4. **Iterative optimization** - Start simple, optimize when proven necessary
 
 ### Architecture Rules
 1. Tools use contracts for requirements

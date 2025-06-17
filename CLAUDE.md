@@ -172,8 +172,8 @@ pytest --cov=src tests/
 ### Non-Goals
 - Multi-user support or authentication
 - Production-level security
-- Performance optimization (yet)
-- Advanced features like TypeDB or hypergraphs
+- Enterprise-grade performance optimization
+- Advanced graph databases or complex ontologies
 
 ## Data Flow
 
