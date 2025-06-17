@@ -261,7 +261,8 @@ class RelationshipExtractor:
             
             for match in matches:
                 subject_text = match.group(1).strip()
-                object_text = match.group(-1).strip()  # Last group
+                # Get the last captured group (could be group 2 or 3 depending on pattern)
+                object_text = match.group(match.lastindex).strip() if match.lastindex else ""
                 
                 # Find matching entities
                 subject_entity = self._find_matching_entity(subject_text, entities)
@@ -282,6 +283,8 @@ class RelationshipExtractor:
                         "object_entity_id": object_entity["entity_id"],
                         "subject_mention_id": subject_entity["mention_id"],
                         "object_mention_id": object_entity["mention_id"],
+                        "subject_text": subject_entity["surface_form"],
+                        "object_text": object_entity["surface_form"],
                         "confidence": confidence,
                         "pattern_confidence": confidence_boost,
                         "extraction_method": "pattern_based",
@@ -346,6 +349,8 @@ class RelationshipExtractor:
                                 "object_entity_id": object_entity["entity_id"],
                                 "subject_mention_id": subject_entity["mention_id"],
                                 "object_mention_id": object_entity["mention_id"],
+                                "subject_text": subject_entity["surface_form"],
+                                "object_text": object_entity["surface_form"],
                                 "confidence": confidence,
                                 "pattern_confidence": 0.75,
                                 "extraction_method": "dependency_parsing",
@@ -407,6 +412,8 @@ class RelationshipExtractor:
                                 "object_entity_id": entity2["entity_id"],
                                 "subject_mention_id": entity1["mention_id"],
                                 "object_mention_id": entity2["mention_id"],
+                                "subject_text": entity1["surface_form"],
+                                "object_text": entity2["surface_form"],
                                 "confidence": confidence,
                                 "pattern_confidence": 0.5,
                                 "extraction_method": "proximity_based",

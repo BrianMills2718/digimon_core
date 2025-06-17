@@ -10,6 +10,8 @@ import json
 from datetime import datetime
 import platform
 import traceback
+import networkx as nx
+import plotly.graph_objects as go
 
 # Add src to path
 src_dir = Path(__file__).parent / "src"
@@ -191,6 +193,10 @@ def display_results(result):
                 if entities_df:
                     st.dataframe(entities_df, use_container_width=True)
         
+        # Store the result for graph visualization
+        if "workflow_summary" in result:
+            st.session_state.last_result = result
+        
     else:
         st.error(f"❌ Query failed: {result.get('error', 'Unknown error')}")
         
@@ -268,7 +274,7 @@ def main():
             st.info("No queries yet")
     
     # Main interface
-    tab1, tab2, tab3 = st.tabs(["📄 Upload & Query", "🧪 Quick Test", "📊 System Info"])
+    tab1, tab2, tab3, tab4 = st.tabs(["📄 Upload & Query", "🧪 Quick Test", "📊 System Info", "🔍 Graph Explorer"])
     
     with tab1:
         st.header("Upload PDF and Ask Questions")
@@ -511,6 +517,247 @@ def main():
             }
             
             st.json(debug_info)
+
+    with tab4:
+        st.header("Graph Explorer")
+        st.markdown("Visualize the knowledge graph extracted from your documents")
+        
+        # Check Neo4j connection
+        try:
+            from neo4j import GraphDatabase
+            driver = GraphDatabase.driver("bolt://localhost:7687", auth=("neo4j", "password"))
+            
+            # Query options
+            col1, col2 = st.columns([2, 1])
+            with col1:
+                entity_filter = st.text_input(
+                    "Filter entities (optional):",
+                    placeholder="e.g., Elon Musk, Tesla",
+                    help="Leave empty to show all entities"
+                )
+            
+            with col2:
+                limit = st.slider("Max nodes to display:", 10, 100, 30)
+            
+            if st.button("🔍 Load Graph", type="primary"):
+                with st.spinner("Loading graph data..."):
+                    # Build the query
+                    if entity_filter:
+                        # Query for specific entity and its neighbors
+                        query = """
+                        MATCH (e:Entity)
+                        WHERE e.canonical_name CONTAINS $filter
+                        WITH e
+                        LIMIT 1
+                        MATCH path = (e)-[r]-(connected)
+                        RETURN e, r, connected, path
+                        LIMIT $limit
+                        """
+                        params = {"filter": entity_filter, "limit": limit}
+                    else:
+                        # Query for top entities by PageRank
+                        query = """
+                        MATCH (e:Entity)
+                        WITH e
+                        ORDER BY coalesce(e.pagerank_score, 0) DESC
+                        LIMIT $limit
+                        OPTIONAL MATCH (e)-[r]-(connected)
+                        RETURN e, r, connected
+                        LIMIT $limit
+                        """
+                        params = {"limit": limit}
+                    
+                    with driver.session() as session:
+                        result = session.run(query, params)
+                        
+                        # Build graph data
+                        G = nx.Graph()
+                        nodes = {}
+                        edges = []
+                        
+                        for record in result:
+                            # Add main entity
+                            if 'e' in record and record['e']:
+                                entity = record['e']
+                                node_id = entity['entity_id']
+                                nodes[node_id] = {
+                                    'name': entity['canonical_name'],
+                                    'type': entity.get('entity_type', 'UNKNOWN'),
+                                    'pagerank': entity.get('pagerank_score', 0),
+                                    'confidence': entity.get('confidence', 0.5)
+                                }
+                                G.add_node(node_id)
+                            
+                            # Add connected entity
+                            if 'connected' in record and record['connected']:
+                                connected = record['connected']
+                                conn_id = connected['entity_id']
+                                nodes[conn_id] = {
+                                    'name': connected['canonical_name'],
+                                    'type': connected.get('entity_type', 'UNKNOWN'),
+                                    'pagerank': connected.get('pagerank_score', 0),
+                                    'confidence': connected.get('confidence', 0.5)
+                                }
+                                G.add_node(conn_id)
+                            
+                            # Add edge
+                            if 'r' in record and record['r'] and 'e' in record and 'connected' in record:
+                                edge = {
+                                    'source': record['e']['entity_id'],
+                                    'target': record['connected']['entity_id'],
+                                    'type': record['r'].type,
+                                    'confidence': record['r'].get('confidence', 0.5)
+                                }
+                                edges.append(edge)
+                                G.add_edge(edge['source'], edge['target'])
+                    
+                    driver.close()
+                    
+                    if len(nodes) == 0:
+                        st.warning("No entities found in the graph")
+                    else:
+                        # Create Plotly visualization
+                        st.subheader(f"Knowledge Graph ({len(nodes)} nodes, {len(edges)} edges)")
+                        
+                        # Use spring layout
+                        pos = nx.spring_layout(G, k=2, iterations=50)
+                        
+                        # Create edge traces
+                        edge_traces = []
+                        for edge in edges:
+                            if edge['source'] in pos and edge['target'] in pos:
+                                x0, y0 = pos[edge['source']]
+                                x1, y1 = pos[edge['target']]
+                                
+                                edge_trace = go.Scatter(
+                                    x=[x0, x1, None],
+                                    y=[y0, y1, None],
+                                    mode='lines',
+                                    line=dict(width=2, color='#888'),
+                                    hoverinfo='text',
+                                    text=f"{edge['type']} (confidence: {edge['confidence']:.2f})",
+                                    showlegend=False
+                                )
+                                edge_traces.append(edge_trace)
+                        
+                        # Create node trace
+                        node_x = []
+                        node_y = []
+                        node_text = []
+                        node_size = []
+                        node_color = []
+                        
+                        # Color map for entity types
+                        type_colors = {
+                            'PERSON': 'red',
+                            'ORG': 'blue',
+                            'GPE': 'green',
+                            'PRODUCT': 'orange',
+                            'EVENT': 'purple',
+                            'WORK_OF_ART': 'pink',
+                            'LAW': 'brown',
+                            'LANGUAGE': 'cyan',
+                            'FACILITY': 'yellow',
+                            'MONEY': 'gold',
+                            'DATE': 'lightgray',
+                            'TIME': 'darkgray',
+                            'UNKNOWN': 'black'
+                        }
+                        
+                        for node_id, node_data in nodes.items():
+                            if node_id in pos:
+                                x, y = pos[node_id]
+                                node_x.append(x)
+                                node_y.append(y)
+                                
+                                # Create hover text
+                                hover_text = f"""<b>{node_data['name']}</b><br>
+                                Type: {node_data['type']}<br>
+                                PageRank: {node_data['pagerank']:.4f}<br>
+                                Confidence: {node_data['confidence']:.2f}"""
+                                node_text.append(hover_text)
+                                
+                                # Size based on PageRank
+                                size = 20 + (node_data['pagerank'] * 500)
+                                node_size.append(size)
+                                
+                                # Color based on type
+                                color = type_colors.get(node_data['type'], 'gray')
+                                node_color.append(color)
+                        
+                        node_trace = go.Scatter(
+                            x=node_x,
+                            y=node_y,
+                            mode='markers+text',
+                            hoverinfo='text',
+                            text=[nodes[nid]['name'] for nid in nodes if nid in pos],
+                            textposition="top center",
+                            hovertext=node_text,
+                            marker=dict(
+                                size=node_size,
+                                color=node_color,
+                                line=dict(width=2, color='white')
+                            )
+                        )
+                        
+                        # Create the figure
+                        fig = go.Figure(data=edge_traces + [node_trace])
+                        
+                        fig.update_layout(
+                            title="Knowledge Graph Visualization",
+                            showlegend=False,
+                            hovermode='closest',
+                            margin=dict(b=0, l=0, r=0, t=40),
+                            xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+                            yaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+                            height=600,
+                            plot_bgcolor='white'
+                        )
+                        
+                        st.plotly_chart(fig, use_container_width=True)
+                        
+                        # Show entity type legend
+                        st.subheader("Entity Types")
+                        legend_cols = st.columns(4)
+                        for i, (entity_type, color) in enumerate(type_colors.items()):
+                            col_idx = i % 4
+                            with legend_cols[col_idx]:
+                                st.markdown(f"<span style='color:{color}'>●</span> {entity_type}", unsafe_allow_html=True)
+                        
+                        # Show statistics
+                        st.subheader("Graph Statistics")
+                        col1, col2, col3 = st.columns(3)
+                        
+                        with col1:
+                            st.metric("Total Nodes", len(nodes))
+                        
+                        with col2:
+                            st.metric("Total Edges", len(edges))
+                        
+                        with col3:
+                            if nodes:
+                                avg_pagerank = sum(n['pagerank'] for n in nodes.values()) / len(nodes)
+                                st.metric("Avg PageRank", f"{avg_pagerank:.4f}")
+                        
+                        # Show top entities table
+                        if nodes:
+                            st.subheader("Top Entities by PageRank")
+                            sorted_nodes = sorted(nodes.items(), key=lambda x: x[1]['pagerank'], reverse=True)[:10]
+                            
+                            top_entities = []
+                            for node_id, node_data in sorted_nodes:
+                                top_entities.append({
+                                    "Entity": node_data['name'],
+                                    "Type": node_data['type'],
+                                    "PageRank": f"{node_data['pagerank']:.4f}",
+                                    "Confidence": f"{node_data['confidence']:.2f}"
+                                })
+                            
+                            st.dataframe(top_entities, use_container_width=True)
+            
+        except Exception as e:
+            st.error(f"Failed to connect to Neo4j: {e}")
+            st.info("Make sure Neo4j is running with: `docker-compose up -d neo4j`")
 
 if __name__ == "__main__":
     main()
