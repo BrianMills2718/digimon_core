@@ -12,6 +12,41 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Super-Digimon is a GraphRAG (Graph Retrieval-Augmented Generation) system that enables natural language querying of graph data. The system combines Neo4j graph storage, FAISS vector search, and SQLite metadata to provide intelligent graph analysis through **121 specialized tools** organized in 8 lifecycle phases.
 
+## Technical Requirements
+
+- **Python 3.11+** with comprehensive type hints
+- **Docker & Docker Compose** for database services
+- **8GB+ RAM** minimum, 16GB recommended
+- **10GB+ disk space** for databases and indices
+- **No GPU required** - CPU-based processing only
+
+## Success Criteria
+
+### Phase 1: Vertical Slice (Weeks 1-2)
+- [ ] Core services operational (T107, T110, T111, T121)
+- [ ] PDF → PageRank → Answer workflow functional end-to-end
+- [ ] Cross-database references working (neo4j:// sqlite:// faiss://)
+- [ ] Quality scores propagate correctly through pipeline
+- [ ] Workflow state checkpoint/restore functional
+
+### Phase 2: Core Implementation (Month 1)
+- [ ] All Phase 1-3 tools implemented (T01-T48)
+- [ ] Three-level identity system working (Surface → Mention → Entity)
+- [ ] Neo4j + SQLite + FAISS integration stable
+- [ ] Basic performance targets met (<2min for 10MB PDF)
+
+### Phase 3: Full System (Months 2-3)
+- [ ] All 121 tools implemented and tested
+- [ ] Tool contracts validated and enforced
+- [ ] Complete GraphRAG operators functional (T49-T67)
+- [ ] Statistical analysis integration working (Graph ↔ Table)
+- [ ] Performance optimized for research workloads
+
+### Thesis Defense Ready
+- [ ] Can demonstrate all mock workflows from analysis
+- [ ] Handles real research documents effectively
+- [ ] Quality tracking provides audit trail
+- [ ] System recovers gracefully from failures
 
 ## Key Commands
 
@@ -223,3 +258,150 @@ See `IMPLEMENTATION_ROADMAP.md` for detailed plan and milestones.
 - **Documentation is complete** - All 121 tools fully specified
 - **Architecture is final** - Single MCP server, triple database, tool contracts
 - **Begin with Vertical Slice** - Prove architecture with one complete workflow
+
+## Development Standards
+
+### Code Quality
+- **Python 3.11+** with type hints on all functions
+- **Black formatting** with max line length 88
+- **Flake8 linting** with reasonable exclusions (E203, W503)
+- **MyPy strict mode** for type checking
+- **Docstrings** on all public functions (Google style)
+- **main.py** as entry point for MCP server
+
+### Testing Requirements
+- **Unit tests**: Test individual tool logic with real test databases
+- **Integration tests**: Test tool chains with full data flow
+- **E2E tests**: Test complete workflows (PDF → Answer) with NO mocking
+- **Performance tests**: Track execution time trends, not hard limits
+- **Coverage target**: 85%+ for core services (T107-T121)
+
+### Self-Healing Patterns
+
+When implementing code, always follow these patterns for robustness:
+
+1. **Use reference format for cross-database links**
+   ```python
+   # Good: "neo4j://entity/ent_123"
+   # Bad: {"database": "neo4j", "type": "entity", "id": "ent_123"}
+   ```
+
+2. **Test with real databases, not mocks**
+   ```python
+   # Good: neo4j_container = Neo4jContainer("neo4j:5-community")
+   # Bad: mock_neo4j = Mock(spec=GraphDatabase)
+   ```
+
+3. **Handle missing tools gracefully**
+   ```python
+   if not tool_contract_satisfied(required_state):
+       return partial_result_with_warning()
+   ```
+
+4. **Use pathlib for all file operations**
+   ```python
+   # Good: Path(__file__).parent / "data" / "test.pdf"
+   # Bad: os.path.join(os.getcwd(), "data/test.pdf")
+   ```
+
+5. **Return partial results on failure**
+   ```python
+   # Good: {"status": "partial", "data": processed_items, "failed": failed_items}
+   # Bad: raise Exception("Some items failed")
+   ```
+
+6. **Track quality through every operation**
+   ```python
+   result = {
+       "data": processed_data,
+       "confidence": min(input_confidence * 0.95, 1.0),
+       "warnings": warnings_collected
+   }
+   ```
+
+## Project Structure
+```
+Digimons/
+├── main.py              # MCP server entry point
+├── requirements.txt     # Python dependencies
+├── docker-compose.yml   # Database services
+├── .env                 # Environment configuration
+├── src/
+│   ├── core/           # Core services (T107-T121)
+│   ├── tools/          # Tool implementations by phase
+│   │   ├── phase1/     # Ingestion (T01-T12)
+│   │   ├── phase2/     # Processing (T13-T30)
+│   │   └── ...         # Through phase8
+│   ├── utils/          # Shared utilities
+│   └── mcp_server.py   # MCP server implementation
+├── tests/
+│   ├── unit/           # Unit tests with test databases
+│   ├── integration/    # Tool chain tests
+│   └── e2e/            # End-to-end workflow tests
+├── data/               # Local storage
+│   ├── neo4j/          # Graph database files
+│   ├── sqlite/         # Metadata database
+│   └── faiss/          # Vector indices
+└── scripts/            # Utility scripts
+```
+
+## Environment Variables
+```bash
+# Required
+NEO4J_URI=bolt://localhost:7687
+NEO4J_USER=neo4j
+NEO4J_PASSWORD=password
+SQLITE_DB_PATH=./data/metadata.db
+FAISS_INDEX_PATH=./data/faiss_index
+
+# Optional
+MCP_SERVER_PORT=3333
+LOG_LEVEL=INFO
+CACHE_DIR=./data/cache
+MAX_WORKERS=4
+```
+
+## External Dependencies
+
+### Core Services (via Docker)
+- **Neo4j 5.x**: Graph database (port 7687, 7474)
+- **Redis 7.x**: Caching layer (port 6379) - optional
+
+### Python Libraries
+- **mcp**: Model Context Protocol server
+- **neo4j**: Neo4j Python driver
+- **faiss-cpu**: Vector similarity search
+- **sqlalchemy**: SQLite ORM
+- **spacy**: NLP processing (T23a)
+- **sentence-transformers**: Embeddings (T41)
+
+### Development Tools
+- **pytest**: Testing framework
+- **black**: Code formatting
+- **mypy**: Type checking
+- **coverage**: Test coverage
+
+## Special Considerations
+
+### FAISS Transaction Limitations
+FAISS doesn't support transactions. Always:
+1. Execute FAISS operations first
+2. Log operations for manual rollback
+3. Validate reference integrity on startup
+
+### Memory Management
+- Batch operations in chunks of 100-1000
+- Use streaming/generators for large datasets
+- Monitor memory usage in performance tests
+
+### Concurrency Model (Deferred)
+For vertical slice, all tools run synchronously. After validation:
+- FAST tools (<100ms): Direct execution
+- SLOW tools (>1s): Async work queue
+- Primary bottlenecks: T01 (PDF), T23b (LLM), T68 (PageRank)
+
+### Error Recovery Strategy
+1. Checkpoint workflow state every 100 operations (T121)
+2. Return partial results with detailed failure info
+3. Support resume from last checkpoint
+4. Log structured data for debugging
