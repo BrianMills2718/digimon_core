@@ -2,7 +2,7 @@
 
 ## Overview
 
-Super-Digimon is a GraphRAG system with **120 specialized tools** organized into 7 lifecycle phases plus critical infrastructure services. This document provides the authoritative specification for all tools.
+Super-Digimon is a GraphRAG system with **121 specialized tools** organized into 7 lifecycle phases plus critical infrastructure services. This document provides the authoritative specification for all tools.
 
 **Update**: Added 14 new tools (T107-T120) based on mock workflow analysis, including identity services, format converters, and advanced capabilities.
 
@@ -704,7 +704,7 @@ Same data can be Graph, Table, or Vector based on analysis needs:
 
 ---
 
-## Phase 8: Core Services and Infrastructure (T107-T120)
+## Phase 8: Core Services and Infrastructure (T107-T121)
 
 Critical services identified through mock workflow analysis that support all other tools.
 
@@ -807,3 +807,119 @@ Propagate uncertainty through analysis chains
 - `operations`: list - Operations performed
 - `method`: string - "monte_carlo", "gaussian", "min_max"
 - `return_distribution`: boolean - Full distribution vs point estimate
+
+### T121: Workflow State Service
+Manage workflow state for crash recovery and reproducibility
+- `operation`: string - "checkpoint", "restore", "list_checkpoints", "clean_old"
+- `workflow_id`: string - Unique workflow identifier
+- `state_data`: dict - Lightweight references to current state (for checkpoint)
+- `checkpoint_id`: string - Specific checkpoint (for restore)
+- `include_intermediates`: boolean (default: false) - Include intermediate results
+- `compression`: string (default: "gzip") - Compression method for state data
+
+---
+
+## Tool Contracts
+
+Every tool declares a contract specifying its requirements and guarantees. This enables intelligent tool selection and workflow planning.
+
+### Contract Structure
+
+Each tool contract includes:
+
+```python
+{
+    "tool_id": "T23b",
+    "name": "LLM Entity/Relationship Extractor",
+    
+    # What the tool needs to function
+    "required_attributes": {
+        "chunk": ["content", "document_ref", "position"],
+        "document": ["language"]  # Optional: specific attributes needed
+    },
+    
+    # State requirements (what must be true before running)
+    "required_state": {
+        "chunks_created": true,
+        "language_detected": true,
+        "entities_resolved": false  # Can work with unresolved entities
+    },
+    
+    # What the tool produces
+    "produced_attributes": {
+        "mention": ["surface_text", "position", "entity_candidates"],
+        "relationship": ["source_id", "target_id", "type", "confidence"]
+    },
+    
+    # State changes after running
+    "state_changes": {
+        "entities_extracted": true,
+        "relationships_extracted": true
+    },
+    
+    # Error handling
+    "error_codes": {
+        "E001": "Missing required chunk content",
+        "E002": "Language not supported",
+        "E003": "LLM API failure",
+        "E004": "Confidence below threshold"
+    },
+    
+    # Performance characteristics
+    "performance": {
+        "time_complexity": "O(n)",  # n = text length
+        "memory_usage": "streaming",
+        "can_parallelize": true,
+        "supports_partial": true
+    }
+}
+```
+
+### Example Tool Contracts
+
+#### T31: Entity Node Builder
+```python
+{
+    "tool_id": "T31",
+    "required_attributes": {
+        "mention": ["surface_text", "entity_candidates", "confidence"]
+    },
+    "required_state": {
+        "mentions_created": true,
+        "entities_resolved": "optional"  # Can work with or without resolution
+    },
+    "produced_attributes": {
+        "entity": ["canonical_name", "entity_type", "mention_refs", "confidence"]
+    },
+    "state_changes": {
+        "entities_created": true
+    }
+}
+```
+
+#### T115: Graph to Table Converter
+```python
+{
+    "tool_id": "T115",
+    "required_attributes": {
+        "entity": ["id", "attributes"],
+        "relationship": ["source_id", "target_id", "type"]
+    },
+    "required_state": {
+        "graph_built": true
+    },
+    "produced_attributes": {
+        "table": ["schema", "row_refs", "source_graph_ref"]
+    },
+    "supports_modes": ["wide", "long", "edge_list"]
+}
+```
+
+### Contract Usage
+
+Tool contracts enable:
+1. **Pre-flight validation**: Check if tool can run before attempting
+2. **Intelligent planning**: Select appropriate tools based on current state
+3. **Error recovery**: Understand what went wrong and find alternatives
+4. **Workflow optimization**: Parallelize compatible tools
+5. **Domain adaptation**: Tools declare if they need entity resolution

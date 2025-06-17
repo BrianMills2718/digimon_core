@@ -1,6 +1,6 @@
-# Tool Compatibility Matrix (120-Tool Architecture)
+# Tool Compatibility Matrix (121-Tool Architecture)
 
-This is the authoritative compatibility matrix for Super-Digimon's 120 tools. It incorporates the three-level identity system and universal quality tracking discovered through mock workflow analysis.
+This is the authoritative compatibility matrix for Super-Digimon's 121 tools. It incorporates the three-level identity system, universal quality tracking, and tool contracts for intelligent workflow planning.
 
 ## Core Data Types
 
@@ -161,7 +161,7 @@ All data types inherit from BaseObject and include quality tracking:
 | T82-89: NLP Tools | Various | Processed text | Task-specific confidence |
 | T90-106: UI/Export | Various | Formatted output | Preserves confidence |
 
-### Phase 8: Core Services (T107-T120) - FOUNDATIONAL
+### Phase 8: Core Services (T107-T121) - FOUNDATIONAL
 
 | Tool | Purpose | Interactions | Critical for |
 |------|---------|--------------|--------------|
@@ -179,6 +179,7 @@ All data types inherit from BaseObject and include quality tracking:
 | T118: Temporal Reasoner | Time-based logic | Temporal data tools | Time analysis |
 | T119: Semantic Evolution | Meaning tracking | Long-term analysis | Knowledge evolution |
 | T120: Uncertainty Service | Propagation | ALL analysis tools | Uncertainty tracking |
+| T121: Workflow State | Checkpointing & recovery | Orchestrator | Crash recovery |
 
 ## Critical Tool Chains
 
@@ -241,4 +242,90 @@ T57 (Answer Generation)
 3. Provenance is append-only
 4. References are immutable
 
-This matrix supersedes all previous compatibility documentation and aligns with the 120-tool architecture defined in SPECIFICATIONS.md.
+## Tool Contract Specifications
+
+### Contract-Based Tool Selection
+
+Tools declare contracts that specify:
+1. **Required Attributes**: What data fields must exist
+2. **Required State**: What processing must have occurred
+3. **Produced Attributes**: What the tool creates
+4. **State Changes**: How the tool changes workflow state
+5. **Error Codes**: Structured error reporting
+
+### Example: Entity Resolution Chain
+
+```python
+# T23b Contract (Entity/Relationship Extractor)
+{
+    "required_state": {
+        "chunks_created": true,
+        "entities_resolved": false  # Can work without resolution
+    },
+    "produced_state": {
+        "mentions_created": true,
+        "relationships_extracted": true
+    }
+}
+
+# T25 Contract (Coreference Resolver)
+{
+    "required_state": {
+        "mentions_created": true,
+        "entities_resolved": "optional"  # Adapts based on domain
+    },
+    "produced_state": {
+        "coreferences_resolved": true
+    }
+}
+
+# T31 Contract (Entity Node Builder)
+{
+    "required_state": {
+        "mentions_created": true,
+        "entities_resolved": "optional"  # Domain choice
+    },
+    "produced_state": {
+        "entities_created": true,
+        "graph_ready": true
+    }
+}
+```
+
+### Domain-Specific Resolution
+
+Entity resolution is now optional based on analytical needs:
+
+#### Social Network Analysis (No Resolution)
+```python
+# Keep @obama and @barackobama as separate entities
+workflow_config = {
+    "resolve_entities": false,
+    "reason": "Track separate social media identities"
+}
+```
+
+#### Corporate Analysis (With Resolution)
+```python
+# Merge "Apple Inc.", "Apple Computer", "AAPL"
+workflow_config = {
+    "resolve_entities": true,
+    "reason": "Unified corporate entity analysis"
+}
+```
+
+### Contract Validation
+
+Before executing any tool:
+1. Check required_attributes exist in input data
+2. Verify required_state matches current workflow state
+3. Ensure resources available for performance requirements
+4. Plan error handling based on declared error codes
+
+This contract system enables:
+- Automatic tool selection based on current state
+- Intelligent error recovery with alternative tools
+- Domain-adaptive workflows
+- Pre-flight validation before execution
+
+This matrix supersedes all previous compatibility documentation and aligns with the 121-tool architecture defined in SPECIFICATIONS.md.

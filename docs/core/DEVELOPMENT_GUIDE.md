@@ -86,7 +86,8 @@ rich==13.7.0
 # Testing
 pytest==7.4.3
 pytest-asyncio==0.21.1
-pytest-mock==3.12.0
+pytest-docker==2.0.1
+testcontainers==3.7.1
 ```
 
 ### Environment Variables
@@ -254,33 +255,155 @@ def test_load_text_document(tmp_path):
     assert result.metadata["file_name"] == "test.txt"
 ```
 
-## Testing Approach
+## Testing Approach - Real Databases Only
 
-### Unit Tests
+### Philosophy
+- **NO MOCKS**: All tests use real databases (Neo4j, SQLite, FAISS)
+- **NO SIMULATIONS**: Actual data flows through actual systems
+- **REALISTIC AT EVERY STEP**: If it passes tests, it works in production
+
+### Test Environment Setup
 ```bash
-# Run all tests
+# Start test databases (separate from dev)
+docker-compose -f docker-compose.test.yml up -d
+
+# Verify test services
+docker-compose -f docker-compose.test.yml ps
+
+# Run tests
 pytest
 
-# Run specific test file
-pytest tests/unit/test_t01_text_loader.py
-
-# Run with coverage
-pytest --cov=src tests/
+# Cleanup after tests
+docker-compose -f docker-compose.test.yml down -v
 ```
 
-### Integration Tests
-```bash
-# Test Neo4j connection
-python -m pytest tests/integration/test_neo4j.py
-
-# Test MCP server
-python -m pytest tests/integration/test_mcp_server.py
+### Test Database Configuration
+Create `docker-compose.test.yml`:
+```yaml
+version: '3.8'
+services:
+  neo4j-test:
+    image: neo4j:5-community
+    ports:
+      - "7688:7687"  # Different port for test
+      - "7475:7474"
+    environment:
+      - NEO4J_AUTH=neo4j/testpassword
+      - NEO4J_ACCEPT_LICENSE_AGREEMENT=yes
+    volumes:
+      - neo4j_test_data:/data
+      
+volumes:
+  neo4j_test_data:
 ```
 
-### End-to-End Tests
+### Writing Realistic Tests
+```python
+# tests/conftest.py
+import pytest
+from neo4j import GraphDatabase
+from testcontainers.neo4j import Neo4jContainer
+
+@pytest.fixture(scope="session")
+def neo4j_test():
+    """Provide real Neo4j instance for tests."""
+    with Neo4jContainer("neo4j:5-community") as neo4j:
+        yield neo4j.get_connection_url()
+
+@pytest.fixture
+def clean_neo4j(neo4j_test):
+    """Ensure clean database for each test."""
+    driver = GraphDatabase.driver(neo4j_test, auth=("neo4j", "password"))
+    with driver.session() as session:
+        session.run("MATCH (n) DETACH DELETE n")
+    yield driver
+    driver.close()
+
+# tests/test_real_workflow.py
+def test_entity_extraction_with_real_neo4j(clean_neo4j):
+    """Test entity extraction with actual Neo4j database."""
+    # Load real PDF
+    doc = load_pdf("test_data/sample.pdf")
+    
+    # Extract entities using real NLP
+    entities = extract_entities(doc.text)
+    
+    # Store in real Neo4j
+    store_entities(clean_neo4j, entities)
+    
+    # Query from real database
+    result = clean_neo4j.session().run(
+        "MATCH (e:Entity) RETURN count(e) as count"
+    ).single()
+    
+    assert result["count"] == len(entities)
+```
+
+### Test Data Management
 ```bash
-# Test complete workflow
-python -m pytest tests/e2e/test_ingestion_pipeline.py -v
+test_data/
+├── fixtures/
+│   ├── small_graph.json      # Known graph structures
+│   ├── sample_entities.csv   # Real entity data
+│   └── test_documents.pdf    # Real documents
+├── snapshots/
+│   ├── expected_graph.json   # Expected results
+│   └── pagerank_scores.json  # Known good outputs
+└── generators/
+    └── create_test_data.py   # Generate consistent test data
+```
+
+### Categories of Tests
+
+#### 1. Component Tests (with real databases)
+```python
+def test_pdf_loader_with_real_file():
+    """Test PDF loading with actual PDF file."""
+    result = load_pdf("test_data/real_document.pdf")
+    assert len(result.text) > 0
+    assert result.confidence > 0.8
+```
+
+#### 2. Integration Tests (real data flow)
+```python
+def test_pdf_to_graph_pipeline(clean_neo4j, real_faiss):
+    """Test complete pipeline with real components."""
+    # Real PDF → Real NLP → Real Neo4j → Real FAISS
+    pdf = load_pdf("test_data/sample.pdf")
+    chunks = chunk_document(pdf)
+    entities = extract_entities(chunks)
+    store_in_neo4j(clean_neo4j, entities)
+    create_embeddings(real_faiss, entities)
+    
+    # Verify with actual queries
+    assert neo4j_has_entities(clean_neo4j)
+    assert faiss_has_vectors(real_faiss)
+```
+
+#### 3. End-to-End Tests (complete workflows)
+```python
+def test_question_answering_workflow(all_services):
+    """Test complete Q&A with all real services."""
+    # Load real document
+    load_document("test_data/research_paper.pdf")
+    
+    # Ask real question
+    answer = ask_question("What are the main findings?")
+    
+    # Verify real answer
+    assert "findings" in answer.text.lower()
+    assert answer.confidence > 0.7
+    assert len(answer.sources) > 0
+```
+
+### Performance Benchmarks
+```python
+@pytest.mark.benchmark
+def test_performance_with_real_data(benchmark, large_dataset):
+    """Benchmark with actual data volumes."""
+    result = benchmark(process_documents, large_dataset)
+    assert result.processing_time < 30  # seconds
+    assert result.memory_usage < 1024  # MB
 ```
 
 ## Common Commands

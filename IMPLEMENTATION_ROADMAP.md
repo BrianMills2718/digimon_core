@@ -1,322 +1,301 @@
-# Implementation Roadmap
+# Implementation Roadmap - Vertical Slice First
 
-This roadmap outlines the implementation phases for Super-Digimon, based on discoveries from 37 mock workflows and requirements analysis.
+This roadmap has been restructured to implement a complete vertical slice (PDF → PageRank → Answer) before horizontal expansion.
 
 ## Overview
 
 **Goal**: Build a PhD thesis prototype that can perform virtually any analytical method through flexible data structuring and transformation.
 
-**Core Innovation**: Three-level identity system + Universal quality tracking + Format-agnostic processing + Complete provenance.
+**Core Innovation**: Three-level identity system + Universal quality tracking + Format-agnostic processing + Complete provenance + Tool contracts.
 
-## CRITICAL: Implementation Order
+## NEW: Vertical Slice Strategy
 
-**The Core Services (T107-T111) in Phase 0 MUST be implemented first.** These services are foundational to the entire system:
-- **T107 Identity Service**: Required by all entity-related tools
-- **T110 Provenance Service**: Required by all tools for tracking
-- **T111 Quality Service**: Required by all tools for confidence
-- **T108 Version Service**: Required for reproducibility
+**Key Change**: Instead of implementing all tools in each phase sequentially, we build one complete workflow first to validate the architecture early.
 
-No other tools should be implemented until these core services are operational.
+### Why Vertical Slice First?
 
-## Phase 0: Foundation (IMPLEMENT FIRST)
+1. **Early Validation**: Discover integration issues immediately
+2. **Architecture Proof**: Confirm design decisions work end-to-end
+3. **Faster Feedback**: See results in days, not months
+4. **Risk Reduction**: Major pivots possible before extensive coding
 
-### Core Data Models
-- [ ] Define BaseObject with all common fields (id, confidence, quality_tier, provenance)
-- [ ] Define Entity with three-level identity support
-- [ ] Define Relationship with quality tracking
-- [ ] Define Mention as first-class object
-- [ ] Define Chunk, Document, Graph, Community, AnalysisResult
-- [ ] Include versioning attributes in all models
-- [ ] Add temporal and causal metadata fields
+### Target Workflow: PDF → PageRank → Answer
 
-### Core Services
-- [ ] Implement IdentityService (T107)
-  - [ ] Three-level identity management
-  - [ ] Mention creation and resolution
-  - [ ] Entity merging with confidence
-  - [ ] Surface form tracking
+This workflow exercises:
+- Ingestion (PDF loading)
+- Processing (NLP, entity extraction)
+- Construction (graph building)
+- Storage (Neo4j, FAISS)
+- Analysis (PageRank)
+- Retrieval (search, ranking)
+- Generation (answer synthesis)
 
-- [ ] Implement ProvenanceService (T110)
-  - [ ] Operation recording
-  - [ ] Lineage tracking
-  - [ ] Impact analysis
-  - [ ] Cascade invalidation
+## Phase 0: Minimal Foundation for Vertical Slice
 
-- [ ] Implement QualityService (T111)
-  - [ ] Confidence assessment
-  - [ ] Uncertainty propagation
-  - [ ] Quality aggregation
-  - [ ] Tier assignment
+### Core Services (Minimal Implementations)
 
-- [ ] Implement VersionService (T108)
-  - [ ] Schema versioning
-  - [ ] Data versioning
-  - [ ] Graph versioning
-  - [ ] Analysis versioning
+#### T107: Identity Service (MINIMAL)
+- [ ] Basic mention creation
+- [ ] Simple entity linking
+- [ ] Defer: Complex merging, full history
 
-### Storage Layer
-- [ ] Set up Neo4j with versioning schema
-- [ ] Design SQLite schema for metadata/provenance
-- [ ] Initialize FAISS for vector storage
-- [ ] Implement reference system design
-- [ ] Create storage abstraction layer
+#### T110: Provenance Service (MINIMAL)
+- [ ] Basic operation recording
+- [ ] Simple lineage
+- [ ] Defer: Impact analysis, cascading
 
-### MCP Infrastructure
-- [ ] Create MCP server framework
-- [ ] Implement tool registration system
-- [ ] Add input/output validation middleware
-- [ ] Implement quality tracking middleware
-- [ ] Add streaming support framework
-- [ ] Create reference resolution system
+#### T111: Quality Service (MINIMAL)
+- [ ] Basic confidence tracking
+- [ ] Simple propagation
+- [ ] Defer: Complex aggregation
 
-## Phase 1: MVP Implementation
+#### T121: Workflow State Service (NEW - MINIMAL)
+- [ ] Basic checkpointing
+- [ ] Simple restore
+- [ ] Defer: Compression, cleanup
 
-### Ingestion Tools
-- [ ] Implement T01: PDF Loader
-  - [ ] Basic text extraction
-  - [ ] Mention generation support
-  - [ ] Quality tracking for OCR
-  - [ ] Reference-based output
+### Core Data Models (Minimal)
+- [ ] BaseObject with essential fields
+- [ ] Entity with basic identity
+- [ ] Relationship with confidence
+- [ ] Mention as simple object
+- [ ] Chunk with references
 
-- [ ] Implement T05: CSV Loader
-  - [ ] Table and document creation
-  - [ ] Schema inference
-  - [ ] Quality assessment
-  
-- [ ] Implement T06: JSON Loader
-  - [ ] Flexible schema handling
-  - [ ] Nested structure support
-  - [ ] Reference generation
+### Storage (Minimal)
+- [ ] Neo4j basic setup
+- [ ] SQLite simple schema
+- [ ] FAISS basic index
+- [ ] Reference system proof
 
-### Processing Tools
-- [ ] Implement T15: Document Chunker
-  - [ ] Sliding window variant (T15a)
-  - [ ] Semantic variant (T15b)
-  - [ ] Streaming support
-  - [ ] Overlap handling
+### MCP Infrastructure (Minimal)
+- [ ] Basic server framework
+- [ ] Simple tool registration
+- [ ] Basic validation
+- [ ] Tool contract support
 
-- [ ] Implement T23: Entity Recognizer
-  - [ ] Traditional NER variant (T23a) using spaCy
-  - [ ] LLM variant (T23b) for entities + relationships
-  - [ ] Mention object creation
-  - [ ] Confidence scoring
+## Phase 1: Vertical Slice Implementation
 
-- [ ] Implement T25: Coreference Resolver
-  - [ ] Mention clustering
-  - [ ] Confidence-based resolution
-  - [ ] Chain creation
+### 1. Ingestion Layer
+- [ ] **T01: PDF Loader (MINIMAL)**
+  - Basic text extraction
+  - Simple confidence (0.9 for clean text)
+  - Create document with metadata
+  - Defer: OCR quality, tables, images
 
-- [ ] Implement T27: Relationship Extractor
-  - [ ] Coordinate with T23b for joint extraction
-  - [ ] Confidence propagation
-  - [ ] Evidence tracking
+### 2. Processing Layer
+- [ ] **T15a: Sliding Window Chunker (MINIMAL)**
+  - Fixed 512-token chunks
+  - 50-token overlap
+  - Simple position tracking
+  - Defer: Semantic chunking
 
-### Construction Tools
-- [ ] Implement T31: Entity Node Builder
-  - [ ] Build from mentions
-  - [ ] Handle merge decisions
-  - [ ] Preserve all metadata
-  - [ ] Track alternatives
+- [ ] **T23a: spaCy NER (MINIMAL)**
+  - Standard entity types only
+  - Create mentions with positions
+  - Basic confidence (0.85)
+  - Defer: Custom types, LLM variant
 
-- [ ] Implement T34: Relationship Builder
-  - [ ] Build from extractions
-  - [ ] Weight calculation
-  - [ ] Confidence integration
+- [ ] **T27: Pattern Relationship Extractor (MINIMAL)**
+  - Simple verb patterns
+  - Basic confidence scoring
+  - Link to entity mentions
+  - Defer: Complex patterns, LLM
 
-- [ ] Implement T37: Deduplicator
-  - [ ] Mention-aware deduplication
-  - [ ] Confidence-based decisions
-  - [ ] Merge history tracking
+### 3. Construction Layer
+- [ ] **T31: Entity Node Builder (MINIMAL)**
+  - Mention → Entity conversion
+  - Simple deduplication by name
+  - Optional resolution based on config
+  - Defer: Complex merging
 
-- [ ] Implement T41: Embedder
-  - [ ] Streaming batch support
-  - [ ] Multiple embedding models
-  - [ ] Reference-based storage
+- [ ] **T34: Relationship Edge Builder (MINIMAL)**
+  - Create edges from extractions
+  - Weight = confidence
+  - Preserve mention links
+  - Defer: Complex weights
 
-### Critical Format Converters
-- [ ] Implement T115: Graph → Table Converter
-  - [ ] Multiple output formats (wide, long, edge_list)
-  - [ ] Attribute preservation
-  - [ ] Aggregation options
+- [ ] **T41: Sentence Embedder (MINIMAL)**
+  - Use sentence-transformers
+  - Embed entity descriptions
+  - Store with references
+  - Defer: Multiple models
 
-- [ ] Implement T116: Table → Graph Builder
-  - [ ] Flexible schema mapping
-  - [ ] Entity extraction from columns
-  - [ ] Relationship inference
+### 4. Storage Layer
+- [ ] **T76: Neo4j Storage (MINIMAL)**
+  - Store entities and relationships
+  - Basic CRUD operations
+  - Simple reference generation
+  - Defer: Versioning, batching
 
-- [ ] Implement T117: Format Auto-Selector
-  - [ ] Analysis type detection
-  - [ ] Resource assessment
-  - [ ] Format recommendation
+- [ ] **T78: FAISS Storage (MINIMAL)**
+  - Store embeddings
+  - Basic search capability
+  - Reference-based storage
+  - Defer: Advanced indices
 
-### Storage Tools
-- [ ] Implement T76: Neo4j Storage
-  - [ ] Versioning support
-  - [ ] Reference generation
-  - [ ] Batch operations
+### 5. Analysis Layer
+- [ ] **T68: PageRank (MINIMAL)**
+  - Standard PageRank algorithm
+  - Handle confidence as edge weights
+  - Return scored entities
+  - Defer: Personalized variants
 
-- [ ] Implement T77: SQLite Storage
-  - [ ] Provenance focus
-  - [ ] Metadata indexing
-  - [ ] Query optimization
+### 6. Retrieval Layer
+- [ ] **T49: Entity Search (MINIMAL)**
+  - Vector similarity search
+  - Combine with PageRank scores
+  - Basic ranking formula
+  - Defer: Complex scoring
 
-- [ ] Implement T78: FAISS Storage
-  - [ ] Reference-based vectors
-  - [ ] Incremental indexing
-  - [ ] Memory management
+### 7. Generation Layer
+- [ ] **T90: Response Generator (MINIMAL)**
+  - Template-based generation
+  - Include top entities by PageRank
+  - Show confidence scores
+  - Basic provenance
+  - Defer: LLM generation
 
-## Phase 2: Analysis and Retrieval
+## Vertical Slice Validation
 
-### Core GraphRAG Operators
-- [ ] Implement T49: Entity Search (VDB)
-  - [ ] Quality-aware search
-  - [ ] Multi-attribute matching
-  - [ ] Reference-based results
+### Integration Tests
+- [ ] Load test PDF successfully
+- [ ] Extract 10+ entities with mentions
+- [ ] Build graph with 20+ relationships
+- [ ] Calculate PageRank scores
+- [ ] Search for entities by query
+- [ ] Generate answer with scores
 
-- [ ] Implement T51: Local Search
-  - [ ] Hop-limited traversal
-  - [ ] Direction control
-  - [ ] Result streaming
+### Quality Validation
+- [ ] Confidence propagates correctly
+- [ ] Provenance tracks all operations
+- [ ] State checkpoints work
+- [ ] Partial results on errors
 
-- [ ] Implement T54: Path Finding
-  - [ ] Confidence propagation
-  - [ ] Multi-path support
-  - [ ] Constraint handling
+### Performance Baseline
+- [ ] Process 10-page PDF in <30 seconds
+- [ ] Sub-second search responses
+- [ ] Memory usage <1GB
 
-- [ ] Implement T56: Similarity Search
-  - [ ] Multi-format support
-  - [ ] Hybrid scoring
-  - [ ] Quality filtering
+## Phase 2: Horizontal Expansion
 
-### Graph Algorithms
-- [ ] Implement T68: PageRank
-  - [ ] Streaming version
-  - [ ] Weighted variants
-  - [ ] Confidence integration
+After vertical slice validation:
 
-- [ ] Implement T73: Community Detection
-  - [ ] Hierarchical support
-  - [ ] Quality-based clustering
-  - [ ] Overlap handling
+### Complete Core Services
+- [ ] T107: Full identity management
+- [ ] T108: Version service
+- [ ] T109: Entity normalizer
+- [ ] T110: Complete provenance
+- [ ] T111: Full quality service
+- [ ] T112-T120: Remaining core services
 
-### Statistical Integration
-- [ ] Implement T117: Statistical Test Runner
-  - [ ] PyWhy integration
-  - [ ] Causal analysis support
-  - [ ] Uncertainty handling
+### Expand Ingestion (T02-T12)
+- [ ] Word, HTML, Markdown loaders
+- [ ] CSV, JSON, Excel loaders
+- [ ] API connectors
+- [ ] Stream processing
 
-### Answer Generation
-- [ ] Implement T57: Answer Generator
-  - [ ] Provenance inclusion
-  - [ ] Confidence reporting
-  - [ ] Multi-format support
+### Expand Processing (T14-T30)
+- [ ] Text cleaning and normalization
+- [ ] Language detection and translation
+- [ ] Advanced tokenization
+- [ ] T23b: LLM entity extraction
+- [ ] T25: Coreference resolution
+- [ ] Entity linking and disambiguation
+
+### Expand Construction (T35-T48)
+- [ ] Reference edge builder
+- [ ] Graph merger and deduplicator
+- [ ] Schema validation
+- [ ] Advanced embedders
+- [ ] Multiple vector indices
+
+### Complete Retrieval (T50-T67)
+- [ ] All 19 GraphRAG operators
+- [ ] Community detection
+- [ ] Subgraph extraction
+- [ ] Advanced ranking
+
+### Add Analysis (T69-T75)
+- [ ] Centrality measures
+- [ ] Path finding
+- [ ] Clustering algorithms
+- [ ] Flow analysis
+
+### Complete Interface (T82-T106)
+- [ ] Natural language parsing
+- [ ] Query planning
+- [ ] Multi-query aggregation
+- [ ] Export formats
+- [ ] Monitoring and alerts
 
 ## Phase 3: Advanced Features
 
-### Temporal Tools
-- [ ] Implement T118: Temporal Reasoner
-  - [ ] Multi-timeline support
-  - [ ] Paradox detection
-  - [ ] Temporal validity
+### Format Conversion
+- [ ] T115: Graph→Table converter
+- [ ] T116: Table→Graph builder
+- [ ] T117: Format auto-selector
 
-### Causal Analysis
-- [ ] Causal metadata preservation
-- [ ] DAG structure maintenance
-- [ ] Counterfactual support
+### Temporal and Causal
+- [ ] T118: Temporal reasoner
+- [ ] T119: Semantic evolution
+- [ ] Causal analysis integration
 
-### Uncertainty Management
-- [ ] Implement T120: Uncertainty Propagation
-  - [ ] Monte Carlo methods
-  - [ ] Distribution tracking
-  - [ ] Decision support
-
-## Phase 4: Integration and Polish
-
-### End-to-End Testing
-- [ ] Implement test scenarios from mock workflows
-- [ ] Validate three-level identity system
-- [ ] Test quality propagation
-- [ ] Verify format conversions
-
-### Performance Optimization
-- [ ] Memory usage optimization
-- [ ] Query performance tuning
-- [ ] Streaming efficiency
-- [ ] Cache implementation
-
-### Documentation
-- [ ] API documentation
-- [ ] Usage examples
-- [ ] Architecture diagrams
-- [ ] Tutorial notebooks
-
-### Demonstration Scenarios
-- [ ] Financial document analysis
-- [ ] Scientific literature review
-- [ ] Multi-source entity resolution
-- [ ] Temporal knowledge evolution
+### Statistical Integration
+- [ ] PyWhy integration
+- [ ] Statistical test runner
+- [ ] Uncertainty propagation
 
 ## Implementation Principles
 
-### Every Tool Must:
-1. Track confidence and quality_tier
-2. Use reference-based I/O
-3. Support partial results
-4. Record provenance
-5. Handle errors gracefully
+### Vertical Slice Principles
+1. **Minimal but Complete**: Each tool works end-to-end
+2. **Defer Complexity**: Advanced features come later
+3. **Contract First**: Define tool contracts before coding
+4. **Test the Flow**: Integration over perfection
 
-### Quality First:
-- No operation without confidence score
-- Uncertainty propagates through pipeline
-- Users can filter by quality threshold
-- Partial results better than no results
+### Quality Requirements
+1. Every operation tracks confidence
+2. All data includes provenance
+3. Failures produce partial results
+4. State can be checkpointed
 
-### Reference Architecture:
-- Never pass full data between tools
-- Storage systems handle persistence
-- Tools work with data streams
-- Graceful handling of large data
+### Testing Requirements
+1. **No mocks or simulations** - Real databases only
+2. **Test with real data** - Actual PDFs, real text
+3. **Full integration tests** - Complete data flows
+4. **Docker test environments** - Isolated but real
 
-### Provenance Everything:
-- Every operation recorded
-- Complete lineage tracking
-- Reproducibility guaranteed
-- Impact analysis possible
-
-## Validation Checkpoints
-
-### MVP Validation:
-- [ ] Can ingest PDF and create three-level entities
-- [ ] Entities have confidence scores
-- [ ] Graph builds from mentions
-- [ ] Can convert graph ↔ table
-
-### Analysis Validation:
-- [ ] Can run PageRank with confidence
-- [ ] Statistical analysis on graph-derived data
-- [ ] Causal analysis with PyWhy
-- [ ] Answers include provenance
-
-### Advanced Validation:
-- [ ] Handle temporal data correctly
-- [ ] Uncertainty propagation works
-- [ ] Can explain analysis steps
-- [ ] Ready for thesis demonstration
+### Architecture Rules
+1. Tools use contracts for requirements
+2. Reference-based data passing
+3. Streaming where possible
+4. Domain-adaptive behavior
 
 ## Success Criteria
 
-The implementation succeeds if:
+### Vertical Slice Success (2 weeks)
+- [ ] PDF → Answer workflow runs
+- [ ] PageRank scores influence results  
+- [ ] Confidence tracked throughout
+- [ ] Basic UI shows results
+- [ ] Architecture validated
 
-1. **Handles mock workflows**: Can execute examples from our 37 scenarios
-2. **Maintains quality**: Every result has confidence/provenance
-3. **Flexible formats**: Seamlessly converts based on analysis needs
-4. **PhD ready**: Sufficient for thesis demonstration
-5. **Extensible**: Clear path to add remaining tools
+### MVP Success (2 months)
+- [ ] 20+ tools implemented
+- [ ] Multiple analysis types work
+- [ ] Format conversion operational
+- [ ] Can run paper examples
+
+### Full Success (4 months)
+- [ ] 121 tools implemented
+- [ ] All mock workflows run
+- [ ] Statistical integration works
+- [ ] Ready for thesis defense
 
 ## Next Steps
 
-1. Create project structure with src/, tests/, docs/
-2. Set up development environment and dependencies
-3. Implement BaseObject and core data schemas
-4. Build IdentityService as proof of concept
-5. Create first tool (T01) with all requirements
+1. **Week 1**: Implement minimal core services
+2. **Week 2**: Build vertical slice tools
+3. **Week 3**: Integration and testing
+4. **Week 4**: Demo and architecture review
+5. **Month 2+**: Horizontal expansion based on learnings

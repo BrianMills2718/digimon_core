@@ -1,6 +1,6 @@
 # Super-Digimon
 
-A GraphRAG (Graph Retrieval-Augmented Generation) system that enables natural language querying of graph data through 120 specialized tools.
+A GraphRAG (Graph Retrieval-Augmented Generation) system that enables natural language querying of graph data through 121 specialized tools.
 
 ## Quick Start
 
@@ -21,19 +21,19 @@ python -m tools.test_connection
 
 ## Architecture Overview
 
-**System**: 120 tools across 8 phases with single MCP server communication
+**System**: 121 tools across 8 phases with single MCP server communication
 
 ```
 Claude Code (Natural Language Agent)
            ↓
     MCP Protocol Communication  
            ↓
-120 Python Tools (8 Phases)
+121 Python Tools (8 Phases)
            ↓
 Neo4j (Graphs) + SQLite (Metadata) + FAISS (Vectors)
 ```
 
-### Tool Phases (120 Tools Total)
+### Tool Phases (121 Tools Total)
 - **Phase 1**: Ingestion (T01-T12) - Document loading, API connectors  
 - **Phase 2**: Processing (T13-T30) - NLP, entity extraction
 - **Phase 3**: Construction (T31-T48) - Graph building, embeddings
@@ -41,7 +41,7 @@ Neo4j (Graphs) + SQLite (Metadata) + FAISS (Vectors)
 - **Phase 5**: Analysis (T68-T75) - Graph algorithms, centrality measures
 - **Phase 6**: Storage (T76-T81) - Database management, backup, caching
 - **Phase 7**: Interface (T82-T106) - Natural language processing, monitoring, export
-- **Phase 8**: Core Services (T107-T120) - Identity, versioning, quality tracking
+- **Phase 8**: Core Services (T107-T121) - Identity, versioning, quality tracking, workflow state
 
 ## Project Structure
 
@@ -70,14 +70,14 @@ Digimons/
 - [`docs/core/DEVELOPMENT_GUIDE.md`](docs/core/DEVELOPMENT_GUIDE.md) - Setup and development guide
 
 ### **Specifications**
-- [`docs/core/SPECIFICATIONS.md`](docs/core/SPECIFICATIONS.md) - Complete 120 tool specifications
+- [`docs/core/SPECIFICATIONS.md`](docs/core/SPECIFICATIONS.md) - Complete 121 tool specifications
 - [`docs/core/COMPATIBILITY_MATRIX.md`](docs/core/COMPATIBILITY_MATRIX.md) - Tool input/output compatibility (authoritative)
 - [`docs/core/DESIGN_PATTERNS.md`](docs/core/DESIGN_PATTERNS.md) - Implementation patterns and best practices
 
 ## Current Status
 
 **Phase**: Phase 0 - Foundation Setup  
-**Implementation**: 0 of 120 tools implemented  
+**Implementation**: 0 of 121 tools implemented  
 **Documentation**: Complete specifications, architecture, and roadmap  
 **Next Step**: Create project structure and core data models (see [IMPLEMENTATION_ROADMAP.md](IMPLEMENTATION_ROADMAP.md))  
 **Scope**: PhD thesis prototype (functionally complete, not production-ready)
@@ -108,7 +108,7 @@ Digimons/
 
 ## Testing Strategy
 
-- **Unit Tests**: Each tool tested independently with mock data
+- **Unit Tests**: Each tool tested with real test databases
 - **Integration Tests**: Tool chain workflows validated end-to-end
 - **Quality Tests**: Confidence propagation and partial results verified
 - **Test Data**: Sample datasets in `test_data/` for reproducible testing

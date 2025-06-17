@@ -10,7 +10,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Super-Digimon is a GraphRAG (Graph Retrieval-Augmented Generation) system that enables natural language querying of graph data. The system combines Neo4j graph storage, FAISS vector search, and SQLite metadata to provide intelligent graph analysis through **106 specialized tools** organized in 7 lifecycle phases.
+Super-Digimon is a GraphRAG (Graph Retrieval-Augmented Generation) system that enables natural language querying of graph data. The system combines Neo4j graph storage, FAISS vector search, and SQLite metadata to provide intelligent graph analysis through **121 specialized tools** organized in 8 lifecycle phases.
 
 
 ## Key Commands
@@ -53,7 +53,7 @@ docker-compose down
 - **Neo4j**: Primary graph database for entities, relationships, and communities
 - **FAISS**: Vector search index for semantic similarity
 - **SQLite**: Metadata storage for documents and configuration
-- **106 MCP Tools**: Complete system implementation across 7 phases (T01-T106)
+- **121 MCP Tools**: Complete system implementation across 8 phases (T01-T121)
 
 ### Storage Architecture
 ```
@@ -61,12 +61,12 @@ Claude Code (Agent)
       ↓
 MCP Protocol  
       ↓
-Python MCP Servers (106 Tools)
+Python MCP Servers (121 Tools)
       ↓
 Neo4j (Graphs) + SQLite (Metadata) + FAISS (Vectors)
 ```
 
-### Tool Categories (106 Tools Across 7 Phases)
+### Tool Categories (121 Tools Across 8 Phases)
 - **Phase 1 - Ingestion (T01-T12)**: Document loading, API connectors, database integration
 - **Phase 2 - Processing (T13-T30)**: Text cleaning, NLP, entity/relationship extraction  
 - **Phase 3 - Construction (T31-T48)**: Graph building, embeddings, vector indexing
@@ -74,6 +74,7 @@ Neo4j (Graphs) + SQLite (Metadata) + FAISS (Vectors)
 - **Phase 5 - Analysis (T68-T75)**: Advanced graph algorithms, centrality measures
 - **Phase 6 - Storage (T76-T81)**: Database management, backup, caching
 - **Phase 7 - Interface (T82-T106)**: Natural language processing, monitoring, export
+- **Phase 8 - Core Services (T107-T121)**: Identity, versioning, quality, workflow state
 
 ## Key Files and Directories
 
@@ -86,7 +87,7 @@ Digimons/
 └── docs/
     ├── core/                       # Essential documentation
     │   ├── ARCHITECTURE.md         # System design
-    │   ├── SPECIFICATIONS.md       # All 106 tools
+    │   ├── SPECIFICATIONS.md       # All 121 tools
     │   ├── DEVELOPMENT_GUIDE.md    # How to develop
     │   └── DESIGN_PATTERNS.md      # Key patterns
     ├── project/                    # Project management
@@ -97,7 +98,7 @@ Digimons/
 
 ### Key Documentation
 - **Architecture**: `docs/core/ARCHITECTURE.md`
-- **Tool Specs**: `docs/core/SPECIFICATIONS.md` (all 106 tools)
+- **Tool Specs**: `docs/core/SPECIFICATIONS.md` (all 121 tools)
 - **Dev Guide**: `docs/core/DEVELOPMENT_GUIDE.md`
 - **Patterns**: `docs/core/DESIGN_PATTERNS.md`
 - **Roadmap**: `IMPLEMENTATION_ROADMAP.md`
@@ -111,14 +112,14 @@ Digimons/
 ## Development Approach
 
 ### Implementation Priority
-Based on the 106 tool specification:
-1. **Phase 1-3**: Infrastructure, processing, construction (48 tools) - Foundation
-2. **Phase 4**: JayLZhou GraphRAG operators (19 tools) - Core functionality  
-3. **Phase 5-7**: Analysis and interface (39 tools) - Advanced features
+Based on the 121 tool specification:
+1. **Vertical Slice First**: One complete workflow (PDF → PageRank → Answer)
+2. **Core Services**: T107-T111, T121 must be implemented first
+3. **Horizontal Expansion**: Fill out all phases after vertical slice works
 
 ### Technical Patterns
 - **Attribute-Based Tool System**: Tools declare requirements, not fixed graph types
-- **MCP Protocol**: All 106 tools exposed via Model Context Protocol
+- **MCP Protocol**: All 121 tools exposed via Model Context Protocol
 - **Pass-by-Reference**: Efficient handling of large graph data
 - **Phase-Based Development**: Implement tools in dependency order
 
@@ -199,8 +200,8 @@ pytest --cov=src tests/
 
 See `IMPLEMENTATION_ROADMAP.md` for detailed plan and milestones.
 
-**Current Phase**: Starting Phase 0 (Foundation)  
-**Next Milestone**: First working tool (T01) with MCP integration
+**Current Phase**: Starting Vertical Slice (PDF → PageRank → Answer)  
+**Next Milestone**: Complete workflow demonstrating all layers
 
 ## Key Principles
 
@@ -213,6 +214,6 @@ See `IMPLEMENTATION_ROADMAP.md` for detailed plan and milestones.
 ## Notes
 
 - **No implementation exists yet** - Starting from scratch
-- **Documentation is complete** - All 106 tools fully specified
-- **Architecture is final** - Single MCP server, triple database
-- **Begin with Phase 0** - Set up infrastructure first
+- **Documentation is complete** - All 121 tools fully specified
+- **Architecture is final** - Single MCP server, triple database, tool contracts
+- **Begin with Vertical Slice** - Prove architecture with one complete workflow

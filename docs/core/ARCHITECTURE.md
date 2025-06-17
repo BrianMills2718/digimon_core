@@ -2,7 +2,7 @@
 
 ## System Overview
 
-Super-Digimon is a GraphRAG (Graph Retrieval-Augmented Generation) system that enables natural language querying of graph data through **120 specialized tools** organized in **8 phases**. The system combines graph storage, vector search, and metadata management to provide intelligent graph analysis capabilities.
+Super-Digimon is a GraphRAG (Graph Retrieval-Augmented Generation) system that enables natural language querying of graph data through **121 specialized tools** organized in **8 phases**. The system combines graph storage, vector search, and metadata management to provide intelligent graph analysis capabilities.
 
 **Key Innovation**: The system can perform virtually any analytical method through flexible data structuring - seamlessly converting between graphs, tables, and vectors based on the analysis needs.
 
@@ -22,7 +22,7 @@ Super-Digimon is a GraphRAG (Graph Retrieval-Augmented Generation) system that e
          ▼
 ┌─────────────────┐
 │ Python MCP      │  Single MCP Server
-│    Server       │  120 Tools (T01-T120)
+│    Server       │  121 Tools (T01-T121)
 └────────┬────────┘
          │
     ┌────┴────┬─────────┐
@@ -43,7 +43,7 @@ Super-Digimon is a GraphRAG (Graph Retrieval-Augmented Generation) system that e
 - **Metadata Store**: SQLite
 - **Containerization**: Docker & Docker Compose
 
-## Tool Organization (120 Tools)
+## Tool Organization (121 Tools)
 
 ### Phase Distribution
 - **Phase 1 - Ingestion** (T01-T12): 12 tools for data loading
@@ -53,12 +53,12 @@ Super-Digimon is a GraphRAG (Graph Retrieval-Augmented Generation) system that e
 - **Phase 5 - Analysis** (T68-T75): 8 tools for graph algorithms
 - **Phase 6 - Storage** (T76-T81): 6 tools for data management
 - **Phase 7 - Interface** (T82-T106): 25 tools for UI/monitoring/export
-- **Phase 8 - Core Services** (T107-T120): 14 tools for infrastructure support
+- **Phase 8 - Core Services** (T107-T121): 15 tools for infrastructure support
 
 ## Key Architectural Decisions
 
 ### 1. Single MCP Server
-**Decision**: Use one Python MCP server exposing all 106 tools  
+**Decision**: Use one Python MCP server exposing all 121 tools  
 **Rationale**: Simpler than federated architecture, sufficient for prototype scope
 
 ### 2. Triple Database Architecture
@@ -66,12 +66,20 @@ Super-Digimon is a GraphRAG (Graph Retrieval-Augmented Generation) system that e
 - **SQLite**: Metadata storage (documents, chunks, configuration)
 - **FAISS**: Vector similarity search for semantic queries
 
-### 3. Attribute-Based Tool System
-Tools declare required attributes, not fixed graph types:
+### 3. Tool Contracts
+Tools declare contracts specifying requirements and guarantees:
 ```python
-required_attributes = {
-    "node": ["embedding"],
-    "relationship": ["weight"]
+{
+    "required_attributes": {
+        "entity": ["canonical_name", "confidence"]
+    },
+    "required_state": {
+        "mentions_created": true,
+        "entities_resolved": "optional"  # Domain-specific
+    },
+    "produced_state": {
+        "graph_ready": true
+    }
 }
 ```
 
@@ -101,7 +109,24 @@ This enables:
 - Multiple surface forms for same entity
 - Correction without losing original data
 
-### 6. Universal Quality Tracking
+### 6. Optional Entity Resolution
+Entity resolution adapts to analytical needs:
+
+**Social Network Analysis** (No Resolution):
+```python
+# Keep @obama and @barackobama as separate entities
+config = {"resolve_entities": false}
+# Result: Track different social media personas
+```
+
+**Corporate Analysis** (With Resolution):
+```python
+# Merge "Apple Inc.", "Apple Computer", "AAPL"
+config = {"resolve_entities": true}
+# Result: Unified view of corporate entity
+```
+
+### 7. Universal Quality Tracking
 Every data object includes quality metadata:
 ```python
 {
@@ -114,7 +139,7 @@ Every data object includes quality metadata:
 }
 ```
 
-### 7. Format-Agnostic Processing
+### 8. Format-Agnostic Processing
 Data seamlessly transforms between formats based on analytical needs:
 ```
 Documents → Chunks → Entities/Relations → Graph
@@ -157,6 +182,12 @@ Critical services that support all tools:
 - Enables rollback
 - Supports knowledge evolution
 
+### Workflow State Service (T121)
+- Checkpoint workflow progress
+- Enable crash recovery
+- Support long-running analyses
+- Lightweight reference storage
+
 ## Data Flow
 
 1. **Ingestion**: Documents → Chunks → Text Processing
@@ -168,14 +199,14 @@ Critical services that support all tools:
 
 ## Development Approach
 
-### Implementation Priority (11-week roadmap)
-1. **Week 1-2**: Foundation - Core data models, services (T107-T111)
-2. **Week 3-4**: Ingestion & Processing - Basic pipeline (T01, T05, T15, T23)
-3. **Week 5-6**: Construction & Storage - Graph building (T31, T34, T76-T78)
-4. **Week 7-8**: Core Analysis - GraphRAG operators (T49-T56, T68)
-5. **Week 9**: Quality & Robustness - Confidence, partial results
-6. **Week 10**: Temporal & Causal - Advanced features (T118)
-7. **Week 11**: Integration & Polish - End-to-end testing
+### Vertical Slice First Strategy
+Instead of implementing all tools in phases, build one complete workflow first:
+
+**Target**: PDF → PageRank → Answer (2 weeks)
+1. **Week 1**: Minimal core services (T107, T110, T111, T121)
+2. **Week 2**: Vertical slice tools (T01, T15a, T23a, T31, T34, T76, T68, T49, T90)
+3. **Week 3**: Integration testing and architecture validation
+4. **Week 4+**: Horizontal expansion based on learnings
 
 ### Key Implementation Patterns
 - **Reference-based I/O**: All tools use references, not full objects

@@ -377,25 +377,32 @@ This document captures design patterns discovered through mock workflow analysis
       return Graph(nodes=5, edges=7, attrs=["id", "type", "timestamp"])
   ```
 
-### Tool Isolation Testing
-- **Problem**: Integration tests are slow and fragile
-- **Solution**: Test tools in isolation with mock data
+### Real Database Testing
+- **Problem**: Need to test actual database behavior
+- **Solution**: Use real test instances with controlled data
 - **Implementation**:
   ```python
   def test_entity_search():
-      mock_graph = MockGraph({"e1": {"name": "test"}})
-      result = entity_search(mock_graph, query="test")
-      assert result == ["e1"]
+      # Real Neo4j test instance with known data
+      with test_neo4j() as db:
+          db.load_fixture("test_data/entities.json")
+          result = entity_search(db, query="test")
+          assert result == ["e1"]
   ```
 
-### Progressive Test Suites
-- **Problem**: Full test suite takes too long
-- **Solution**: Layer tests by execution time
+### Test Environment Management
+- **Problem**: Need consistent test environments
+- **Solution**: Docker-based test databases
 - **Implementation**:
   ```bash
-  pytest -m unit      # < 1 second per test
-  pytest -m integration  # < 10 seconds per test  
-  pytest -m e2e       # < 60 seconds per test
+  # Start test environment
+  docker-compose -f docker-compose.test.yml up -d
+  
+  # Run tests against real services
+  pytest tests/  # All tests use real databases
+  
+  # Cleanup
+  docker-compose -f docker-compose.test.yml down
   ```
 
 ## Key Implementation Rules
