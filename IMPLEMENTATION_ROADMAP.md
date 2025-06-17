@@ -8,7 +8,17 @@ This roadmap outlines the implementation phases for Super-Digimon, based on disc
 
 **Core Innovation**: Three-level identity system + Universal quality tracking + Format-agnostic processing + Complete provenance.
 
-## Phase 0: Foundation
+## CRITICAL: Implementation Order
+
+**The Core Services (T107-T111) in Phase 0 MUST be implemented first.** These services are foundational to the entire system:
+- **T107 Identity Service**: Required by all entity-related tools
+- **T110 Provenance Service**: Required by all tools for tracking
+- **T111 Quality Service**: Required by all tools for confidence
+- **T108 Version Service**: Required for reproducibility
+
+No other tools should be implemented until these core services are operational.
+
+## Phase 0: Foundation (IMPLEMENT FIRST)
 
 ### Core Data Models
 - [ ] Define BaseObject with all common fields (id, confidence, quality_tier, provenance)

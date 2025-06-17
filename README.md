@@ -71,6 +71,7 @@ Digimons/
 
 ### **Specifications**
 - [`docs/core/SPECIFICATIONS.md`](docs/core/SPECIFICATIONS.md) - Complete 120 tool specifications
+- [`docs/core/COMPATIBILITY_MATRIX.md`](docs/core/COMPATIBILITY_MATRIX.md) - Tool input/output compatibility (authoritative)
 - [`docs/core/DESIGN_PATTERNS.md`](docs/core/DESIGN_PATTERNS.md) - Implementation patterns and best practices
 
 ## Current Status
