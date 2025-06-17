@@ -4,13 +4,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Current Status
 
-**Documentation**: Refactored from 87 files to <20 core files (January 13, 2025)  
-**Implementation**: Starting fresh - 0% complete  
-**Next Step**: See IMPLEMENTATION_ROADMAP.md
+**Documentation**: Complete and aligned with vertical slice strategy  
+**Implementation**: 0% complete in main project (working code exists in super_digimon_implementation/)  
+**Strategy**: Vertical slice first - PDF → PageRank → Answer workflow  
+**Next Step**: Implement core services (T107, T110, T111, T121) then vertical slice tools
 
 ## Project Overview
 
-Super-Digimon is a GraphRAG (Graph Retrieval-Augmented Generation) system that enables natural language querying of graph data. The system combines Neo4j graph storage, FAISS vector search, and SQLite metadata to provide intelligent graph analysis through **121 specialized tools** organized in 8 lifecycle phases.
+Super-Digimon is a GraphRAG (Graph Retrieval-Augmented Generation) system that enables natural language querying of graph data. The system combines Neo4j graph storage, FAISS vector search, and SQLite metadata to provide intelligent graph analysis through **121 specialized tools**.
+
+**Implementation Approach**: Vertical slice first - implement one complete workflow (PDF → PageRank → Answer) before expanding horizontally to all tools.
 
 ## Technical Requirements
 
@@ -22,25 +25,24 @@ Super-Digimon is a GraphRAG (Graph Retrieval-Augmented Generation) system that e
 
 ## Success Criteria
 
-### Phase 1: Vertical Slice (Weeks 1-2)
-- [ ] Core services operational (T107, T110, T111, T121)
+### Phase 0: Foundation (Week 1)
+- [ ] Core services implemented (T107, T110, T111, T121) - MINIMAL versions
+- [ ] MCP server functional with tool registration
+- [ ] Database connections working (Neo4j, SQLite, FAISS)
+- [ ] Reference system operational (storage://type/id format)
+
+### Phase 1: Vertical Slice (Weeks 2-3) 
 - [ ] PDF → PageRank → Answer workflow functional end-to-end
+- [ ] Minimal tools implemented: T01, T15a, T23a, T27, T31, T34, T68, T49
 - [ ] Cross-database references working (neo4j:// sqlite:// faiss://)
 - [ ] Quality scores propagate correctly through pipeline
-- [ ] Workflow state checkpoint/restore functional
+- [ ] One complete test case working start-to-finish
 
-### Phase 2: Core Implementation (Month 1)
-- [ ] All Phase 1-3 tools implemented (T01-T48)
-- [ ] Three-level identity system working (Surface → Mention → Entity)
-- [ ] Neo4j + SQLite + FAISS integration stable
-- [ ] Basic performance targets met (<2min for 10MB PDF)
-
-### Phase 3: Full System (Months 2-3)
-- [ ] All 121 tools implemented and tested
-- [ ] Tool contracts validated and enforced
-- [ ] Complete GraphRAG operators functional (T49-T67)
-- [ ] Statistical analysis integration working (Graph ↔ Table)
-- [ ] Performance optimized for research workloads
+### Phase 2: Horizontal Expansion (Ongoing)
+- [ ] Additional tool variants based on needs
+- [ ] Enhanced error handling and recovery
+- [ ] Performance optimization of hot spots
+- [ ] Complete tool contract validation
 
 ### Thesis Defense Ready
 - [ ] Can demonstrate all mock workflows from analysis
@@ -101,15 +103,25 @@ Python MCP Servers (121 Tools)
 Neo4j (Graphs) + SQLite (Metadata) + FAISS (Vectors)
 ```
 
-### Tool Categories (121 Tools Across 8 Phases)
-- **Phase 1 - Ingestion (T01-T12)**: Document loading, API connectors, database integration
-- **Phase 2 - Processing (T13-T30)**: Text cleaning, NLP, entity/relationship extraction  
-- **Phase 3 - Construction (T31-T48)**: Graph building, embeddings, vector indexing
-- **Phase 4 - Retrieval (T49-T67)**: JayLZhou GraphRAG operators (the core 19 operators)
-- **Phase 5 - Analysis (T68-T75)**: Advanced graph algorithms, centrality measures
-- **Phase 6 - Storage (T76-T81)**: Database management, backup, caching
-- **Phase 7 - Interface (T82-T106)**: Natural language processing, monitoring, export
-- **Phase 8 - Core Services (T107-T121)**: Identity, versioning, quality, workflow state
+### Vertical Slice Implementation Priority
+
+**Phase 0 - Core Services (REQUIRED FIRST)**:
+- T107: Identity Service (minimal mention → entity linking)
+- T110: Provenance Service (basic operation tracking)  
+- T111: Quality Service (confidence tracking and propagation)
+- T121: Workflow State Service (checkpoint/restore)
+
+**Phase 1 - Vertical Slice Tools (PDF → PageRank → Answer)**:
+- T01: PDF Loader (basic text extraction)
+- T15a: Sliding Window Chunker (fixed 512-token chunks)
+- T23a: spaCy NER (standard entity types)
+- T27: Pattern Relationship Extractor (simple verb patterns)
+- T31: Entity Node Builder (mention → entity conversion)
+- T34: Relationship Edge Builder (create graph edges)
+- T68: PageRank (centrality analysis)
+- T49: Multi-hop Query (graph traversal for answers)
+
+**All Other Tools**: Implement after vertical slice validates architecture
 
 ## Key Files and Directories
 
@@ -152,11 +164,13 @@ Digimons/
 
 ## Development Approach
 
-### Implementation Priority
-Based on the 121 tool specification:
-1. **Vertical Slice First**: One complete workflow (PDF → PageRank → Answer)
-2. **Core Services**: T107-T111, T121 must be implemented first
-3. **Horizontal Expansion**: Fill out all phases after vertical slice works
+### Implementation Priority (Vertical Slice Strategy)
+1. **Phase 0**: Core services (T107, T110, T111, T121) - MINIMAL implementations only
+2. **Phase 1**: Vertical slice tools for PDF → PageRank → Answer workflow  
+3. **Validation**: Ensure end-to-end workflow works with real test data
+4. **Phase 2**: Horizontal expansion to additional tools based on validated architecture
+
+**Critical**: Do NOT implement full tools initially. Use minimal viable implementations to prove architecture works.
 
 ### Technical Patterns
 - **Attribute-Based Tool System**: Tools declare requirements, not fixed graph types
