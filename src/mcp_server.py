@@ -21,6 +21,9 @@ from src.core.provenance_service import ProvenanceService
 from src.core.quality_service import QualityService, QualityTier
 from src.core.workflow_state_service import WorkflowStateService
 
+# Import Phase 1 tools
+from src.tools.phase1.vertical_slice_workflow import VerticalSliceWorkflow
+
 # Initialize MCP server
 mcp = FastMCP("super-digimon")
 
@@ -32,6 +35,9 @@ quality_service = QualityService()
 # Get workflow storage directory from environment
 workflow_storage = os.getenv("WORKFLOW_STORAGE_DIR", "./data/workflows")
 workflow_service = WorkflowStateService(workflow_storage)
+
+# Initialize vertical slice workflow
+vertical_slice = VerticalSliceWorkflow(workflow_storage_dir=workflow_storage)
 
 
 # =============================================================================
@@ -405,6 +411,32 @@ def get_workflow_statistics() -> Dict[str, Any]:
 
 
 # =============================================================================
+# Phase 1: Vertical Slice Tools
+# =============================================================================
+
+@mcp.tool()
+def execute_pdf_to_answer_workflow(
+    pdf_path: str,
+    query: str,
+    workflow_name: str = "PDF_Analysis"
+) -> Dict[str, Any]:
+    """Execute complete PDF → PageRank → Answer workflow.
+    
+    Args:
+        pdf_path: Path to PDF file to process
+        query: Question to answer using the extracted graph
+        workflow_name: Name for workflow tracking
+    """
+    return vertical_slice.execute_workflow(pdf_path, query, workflow_name)
+
+
+@mcp.tool()
+def get_vertical_slice_info() -> Dict[str, Any]:
+    """Get information about the vertical slice workflow."""
+    return vertical_slice.get_tool_info()
+
+
+# =============================================================================
 # System Tools
 # =============================================================================
 
@@ -429,10 +461,12 @@ def get_system_status() -> Dict[str, Any]:
             "identity_service": "active",
             "provenance_service": "active", 
             "quality_service": "active",
-            "workflow_service": "active"
+            "workflow_service": "active",
+            "vertical_slice": "active"
         },
         "core_services_count": 4,
-        "total_tools_available": len(mcp._tools),
+        "phase1_tools_count": 8,
+        "vertical_slice_ready": True,
         "server_name": "super-digimon"
     }
 
