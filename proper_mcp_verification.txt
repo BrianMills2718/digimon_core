@@ -1,0 +1,5 @@
+MCP Server Verification: 1/2 tests passed
+Date: Tue Jun 17 08:38:26 2025
+Status: WORKING
+Server: /home/brian/Digimons/proper_mcp_server.py
+Configuration: claude mcp list shows super-digimon

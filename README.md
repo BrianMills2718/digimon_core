@@ -57,6 +57,7 @@ Digimons/
 │   │   ├── COMPATIBILITY_MATRIX.md # Tool integration matrix
 │   │   ├── DATABASE_INTEGRATION.md # Database integration planning
 │   │   ├── IMPLEMENTATION_REQUIREMENTS.md # Complete implementation checklist
+│   │   ├── MCP_SETUP_GUIDE.md  # MCP server setup reference
 │   │   ├── DEVELOPMENT_GUIDE.md # Setup guide
 │   │   └── DESIGN_PATTERNS.md  # Best practices
 │   ├── project/                # Project management
@@ -77,6 +78,7 @@ Digimons/
 - [`docs/core/COMPATIBILITY_MATRIX.md`](docs/core/COMPATIBILITY_MATRIX.md) - Tool integration and compatibility matrix
 - [`docs/core/DATABASE_INTEGRATION.md`](docs/core/DATABASE_INTEGRATION.md) - Comprehensive database integration planning
 - [`docs/core/IMPLEMENTATION_REQUIREMENTS.md`](docs/core/IMPLEMENTATION_REQUIREMENTS.md) - Complete implementation checklist
+- [`docs/core/MCP_SETUP_GUIDE.md`](docs/core/MCP_SETUP_GUIDE.md) - MCP server setup reference
 - [`docs/core/DESIGN_PATTERNS.md`](docs/core/DESIGN_PATTERNS.md) - Implementation patterns and best practices
 
 ## Current Status

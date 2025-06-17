@@ -1,0 +1,1 @@
+FAIL: MCP protocol communication failed
