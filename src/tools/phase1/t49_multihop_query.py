@@ -231,7 +231,7 @@ class MultiHopQuery:
                         WHERE e.canonical_name CONTAINS $term 
                            OR ANY(form IN e.surface_forms WHERE form CONTAINS $term)
                         RETURN e.canonical_name as name, e.pagerank_score as score
-                        ORDER BY e.pagerank_score DESC NULLS LAST
+                        ORDER BY coalesce(e.pagerank_score, 0) DESC
                         LIMIT 3
                         """, term=word)
                         
@@ -302,7 +302,7 @@ class MultiHopQuery:
                type(r) as rel_type, r.weight as weight, r.confidence as rel_confidence,
                end.canonical_name as end_name, end.pagerank_score as end_score,
                end.entity_id as end_id
-        ORDER BY r.weight DESC, end.pagerank_score DESC NULLS LAST
+        ORDER BY coalesce(r.weight, 0) DESC, coalesce(end.pagerank_score, 0) DESC
         LIMIT $limit
         """, start_id=start_entity_id, limit=limit)
         
@@ -335,7 +335,7 @@ class MultiHopQuery:
                type(r2) as rel2_type, r2.weight as weight2, r2.confidence as conf2,
                end.canonical_name as end_name, end.pagerank_score as end_score,
                end.entity_id as end_id
-        ORDER BY (r1.weight * r2.weight) DESC, end.pagerank_score DESC NULLS LAST
+        ORDER BY (coalesce(r1.weight, 0.5) * coalesce(r2.weight, 0.5)) DESC, coalesce(end.pagerank_score, 0) DESC
         LIMIT $limit
         """, start_id=start_entity_id, limit=limit)
         
@@ -381,7 +381,7 @@ class MultiHopQuery:
                type(r3) as rel3_type, r3.weight as weight3, r3.confidence as conf3,
                end.canonical_name as end_name, end.pagerank_score as end_score,
                end.entity_id as end_id
-        ORDER BY (r1.weight * r2.weight * r3.weight) DESC, end.pagerank_score DESC NULLS LAST
+        ORDER BY (coalesce(r1.weight, 0.5) * coalesce(r2.weight, 0.5) * coalesce(r3.weight, 0.5)) DESC, coalesce(end.pagerank_score, 0) DESC
         LIMIT $limit
         """, start_id=start_entity_id, limit=limit // 2)  # Fewer 3-hop paths due to complexity
         

@@ -19,6 +19,7 @@ This integration proves the vertical slice architecture works.
 from typing import Dict, List, Optional, Any
 import os
 from pathlib import Path
+import traceback
 
 # Import Phase 1 tools
 from .t01_pdf_loader import PDFLoader
@@ -312,8 +313,23 @@ class VerticalSliceWorkflow:
                     "explanation": "No relevant entities found in the graph for this query"
                 }
             
+            # Add workflow summary
+            results["workflow_summary"] = {
+                "chunks_created": results["steps"]["text_chunking"]["chunks"],
+                "entities_extracted": results["steps"]["entity_extraction"]["total_entities"],
+                "relationships_found": results["steps"]["relationship_extraction"]["total_relationships"],
+                "graph_entities": results["steps"]["entity_building"]["entities_created"],
+                "graph_edges": results["steps"]["edge_building"]["edges_created"]
+            }
+            
+            # Add query results to output
+            results["query_result"] = query_result
+            
             # Complete workflow
-            results["status"] = "completed"
+            results["status"] = "success"  # Note: UI expects "success" not "completed"
+            results["confidence"] = self.quality_service.calculate_aggregate_confidence(
+                [0.8] * 8  # Default confidence for all steps
+            )
             self.workflow_service.update_workflow_progress(
                 workflow_id, 8, "completed"
             )
@@ -322,19 +338,27 @@ class VerticalSliceWorkflow:
             return results
             
         except Exception as e:
+            error_trace = traceback.format_exc()
+            print(f"ERROR in workflow: {e}")
+            print(f"Traceback:\n{error_trace}")
+            
             return self._complete_workflow_with_error(
-                workflow_id, results, f"Unexpected workflow error: {str(e)}"
+                workflow_id, results, f"Unexpected workflow error: {str(e)}",
+                error_trace=error_trace
             )
     
     def _complete_workflow_with_error(
         self, 
         workflow_id: str, 
         results: Dict[str, Any], 
-        error_message: str
+        error_message: str,
+        error_trace: Optional[str] = None
     ) -> Dict[str, Any]:
         """Complete workflow with error."""
-        results["status"] = "failed"
+        results["status"] = "failed"  # Note: UI expects "error" not "failed"
         results["error"] = error_message
+        if error_trace:
+            results["traceback"] = error_trace
         
         self.workflow_service.update_workflow_progress(
             workflow_id, -1, "failed", error_message

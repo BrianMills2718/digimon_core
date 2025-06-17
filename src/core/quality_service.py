@@ -411,6 +411,34 @@ class QualityService:
         except Exception:
             return []
     
+    def calculate_aggregate_confidence(self, confidence_scores: List[float]) -> float:
+        """Calculate aggregate confidence from multiple scores.
+        
+        Args:
+            confidence_scores: List of confidence scores (0.0-1.0)
+            
+        Returns:
+            Aggregated confidence score
+        """
+        try:
+            if not confidence_scores:
+                return 0.5  # Default confidence
+            
+            # Filter out invalid scores
+            valid_scores = [s for s in confidence_scores if 0.0 <= s <= 1.0]
+            
+            if not valid_scores:
+                return 0.5  # Default confidence
+            
+            # Use harmonic mean for conservative aggregation
+            # This penalizes low confidence scores more than arithmetic mean
+            harmonic_mean = len(valid_scores) / sum(1/s for s in valid_scores if s > 0)
+            
+            return max(0.0, min(1.0, harmonic_mean))
+            
+        except Exception:
+            return 0.5  # Default confidence on error
+    
     def get_quality_statistics(self) -> Dict[str, Any]:
         """Get quality service statistics."""
         try:
