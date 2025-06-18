@@ -79,11 +79,26 @@ Phases tested in isolation, integration breaks discovered at runtime.
 
 ## 🎯 Target Architecture (A1-A4 Priorities)
 
-### 1. Standardized Phase Interface
+### 1. Standardized Phase Interface (Contract-First)
 ```python
+# contracts/phase_interface.py
+@dataclass
+class ProcessingRequest:
+    """Immutable contract for ALL phase inputs"""
+    document_path: str
+    options: Dict[str, Any]
+    
+@dataclass  
+class ProcessingResult:
+    """Immutable contract for ALL phase outputs"""
+    entities: List[Entity]
+    relationships: List[Relationship]
+    metadata: Dict[str, Any]
+
 class GraphRAGPhase(ABC):
+    """Contract all phases MUST implement"""
     @abstractmethod
-    def process_document(self, request: ProcessingRequest) -> ProcessingResult:
+    def process(self, request: ProcessingRequest) -> ProcessingResult:
         pass
 ```
 
@@ -155,6 +170,25 @@ class PhaseIntegrationTest:
 3. **Backward Compatibility**: Service changes must consider existing usage
 4. **Test Integration Early**: Unit tests miss architectural problems
 5. **Document Reality**: Aspirational docs hide actual issues
+6. **No Parallel Implementations**: Refactor in place, don't create competing versions
+7. **Contract-First Development**: Define APIs before writing code
+
+## 🚨 Development Rules Going Forward
+
+### Single Source of Truth
+```
+⚠️ CRITICAL: All implementation in /src/ 
+⚠️ No parallel implementations allowed
+⚠️ Refactor in place, don't rewrite elsewhere
+```
+
+### Pre-Implementation Checklist
+Before writing ANY new phase or service:
+1. [ ] Define input/output contracts
+2. [ ] Write integration tests FIRST
+3. [ ] Document API with examples
+4. [ ] Ensure compatibility with existing phases
+5. [ ] Get contract review before coding
 
 ---
 

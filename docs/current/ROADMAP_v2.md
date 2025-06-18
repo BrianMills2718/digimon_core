@@ -54,15 +54,20 @@
 
 **Success Criteria**: Phase 1 still works, Phase 2 API errors resolved
 
-#### A2: Standard Phase Interface Design
-**Goal**: Define common contract for all phases  
+#### A2: Standard Phase Interface Design (Contract-First)
+**Goal**: Define common contract for all phases BEFORE implementation
 **Deliverables**:
-- [ ] `GraphRAGPhase` abstract base class
-- [ ] `ProcessingRequest` and `ProcessingResult` data structures
+- [ ] Create `contracts/` directory with immutable interfaces
+- [ ] `GraphRAGPhase` abstract base class with strict contract
+- [ ] `ProcessingRequest` and `ProcessingResult` frozen dataclasses
 - [ ] Phase capability discovery mechanism
 - [ ] Interface compliance test framework
+- [ ] Integration tests BEFORE implementation
 
-**Success Criteria**: Clear contract for what all phases must provide
+**Success Criteria**: 
+- Contracts reviewed and frozen before coding
+- All phases pass same integration tests
+- No API divergence possible
 
 #### A3: UI Adapter Pattern
 **Goal**: Clean separation between UI and phase specifics  

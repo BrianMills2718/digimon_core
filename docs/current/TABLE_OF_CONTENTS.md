@@ -13,6 +13,10 @@
 
 ### **Documentation Cleanup**
 - [`DOCUMENTATION_CONSOLIDATION_NEEDED.md`](DOCUMENTATION_CONSOLIDATION_NEEDED.md) - Documentation overlap analysis
+- [`IMPLEMENTATION_DIVERGENCE_ANALYSIS.md`](IMPLEMENTATION_DIVERGENCE_ANALYSIS.md) - Root cause of Phase 1→2 failure
+
+### **Development Process**
+- [`SESSION_HANDOFF.md`](../../SESSION_HANDOFF.md) - Critical rules to prevent parallel implementations
 
 ## 📂 **Project Organization**
 

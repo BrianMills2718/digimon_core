@@ -10,7 +10,12 @@
 ## 🚨 Critical Issue
 **Phase 1→2 Integration Failed**: `current_step` vs `step_number` API mismatch
 
-**Root Cause**: Documentation dysfunction - claimed capabilities without verification, multiple overlapping doc systems
+**Root Cause**: Two parallel implementations diverged:
+- Main `/src/` (original, Phase 1 works)
+- `super_digimon_implementation/` (attempted rewrite)
+- APIs evolved differently, causing integration failure
+
+**⚠️ CRITICAL**: Use only `/src/` - no parallel implementations!
 
 ## 📚 Documentation
 👉 **[`docs/current/TABLE_OF_CONTENTS.md`](docs/current/TABLE_OF_CONTENTS.md)** - All documentation
