@@ -11,7 +11,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Super-Digimon is a GraphRAG (Graph Retrieval-Augmented Generation) system that enables natural language querying of graph data. The system combines Neo4j graph storage, FAISS vector search, and SQLite metadata to provide intelligent graph analysis through **121 specialized tools**.
+Super-Digimon is a universal analytical platform that enables natural language querying and processing of diverse data through format-agnostic analysis. The system combines Neo4j graph storage, Qdrant vector database, and SQLite metadata to provide intelligent analytical capabilities through **121 specialized tools**.
 
 **Implementation Approach**: Vertical slice first - implement one complete workflow (PDF → PageRank → Answer) before expanding horizontally to all tools.
 
@@ -46,7 +46,7 @@ Super-Digimon is a GraphRAG (Graph Retrieval-Augmented Generation) system that e
   - ✅ Test: Tool discovery, parameter validation, error responses
   - ✅ Adversarial: Malformed requests, timeout handling, concurrent calls
 - [ ] **Database Integration**: All 3 databases operational
-  - ✅ Test: Neo4j/SQLite/FAISS create/read/update operations
+  - ✅ Test: Neo4j/SQLite/Qdrant create/read/update operations
   - ✅ Adversarial: Connection drops, full disk, memory exhaustion
 
 ### Phase 1: Vertical Slice (Weeks 2-3)
@@ -80,8 +80,8 @@ Super-Digimon is a GraphRAG (Graph Retrieval-Augmented Generation) system that e
 - [ ] **PDF → Answer Pipeline**: Complete workflow with real test data
   - ✅ Test: 3 different PDFs → meaningful answers with <5min processing
   - ✅ Adversarial: Malformed PDFs, empty results, system failures
-- [ ] **Cross-Database Integrity**: References work across Neo4j/SQLite/FAISS
-  - ✅ Test: Entity in Neo4j matches SQLite metadata and FAISS embedding
+- [ ] **Cross-Database Integrity**: References work across Neo4j/SQLite/Qdrant
+  - ✅ Test: Entity in Neo4j matches SQLite metadata and Qdrant embedding
   - ✅ Adversarial: Missing references, orphaned data, corrupted indices
 - [ ] **Quality Propagation**: Confidence tracked through entire pipeline
   - ✅ Test: Input confidence 0.9 → output confidence documented at each step
@@ -136,7 +136,7 @@ docker-compose down
 ### Core Components
 - **Claude Code**: Natural language agent that orchestrates tool execution via MCP
 - **Neo4j**: Primary graph database for entities, relationships, and communities
-- **FAISS**: Vector search index for semantic similarity
+- **Qdrant**: Vector database for semantic similarity and embeddings
 - **SQLite**: Metadata storage for documents and configuration
 - **121 MCP Tools**: Complete system implementation across 8 phases (T01-T121)
 
@@ -148,7 +148,7 @@ MCP Protocol
       ↓
 Python MCP Servers (121 Tools)
       ↓
-Neo4j (Graphs) + SQLite (Metadata) + FAISS (Vectors)
+Neo4j (Graphs) + SQLite (Metadata) + Qdrant (Vectors)
 ```
 
 ### Vertical Slice Implementation Priority
@@ -277,7 +277,7 @@ Create `.env` file in project root:
 - `NEO4J_URI=bolt://localhost:7687`
 - `NEO4J_USER=neo4j`
 - `NEO4J_PASSWORD=password`
-- `FAISS_INDEX_PATH=./data/faiss_index`
+- `QDRANT_URL=http://localhost:6333`
 - `SQLITE_DB_PATH=./data/metadata.db`
 
 ## Testing Strategy (Adversarial-First Approach)
@@ -343,9 +343,9 @@ pytest --cov=src tests/ --cov-fail-under=85
 ## Data Flow
 
 1. **Ingestion**: Documents → Chunks → Entities/Relationships → Graph
-2. **Indexing**: Entities → Embeddings → FAISS Vector Index
+2. **Indexing**: Entities → Embeddings → Qdrant Vector Database
 3. **Query**: Natural Language → Tool Selection → Graph Operations → Response
-4. **Storage**: Neo4j (structure) + FAISS (semantics) + SQLite (metadata)
+4. **Storage**: Neo4j (structure) + Qdrant (semantics) + SQLite (metadata)
 
 ## Quick Start for New Contributors
 
@@ -491,7 +491,7 @@ Digimons/
 ├── data/               # Local storage
 │   ├── neo4j/          # Graph database files
 │   ├── sqlite/         # Metadata database
-│   └── faiss/          # Vector indices
+│   └── qdrant/         # Vector database
 └── scripts/            # Utility scripts
 ```
 
@@ -502,7 +502,7 @@ NEO4J_URI=bolt://localhost:7687
 NEO4J_USER=neo4j
 NEO4J_PASSWORD=password
 SQLITE_DB_PATH=./data/metadata.db
-FAISS_INDEX_PATH=./data/faiss_index
+QDRANT_URL=http://localhost:6333
 
 # Optional
 MCP_SERVER_PORT=3333
@@ -520,7 +520,7 @@ MAX_WORKERS=4
 ### Python Libraries
 - **mcp**: Model Context Protocol server
 - **neo4j**: Neo4j Python driver
-- **faiss-cpu**: Vector similarity search
+- **qdrant-client**: Vector database client
 - **sqlalchemy**: SQLite ORM
 - **spacy**: NLP processing (T23a)
 - **sentence-transformers**: Embeddings (T41)
@@ -533,11 +533,12 @@ MAX_WORKERS=4
 
 ## Special Considerations
 
-### FAISS Transaction Limitations
-FAISS doesn't support transactions. Always:
-1. Execute FAISS operations first
-2. Log operations for manual rollback
-3. Validate reference integrity on startup
+### Qdrant Vector Database Benefits
+Qdrant provides several advantages over FAISS:
+1. **Native transactions**: Full ACID compliance with rollback support
+2. **Rich filtering**: Combine vector similarity with metadata filtering
+3. **Incremental updates**: Update vectors without rebuilding entire index
+4. **Integrated metadata**: Store metadata alongside vectors for complex queries
 
 ### Memory Management
 - Batch operations in chunks of 100-1000
