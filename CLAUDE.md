@@ -2,12 +2,12 @@
 
 **Navigation Guide**: Quick context and pointers to documentation.
 
-## 🎯 Current Status
-- **Phase 1**: ✅ Working (PageRank fixed, no more "None cannot be a node")
+## 🎯 Current Status - POST ADVERSARIAL TESTING
+- **Phase 1**: ⚠️ **WORKING BUT SLOW** (85.4s actual vs 3.7s claimed = 23x slower)
 - **Phase 2**: ✅ API fixed, Gemini JSON parsing enhanced with robust error handling  
-- **Phase 3**: ✅ MCP tools working (5 fusion tools, expansion plan ready)
+- **Phase 3**: ✅ MCP tools fixed (FastMCP async API compatibility resolved)
 - **Architecture**: ✅ All fixes complete (A1-A4) - Integration failures prevented
-- **Operational**: ✅ Critical debugging complete (B1-B2 fixed, B3 analyzed)
+- **Performance**: ❌ **CRITICAL ISSUE** - Service duplication causing 23x slowdown
 
 ## 🚨 Critical Configuration
 **⚠️ GEMINI MODEL**: Must use `gemini-2.5-flash` (1000 RPM limit)
@@ -34,25 +34,35 @@
 - [`ARCHITECTURE.md`](docs/current/ARCHITECTURE.md) - Integration failure analysis
 - [`ROADMAP_v2.md`](docs/current/ROADMAP_v2.md) - Fix plan
 
-## ⭐ Immediate Priorities
+## 🚨 NEW PRIORITY: PERFORMANCE OPTIMIZATION
 
-### Pre-Steps: Directory Examination ✅ COMPLETE
-See [`DIRECTORY_EXAMINATION_REPORT.md`](docs/current/DIRECTORY_EXAMINATION_REPORT.md)
+### **ADVERSARIAL TESTING REVEALS CRITICAL PERFORMANCE FRAUD**
+- **Claimed**: Phase 1 processes in 3.7s
+- **Reality**: Phase 1 takes 85.4s (2300% slower)
+- **Root Cause**: Service duplication - each tool creates own IdentityService, ProvenanceService, QualityService
+- **Evidence**: 4 separate "Connected to Neo4j" messages per workflow run
 
-**Key Finding**: Phase 2 calls `update_workflow_progress(current_step=9)` but service expects `step_number`
+### **IMMEDIATE PERFORMANCE FIX PLAN** ⚡ TOP PRIORITY
 
-## 🎯 Strategic Pivot: Fix Broken Functionality First
+#### F1: Service Singleton Implementation (Est: 2 hours, 10x speedup)
+- **Issue**: Each of 8 Phase 1 tools creates its own service instances
+- **Fix**: Implement service sharing pattern across workflow
+- **Target**: Reduce 85.4s → 8-10s processing time
+- **Files**: `src/tools/phase1/vertical_slice_workflow.py`, all Phase 1 tools
 
-**Previous Approach**: Enhance working Phase 1 with more tools and optimization
-**New Approach**: Fix broken Phase 2/3 before adding features
+#### F2: Connection Pool Management (Est: 1 hour, 3x speedup)  
+- **Issue**: 4 separate Neo4j connections per workflow run
+- **Fix**: Shared connection pooling within workflow session
+- **Target**: Reduce connection overhead by 75%
+- **Files**: Core service initialization patterns
 
-**Rationale**: 
-- Phase 1 works (484 entities, 228 relationships extracted)
-- Phase 2 completely broken (API mismatches, Gemini issues)
-- Phase 3 is placeholder (no multi-document support)
-- 41.7% integration test failure rate indicates systemic issues
+#### F3: Performance Validation & Documentation (Est: 30 min)
+- **Issue**: Claims not validated against actual performance
+- **Fix**: Automated performance testing with honest metrics
+- **Target**: Accurate performance documentation
+- **Files**: Performance test suite, CLAUDE.md updates
 
-**Strategic Focus**: Core functionality over feature expansion
+**NEW STRATEGIC FOCUS**: Fix performance fraud before any feature work
 
 ### ⭐ Next Priorities (Fix Broken Functionality)
 
@@ -98,21 +108,24 @@ See [`DIRECTORY_EXAMINATION_REPORT.md`](docs/current/DIRECTORY_EXAMINATION_REPOR
 - Data corruption resilience confirmed
 - API contract validation ensures consistent interfaces
 
-#### D2: Implement Phase 3 Basics ⚠️ HIGH PRIORITY  
+#### D2: Implement Phase 3 Basics ⚠️ **DEFERRED UNTIL PERFORMANCE FIXED**
 - **Issue**: Phase 3 currently just placeholder - no multi-document support
-- **Impact**: Cannot process multiple documents, missing key differentiator
-- **Plan**: Basic multi-document fusion, document merging strategies, cross-document entity linking
+- **Status**: **BLOCKED** - Cannot add features while core performance is 23x slower than claimed
+- **Plan**: Basic multi-document fusion (after F1-F3 complete)
 - **Files**: `src/core/phase_adapters.py` (Phase3Adapter), Phase 3 workflow implementation
 
-#### D3: Fix Integration Test Failures ⚠️ MEDIUM PRIORITY
+#### D3: Fix Integration Test Failures ⚠️ **DEFERRED**
 - **Issue**: 41.7% integration test failure rate indicates systemic problems
-- **Impact**: System fragility, unreliable cross-component integration
-- **Critical Failures**: Cross-phase data flow (0/1), Service dependencies (0/1), Error handling (1/4)
+- **Status**: **BLOCKED** - Performance issues may be causing test failures
+- **Plan**: Re-evaluate after performance optimization (F1-F3)
 - **Files**: Integration test framework, core service modules
 
-#### C3: Performance & Quality Optimization (DEFERRED)
-- **Status**: Deferred until core functionality (Phase 2/3) working
-- **Rationale**: Optimizing working Phase 1 while Phase 2/3 broken is misplaced effort
+#### **MAJOR FINDINGS FROM ADVERSARIAL TESTING**:
+- **Performance Misrepresentation**: System claims 3.7s but takes 85.4s (documented fraud)
+- **T301 MCP Server**: ✅ Fixed FastMCP async API compatibility  
+- **Neo4j Authentication**: ✅ Confirmed working (password: "password", 8052 nodes accessible)
+- **UI Functionality**: ✅ Verified working (HTTP 200, multiple streamlit processes)
+- **Entity Extraction**: ✅ Confirmed accurate (484 entities, 228 relationships)
 
 ### Operational Fixes ✅ COMPLETE
 1. **B1**: ✅ PageRank graph building - Fixed "None cannot be a node" error
@@ -125,30 +138,34 @@ See [`DIRECTORY_EXAMINATION_REPORT.md`](docs/current/DIRECTORY_EXAMINATION_REPOR
 3. **A3**: ✅ UI adapter pattern - Isolated UI from phase implementations
 4. **A4**: ✅ Integration testing - Comprehensive test framework prevents future failures
 
-## 🧪 Quick Test
+## 🧪 Quick Test - POST ADVERSARIAL VALIDATION
 ```bash
-# Current Status Testing
-python test_end_to_end_real.py  # Real data processing ✅ PageRank working
-python test_phase1_direct.py  # Phase 1: Entity extraction pipeline
+# ⚠️ PERFORMANCE TESTING (Shows actual vs claimed performance)
+time python test_phase1_direct.py  # REAL: 85.4s (CLAIMED: 3.7s = 23x slower)
+python test_end_to_end_real.py  # Real data processing ✅ Entity extraction working
+
+# ✅ FIXED COMPONENTS 
+python start_t301_mcp_server.py  # Phase 3: MCP server now starts (FastMCP async fixed)
+python start_graphrag_ui.py  # UI confirmed working (HTTP 200, multiple processes)
 
 # Architecture Verification (All Working)
 python test_interface_structure.py  # A2: Phase interface compliance ✅
 python test_ui_adapter.py  # A3: UI adapter functionality ✅
 python test_integration_a4.py  # A4: Integration testing ✅
 
-# Adversarial & Reliability Testing ✅ NEW
+# Adversarial & Reliability Testing ✅ COMPLETE
 python test_adversarial_comprehensive.py  # E1: 10 adversarial test categories (60% reliability)
 python test_stress_all_phases.py  # E2: Stress testing all phases (80% pass rate)
 python test_compatibility_validation.py  # E3: Cross-component compatibility (80% score)
 python test_torc_framework.py  # E5: TORC assessment (70.7% overall score)
-
-# MCP Tools
-python start_t301_mcp_server.py  # Phase 3: 5 fusion tools available
-
-# UI Options (Both Working)
-python start_graphrag_ui.py  # Original UI ✅
-python start_graphrag_ui_v2.py  # New UI with standardized interface ✅
 ```
+
+## 🎯 NEXT IMMEDIATE ACTIONS (F1-F3 Performance Fix)
+1. **F1**: Implement service sharing in `vertical_slice_workflow.py` (Target: 10x speedup)
+2. **F2**: Add connection pooling to core services (Target: 3x speedup)  
+3. **F3**: Update performance documentation with honest metrics
+4. **Validate**: Confirm sub-10s processing time achieved
+5. **Resume**: Phase 3 and integration work after performance fixed
 
 ---
 **Details**: See [`TABLE_OF_CONTENTS.md`](docs/current/TABLE_OF_CONTENTS.md)

@@ -9,25 +9,23 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 from src.tools.phase3.t301_multi_document_fusion_tools import mcp
 
-if __name__ == "__main__":
+async def main():
     print("🚀 Starting T301 Multi-Document Fusion MCP Server")
     print("=" * 60)
     
     # List available tools
     print("\nAvailable MCP Tools:")
-    for tool_name, tool in mcp.tools.items():
+    tools = await mcp.get_tools()
+    for tool_name, tool_info in tools.items():
         print(f"\n📌 {tool_name}")
-        if hasattr(tool, 'description') and tool.description:
-            # First line of description
-            desc_lines = tool.description.strip().split('\n')
+        if isinstance(tool_info, dict) and 'description' in tool_info:
+            desc_lines = tool_info['description'].strip().split('\n')
             print(f"   {desc_lines[0]}")
-        if hasattr(tool, 'parameters') and tool.parameters:
+        if isinstance(tool_info, dict) and 'parameters' in tool_info:
             print("   Parameters:")
-            for param_name, param_info in tool.parameters.items():
-                required = param_info.get('required', False)
+            for param_name, param_info in tool_info['parameters'].items():
                 param_type = param_info.get('type', 'Any')
-                default = param_info.get('default', 'N/A')
-                print(f"     - {param_name}: {param_type} {'(required)' if required else f'(default: {default})'}")
+                print(f"     - {param_name}: {param_type}")
     
     print("\n" + "=" * 60)
     print("MCP Server is starting...")
@@ -35,4 +33,8 @@ if __name__ == "__main__":
     print("=" * 60 + "\n")
     
     # Start the server
-    mcp.run()
+    await mcp.run_async()
+
+if __name__ == "__main__":
+    import asyncio
+    asyncio.run(main())
