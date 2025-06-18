@@ -1,0 +1,20 @@
+# UI-specific requirements for the Streamlit app
+streamlit>=1.28.0
+plotly>=5.17.0
+networkx>=3.1
+pandas>=2.0.0
+python-dateutil>=2.8.2
+
+# For file handling
+python-magic>=0.4.27
+PyPDF2>=3.0.0
+
+# For better UI components
+streamlit-chat>=0.1.1
+streamlit-aggrid>=0.3.4
+
+# For RDF export (future feature)
+rdflib>=7.0.0
+
+# Existing project dependencies should also be installed
+# Run: pip install -r requirements.txt -r requirements_ui.txt
