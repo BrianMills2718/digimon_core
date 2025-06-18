@@ -10,7 +10,7 @@ import os
 from pathlib import Path
 
 # Add src to path
-src_dir = Path(__file__).parent / "src"
+src_dir = Path(__file__).parent.parent / "src"
 sys.path.insert(0, str(src_dir))
 
 from tools.phase1.vertical_slice_workflow import VerticalSliceWorkflow

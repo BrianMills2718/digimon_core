@@ -368,6 +368,77 @@ class EnhancedIdentityService:
             "metadata": json.loads(metadata) if metadata else {}
         }
     
+    def create_mention(
+        self,
+        surface_form: str,
+        start_pos: int,
+        end_pos: int,
+        source_ref: str,
+        entity_type: Optional[str] = None,
+        confidence: float = 0.8
+    ) -> Dict[str, any]:
+        """API compatibility method for base IdentityService interface.
+        
+        Creates a mention and automatically resolves to entity using embeddings.
+        """
+        try:
+            # Input validation
+            if not surface_form or not surface_form.strip():
+                return {
+                    "status": "error",
+                    "error": "surface_form cannot be empty",
+                    "confidence": 0.0
+                }
+                
+            if start_pos < 0 or end_pos <= start_pos:
+                return {
+                    "status": "error", 
+                    "error": "Invalid position range",
+                    "confidence": 0.0
+                }
+                
+            if not (0.0 <= confidence <= 1.0):
+                return {
+                    "status": "error",
+                    "error": "Confidence must be between 0.0 and 1.0", 
+                    "confidence": 0.0
+                }
+            
+            # Use enhanced resolution with context from source_ref
+            context = f"Source: {source_ref}, Position: {start_pos}-{end_pos}"
+            
+            # Default entity type if not provided
+            if not entity_type:
+                entity_type = "UNKNOWN"
+            
+            # Use the enhanced find_or_create_entity method
+            result = self.find_or_create_entity(
+                mention_text=surface_form,
+                entity_type=entity_type,
+                context=context,
+                confidence=confidence
+            )
+            
+            # Generate mention ID for compatibility
+            mention_id = f"mention_{uuid.uuid4().hex[:8]}"
+            
+            return {
+                "status": "success",
+                "mention_id": mention_id,
+                "entity_id": result["entity_id"],
+                "normalized_form": result["canonical_name"],
+                "confidence": result["confidence"],
+                "matched_existing": result["matched"],
+                "similarity": result.get("similarity", 1.0)
+            }
+            
+        except Exception as e:
+            return {
+                "status": "error",
+                "error": f"Failed to create mention: {str(e)}",
+                "confidence": 0.0
+            }
+
     def get_entity_by_mention(self, mention_id: str) -> Optional[Dict]:
         """Compatibility method for EntityBuilder - gets entity by mention ID"""
         # For now, just return basic entity info
@@ -378,6 +449,76 @@ class EnhancedIdentityService:
             "entity_type": "UNKNOWN",
             "confidence": 0.8
         }
+    
+    def get_mentions_for_entity(self, entity_id: str) -> List[Dict[str, any]]:
+        """Get all mentions for an entity - compatibility method"""
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        
+        cursor.execute("""
+            SELECT surface_form, context, confidence
+            FROM surface_forms WHERE entity_id = ?
+        """, (entity_id,))
+        
+        mentions = []
+        for row in cursor.fetchall():
+            mentions.append({
+                "mention_id": f"mention_{uuid.uuid4().hex[:8]}",
+                "surface_form": row[0],
+                "normalized_form": row[0].lower().strip(),
+                "source_ref": row[1],
+                "confidence": row[2]
+            })
+        
+        conn.close()
+        return mentions
+    
+    def get_stats(self) -> Dict[str, any]:
+        """Get identity service statistics - compatibility method"""
+        stats = self.get_statistics()
+        return {
+            "total_mentions": stats.get("total_surface_forms", 0),
+            "total_entities": stats.get("total_entities", 0),
+            "unique_surface_forms": stats.get("total_surface_forms", 0),
+            "avg_mentions_per_entity": (
+                stats.get("total_surface_forms", 0) / max(stats.get("total_entities", 1), 1)
+            )
+        }
+    
+    def find_similar_entities(self, text: str, threshold: float = 0.85) -> List[Dict]:
+        """Find entities similar to given text - compatibility method"""
+        # Get embedding for input text
+        text_embedding = self.get_embedding(text)
+        
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        
+        cursor.execute("""
+            SELECT entity_id, canonical_name, entity_type, embedding
+            FROM entities WHERE embedding IS NOT NULL
+        """)
+        
+        similar = []
+        for row in cursor.fetchall():
+            entity_id, canonical_name, entity_type, embedding_blob = row
+            if embedding_blob:
+                entity_embedding = np.frombuffer(embedding_blob, dtype=np.float32)
+                similarity = self.cosine_similarity(text_embedding, entity_embedding)
+                
+                if similarity >= threshold:
+                    similar.append({
+                        "entity_id": entity_id,
+                        "canonical_name": canonical_name,
+                        "entity_type": entity_type,
+                        "similarity": similarity,
+                        "confidence": similarity
+                    })
+        
+        conn.close()
+        
+        # Sort by similarity
+        similar.sort(key=lambda x: x["similarity"], reverse=True)
+        return similar
     
     def get_statistics(self) -> Dict[str, int]:
         """Get service statistics"""

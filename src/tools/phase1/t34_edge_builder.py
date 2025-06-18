@@ -216,7 +216,7 @@ class EdgeBuilder:
                 MATCH (subject:Entity {entity_id: $subject_id})
                 MATCH (object:Entity {entity_id: $object_id})
                 CREATE (subject)-[r:%s $properties]->(object)
-                RETURN id(r) as neo4j_rel_id, r
+                RETURN elementId(r) as neo4j_rel_id, r
                 """ % self._sanitize_relationship_type(relationship["relationship_type"])
                 
                 result = session.run(
@@ -414,7 +414,7 @@ class EdgeBuilder:
                 cypher = f"""
                 MATCH (a:Entity)-[r]->(b:Entity)
                 {where_clause}
-                RETURN id(r) as neo4j_rel_id, r, type(r) as rel_type, 
+                RETURN elementId(r) as neo4j_rel_id, r, type(r) as rel_type, 
                        a.entity_id as subject_id, b.entity_id as object_id
                 LIMIT $limit
                 """

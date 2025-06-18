@@ -65,6 +65,7 @@ def test_full_pipeline(pdf_path):
     print(f"🔬 Testing complete pipeline with: {pdf_path}")
     
     try:
+        sys.path.insert(0, str(Path(__file__).parent.parent / 'src'))
         from tools.phase1.vertical_slice_workflow import VerticalSliceWorkflow
         
         # Initialize workflow

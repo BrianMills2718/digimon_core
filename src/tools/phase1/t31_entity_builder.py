@@ -253,7 +253,7 @@ class EntityBuilder:
                 
                 cypher = f"""
                 CREATE (e:{label} $properties)
-                RETURN id(e) as neo4j_id, e
+                RETURN elementId(e) as neo4j_id, e
                 """
                 
                 result = session.run(cypher, properties=properties)
@@ -357,7 +357,7 @@ class EntityBuilder:
                 cypher = f"""
                 MATCH (e:Entity)
                 {where_clause}
-                RETURN id(e) as neo4j_id, e
+                RETURN elementId(e) as neo4j_id, e
                 LIMIT $limit
                 """
                 
