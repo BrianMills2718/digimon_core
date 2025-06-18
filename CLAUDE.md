@@ -27,15 +27,10 @@
 
 ## ⭐ Immediate Priorities
 
-### Pre-Steps: Directory Examination (Do First!)
-Before fixing anything, examine each directory to understand dependencies:
-1. **P1**: Examine `/data/` - Runtime data, checkpoints, test results
-2. **P2**: Examine `/examples/` - Test documents, sample queries
-3. **P3**: Examine `/scripts/` - Utility scripts, setup tools
-4. **P4**: Examine `/tests/` - Test infrastructure, integration tests
-5. **P5**: Examine `/ui/` - UI implementation, dependencies
+### Pre-Steps: Directory Examination ✅ COMPLETE
+See [`DIRECTORY_EXAMINATION_REPORT.md`](docs/current/DIRECTORY_EXAMINATION_REPORT.md)
 
-Purpose: Identify hidden dependencies, parallel implementations, or integration points before making changes.
+**Key Finding**: Phase 2 calls `update_workflow_progress(current_step=9)` but service expects `step_number`
 
 ### Architecture Fixes (After P1-P5)
 1. **A1**: Fix service compatibility
