@@ -106,18 +106,22 @@ Digimons/
 
 ## Current Status
 
-**Phase**: Starting vertical slice implementation  
-**Implementation**: 0% complete - greenfield project  
+**Phase**: Phase 2 - LLM-Driven Ontology System  
+**Implementation**: Phase 0 + Phase 1 complete, starting Phase 2  
 **Documentation**: Complete specifications and architecture  
-**Next Step**: Set up development environment and implement core services  
+**Next Step**: Build Streamlit ontology chat interface with Gemini 2.5 Flash  
 **Scope**: PhD thesis prototype (functionally complete, not production-ready)
 
 ## Development Approach
 
-### Vertical Slice First
-1. **Week 1-2**: Minimal core services (T107, T110, T111, T121)
-2. **Week 3-4**: Complete PDF → PageRank → Answer workflow  
-3. **Week 5+**: Horizontal expansion based on validated architecture
+### Development Phases Completed
+1. ✅ **Phase 0**: Core services (T107, T110, T111, T121) - All working with adversarial testing
+2. ✅ **Phase 1**: Vertical slice (PDF → PageRank → Answer) - Functional but with generic spaCy entities
+3. 🔄 **Phase 2**: LLM-driven ontology system - Replacing spaCy with domain-specific extraction
+
+### Current Focus: Real GraphRAG Capabilities
+**Problem**: spaCy produces generic entities (PERSON, ORG) that make GraphRAG testing meaningless
+**Solution**: Conversational ontology generation → domain-specific entities → real GraphRAG evaluation
 
 ### Risk Mitigation
 - **Specification Drift**: Simple JSON schema validation per tool

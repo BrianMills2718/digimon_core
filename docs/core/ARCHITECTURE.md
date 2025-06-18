@@ -259,14 +259,22 @@ Critical services that support all tools:
 
 ## Development Approach
 
-### Vertical Slice First Strategy
-Instead of implementing all tools in phases, build one complete workflow first:
+### Development Strategy Evolution
 
-**Target**: PDF → PageRank → Answer (2 weeks)
-1. **Week 1**: Minimal core services (T107, T110, T111, T121)
-2. **Week 2**: Vertical slice tools (T01, T15a, T23a, T31, T34, T76, T68, T49, T90)
-3. **Week 3**: Integration testing and architecture validation
-4. **Week 4+**: Horizontal expansion based on learnings
+#### Phase 1: Vertical Slice Complete ✅
+**Target**: PDF → PageRank → Answer (completed)
+1. ✅ **Phase 0**: Core services (T107, T110, T111, T121)
+2. ✅ **Phase 1**: Vertical slice tools (T01, T15a, T23a, T31, T34, T76, T68, T49, T90)
+3. ✅ **Integration testing**: Architecture validated with adversarial testing
+
+#### Phase 2: LLM-Driven Ontology System 🔄 CURRENT
+**Critical Insight**: Generic spaCy entities make GraphRAG testing meaningless
+**Target**: Domain-specific ontology system for real GraphRAG capabilities
+1. **Ontology Generation**: Streamlit UI + Gemini 2.5 Flash structured output
+2. **Quality Extraction**: T23c ontology-aware extraction replacing generic spaCy
+3. **Enhanced Graph Building**: Contextual embeddings with ontological information
+4. **Academic Traceability**: Full TORC compliance for reproducibility
+5. **Real GraphRAG Testing**: Meaningful evaluation with domain-specific entities
 
 ### Key Implementation Patterns
 - **Reference-based I/O**: All tools use references, not full objects

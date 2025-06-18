@@ -5,9 +5,9 @@ This file guides Claude Code through the Super-Digimon implementation. It travel
 ## Current Status
 
 **Documentation**: Complete ✅  
-**Implementation**: 100% - Both Phase 0 and Phase 1 Complete ✅  
-**Databases**: Neo4j connected and working ✅  
-**Next Priority**: Horizontal expansion to additional phases or production optimization
+**Implementation**: Phase 0 + Phase 1 Complete, Phase 2 Starting ✅  
+**Databases**: Neo4j + Qdrant connected and working ✅  
+**Next Priority**: LLM-driven ontology system for real GraphRAG capabilities
 
 ## Milestones
 
@@ -24,6 +24,14 @@ This file guides Claude Code through the Super-Digimon implementation. It travel
 - [x] All 8 tools integrated and tested ✅
 - [x] End-to-end test completing successfully ✅
 - [x] Quality metrics tracked throughout pipeline ✅
+
+### Milestone 3: LLM-Driven Ontology System (Phase 2) 🔄 IN PROGRESS
+- [ ] Streamlit ontology chat interface with Gemini 2.5 Flash
+- [ ] Domain-specific ontology generation from natural conversation
+- [ ] Ontology-aware entity extraction (T23c) replacing generic spaCy
+- [ ] Quality graph building with contextual embeddings
+- [ ] Interactive graph visualization with ontological structure
+- [ ] Complete academic traceability (TORC compliance)
 
 ## Implementation Phases
 
@@ -77,21 +85,28 @@ See `docs/core/SPECIFICATIONS.md#T111` for details
 See `docs/core/SPECIFICATIONS.md#T121` for details
 
 ### Phase 1: Vertical Slice ✅ COMPLETE  
-PDF → PageRank → Answer pipeline fully functional with all 8 tools working.
+PDF → PageRank → Answer pipeline functional with basic spaCy extraction.
 
-**Tools in Order**:
-1. T01: PDF Loader → See `docs/core/SPECIFICATIONS.md#T01`
-2. T15a: Text Chunker → See `docs/core/SPECIFICATIONS.md#T15a`
-3. T23a: spaCy NER → See `docs/core/SPECIFICATIONS.md#T23a`
-4. T27: Relationship Extractor → See `docs/core/SPECIFICATIONS.md#T27`
-5. T31: Entity Builder → See `docs/core/SPECIFICATIONS.md#T31`
-6. T34: Edge Builder → See `docs/core/SPECIFICATIONS.md#T34`
-7. T68: PageRank → See `docs/core/SPECIFICATIONS.md#T68`
-8. T49: Multi-hop Query → See `docs/core/SPECIFICATIONS.md#T49`
+**Note**: Phase 1 used generic spaCy NER which produces low-quality entities. Phase 2 replaces this with domain-specific ontology-driven extraction for real GraphRAG capabilities.
 
-**End-to-End Test**: `tests/e2e/test_pdf_to_answer.py`
-- Load PDF → Extract entities → Build graph → Run PageRank → Query for answers
-- Must complete in <5 minutes for 50-page PDF
+### Phase 2: LLM-Driven Ontology System 🔄 CURRENT PRIORITY
+
+**Problem**: Generic spaCy entities (PERSON, ORG, LOC) make GraphRAG testing meaningless
+**Solution**: LLM-generated domain ontologies → high-quality domain-specific entities
+
+**Implementation Steps**:
+1. **T120: Ontology Generator** - Gemini 2.5 Flash structured ontology generation
+2. **Streamlit UI** - Natural conversation → domain ontology
+3. **T23c: Ontology-Aware Extraction** - Replace spaCy with domain-specific extraction  
+4. **Enhanced Graph Building** - Ontology-aware entities with contextual embeddings
+5. **Graph Visualization** - Interactive visualization with ontological structure
+6. **Academic Traceability** - Full TORC compliance for reproducibility
+
+**Success Criteria**:
+- Domain-specific entities: CLIMATE_POLICY vs generic ORG
+- Meaningful relationships using ontology relationship types
+- Interactive graph visualization showing ontological structure
+- Complete academic provenance for all analysis steps
 
 ## Development Standards
 
