@@ -23,6 +23,7 @@ from src.core.workflow_state_service import WorkflowStateService
 
 # Import Phase 1 tools
 from src.tools.phase1.vertical_slice_workflow import VerticalSliceWorkflow
+from src.tools.phase1.phase1_mcp_tools import create_phase1_mcp_tools
 
 # Initialize MCP server
 mcp = FastMCP("super-digimon")
@@ -462,14 +463,18 @@ def get_system_status() -> Dict[str, Any]:
             "provenance_service": "active", 
             "quality_service": "active",
             "workflow_service": "active",
-            "vertical_slice": "active"
+            "vertical_slice": "active",
+            "phase1_pipeline": "active"
         },
         "core_services_count": 4,
-        "phase1_tools_count": 8,
+        "phase1_tools_count": 33,  # Updated count: 8 existing + 25 new pipeline tools
         "vertical_slice_ready": True,
         "server_name": "super-digimon"
     }
 
+
+# Add Phase 1 pipeline tools to the server
+create_phase1_mcp_tools(mcp)
 
 if __name__ == "__main__":
     mcp.run()
