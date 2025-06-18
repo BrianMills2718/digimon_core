@@ -1,108 +1,86 @@
-#!/usr/bin/env python3
-"""
-Test Phase 1 processing directly to debug the UI issue
-"""
+#\!/usr/bin/env python3
+"""Direct Phase 1 Test - Check what workflow actually returns"""
 
+import os
 import sys
 from pathlib import Path
+import json
 
 # Add project root to path
-sys.path.insert(0, str(Path(__file__).parent))
+project_root = Path(__file__).parent
+sys.path.insert(0, str(project_root))
 
-def test_phase1_processing():
-    """Test Phase 1 workflow with a real document"""
+def test_phase1_workflow_direct():
+    """Test Phase 1 workflow directly to see what it returns"""
+    print("🔍 Direct Phase 1 Workflow Test")
+    print("=" * 50)
+    
     try:
         from src.tools.phase1.vertical_slice_workflow import VerticalSliceWorkflow
         
+        # Create workflow
         workflow = VerticalSliceWorkflow()
         
-        # Use a sample document
-        test_file = "examples/pdfs/wiki1.pdf"
-        if not Path(test_file).exists():
-            print(f"❌ Test file not found: {test_file}")
-            return False
+        # Execute with real data
+        result = workflow.execute_workflow(
+            pdf_path="examples/pdfs/wiki1.pdf",
+            query="What are the main entities?",
+            workflow_name="direct_test"
+        )
         
-        print(f"🧪 Testing Phase 1 processing with {test_file}")
+        print(f"Result status: {result.get('status')}")
+        print(f"Result keys: {list(result.keys())}")
         
-        # Run the workflow
-        query = "What are the main entities and relationships in this document?"
-        result = workflow.execute_workflow(test_file, query, "Direct_Test")
+        # Check workflow_summary specifically
+        workflow_summary = result.get("workflow_summary", {})
+        print(f"\n📊 Workflow Summary:")
+        print(f"  Keys: {list(workflow_summary.keys())}")
+        print(f"  Entities extracted: {workflow_summary.get('entities_extracted', 'NOT FOUND')}")
+        print(f"  Relationships found: {workflow_summary.get('relationships_found', 'NOT FOUND')}")
+        print(f"  Chunks created: {workflow_summary.get('chunks_created', 'NOT FOUND')}")
+        print(f"  Graph entities: {workflow_summary.get('graph_entities', 'NOT FOUND')}")
+        print(f"  Graph edges: {workflow_summary.get('graph_edges', 'NOT FOUND')}")
         
-        print(f"📊 Result type: {type(result)}")
-        print(f"📊 Result keys: {list(result.keys()) if isinstance(result, dict) else 'Not a dict'}")
-        
-        if isinstance(result, dict):
-            for key, value in result.items():
-                if isinstance(value, list):
-                    print(f"📊 {key}: {len(value)} items")
-                elif isinstance(value, dict):
-                    print(f"📊 {key}: dict with {len(value)} keys")
-                    if key == "steps":
-                        print(f"   Steps keys: {list(value.keys())}")
-                        for step_key, step_value in value.items():
-                            if isinstance(step_value, dict):
-                                print(f"     {step_key}: {list(step_value.keys())}")
-                                if "results" in step_value:
-                                    results = step_value["results"]
-                                    if isinstance(results, list):
-                                        print(f"       {step_key} results: {len(results)} items")
-                                    elif isinstance(results, dict):
-                                        print(f"       {step_key} results keys: {list(results.keys())}")
-                else:
-                    print(f"📊 {key}: {type(value)}")
-                    if key == "error" and value:
-                        print(f"   ERROR: {value}")
-                    if key == "status":
-                        print(f"   STATUS: {value}")
-        
-        # Extract data from workflow steps (the real extraction results)
+        # Check individual steps
         steps = result.get("steps", {})
+        print(f"\n📋 Individual Steps:")
+        for step_name, step_data in steps.items():
+            if isinstance(step_data, dict):
+                print(f"  {step_name}:")
+                if "total_entities" in step_data:
+                    print(f"    Total entities: {step_data['total_entities']}")
+                if "total_relationships" in step_data:
+                    print(f"    Total relationships: {step_data['total_relationships']}")
+                if "entities_created" in step_data:
+                    print(f"    Entities created: {step_data['entities_created']}")
+                if "edges_created" in step_data:
+                    print(f"    Edges created: {step_data['edges_created']}")
         
-        # Get entity extraction results
-        entity_extraction = steps.get("entity_extraction", {})
-        total_entities = entity_extraction.get("total_entities", 0)
-        entity_types = entity_extraction.get("entity_types", {})
+        # Test adapter translation
+        print(f"\n🔄 Testing Phase1Adapter translation...")
+        from src.core.phase_adapters import Phase1Adapter
+        from src.core.graphrag_phase_interface import ProcessingRequest
         
-        # Get relationship extraction results  
-        relationship_extraction = steps.get("relationship_extraction", {})
-        total_relationships = relationship_extraction.get("total_relationships", 0)
-        relationship_types = relationship_extraction.get("relationship_types", {})
+        adapter = Phase1Adapter()
+        request = ProcessingRequest(
+            documents=["examples/pdfs/wiki1.pdf"],
+            queries=["What are the main entities?"],
+            workflow_id="adapter_test"
+        )
         
-        print(f"\n📈 EXTRACTION RESULTS:")
-        print(f"   Entities extracted: {total_entities}")
-        if entity_types:
-            print(f"   Entity types: {entity_types}")
-        print(f"   Relationships extracted: {total_relationships}")
-        if relationship_types:
-            print(f"   Relationship types: {relationship_types}")
+        adapter_result = adapter.execute(request)
+        print(f"Adapter status: {adapter_result.status.value}")
+        print(f"Adapter entity count: {adapter_result.entity_count}")
+        print(f"Adapter relationship count: {adapter_result.relationship_count}")
         
-        entities = total_entities
-        relationships = total_relationships
+        workflow.close()
+        return True
         
-        print(f"\n🔍 Found {entities} entities")        
-        print(f"\n🔗 Found {relationships} relationships")
-        
-        if entities == 0 and relationships == 0:
-            print("\n❌ PROBLEM: Pipeline extracted 0 entities and 0 relationships")
-            print("This could indicate:")
-            print("1. Document is empty or unreadable")
-            print("2. Entity/relationship extraction is not working")
-            print("3. Document content doesn't match extraction patterns")
-            return False
-        else:
-            print(f"\n✅ SUCCESS: Extracted {entities} entities and {relationships} relationships")
-            print("Note: PageRank failed but extraction worked!")
-            return True
-            
     except Exception as e:
-        print(f"❌ Phase 1 processing failed: {e}")
+        print(f"❌ Direct test failed: {e}")
+        import traceback
+        traceback.print_exc()
         return False
 
 if __name__ == "__main__":
-    success = test_phase1_processing()
-    if not success:
-        print("\n🚨 Phase 1 processing is broken - this explains the UI issue")
-        sys.exit(1)
-    else:
-        print("\n✅ Phase 1 processing works - UI issue is in data extraction logic")
-        sys.exit(0)
+    test_phase1_workflow_direct()
