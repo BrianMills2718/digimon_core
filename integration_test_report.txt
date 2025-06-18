@@ -1,0 +1,49 @@
+GraphRAG Integration Test Report
+==================================================
+Suite: GraphRAG Full Integration Test
+Start: 2025-06-18 13:41:55.914694
+End: 2025-06-18 13:41:55.914803
+Duration: 0.00 seconds
+
+Summary:
+  Total tests: 12
+  Passed: 7
+  Failed: 5
+  Skipped: 0
+  Success rate: 58.3%
+
+INTERFACE Tests:
+------------------------------
+  ✅ Interface Compliance: Phase 1: Basic (0.000s)
+  ✅ Interface Compliance: Phase 2: Enhanced (0.000s)
+  ✅ Interface Compliance: Phase 3: Multi-Document (0.000s)
+
+DATA_FLOW Tests:
+------------------------------
+  ❌ Cross-Phase Data Flow (0.000s)
+      Error: name 'phase_registry' is not defined
+
+UI_INTEGRATION Tests:
+------------------------------
+  ✅ UI Phase Visibility (0.000s)
+  ✅ UI Error Handling (0.000s)
+
+ERROR_HANDLING Tests:
+------------------------------
+  ❌ Error Test: Missing File (0.000s)
+      Error: name 'phase_registry' is not defined
+  ❌ Error Test: Empty Documents (0.000s)
+      Error: name 'phase_registry' is not defined
+  ❌ Error Test: Empty Queries (0.000s)
+      Error: name 'phase_registry' is not defined
+  ✅ Error Test: Invalid Phase (0.000s)
+
+PERFORMANCE Tests:
+------------------------------
+  ✅ Phase Initialization Performance (0.000s)
+      Details: {'init_time_seconds': 7.867813110351562e-06}
+
+DEPENDENCIES Tests:
+------------------------------
+  ❌ Service Dependencies Error (0.000s)
+      Error: name 'phase_registry' is not defined
