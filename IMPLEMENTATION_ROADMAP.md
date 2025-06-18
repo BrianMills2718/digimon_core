@@ -1,308 +1,358 @@
-# Implementation Roadmap - Vertical Slice First
+# Implementation Roadmap v2 - Universal Analytical Platform
 
-This roadmap has been restructured to implement a complete vertical slice (PDF → PageRank → Answer) before horizontal expansion.
+**Updated**: 2025-06-17 - Reflects MCP ecosystem integration, LLM enhancement, and universal analytical platform vision
 
-## Overview
+**Archived v1**: See `docs/archive/IMPLEMENTATION_ROADMAP_v1_vertical_slice.md` for original vertical slice strategy
 
-**Goal**: Build a PhD thesis prototype that can perform virtually any analytical method through flexible data structuring and transformation.
+## Current Status ✅
 
-**Core Innovation**: Three-level identity system + Universal quality tracking + Format-agnostic processing + Complete provenance + Tool contracts.
+**Phase 0 + Phase 1 Complete**: Successfully implemented and tested
+- ✅ **Core Services**: T107 Identity, T110 Provenance, T111 Quality, T121 Workflow State
+- ✅ **Vertical Slice**: PDF → PageRank → Answer pipeline (8 tools working end-to-end)
+- ✅ **LLM Integration**: Gemini 2.5 Flash + OpenAI embeddings working
+- ✅ **Database Architecture**: Neo4j + SQLite + Qdrant operational
+- ✅ **Adversarial Testing**: 21/21 tests passing, handles 1000+ entities
 
-## NEW: Vertical Slice Strategy
+## Vision: Universal Analytical Platform
 
-**Key Change**: Instead of implementing all tools in each phase sequentially, we build one complete workflow first to validate the architecture early.
+**Core Innovation**: Claude Code as intelligent analytical orchestrator that dynamically selects optimal data formats (graphs, tables, vectors) and seamlessly orchestrates analysis across 121 specialized tools + MCP server ecosystem.
 
-### Why Vertical Slice First?
+**Not GraphRAG**: This is a format-agnostic analytical platform that happens to include graph capabilities, not a graph-centric system.
 
-1. **Early Validation**: Discover integration issues immediately
-2. **Architecture Proof**: Confirm design decisions work end-to-end
-3. **Faster Feedback**: See results in days, not months
-4. **Risk Reduction**: Major pivots possible before extensive coding
+## Phase 2: LLM-Driven Ontology System (Current Priority) 🎯
 
-### Target Workflow: PDF → PageRank → Answer
+**Critical Insight**: spaCy NER produces low-quality entities that make GraphRAG testing meaningless. Instead, build an LLM-driven ontology system that generates domain-specific entities for real GraphRAG capabilities.
 
-This workflow exercises:
-- Ingestion (PDF loading)
-- Processing (NLP, entity extraction)
-- Construction (graph building)
-- Storage (Neo4j, FAISS)
-- Analysis (PageRank)
-- Retrieval (search, ranking)
-- Generation (answer synthesis)
+### 2A. Ontology Generation & UI (Weeks 1-2)
 
-## Phase 0: Minimal Foundation for Vertical Slice
+#### **Week 1: Ontology Chat Interface & Storage**
+```python
+# Streamlit UI for ontology conversation
+class OntologyChat:
+    def chat_interface(self):
+        # "I'm analyzing climate research papers"
+        # "What specific aspects are you interested in?"
+        # "Focus on policies, renewable technologies, and environmental impacts"
+        
+    def generate_ontology_preview(self, conversation: List[Message]) -> OntologyPreview:
+        # Use Gemini 2.5 Flash to suggest entity types and relationships
+        # Show preview before finalizing
 
-### Core Services (Minimal Implementations)
+# Full TORC compliance - store everything
+class OntologyStorage:
+    def save_ontology_session(self, session: OntologySession) -> str:
+        # Store: conversation, generated ontology, user modifications, timestamps
+        # Enable complete reproducibility and examinability
+```
 
-#### T107: Identity Service (MINIMAL)
-- [ ] Basic mention creation
-- [ ] Simple entity linking
-- [ ] Defer: Complex merging, full history
+#### **Week 2: Gemini Ontology Generation & Validation**
+```python
+# T120: Ontology Generator (New Core Service)
+@dataclass
+class DomainOntology:
+    domain_name: str
+    domain_description: str
+    entity_types: List[EntityType]  # CLIMATE_POLICY, RENEWABLE_TECH, etc.
+    relationship_types: List[RelationshipType]  # IMPLEMENTS, AFFECTS, etc.
+    extraction_patterns: List[str]  # Guidance for LLM extraction
+    created_by_conversation: str  # Full conversation provenance
+    
+class GeminiOntologyGenerator:
+    def generate_from_conversation(self, messages: List[Message]) -> DomainOntology:
+        # Use Gemini 2.5 Flash structured output
+        # Convert natural language domain description → formal ontology
+        
+    def validate_ontology(self, ontology: DomainOntology, sample_text: str) -> ValidationReport:
+        # Test extraction on sample text to validate ontology quality
+```
 
-#### T110: Provenance Service (MINIMAL)
-- [ ] Basic operation recording
-- [ ] Simple lineage
-- [ ] Defer: Impact analysis, cascading
+#### **Success Criteria Week 1-2:**
+- [ ] Streamlit UI allows natural conversation about domain ontology
+- [ ] Gemini 2.5 Flash generates structured ontologies from conversation
+- [ ] Full conversation and ontology provenance stored for TORC compliance
+- [ ] Users can preview and modify generated ontologies before applying
+- [ ] Ontology validation works on sample text
 
-#### T111: Quality Service (MINIMAL)
-- [ ] Basic confidence tracking
-- [ ] Simple propagation
-- [ ] Defer: Complex aggregation
+### 2B. Ontology-Driven Extraction & Graph Building (Weeks 3-4)
 
-#### T121: Workflow State Service (NEW - MINIMAL)
-- [ ] Basic checkpointing
-- [ ] Simple restore
-- [ ] Defer: Compression, cleanup
+#### **Week 3: Quality Entity & Relationship Extraction**
+```python
+# T23c: Ontology-Aware Entity Extractor (replaces spaCy)
+class OntologyAwareExtractor:
+    def extract_entities(self, text: str, ontology: DomainOntology) -> List[Entity]:
+        # Use Gemini 2.5 Flash with custom ontology as context
+        # "Extract CLIMATE_POLICY, RENEWABLE_TECH, ENVIRONMENTAL_IMPACT entities"
+        # → Domain-specific, high-quality entities
+        
+    def extract_relationships(self, text: str, entities: List[Entity], 
+                            ontology: DomainOntology) -> List[Relationship]:
+        # Use ontology relationship types for guided extraction
+        # Much better than pattern matching
 
-### Core Data Models (Minimal)
-- [ ] BaseObject with essential fields
-- [ ] Entity with basic identity
-- [ ] Relationship with confidence
-- [ ] Mention as simple object
-- [ ] Chunk with references
+# Enhanced with OpenAI embeddings
+class EntityEmbedder:
+    def embed_with_context(self, entity: Entity, ontology: DomainOntology) -> np.ndarray:
+        # Use entity + ontology context for better embeddings
+        # "CLIMATE_POLICY: Paris Agreement - An international climate policy framework"
+```
 
-### Storage (Minimal)
-- [ ] Neo4j basic setup
-- [ ] SQLite simple schema
-- [ ] FAISS basic index
-- [ ] Reference system proof
+#### **Week 4: Graph Building & Visualization**
+```python
+# T31c: Ontology-Aware Graph Builder
+class OntologyGraphBuilder:
+    def build_domain_graph(self, entities: List[Entity], 
+                          relationships: List[Relationship],
+                          ontology: DomainOntology) -> DomainGraph:
+        # Build graph with ontology-aware node/edge types
+        # Better clustering and organization
+        
+# Graph Visualization (requested feature)
+class GraphVisualizer:
+    def visualize_ontology_graph(self, graph: DomainGraph) -> InteractiveViz:
+        # Use pyvis/plotly for interactive graph visualization
+        # Color-code by ontology entity types
+        # Show relationship types clearly
+```
 
-### MCP Infrastructure (Minimal)
-- [ ] Basic server framework
-- [ ] Simple tool registration
-- [ ] Basic validation
-- [ ] Tool contract support
+#### **Success Criteria Week 3-4:**
+- [ ] Ontology-driven extraction produces domain-specific entities (not generic spaCy types)
+- [ ] Quality embeddings generated with ontological context
+- [ ] Graph visualization shows ontology-structured networks
+- [ ] Full extraction and graph building provenance tracked for TORC
+- [ ] Dramatic improvement in entity/relationship quality vs spaCy baseline
 
-## Phase 1: Vertical Slice Implementation
+## Phase 2C: Real GraphRAG Testing & Optimization (Weeks 5-6)
 
-### 1. Ingestion Layer
-- [ ] **T01: PDF Loader (MINIMAL)**
-  - Basic text extraction
-  - Simple confidence (0.9 for clean text)
-  - Create document with metadata
-  - Defer: OCR quality, tables, images
+### **Week 5: Ontology-Driven GraphRAG Implementation**
+```python
+# T49c: Ontology-Aware Multi-hop Query (the real GraphRAG test)
+class OntologyGraphRAG:
+    def ontology_aware_query(self, query: str, ontology: DomainOntology, 
+                           graph: DomainGraph) -> GraphRAGResponse:
+        # Use ontology to understand query intent
+        # "What climate policies affect renewable energy?" 
+        # → Search for CLIMATE_POLICY → AFFECTS → RENEWABLE_TECH paths
+        
+    def multi_hop_reasoning(self, start_entities: List[Entity], 
+                          relationship_types: List[str], max_hops: int) -> ReasoningPath:
+        # Use domain-specific relationship types for better path finding
+        # Much more meaningful than generic relationships
+        
+# T68c: Ontology-Aware PageRank
+class OntologyPageRank:
+    def calculate_domain_importance(self, graph: DomainGraph, 
+                                  ontology: DomainOntology) -> EntityRankings:
+        # Weight PageRank by ontology entity type importance
+        # Different importance for different domains
+```
 
-### 2. Processing Layer
-- [ ] **T15a: Sliding Window Chunker (MINIMAL)**
-  - Fixed 512-token chunks
-  - 50-token overlap
-  - Simple position tracking
-  - Defer: Semantic chunking
+### **Week 6: Academic Traceability & Visualization**
+```python
+# Full TORC Compliance for Academic Use
+class AcademicProvenance:
+    def track_complete_analysis_chain(self, session: AnalysisSession) -> ProvenanceChain:
+        # Conversation → Ontology → Extraction → Graph → GraphRAG → Results
+        # Every step traceable and reproducible
+        
+    def generate_academic_report(self, analysis: Analysis) -> AcademicReport:
+        # Methodology section, data provenance, reproducibility instructions
+        # Ready for academic paper inclusion
+        
+# Enhanced Graph Visualization
+class AcademicGraphViz:
+    def create_interactive_graph(self, graph: DomainGraph, ontology: DomainOntology) -> InteractiveViz:
+        # Color-coded by entity types from ontology
+        # Interactive exploration of GraphRAG results
+        # Export capabilities for academic publications
+```
 
-- [ ] **T23a: spaCy NER (MINIMAL)**
-  - Standard entity types only
-  - Create mentions with positions
-  - Basic confidence (0.85)
-  - Defer: Custom types, LLM variant
+#### **Success Criteria Week 5-6:**
+- [ ] Real GraphRAG working with ontology-driven entities and relationships
+- [ ] Multi-hop reasoning produces meaningful, domain-specific results
+- [ ] Graph visualization shows clear ontological structure
+- [ ] Complete academic traceability from conversation to results
+- [ ] Quality improvement measurable vs generic spaCy-based approach
 
-- [ ] **T27: Pattern Relationship Extractor (MINIMAL)**
-  - Simple verb patterns
-  - Basic confidence scoring
-  - Link to entity mentions
-  - Defer: Complex patterns, LLM
+## Phase 2D: MCP Ecosystem Integration (Weeks 7-8)
 
-### 3. Construction Layer
-- [ ] **T31: Entity Node Builder (MINIMAL)**
-  - Mention → Entity conversion
-  - Simple deduplication by name
-  - Optional resolution based on config
-  - Defer: Complex merging
+### Essential MCP Servers (Delayed Priority)
 
-- [ ] **T34: Relationship Edge Builder (MINIMAL)**
-  - Create edges from extractions
-  - Weight = confidence
-  - Preserve mention links
-  - Defer: Complex weights
+#### **T115: Graph→Table Converter** 
+```python
+# Convert graph data for statistical analysis
+def graph_to_table(self, graph_ref: str, analysis_type: str) -> DataFrame:
+    # Entity attributes → rows, relationships → columns
+    # Enable statistical analysis of graph properties
+```
 
-- [ ] **T41: Sentence Embedder (MINIMAL)**
-  - Use sentence-transformers
-  - Embed entity descriptions
-  - Store with references
-  - Defer: Multiple models
+#### **T116: Table→Graph Builder**
+```python  
+# Convert structured data into graph format
+def table_to_graph(self, df: DataFrame, entity_cols: List[str], 
+                  relationship_cols: List[str]) -> GraphRef:
+    # CSV/Excel → Graph for relationship analysis
+```
 
-### 4. Storage Layer
-- [ ] **T76: Neo4j Storage (MINIMAL)**
-  - Store entities and relationships
-  - Basic CRUD operations
-  - Simple reference generation
-  - Defer: Versioning, batching
+#### **T117: Format Auto-Selector**
+```python
+# Claude Code intelligence for optimal format selection
+def select_optimal_format(self, data_ref: str, analysis_goal: str) -> FormatChoice:
+    # "Find influential entities" → Graph format + PageRank
+    # "Calculate correlations" → Table format + statistical analysis
+    # "Find similar documents" → Vector format + similarity search
+```
 
-- [ ] **T78: FAISS Storage (MINIMAL)**
-  - Store embeddings
-  - Basic search capability
-  - Reference-based storage
-  - Defer: Advanced indices
+### PyWhy Causal Analysis Integration
 
-### 5. Analysis Layer
-- [ ] **T68: PageRank (MINIMAL)**
-  - Standard PageRank algorithm
-  - Handle confidence as edge weights
-  - Return scored entities
-  - Defer: Personalized variants
+#### **T118: Causal Discovery**
+```python
+# Integrate PyWhy for causal analysis
+def discover_causal_relationships(self, data_ref: str) -> CausalGraph:
+    # Use PyWhy algorithms to find causal relationships in data
+    # Complement correlation analysis with causal understanding
+```
 
-### 6. Retrieval Layer
-- [ ] **T49: Entity Search (MINIMAL)**
-  - Vector similarity search
-  - Combine with PageRank scores
-  - Basic ranking formula
-  - Defer: Complex scoring
+## Phase 3: Horizontal Tool Expansion (Months 3-4)
 
-### 7. Generation Layer
-- [ ] **T90: Response Generator (MINIMAL)**
-  - Template-based generation
-  - Include top entities by PageRank
-  - Show confidence scores
-  - Basic provenance
-  - Defer: LLM generation
+### 3A. Complete Core Services (T108, T109, T112-T120)
+- T108: Version Service - Four-level versioning (schema, data, graph, analysis)  
+- T109: Entity Normalizer - Advanced entity resolution with embeddings
+- T112-T120: Remaining infrastructure services
 
-## Vertical Slice Validation
+### 3B. Ingestion Expansion (T02-T12)
+- T02: Word/HTML/Markdown loaders
+- T03-T05: CSV, JSON, Excel loaders
+- T06-T09: API connectors  
+- T10-T12: Stream processing
 
-### Integration Tests
-- [ ] Load test PDF successfully
-- [ ] Extract 10+ entities with mentions
-- [ ] Build graph with 20+ relationships
-- [ ] Calculate PageRank scores
-- [ ] Search for entities by query
-- [ ] Generate answer with scores
+### 3C. Advanced Processing (T14-T30)
+- T25: Coreference resolution
+- T26: Entity linking and disambiguation
+- T28-T30: Advanced NLP capabilities
 
-### Quality Validation
-- [ ] Confidence propagates correctly
-- [ ] Provenance tracks all operations
-- [ ] State checkpoints work
-- [ ] Partial results on errors
+### 3D. Construction & Storage (T35-T48, T76-T81)
+- Complete graph construction tools
+- Advanced embedding strategies
+- Comprehensive storage management
 
-### Performance Baseline
-- [ ] Process 10-page PDF in <30 seconds
-- [ ] Sub-second search responses
-- [ ] Memory usage <1GB
+### 3E. Analysis & Interface (T68-T106)
+- Advanced graph algorithms
+- Natural language interfaces
+- Monitoring and export capabilities
 
-## Phase 2: Horizontal Expansion
+## Key Architecture Principles
 
-After vertical slice validation:
+### 1. MCP-First Integration
+- **Leverage Ecosystem**: Use existing MCP servers before building custom tools
+- **Standardized Interface**: All capabilities accessible through MCP protocol
+- **Claude Code Orchestration**: Intelligent selection and coordination of MCP servers
 
-### Complete Core Services
-- [ ] T107: Full identity management
-- [ ] T108: Version service
-- [ ] T109: Entity normalizer
-- [ ] T110: Complete provenance
-- [ ] T111: Full quality service
-- [ ] T112-T120: Remaining core services
+### 2. LLM-Enhanced Capabilities  
+- **Gemini 2.5 Flash**: Structured output for ontology generation and entity extraction
+- **OpenAI Embeddings**: text-embedding-3-small for contextual entity similarity
+- **Quality Over Speed**: Domain-specific extraction vs generic spaCy entities
 
-### Expand Ingestion (T02-T12)
-- [ ] Word, HTML, Markdown loaders
-- [ ] CSV, JSON, Excel loaders
-- [ ] API connectors
-- [ ] Stream processing
+### 3. Academic Traceability (TORC Compliance)
+- **Complete Provenance**: Every conversation, ontology, extraction, and graph operation stored
+- **Reproducibility**: Full session replay capabilities with identical results
+- **Examinability**: Clear methodology documentation for academic scrutiny
+- **Transparency**: All LLM prompts, responses, and reasoning chains preserved
 
-### Expand Processing (T14-T30)
-- [ ] Text cleaning and normalization
-- [ ] Language detection and translation
-- [ ] Advanced tokenization
-- [ ] T23b: LLM entity extraction
-- [ ] T25: Coreference resolution
-- [ ] Entity linking and disambiguation
+### 4. Format-Agnostic Processing
+- **Dynamic Format Selection**: Claude Code chooses optimal data structures
+- **Seamless Conversion**: Tools enable mid-workflow format transformations
+- **Universal Capabilities**: Any data format → optimal analytical approach
 
-### Expand Construction (T35-T48)
-- [ ] Reference edge builder
-- [ ] Graph merger and deduplicator
-- [ ] Schema validation
-- [ ] Advanced embedders
-- [ ] Multiple vector indices
-
-### Complete Retrieval (T50-T67)
-- [ ] All 19 GraphRAG operators
-- [ ] Community detection
-- [ ] Subgraph extraction
-- [ ] Advanced ranking
-
-### Add Analysis (T69-T75)
-- [ ] Centrality measures
-- [ ] Path finding
-- [ ] Clustering algorithms
-- [ ] Flow analysis
-
-### Complete Interface (T82-T106)
-- [ ] Natural language parsing
-- [ ] Query planning
-- [ ] Multi-query aggregation
-- [ ] Export formats
-- [ ] Monitoring and alerts
-
-## Phase 3: Advanced Features
-
-### Format Conversion
-- [ ] T115: Graph→Table converter
-- [ ] T116: Table→Graph builder
-- [ ] T117: Format auto-selector
-
-### Temporal and Causal
-- [ ] T118: Temporal reasoner
-- [ ] T119: Semantic evolution
-- [ ] Causal analysis integration
-
-### Statistical Integration
-- [ ] PyWhy integration
-- [ ] Statistical test runner
-- [ ] Uncertainty propagation
-
-## Implementation Principles
-
-### Vertical Slice Principles
-1. **Minimal but Complete**: Each tool works end-to-end
-2. **Defer Complexity**: Advanced features come later
-3. **Contract First**: Define tool contracts before coding
-4. **Test the Flow**: Integration over perfection
-
-### Quality Requirements
-1. Every operation tracks confidence
-2. All data includes provenance
-3. Failures produce partial results
-4. State can be checkpointed
-
-### Testing Requirements
-1. **No mocks or simulations** - Real databases only
-2. **Test with real data** - Actual PDFs, real text
-3. **Full integration tests** - Complete data flows
-4. **Docker test environments** - Isolated but real
-5. **Performance monitoring** - Track trends, not absolute limits
-
-### Risk Mitigation Requirements
-1. **Simple specification validation** - JSON schemas, not complex frameworks
-2. **Lightweight monitoring** - Log patterns, identify bottlenecks
-3. **PhD-appropriate scope** - Essential mitigations only
-4. **Iterative optimization** - Start simple, optimize when proven necessary
-
-### Architecture Rules
-1. Tools use contracts for requirements
-2. Reference-based data passing
-3. Streaming where possible
-4. Domain-adaptive behavior
+### 5. Universal Platform Vision
+- **Not GraphRAG**: General analytical platform with graph capabilities
+- **Analytical Intelligence**: Claude Code as the reasoning orchestrator
+- **Ecosystem Integration**: MCP servers + PyWhy + statistical libraries + visualization
 
 ## Success Criteria
 
-### Vertical Slice Success (2 weeks)
-- [ ] PDF → Answer workflow runs
-- [ ] PageRank scores influence results  
-- [ ] Confidence tracked throughout
-- [ ] Basic UI shows results
-- [ ] Architecture validated
+### Phase 2 Success (2 months)
+- [ ] LLM-driven ontology system working end-to-end
+- [ ] Domain-specific entity extraction dramatically better than spaCy
+- [ ] Real GraphRAG capabilities with meaningful multi-hop reasoning
+- [ ] Interactive graph visualization with ontological structure
+- [ ] Complete academic traceability (TORC compliance) implemented
+- [ ] Quality improvement measurably demonstrated
 
-### MVP Success (2 months)
-- [ ] 20+ tools implemented
-- [ ] Multiple analysis types work
-- [ ] Format conversion operational
-- [ ] Can run paper examples
+### Phase 3 Success (4 months)
+- [ ] 50+ tools implemented (custom + MCP)
+- [ ] Universal analytical capabilities demonstrated
+- [ ] Complex multi-format workflows operational
+- [ ] Ready for thesis defense as universal analytical platform
 
-### Full Success (4 months)
-- [ ] 121 tools implemented
-- [ ] All mock workflows run
-- [ ] Statistical integration works
-- [ ] Ready for thesis defense
+## Risk Mitigation
 
-## Next Steps
+### 1. MCP Server Dependencies
+- **Mitigation**: Identify critical servers early, have fallback implementations
+- **Testing**: Docker-based integration tests for each MCP server
 
-1. **Week 1**: Implement minimal core services
-2. **Week 2**: Build vertical slice tools
-3. **Week 3**: Integration and testing
-4. **Week 4**: Demo and architecture review
-5. **Month 2+**: Horizontal expansion based on learnings
+### 2. LLM API Costs
+- **Mitigation**: Smart caching, hybrid approaches (deterministic + LLM when needed)
+- **Monitoring**: Track API usage and costs
+
+### 3. Complexity Management
+- **Mitigation**: Maintain modularity, clear interfaces between components
+- **Documentation**: Keep architecture decisions documented and rationale clear
+
+## Implementation Notes
+
+### Docker Compose Updates Needed
+```yaml
+services:
+  # Existing
+  neo4j:
+    image: neo4j:5-community
+  qdrant:
+    image: qdrant/qdrant
+    
+  # New MCP Servers
+  mcp-anyquery:
+    image: julien040/anyquery
+  mcp-jupyter:
+    image: jupyter-mcp-server
+  mcp-qdrant:
+    image: qdrant/mcp-server-qdrant
+  # ... additional MCP servers
+```
+
+### Environment Variables Updates
+```bash
+# LLM APIs (already configured)
+OPENAI_API_KEY=sk-...
+GOOGLE_API_KEY=...
+
+# MCP Server Endpoints
+ANYQUERY_MCP_URL=http://localhost:8001
+JUPYTER_MCP_URL=http://localhost:8002
+QDRANT_MCP_URL=http://localhost:8003
+```
+
+## Next Immediate Actions
+
+1. **Week 1 Focus**: Build Streamlit ontology chat interface with Gemini 2.5 Flash integration
+2. **Academic Storage**: Implement full provenance tracking for TORC compliance
+3. **Ontology Generation**: Get structured domain ontologies working from natural conversation
+4. **Quality Baseline**: Measure current spaCy entity quality to establish improvement metrics
+
+## Key Benefits of This Approach
+
+### **Solves Core Testing Problem**
+- **Before**: Generic spaCy entities (PERSON, ORG) → meaningless GraphRAG testing
+- **After**: Domain-specific entities (CLIMATE_POLICY, RENEWABLE_TECH) → real GraphRAG evaluation
+
+### **Academic Requirements Met**
+- **TORC Compliance**: Complete traceability for academic scrutiny
+- **Reproducibility**: Session replay with identical results
+- **Methodology**: Clear documentation of ontology-driven approach
+
+### **Real GraphRAG Finally Possible**
+- **Quality Entities**: Domain-specific extraction using LLM + ontology
+- **Meaningful Relationships**: Ontology-guided relationship types
+- **Proper Embeddings**: Contextual embeddings with ontological information
+- **Visual Validation**: Interactive graph visualization for result examination
+
+This roadmap prioritizes getting **real GraphRAG working** with quality data over ecosystem expansion, enabling proper testing and academic validation of the approach.
