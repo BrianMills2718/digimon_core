@@ -72,7 +72,7 @@ class OntologyAwareExtractor:
         self.openai_api_key = openai_api_key or os.getenv("OPENAI_API_KEY")
         if self.openai_api_key:
             openai.api_key = self.openai_api_key
-            self.openai_client = openai.OpenAI()
+            self.openai_client = True  # Flag indicating OpenAI is available
         else:
             logger.warning("OpenAI API key not provided. Embeddings will use mock values.")
             self.openai_client = None
@@ -338,16 +338,16 @@ Respond ONLY with the JSON."""
             
             try:
                 # Generate embedding
-                response = self.openai_client.embeddings.create(
-                    model="text-embedding-3-small",
+                response = openai.Embedding.create(
+                    model="text-embedding-ada-002",
                     input=context
                 )
                 
-                embedding = response.data[0].embedding
+                embedding = response['data'][0]['embedding']
                 
                 # Store embedding (would go to Qdrant in production)
                 entity.attributes["embedding"] = embedding
-                entity.attributes["embedding_model"] = "text-embedding-3-small"
+                entity.attributes["embedding_model"] = "text-embedding-ada-002"
                 entity.attributes["embedding_context"] = context
                 
             except Exception as e:

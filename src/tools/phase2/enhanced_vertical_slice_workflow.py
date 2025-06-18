@@ -227,9 +227,8 @@ class EnhancedVerticalSliceWorkflow:
             # Update workflow progress to completion
             self.workflow_service.update_workflow_progress(
                 workflow_id,
-                current_step=9,
-                status="completed",
-                metadata={"execution_time": execution_time}
+                step_number=9,
+                status="completed"
             )
             
             return results
@@ -627,9 +626,9 @@ class EnhancedVerticalSliceWorkflow:
         # Update workflow progress to error state
         self.workflow_service.update_workflow_progress(
             workflow_id,
-            current_step=0,
+            step_number=0,
             status="error",
-            metadata={"error": error_msg}
+            error_message=error_msg
         )
         
         return results
