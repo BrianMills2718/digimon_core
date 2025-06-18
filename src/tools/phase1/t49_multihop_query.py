@@ -211,37 +211,71 @@ class MultiHopQuery:
     
     def _extract_query_entities(self, query_text: str) -> List[str]:
         """Extract potential entity names from query text."""
-        # Simple entity extraction - look for entities in graph that match query terms
+        # Improved entity extraction - search for all meaningful terms
         if not self.driver:
             return []
         
         try:
-            # Split query into potential entity terms
+            # Extract potential search terms from query
             import re
-            words = re.findall(r'\b[A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+)*\b', query_text)
             
-            # Search for matching entities in Neo4j
+            # Remove question words and punctuation
+            question_words = {'who', 'what', 'where', 'when', 'which', 'how', 'why', 'is', 'are', 'was', 'were', 'the', 'a', 'an', 'in', 'at', 'on', 'for', 'and', 'or', 'but', 'about', 'mentioned'}
+            
+            # Clean and split the query
+            clean_query = re.sub(r'[?.,!;:]', '', query_text)
+            words = clean_query.split()
+            
+            # Get all potential search terms
+            search_terms = []
+            
+            # Add individual words
+            for word in words:
+                if word.lower() not in question_words:
+                    search_terms.append(word)
+            
+            # Add multi-word phrases (2-3 words)
+            for i in range(len(words)):
+                for length in [2, 3]:
+                    if i + length <= len(words):
+                        phrase = ' '.join(words[i:i+length])
+                        # Only add if not all words are question words
+                        if not all(w.lower() in question_words for w in words[i:i+length]):
+                            search_terms.append(phrase)
+            
+            # Search for matching entities in Neo4j using case-insensitive search
             found_entities = []
+            seen_names = set()
             
             with self.driver.session() as session:
-                for word in words:
-                    if len(word) > 2:  # Skip very short words
-                        result = session.run("""
+                for term in search_terms:
+                    # Use case-insensitive search
+                    result = session.run("""
                         MATCH (e:Entity)
-                        WHERE e.canonical_name CONTAINS $term 
-                           OR ANY(form IN e.surface_forms WHERE form CONTAINS $term)
-                        RETURN e.canonical_name as name, e.pagerank_score as score
+                        WHERE toLower(e.canonical_name) CONTAINS toLower($term)
+                           OR ANY(form IN e.surface_forms WHERE toLower(form) CONTAINS toLower($term))
+                        RETURN DISTINCT e.canonical_name as name, e.pagerank_score as score
                         ORDER BY coalesce(e.pagerank_score, 0) DESC
-                        LIMIT 3
-                        """, term=word)
-                        
-                        for record in result:
-                            found_entities.append(record["name"])
+                        LIMIT 5
+                        """, term=term)
+                    
+                    for record in result:
+                        name = record["name"]
+                        if name not in seen_names:
+                            found_entities.append(name)
+                            seen_names.add(name)
             
-            return list(set(found_entities))  # Remove duplicates
+            # Log what we found
+            print(f"\nQuery: '{query_text}'")
+            print(f"Search terms: {search_terms[:10]}..." if len(search_terms) > 10 else f"Search terms: {search_terms}")
+            print(f"Found {len(found_entities)} entities: {found_entities[:5]}..." if len(found_entities) > 5 else f"Found entities: {found_entities}")
+            
+            return found_entities
             
         except Exception as e:
             print(f"Error extracting query entities: {e}")
+            import traceback
+            traceback.print_exc()
             return []
     
     def _execute_multihop_search(
