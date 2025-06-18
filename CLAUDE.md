@@ -4,18 +4,19 @@
 
 ## 🎯 Current Status
 - **Phase 1**: ✅ Working (484 entities, 228 relationships)
-- **Phase 2**: ❌ Broken (API incompatibility)  
+- **Phase 2**: ✅ Fixed (A1 complete - API compatibility resolved)
 - **Phase 3**: 🔧 Standalone only
 
-## 🚨 Critical Issue
-**Phase 1→2 Integration Failed**: `current_step` vs `step_number` API mismatch
+## 🚨 Critical Configuration
+**⚠️ GEMINI MODEL**: Must use `gemini-2.5-flash` (1000 RPM limit)
+- DO NOT change to `gemini-2.0-flash-exp` (10 RPM limit) 
+- DO NOT use experimental models - they have severe quota restrictions
+- This is hardcoded in 4 files - search for "gemini-2.5-flash" before changing
 
-**Root Cause**: Two parallel implementations diverged:
-- Main `/src/` (original, Phase 1 works)
-- `super_digimon_implementation/` (attempted rewrite)
-- APIs evolved differently, causing integration failure
-
-**⚠️ CRITICAL**: Use only `/src/` - no parallel implementations!
+**✅ FIXED**: Phase 1→2 integration (A1 complete)
+- Changed `current_step` → `step_number` 
+- Fixed OpenAI API compatibility
+- Phase 2 now works but needs API keys
 
 ## 📚 Documentation
 👉 **[`docs/current/TABLE_OF_CONTENTS.md`](docs/current/TABLE_OF_CONTENTS.md)** - All documentation
@@ -32,16 +33,17 @@ See [`DIRECTORY_EXAMINATION_REPORT.md`](docs/current/DIRECTORY_EXAMINATION_REPOR
 
 **Key Finding**: Phase 2 calls `update_workflow_progress(current_step=9)` but service expects `step_number`
 
-### Architecture Fixes (After P1-P5)
-1. **A1**: Fix service compatibility
-2. **A2**: Design phase interface  
-3. **A3**: Build UI adapter
+### Architecture Fixes
+1. **A1**: ✅ Fix service compatibility (COMPLETE)
+2. **A2**: Design phase interface (Next)
+3. **A3**: Build UI adapter  
 4. **A4**: Integration testing
 
 ## 🧪 Quick Test
 ```bash
 python test_phase1_direct.py  # Works: 484 entities
-python start_graphrag_ui.py   # Phase 2 selection fails
+python test_phase2_integration_fix.py  # Works with gemini-2.5-flash
+python start_graphrag_ui.py   # Phase 2 now selectable!
 ```
 
 ---

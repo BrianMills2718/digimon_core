@@ -58,7 +58,9 @@ class OntologyAwareExtractor:
             raise ValueError("Google API key required")
         
         genai.configure(api_key=self.google_api_key)
-        self.gemini_model = genai.GenerativeModel('gemini-2.0-flash-exp')
+        # IMPORTANT: DO NOT CHANGE THIS MODEL - gemini-2.5-flash has 1000 RPM limit
+        # Other models have much lower limits (e.g., 10 RPM) and will cause quota errors
+        self.gemini_model = genai.GenerativeModel('gemini-2.5-flash')
         
         # Safety settings for academic content
         self.safety_settings = {

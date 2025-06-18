@@ -31,7 +31,9 @@ class GeminiOntologyGenerator:
             raise ValueError("Google API key required. Set GOOGLE_API_KEY env var or pass api_key.")
         
         genai.configure(api_key=self.api_key)
-        self.model = genai.GenerativeModel('gemini-2.0-flash-exp')
+        # IMPORTANT: DO NOT CHANGE THIS MODEL - gemini-2.5-flash has 1000 RPM limit
+        # Other models have much lower limits (e.g., 10 RPM) and will cause quota errors
+        self.model = genai.GenerativeModel('gemini-2.5-flash')
         
         # Safety settings to allow academic content
         self.safety_settings = {

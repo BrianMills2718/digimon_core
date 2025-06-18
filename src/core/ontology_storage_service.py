@@ -299,7 +299,7 @@ class OntologyStorageService:
             "session": asdict(session),
             "usage_history": usage_history,
             "reproducibility_info": {
-                "required_models": ["gemini-2.0-flash-exp", "text-embedding-3-small"],
+                "required_models": ["gemini-2.5-flash", "text-embedding-ada-002"],
                 "system_requirements": "See Super-Digimon documentation",
                 "verification_checksum": session.session_id
             }

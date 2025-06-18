@@ -68,7 +68,9 @@ class Ontology:
 class OntologyGenerator:
     """Main class for generating and refining ontologies using LLMs"""
     
-    def __init__(self, model_name: str = "gemini-2.0-flash-thinking-exp"):
+    # IMPORTANT: DO NOT CHANGE DEFAULT MODEL - gemini-2.5-flash has 1000 RPM limit
+    # Other models have much lower limits (e.g., 10 RPM) and will cause quota errors
+    def __init__(self, model_name: str = "gemini-2.5-flash"):
         """Initialize the generator with specified model"""
         self.model_name = model_name
         self.model = None
