@@ -1,6 +1,6 @@
 # Super-Digimon
 
-A GraphRAG (Graph Retrieval-Augmented Generation) system that enables natural language querying of graph data through 121 specialized tools.
+A universal analytical platform that intelligently processes diverse data sources through format-agnostic analysis. Using 121 specialized tools and Claude Code's analytical intelligence, it dynamically selects optimal data structures (graphs, tables, vectors) and seamlessly transforms between formats to enable sophisticated multi-step analytical workflows.
 
 ## Quick Start
 
@@ -21,27 +21,50 @@ python -m scripts.test_connection
 
 ## Architecture Overview
 
-**System**: 121 tools across 8 phases with single MCP server communication
+**System**: Universal analytical platform with intelligent format adaptation and orchestration
 
 ```
-Claude Code (Natural Language Agent)
+Claude Code (Analytical Intelligence)
+           ↓
+    Natural Language → Optimal Analysis Strategy
            ↓
     MCP Protocol Communication  
            ↓
-121 Python Tools (8 Phases)
+121 Python Tools (8 Phases) + Analytical Libraries
            ↓
-Neo4j (Graphs) + SQLite (Metadata) + FAISS (Vectors)
+Neo4j (Graphs) + SQLite (Metadata) + Qdrant (Vectors)
 ```
 
+**Core Innovation**: Claude Code dynamically selects data formats and tool sequences based on analytical requirements, enabling seamless transitions between graph analysis, statistical processing, and vector operations within a single workflow.
+
 ### Tool Phases (121 Tools Total)
-- **Phase 1**: Ingestion (T01-T12) - Document loading, API connectors  
-- **Phase 2**: Processing (T13-T30) - NLP, entity extraction
-- **Phase 3**: Construction (T31-T48) - Graph building, embeddings
-- **Phase 4**: Retrieval (T49-T67) - 19 JayLZhou operators + infrastructure
-- **Phase 5**: Analysis (T68-T75) - Graph algorithms, centrality measures
-- **Phase 6**: Storage (T76-T81) - Database management, backup, caching
+- **Phase 1**: Ingestion (T01-T12) - Multi-format data loading, API connectors  
+- **Phase 2**: Processing (T13-T30) - NLP, entity extraction, format detection
+- **Phase 3**: Construction (T31-T48) - Dynamic structure building (graphs, tables, embeddings)
+- **Phase 4**: Retrieval (T49-T67) - Cross-format querying and data access
+- **Phase 5**: Analysis (T68-T75) - Format-specific algorithms (graph, statistical, vector)
+- **Phase 6**: Storage (T76-T81) - Multi-database management, backup, caching
 - **Phase 7**: Interface (T82-T106) - Natural language processing, monitoring, export
 - **Phase 8**: Core Services (T107-T121) - Identity, versioning, quality tracking, workflow state
+
+**Key Capability**: Tools work together to enable workflows like: PDF → Text → Entities → Graph → Community Detection → Table → Statistical Analysis → Visualization
+
+## What Makes This Universal?
+
+Unlike traditional systems that force data into a single format (e.g., always graphs), Super-Digimon:
+
+1. **Format-Agnostic Ingestion**: Accepts PDFs, CSVs, APIs, databases, and automatically adapts processing
+2. **Dynamic Structure Selection**: Claude Code chooses graphs for relationship analysis, tables for statistics, vectors for similarity
+3. **Seamless Format Conversion**: Tools like T115 (Graph→Table) and T116 (Table→Graph) enable mid-workflow format changes
+4. **Integrated Analytics**: Combines graph algorithms, statistical analysis, machine learning, and visualization in single workflows
+5. **Intelligent Orchestration**: Claude Code reasons about optimal tool sequences and data transformations
+
+**Example Multi-Format Workflow:**
+```
+Research Papers (PDF) → Text → Entities → Citation Graph → PageRank → 
+Top Authors (Table) → Statistical Analysis → Geographic Clustering → 
+Collaboration Network (Graph) → Community Detection → Summary Report
+```
 
 ## Project Structure
 
@@ -105,9 +128,9 @@ Digimons/
 
 - **Language**: Python 3.11+
 - **Protocol**: Model Context Protocol (MCP) - Single server
-- **Databases**: Neo4j (graphs) + SQLite (metadata) + FAISS (vectors)
+- **Databases**: Neo4j (graphs) + SQLite (metadata) + Qdrant (vectors)
 - **Development**: Hybrid workflow (local code + Docker services)
-- **Runtime**: Claude Code - An AI assistant that orchestrates tool execution via natural language
+- **Runtime**: Claude Code - The analytical intelligence that provides format-agnostic reasoning and workflow orchestration
 
 ## Contributing
 
@@ -141,6 +164,7 @@ Digimons/
 
 ## References
 
-- **JayLZhou GraphRAG**: [Original research](https://github.com/JayLZhou/GraphRAG) (19 core operators)
-- **Model Context Protocol**: [MCP Documentation](https://modelcontextprotocol.io/)
-- **Claude Code**: [Development environment](https://claude.ai/code)
+- **JayLZhou GraphRAG**: [Original research](https://github.com/JayLZhou/GraphRAG) - Inspired 19 core graph operators
+- **Model Context Protocol**: [MCP Documentation](https://modelcontextprotocol.io/) - Tool integration framework
+- **Claude Code**: [Development environment](https://claude.ai/code) - Analytical intelligence platform
+- **Universal Data Processing**: Extends beyond GraphRAG to format-agnostic analytical workflows

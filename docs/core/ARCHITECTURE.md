@@ -2,33 +2,38 @@
 
 ## System Overview
 
-Super-Digimon is a GraphRAG (Graph Retrieval-Augmented Generation) system that enables natural language querying of graph data through **121 specialized tools** organized in **8 phases**. The system combines graph storage, vector search, and metadata management to provide intelligent graph analysis capabilities.
+Super-Digimon is a **universal analytical platform** that provides format-agnostic data processing through **121 specialized tools** organized in **8 phases**. The system dynamically selects optimal data structures (graphs, tables, vectors) and seamlessly transforms between formats to enable sophisticated multi-step analytical workflows.
 
-**Key Innovation**: The system can perform virtually any analytical method through flexible data structuring - seamlessly converting between graphs, tables, and vectors based on the analysis needs.
+**Key Innovation**: Claude Code serves as the analytical intelligence that interprets natural language requests and orchestrates optimal tool sequences, choosing the most appropriate data format (graph, table, vector) for each analytical step. This enables complex workflows that combine graph algorithms, statistical analysis, machine learning, and visualization in a single coherent process.
 
 ## Core Architecture
 
 ```
 ┌─────────────────┐
-│  Claude Code    │  Natural Language Agent
-│   (End User)    │  
+│  Claude Code    │  Analytical Intelligence
+│                 │  • Format Selection
+│                 │  • Workflow Orchestration
 └────────┬────────┘
-         │ Natural Language
+         │ Natural Language Analysis
          ▼
 ┌─────────────────┐
 │  MCP Protocol   │  Model Context Protocol
+│                 │  • Tool Discovery
+│                 │  • Intelligent Routing
 └────────┬────────┘
-         │ Tool Calls
+         │ Optimal Tool Sequences
          ▼
 ┌─────────────────┐
-│ Python MCP      │  Single MCP Server
+│ Python MCP      │  Universal Tool Platform
 │    Server       │  121 Tools (T01-T121)
+│                 │  • Multi-format Processing
+│                 │  • Dynamic Conversion
 └────────┬────────┘
          │
     ┌────┴────┬─────────┐
     ▼         ▼         ▼
 ┌────────┐┌────────┐┌────────┐
-│ Neo4j  ││ SQLite ││ FAISS  │
+│ Neo4j  ││ SQLite ││ Qdrant │
 │(Graphs)││(Meta)  ││(Vector)│
 └────────┘└────────┘└────────┘
 ```
@@ -36,24 +41,56 @@ Super-Digimon is a GraphRAG (Graph Retrieval-Augmented Generation) system that e
 ## Technology Stack
 
 - **Language**: Python 3.11+
-- **Agent**: Claude Code (Anthropic)
-- **Protocol**: MCP (Model Context Protocol)
-- **Graph Database**: Neo4j 5.x
-- **Vector Store**: FAISS
-- **Metadata Store**: SQLite
-- **Containerization**: Docker & Docker Compose
+- **Analytical Intelligence**: Claude Code (Anthropic) - Format-agnostic reasoning
+- **Protocol**: MCP (Model Context Protocol) - Tool integration framework
+- **Graph Database**: Neo4j 5.x - Relationship analysis and graph algorithms
+- **Vector Store**: Qdrant - Semantic similarity and embedding operations
+- **Metadata Store**: SQLite - Configuration, lineage, and structured metadata
+- **Containerization**: Docker & Docker Compose - Service orchestration
+- **ML/AI**: OpenAI embeddings, Gemini 2.5 Flash, statistical libraries
 
 ## Tool Organization (121 Tools)
 
-### Phase Distribution
-- **Phase 1 - Ingestion** (T01-T12): 12 tools for data loading
-- **Phase 2 - Processing** (T13-T30): 18 tools for text/NLP processing
-- **Phase 3 - Construction** (T31-T48): 18 tools for graph building
-- **Phase 4 - Retrieval** (T49-T67): 19 tools for GraphRAG queries
-- **Phase 5 - Analysis** (T68-T75): 8 tools for graph algorithms
-- **Phase 6 - Storage** (T76-T81): 6 tools for data management
-- **Phase 7 - Interface** (T82-T106): 25 tools for UI/monitoring/export
-- **Phase 8 - Core Services** (T107-T121): 15 tools for infrastructure support
+### Phase Distribution (Universal Analytical Capabilities)
+- **Phase 1 - Ingestion** (T01-T12): Multi-format data loading (PDF, CSV, APIs, databases)
+- **Phase 2 - Processing** (T13-T30): Format detection, NLP, entity extraction
+- **Phase 3 - Construction** (T31-T48): Dynamic structure building (graphs, tables, embeddings)
+- **Phase 4 - Retrieval** (T49-T67): Cross-format querying and intelligent data access
+- **Phase 5 - Analysis** (T68-T75): Format-specific algorithms (graph, statistical, vector)
+- **Phase 6 - Storage** (T76-T81): Multi-database management and optimization
+- **Phase 7 - Interface** (T82-T106): Natural language processing, monitoring, export
+- **Phase 8 - Core Services** (T107-T121): Identity, quality, versioning, workflow orchestration
+
+## Universal Platform Capabilities
+
+### Format-Agnostic Processing
+Unlike traditional systems that lock data into a single format, Super-Digimon enables:
+
+1. **Dynamic Format Selection**: Claude Code analyzes analytical requirements and selects optimal data structures
+2. **Seamless Format Conversion**: Tools T115-T118 enable mid-workflow format transformations
+3. **Cross-Format Operations**: Combine graph algorithms with statistical analysis in single workflows
+4. **Intelligent Routing**: Automatically route analytical requests to most appropriate tool chains
+
+### Example Multi-Format Workflow
+```
+Scientific Papers (PDF) → 
+  Text Extraction (T01) → 
+  Entity Recognition (T23b) → 
+  Citation Graph (T34) → 
+  PageRank Analysis (T68) → 
+  Top Authors Table (T115) → 
+  Geographic Analysis (Statistical) → 
+  Collaboration Network (T116) → 
+  Community Detection (T70) → 
+  Visualization (T95)
+```
+
+### Claude Code's Analytical Intelligence
+- **Request Interpretation**: Understands complex analytical requirements from natural language
+- **Strategy Planning**: Designs optimal tool sequences considering data characteristics
+- **Format Reasoning**: Chooses graphs for relationships, tables for statistics, vectors for similarity
+- **Workflow Orchestration**: Manages complex multi-step analytical pipelines
+- **Quality Monitoring**: Tracks confidence and quality throughout processing chains
 
 ## Key Architectural Decisions
 
@@ -63,8 +100,13 @@ Super-Digimon is a GraphRAG (Graph Retrieval-Augmented Generation) system that e
 
 ### 2. Triple Database Architecture
 - **Neo4j**: Primary storage for graph structure (nodes, relationships, communities)
-- **SQLite**: Metadata storage (documents, chunks, configuration)
-- **FAISS**: Vector similarity search for semantic queries
+- **SQLite**: Metadata storage (documents, chunks, configuration, lineage)
+- **Qdrant**: Vector database for semantic similarity, embeddings, and ML operations
+
+**Database Selection Rationale**:
+- **Neo4j**: Optimized for complex relationship queries and graph algorithms
+- **SQLite**: Lightweight, reliable metadata storage with excellent Python integration
+- **Qdrant vs FAISS**: Chosen for flexibility over speed - enables rich filtering, metadata integration, and gradual updates rather than index rebuilds
 
 ### 3. Tool Contracts
 Tools declare contracts specifying requirements and guarantees:
