@@ -1,294 +1,215 @@
 # CLAUDE.md
 
-This file guides Claude Code through the Super-Digimon implementation. It travels with every session to provide actionable context and success criteria.
+This file guides Claude Code through Phase 3 Advanced GraphRAG implementation. It travels with every session to provide actionable context and success criteria.
 
 ## Current Status
 
-**Documentation**: Complete ✅  
-**Implementation**: Phase 0 + Phase 1 Complete, Phase 2 Starting ✅  
-**Databases**: Neo4j + Qdrant connected and working ✅  
-**Next Priority**: LLM-driven ontology system for real GraphRAG capabilities
+**Phase 2**: Complete with 85.7% adversarial pass rate ✅  
+**Current Phase**: Phase 3 - Advanced GraphRAG System  
+**Databases**: Neo4j + Qdrant + SQLite operational ✅  
+**Priority**: Multi-document fusion and advanced reasoning capabilities
 
-## Milestones
+## Phase 3 Implementation Priority
 
-### Milestone 1: Core Services Complete (Phase 0) ✅ COMPLETE
-- [x] T107 Identity Service - Entity resolution with embeddings ✅
-- [x] T110 Provenance Service - Operation tracking ✅  
-- [x] T111 Quality Service - Confidence propagation ✅
-- [x] T121 Workflow State - Checkpoint/restore ✅
-- [x] All adversarial tests passing ✅
-- [x] Integration tests between core services ✅
-
-### Milestone 2: Vertical Slice Working (Phase 1) ✅ COMPLETE
-- [x] PDF → PageRank → Answer pipeline functional ✅
-- [x] All 8 tools integrated and tested ✅
-- [x] End-to-end test completing successfully ✅
-- [x] Quality metrics tracked throughout pipeline ✅
-
-### Milestone 3: LLM-Driven Ontology System (Phase 2) 🔄 IN PROGRESS
-- [ ] Streamlit ontology chat interface with Gemini 2.5 Flash
-- [ ] Domain-specific ontology generation from natural conversation
-- [ ] Ontology-aware entity extraction (T23c) replacing generic spaCy
-- [ ] Quality graph building with contextual embeddings
-- [ ] Interactive graph visualization with ontological structure
-- [ ] Complete academic traceability (TORC compliance)
-
-## Implementation Phases
-
-### Phase 0: Core Services ✅ COMPLETE
-All core services implemented and tested with adversarial scenarios.
-
-#### T107: Identity Service (Start Here)
-**Purpose**: Convert mentions → entities with deduplication  
-**Location**: `src/core/identity_service.py`  
+### T301: Multi-Document Knowledge Fusion (START HERE)
+**Purpose**: Consolidate knowledge across document collections with conflict resolution  
+**Location**: `src/tools/phase3/t301_multi_document_fusion.py`  
 **Key Methods**:
 ```python
-def create_mention(surface_text, doc_id, position) -> str
-def link_mention_to_entity(mention_id, entity_id) -> bool
-def merge_entities(entity_ids: List[str]) -> str
-def find_similar_entities(text: str, threshold=0.85) -> List[Entity]
+def fuse_documents(document_refs: List[str], fusion_strategy: str) -> FusionResult
+def resolve_entity_conflicts(entities: List[Entity]) -> Entity
+def merge_relationship_evidence(relationships: List[Relationship]) -> Relationship
+def calculate_knowledge_consistency(graph_data: GraphData) -> ConsistencyMetrics
 ```
 
 **Implementation Steps**:
-1. Create SQLite schema for mentions/entities (see `docs/core/DATABASE_INTEGRATION.md`)
-2. Integrate OpenAI embeddings for similarity (text-embedding-3-small, 1536 dims)
-3. Use Qdrant for vector similarity search
-4. Implement three-level hierarchy: Surface → Mention → Entity
+1. Design entity consolidation algorithms with confidence scoring
+2. Implement relationship evidence aggregation
+3. Build conflict resolution using LLM arbitration
+4. Create consistency metrics and validation
 
 **Success Criteria**:
-- [ ] 100 random names → no false merges
-- [ ] "Apple Inc" and "AAPL" → same entity (with embeddings)
-- [ ] "Apple" (fruit) and "Apple Inc" → different entities (context-aware)
-- [ ] Unicode handling: "Zürich", "São Paulo", emoji names
-- [ ] Performance: <100ms for similarity search
+- [ ] 100 documents → consolidated knowledge graph with <5% entity duplicates
+- [ ] Conflicting information resolved with evidence chains
+- [ ] Confidence scores properly aggregated across sources
+- [ ] Performance: <10s per document addition to existing graph
 
-**Adversarial Tests** (Must Pass ALL):
+### T302: Advanced Reasoning Engine
+**After T301 works perfectly**  
+**Purpose**: LLM-driven logical inference over knowledge graphs  
+**Key Methods**:
 ```python
-# tests/unit/test_identity_service_adversarial.py
-- Empty strings, None values
-- 10,000 character names
-- Duplicate surface forms in same document
-- Concurrent entity creation (threading)
-- Embedding service timeout simulation
+def infer_implicit_relationships(graph: GraphData, reasoning_depth: int) -> List[Relationship]
+def validate_logical_consistency(graph: GraphData) -> ValidationResult
+def generate_reasoning_chains(query: str, graph: GraphData) -> ReasoningChain
 ```
 
-#### T110: Provenance Service
-**After T107 works perfectly**  
-See `docs/core/SPECIFICATIONS.md#T110` for details
+### T303: Temporal Knowledge Tracking
+**After T302 works perfectly**  
+**Purpose**: Track entity and relationship evolution over time  
+**Key Methods**:
+```python
+def create_temporal_snapshot(graph: GraphData, timestamp: datetime) -> TemporalSnapshot
+def track_entity_evolution(entity_id: str) -> EvolutionHistory
+def analyze_knowledge_drift(time_range: Tuple[datetime, datetime]) -> DriftAnalysis
+```
 
-#### T111: Quality Service  
-**After T110 works perfectly**  
-See `docs/core/SPECIFICATIONS.md#T111` for details
+### T304: Cross-Domain Ontology Federation
+**After T303 works perfectly**  
+**Purpose**: Connect and reason across multiple domain ontologies  
 
-#### T121: Workflow State Service
-**After T111 works perfectly**  
-See `docs/core/SPECIFICATIONS.md#T121` for details
+### T305: Advanced Query Understanding
+**After T304 works perfectly**  
+**Purpose**: LLM preprocessing for complex research questions  
 
-### Phase 1: Vertical Slice ✅ COMPLETE  
-PDF → PageRank → Answer pipeline functional with basic spaCy extraction.
-
-**Note**: Phase 1 used generic spaCy NER which produces low-quality entities. Phase 2 replaces this with domain-specific ontology-driven extraction for real GraphRAG capabilities.
-
-### Phase 2: LLM-Driven Ontology System 🔄 CURRENT PRIORITY
-
-**Problem**: Generic spaCy entities (PERSON, ORG, LOC) make GraphRAG testing meaningless
-**Solution**: LLM-generated domain ontologies → high-quality domain-specific entities
-
-**Implementation Steps**:
-1. **T120: Ontology Generator** - Gemini 2.5 Flash structured ontology generation
-2. **Streamlit UI** - Natural conversation → domain ontology
-3. **T23c: Ontology-Aware Extraction** - Replace spaCy with domain-specific extraction  
-4. **Enhanced Graph Building** - Ontology-aware entities with contextual embeddings
-5. **Graph Visualization** - Interactive visualization with ontological structure
-6. **Academic Traceability** - Full TORC compliance for reproducibility
-
-**Success Criteria**:
-- Domain-specific entities: CLIMATE_POLICY vs generic ORG
-- Meaningful relationships using ontology relationship types
-- Interactive graph visualization showing ontological structure
-- Complete academic provenance for all analysis steps
-
-## Development Standards
-
-### Code Quality Requirements
-- **Linting**: All code must pass `flake8 --max-line-length=100`
-- **Type Checking**: All code must pass `mypy --strict`
-- **Testing**: All tests must pass with `pytest -v`
-- **Entry Point**: `main.py` must run successfully
-- **Docstrings**: All public functions need Google-style docstrings
-
-### Self-Healing Patterns
-When implementing, ALWAYS follow these patterns to prevent common failures:
-
-1. **Use pathlib for all file operations**
-   ```python
-   # Good: Portable and robust
-   from pathlib import Path
-   config_path = Path(__file__).parent / "config.json"
-   
-   # Bad: Breaks on different systems
-   config_path = "/home/user/project/config.json"
-   ```
-
-2. **Handle missing dependencies gracefully**
-   ```python
-   # Good: Fallback behavior
-   try:
-       import optional_library
-       HAS_OPTIONAL = True
-   except ImportError:
-       HAS_OPTIONAL = False
-       
-   # Bad: Crashes on import
-   import optional_library  # Fails if not installed
-   ```
-
-3. **Validate inputs with clear errors**
-   ```python
-   # Good: Helpful error message
-   if not isinstance(confidence, float) or not 0 <= confidence <= 1:
-       raise ValueError(f"Confidence must be float between 0 and 1, got {confidence}")
-       
-   # Bad: Generic error
-   assert 0 <= confidence <= 1
-   ```
-
-4. **Use connection pools for databases**
-   ```python
-   # Good: Reuse connections
-   from neo4j import GraphDatabase
-   _driver = None
-   
-   def get_driver():
-       global _driver
-       if _driver is None:
-           _driver = GraphDatabase.driver(uri, auth=(user, password))
-       return _driver
-       
-   # Bad: New connection every time
-   def query():
-       driver = GraphDatabase.driver(...)  # Expensive!
-   ```
-
-5. **Return partial results on failure**
-   ```python
-   # Good: Return what succeeded
-   results = {"successful": [], "failed": []}
-   for item in items:
-       try:
-           results["successful"].append(process(item))
-       except Exception as e:
-           results["failed"].append({"item": item, "error": str(e)})
-   return results
-   
-   # Bad: All or nothing
-   return [process(item) for item in items]  # One failure loses everything
-   ```
+### T306: Research Evaluation Framework
+**After T305 works perfectly**  
+**Purpose**: Benchmarking against academic GraphRAG standards  
 
 ## Critical Implementation Rules
 
-### 1. Database Setup First
-```bash
-# Start databases
-docker-compose up -d
+### 1. Build on Phase 2 Foundation
+```python
+# Always use existing Phase 2 components
+from src.tools.phase2.t23c_ontology_aware_extractor import OntologyAwareExtractor
+from src.tools.phase2.t31_ontology_graph_builder import OntologyAwareGraphBuilder
+from src.core.enhanced_identity_service import EnhancedIdentityService
 
-# Verify connections
-python scripts/test_database_connections.py
-
-# Initialize schemas
-python scripts/init_databases.py
+# Phase 3 tools extend, don't replace Phase 2
+class MultiDocumentFusion(OntologyAwareGraphBuilder):
+    def __init__(self, base_builder: OntologyAwareGraphBuilder):
+        self.base_builder = base_builder
 ```
 
-### 2. Test-Driven Development
-**Never implement without tests first**:
-1. Write unit test with expected behavior
-2. Write adversarial test with edge cases
-3. Implement minimal code to pass
-4. Refactor only after tests pass
+### 2. Advanced Quality Gates
+**Before marking ANY Phase 3 tool complete**:
+- [ ] All Phase 2 functionality preserved and enhanced
+- [ ] Multi-document scenarios tested (10+ documents)
+- [ ] Temporal consistency validated across time ranges
+- [ ] Cross-domain federation scenarios proven
+- [ ] Research-grade evaluation metrics computed
+- [ ] Academic reproducibility maintained (TORC compliance)
 
-### 3. Use Enhanced Services
-The project has enhanced versions with LLM integration:
-- `src/core/enhanced_identity_service.py` - Uses OpenAI embeddings
-- Uses Gemini 2.0 Flash for structured entity extraction
-- See `.env` for API keys (already configured)
+### 3. Research-Grade Testing Requirements
+```python
+# Phase 3 requires research validation
+def test_academic_benchmark():
+    # Test against known GraphRAG datasets
+    # Compare with published baselines
+    # Validate statistical significance
+    pass
 
-### 4. Quality Gates
-**Before marking ANY tool complete**:
-- [ ] All unit tests pass
-- [ ] All adversarial tests pass  
-- [ ] Integration with dependent tools tested
-- [ ] Performance benchmarked and acceptable
-- [ ] Error handling for all failure modes
-- [ ] Logging at appropriate levels
-
-### 5. Reference Pattern
-Always use format: `{storage}://{type}/{id}`
-- `neo4j://entity/ent_123`
-- `sqlite://mention/men_456`  
-- `qdrant://embedding/emb_789`
-
-## Environment Variables
-
-Required in `.env` file:
-```bash
-# Database Connections
-NEO4J_URI=bolt://localhost:7687
-NEO4J_USER=neo4j
-NEO4J_PASSWORD=password
-SQLITE_DB_PATH=./data/metadata.db
-QDRANT_URL=http://localhost:6333
-
-# API Keys (already configured)
-OPENAI_API_KEY=sk-...
-GOOGLE_API_KEY=...
-
-# Optional
-LOG_LEVEL=INFO
-CACHE_DIR=./data/cache
+def test_multi_domain_scenarios():
+    # Climate + Economics ontologies
+    # Medicine + Technology domains
+    # Cross-domain reasoning validation
+    pass
 ```
 
-## Project Structure (Key Files for Current Phase)
+### 4. Performance Requirements
+- **Multi-Document Fusion**: <10s per document addition
+- **Advanced Reasoning**: <30s for 3-hop logical inference
+- **Temporal Analysis**: <60s for 1-year knowledge evolution
+- **Cross-Domain**: <5s for ontology mapping operations
+- **Memory Efficiency**: <2GB for 1000-document collections
+
+## Development Standards
+
+### Enhanced Self-Healing Patterns for Phase 3
+
+1. **Graceful degradation for complex reasoning**
+   ```python
+   # Good: Fallback to simpler reasoning
+   try:
+       result = advanced_multi_hop_reasoning(query, max_depth=5)
+   except ComplexityError:
+       result = simple_graph_traversal(query, max_depth=2)
+   ```
+
+2. **Incremental processing for large document sets**
+   ```python
+   # Good: Process in batches with checkpoints
+   for batch in chunk_documents(documents, batch_size=10):
+       checkpoint_id = create_checkpoint(batch_id)
+       try:
+           process_document_batch(batch)
+           commit_checkpoint(checkpoint_id)
+       except Exception:
+           rollback_to_checkpoint(checkpoint_id)
+   ```
+
+3. **Confidence-aware conflict resolution**
+   ```python
+   # Good: Weight by evidence strength
+   def resolve_conflicts(conflicting_facts):
+       return weighted_average(
+           facts=conflicting_facts,
+           weights=[f.confidence * f.evidence_count for f in conflicting_facts]
+       )
+   ```
+
+## Project Structure (Phase 3 Focus)
 
 ```
 Digimons/
-├── main.py                    # MCP server entry point
-├── .env                       # Environment variables (API keys configured)
-├── docker-compose.yml         # Database services
-├── src/
-│   ├── core/                  # Core services (implement here)
-│   │   ├── identity_service.py         # T107 - Create this
-│   │   ├── enhanced_identity_service.py # Reference implementation
-│   │   └── __init__.py
-│   └── mcp_server.py          # MCP server (update with T107)
-└── tests/
-    └── unit/
-        ├── test_identity_service.py           # Create this
-        └── test_identity_service_adversarial.py # Create this
+├── src/tools/phase3/           # NEW: Phase 3 implementations
+│   ├── t301_multi_document_fusion.py
+│   ├── t302_advanced_reasoning.py
+│   ├── t303_temporal_knowledge.py
+│   ├── t304_cross_domain_federation.py
+│   ├── t305_query_understanding.py
+│   └── t306_evaluation_framework.py
+├── src/tools/phase2/           # EXISTING: Phase 2 foundation
+│   ├── t23c_ontology_aware_extractor.py
+│   ├── t31_ontology_graph_builder.py
+│   └── interactive_graph_visualizer.py
+├── tests/phase3/               # NEW: Phase 3 testing
+│   ├── test_multi_document_scenarios.py
+│   ├── test_temporal_analysis.py
+│   └── test_research_benchmarks.py
+└── docs/phase3/               # NEW: Phase 3 documentation
+    ├── MULTI_DOCUMENT_ARCHITECTURE.md
+    └── RESEARCH_EVALUATION_PROTOCOL.md
 ```
 
-## Key Resources
+## Environment Variables (Phase 3 Extensions)
 
-**Specifications**: `docs/core/SPECIFICATIONS.md` - Detailed tool contracts  
-**Architecture**: `docs/core/ARCHITECTURE.md` - System design and patterns  
-**Database Schema**: `docs/core/DATABASE_INTEGRATION.md` - Table definitions  
-**Design Patterns**: `docs/core/DESIGN_PATTERNS.md` - Pass-by-reference, etc.  
-**Test Examples**: `tests/` - Reference implementations
+```bash
+# Existing Phase 2 variables remain unchanged
+NEO4J_URI=bolt://localhost:7687
+OPENAI_API_KEY=sk-...
+GOOGLE_API_KEY=...
 
-## Common Pitfalls to Avoid
+# NEW: Phase 3 specific configurations
+REASONING_MODEL=gemini-2.0-flash-exp
+MAX_REASONING_DEPTH=5
+TEMPORAL_GRANULARITY=daily
+BENCHMARK_DATASETS_PATH=./data/benchmarks
+FUSION_CONFIDENCE_THRESHOLD=0.8
+```
 
-1. **Starting Phase 1 before Phase 0 is perfect** - Core services are foundations
-2. **Skipping adversarial tests** - They prevent production failures
-3. **Not using the enhanced services** - They already handle embeddings/LLMs
-4. **Implementing all tools at once** - Vertical slice proves the architecture
-5. **Ignoring confidence scores** - Quality tracking is mandatory
+## Immediate Next Actions
 
-## Next Immediate Actions
+1. [ ] **Start T301**: Create `src/tools/phase3/t301_multi_document_fusion.py`
+2. [ ] **Write Tests**: Create `tests/phase3/test_multi_document_scenarios.py`
+3. [ ] **Design Architecture**: Document fusion strategy in `docs/phase3/`
+4. [ ] **Implement Core**: Entity consolidation and conflict resolution
+5. [ ] **Validate**: Test with 10+ document collection
+6. [ ] **Only then**: Proceed to T302 Advanced Reasoning
 
-1. [ ] Run `docker-compose up -d` to start databases
-2. [ ] Create `src/core/identity_service.py` with minimal T107 implementation
-3. [ ] Write `tests/unit/test_identity_service.py` with basic tests
-4. [ ] Write `tests/unit/test_identity_service_adversarial.py` with edge cases
-5. [ ] Implement T107 until ALL tests pass
-6. [ ] Only then proceed to T110
+## Success Metrics for Phase 3
 
-Remember: **Quality over speed**. Each tool must be bulletproof before moving on.
+**T301 Complete When**:
+- 95% entity deduplication across 100 documents
+- Conflict resolution with traceable evidence chains
+- Sub-linear performance scaling with document count
+
+**Phase 3 Complete When**:
+- Multi-document knowledge fusion operational
+- Advanced reasoning with 3+ hop logical inference
+- Temporal knowledge tracking over months/years
+- Cross-domain ontology federation working
+- Research evaluation framework with academic benchmarks
+- All capabilities maintain Phase 2's 85%+ adversarial robustness
+
+Remember: **Phase 3 is research-grade GraphRAG**. Each tool must advance the state of the art while maintaining production robustness.
