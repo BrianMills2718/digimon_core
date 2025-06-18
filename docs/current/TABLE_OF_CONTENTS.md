@@ -6,9 +6,12 @@
 - [`STATUS.md`](STATUS.md) - What actually works vs what's broken (with verification commands)
 - [`VERIFICATION.md`](VERIFICATION.md) - Test commands that prove every claim
 
-### **Understanding the Integration Failure**
-- [`ARCHITECTURE.md`](ARCHITECTURE.md) - Phase 1→2 integration failure analysis + lessons learned
+### **Core Documentation**
+- [`ARCHITECTURE.md`](ARCHITECTURE.md) - Consolidated architecture (vision + reality + integration issues)
 - [`ROADMAP_v2.md`](ROADMAP_v2.md) - Architecture-first development strategy
+- [`TOOL_IMPLEMENTATION_STATUS.md`](TOOL_IMPLEMENTATION_STATUS.md) - Which tools exist (13 of 121)
+
+### **Documentation Cleanup**
 - [`DOCUMENTATION_CONSOLIDATION_NEEDED.md`](DOCUMENTATION_CONSOLIDATION_NEEDED.md) - Documentation overlap analysis
 
 ## 📂 **Project Organization**
