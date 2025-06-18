@@ -55,14 +55,20 @@ class Phase1Adapter(GraphRAGPhase):
             
             # Translate result to standard format
             if result.get("status") == "success":
+                # Extract entity and relationship counts from workflow_summary
+                workflow_summary = result.get("workflow_summary", {})
+                entity_count = workflow_summary.get("entities_extracted", 0)
+                relationship_count = workflow_summary.get("relationships_found", 0)
+                
                 return self.create_success_result(
                     execution_time=execution_time,
-                    entity_count=result.get("entity_count", 0),
-                    relationship_count=result.get("relationship_count", 0),
-                    confidence_score=result.get("average_confidence", 0.0),
+                    entity_count=entity_count,
+                    relationship_count=relationship_count,
+                    confidence_score=result.get("confidence", 0.0),
                     results={
                         "graph_metrics": result.get("graph_metrics", {}),
                         "query_result": result.get("query_result", {}),
+                        "workflow_summary": workflow_summary,
                         "phase1_raw": result  # Include original for debugging
                     }
                 )
