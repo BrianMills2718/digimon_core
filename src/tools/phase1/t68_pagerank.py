@@ -221,25 +221,28 @@ class PageRankCalculator:
                 
                 where_clause = "WHERE " + " AND ".join(entity_conditions) if entity_conditions else ""
                 
-                # Load nodes (entities)
+                # Load nodes (entities) - exclude entities with NULL entity_id
+                additional_conditions = " AND a.entity_id IS NOT NULL AND b.entity_id IS NOT NULL"
+                where_clause_with_null_check = where_clause + additional_conditions if where_clause else "WHERE a.entity_id IS NOT NULL AND b.entity_id IS NOT NULL"
+                
                 node_query = f"""
                 MATCH (a:Entity)-[r]->(b:Entity)
-                {where_clause}
+                {where_clause_with_null_check}
                 RETURN DISTINCT a.entity_id as entity_id, a.canonical_name as name, 
                        a.confidence as confidence, a.entity_type as entity_type
                 UNION
                 MATCH (a:Entity)-[r]->(b:Entity)
-                {where_clause}
+                {where_clause_with_null_check}
                 RETURN DISTINCT b.entity_id as entity_id, b.canonical_name as name,
                        b.confidence as confidence, b.entity_type as entity_type
                 """
                 
                 nodes = session.run(node_query, **params).data()
                 
-                # Load edges (relationships)
+                # Load edges (relationships) - exclude relationships with NULL entity_id
                 edge_query = f"""
                 MATCH (a:Entity)-[r]->(b:Entity)
-                {where_clause}
+                {where_clause_with_null_check}
                 RETURN a.entity_id as source, b.entity_id as target, 
                        r.weight as weight, r.confidence as confidence,
                        type(r) as relationship_type
@@ -277,24 +280,41 @@ class PageRankCalculator:
         """Create NetworkX directed graph from Neo4j data."""
         G = nx.DiGraph()
         
-        # Add nodes
+        # Add nodes - skip nodes with None entity_id
         for node in graph_data["nodes"]:
-            G.add_node(
-                node["entity_id"],
-                name=node["name"],
-                confidence=node["confidence"],
-                entity_type=node.get("entity_type")
-            )
+            entity_id = node["entity_id"]
+            if entity_id is not None:
+                G.add_node(
+                    entity_id,
+                    name=node["name"],
+                    confidence=node["confidence"],
+                    entity_type=node.get("entity_type")
+                )
+            else:
+                print(f"Warning: Skipping node with None entity_id: {node.get('name', 'unknown')}")
         
-        # Add edges with weights
+        # Add edges with weights - skip edges with None source/target
         for edge in graph_data["edges"]:
+            source = edge["source"]
+            target = edge["target"]
+            
+            # Skip edges with None source or target
+            if source is None or target is None:
+                print(f"Warning: Skipping edge with None source/target: {source} -> {target}")
+                continue
+                
+            # Skip edges where source or target nodes don't exist in graph
+            if not G.has_node(source) or not G.has_node(target):
+                print(f"Warning: Skipping edge with missing nodes: {source} -> {target}")
+                continue
+            
             weight = edge.get("weight", 1.0)
             # Ensure weight is positive and reasonable
             weight = max(0.01, min(1.0, weight))
             
             G.add_edge(
-                edge["source"],
-                edge["target"],
+                source,
+                target,
                 weight=weight,
                 confidence=edge.get("confidence", 0.5),
                 relationship_type=edge.get("relationship_type", "RELATED_TO")

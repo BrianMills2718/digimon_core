@@ -5,6 +5,7 @@ Uses Google's Generative AI for domain-specific ontology generation.
 
 import os
 import json
+import re
 from typing import List, Dict, Optional, Any
 from dataclasses import dataclass, asdict
 import google.generativeai as genai
@@ -75,8 +76,11 @@ class GeminiOntologyGenerator:
                 safety_settings=self.safety_settings
             )
             
+            # Validate response before parsing
+            response_text = self._extract_response_text(response)
+            
             # Parse structured output
-            ontology_data = self._parse_response(response.text)
+            ontology_data = self._parse_response(response_text)
             
             # Convert to DomainOntology
             return self._build_ontology(ontology_data, conversation_text)
@@ -85,6 +89,59 @@ class GeminiOntologyGenerator:
             logger.error(f"Error generating ontology: {e}")
             raise
     
+    def _extract_response_text(self, response) -> str:
+        """
+        Extract text from Gemini response with proper error handling.
+        
+        Args:
+            response: Gemini GenerateContentResponse object
+            
+        Returns:
+            Extracted response text
+            
+        Raises:
+            ValueError: If response is blocked, empty, or invalid
+        """
+        # Check if response has candidates
+        if not response.candidates:
+            raise ValueError("No response candidates returned from Gemini")
+        
+        candidate = response.candidates[0]
+        
+        # Check finish reason
+        finish_reason = candidate.finish_reason
+        if finish_reason == 2:  # SAFETY
+            safety_ratings = getattr(candidate, 'safety_ratings', [])
+            safety_issues = [
+                f"{rating.category.name}: {rating.probability.name}" 
+                for rating in safety_ratings 
+                if rating.probability.name in ['HIGH', 'MEDIUM']
+            ]
+            raise ValueError(f"Response blocked by safety filters: {safety_issues}")
+        elif finish_reason == 3:  # RECITATION
+            raise ValueError("Response blocked due to recitation concerns")
+        elif finish_reason == 4:  # OTHER
+            raise ValueError("Response generation stopped for unknown reasons")
+        elif finish_reason != 1:  # Not STOP (successful completion)
+            raise ValueError(f"Response generation incomplete (finish_reason: {finish_reason})")
+        
+        # Try to extract text content
+        try:
+            if hasattr(response, 'text') and response.text:
+                return response.text
+            elif candidate.content and candidate.content.parts:
+                # Extract from parts if direct text access fails
+                text_parts = []
+                for part in candidate.content.parts:
+                    if hasattr(part, 'text') and part.text:
+                        text_parts.append(part.text)
+                if text_parts:
+                    return ''.join(text_parts)
+        except Exception as e:
+            logger.warning(f"Error accessing response.text: {e}")
+        
+        raise ValueError("No valid text content found in response")
+
     def _format_conversation(self, messages: List[Dict[str, str]]) -> str:
         """Format conversation messages into text."""
         formatted = []
@@ -153,22 +210,97 @@ Respond ONLY with the JSON, no additional text."""
         return prompt
     
     def _parse_response(self, response_text: str) -> Dict[str, Any]:
-        """Parse JSON response from Gemini."""
+        """Parse JSON response from Gemini with robust error handling."""
+        if not response_text or not response_text.strip():
+            raise ValueError("Empty response text from Gemini")
+        
+        # Clean response text
+        cleaned = self._clean_json_response(response_text)
+        
+        # Attempt to parse JSON with multiple strategies
+        parse_errors = []
+        
+        # Strategy 1: Direct parsing
         try:
-            # Clean response if needed
-            cleaned = response_text.strip()
-            if cleaned.startswith("```json"):
-                cleaned = cleaned[7:]
-            if cleaned.startswith("```"):
-                cleaned = cleaned[3:]
-            if cleaned.endswith("```"):
-                cleaned = cleaned[:-3]
-            
             return json.loads(cleaned)
         except json.JSONDecodeError as e:
-            logger.error(f"Failed to parse JSON response: {e}")
-            logger.error(f"Response text: {response_text}")
-            raise ValueError(f"Invalid JSON response from Gemini: {e}")
+            parse_errors.append(f"Direct parsing: {e}")
+        
+        # Strategy 2: Extract JSON from text (handle cases where there's extra text)
+        try:
+            json_start = cleaned.find('{')
+            json_end = cleaned.rfind('}') + 1
+            if json_start >= 0 and json_end > json_start:
+                json_only = cleaned[json_start:json_end]
+                return json.loads(json_only)
+        except json.JSONDecodeError as e:
+            parse_errors.append(f"JSON extraction: {e}")
+        
+        # Strategy 3: Fix common JSON issues
+        try:
+            fixed_json = self._fix_common_json_issues(cleaned)
+            return json.loads(fixed_json)
+        except json.JSONDecodeError as e:
+            parse_errors.append(f"JSON fixing: {e}")
+        
+        # All strategies failed
+        logger.error(f"Failed to parse JSON response with all strategies:")
+        for i, error in enumerate(parse_errors, 1):
+            logger.error(f"  Strategy {i}: {error}")
+        logger.error(f"Original response text: {response_text[:500]}...")
+        logger.error(f"Cleaned response text: {cleaned[:500]}...")
+        
+        raise ValueError(f"Invalid JSON response from Gemini. Tried {len(parse_errors)} parsing strategies. Last error: {parse_errors[-1]}")
+    
+    def _clean_json_response(self, response_text: str) -> str:
+        """Clean response text to extract JSON content."""
+        cleaned = response_text.strip()
+        
+        # Remove markdown code blocks
+        if cleaned.startswith("```json"):
+            cleaned = cleaned[7:]
+        elif cleaned.startswith("```"):
+            cleaned = cleaned[3:]
+        
+        if cleaned.endswith("```"):
+            cleaned = cleaned[:-3]
+        
+        # Remove common prefixes/suffixes
+        prefixes_to_remove = [
+            "Here's the ontology:",
+            "Here is the ontology:",
+            "The ontology is:",
+            "JSON:",
+            "Response:",
+        ]
+        
+        for prefix in prefixes_to_remove:
+            if cleaned.lower().startswith(prefix.lower()):
+                cleaned = cleaned[len(prefix):].strip()
+        
+        # Clean up whitespace and control characters
+        cleaned = cleaned.strip()
+        
+        return cleaned
+    
+    def _fix_common_json_issues(self, json_text: str) -> str:
+        """Fix common JSON formatting issues."""
+        fixed = json_text
+        
+        # Fix trailing commas before closing brackets/braces
+        fixed = re.sub(r',(\s*[}\]])', r'\1', fixed)
+        
+        # Fix single quotes (replace with double quotes, but be careful with apostrophes)
+        # This is a basic approach and might need refinement
+        fixed = re.sub(r"'([^']*)'(\s*:)", r'"\1"\2', fixed)  # Keys
+        fixed = re.sub(r":\s*'([^']*)'", r': "\1"', fixed)    # Values
+        
+        # Fix common escape issues
+        fixed = fixed.replace('\n', '\\n')
+        fixed = fixed.replace('\t', '\\t')
+        fixed = fixed.replace('\r', '\\r')
+        
+        return fixed
     
     def _build_ontology(self, data: Dict[str, Any], conversation: str) -> DomainOntology:
         """Build DomainOntology from parsed data."""
@@ -258,7 +390,9 @@ Respond ONLY with the JSON."""
                 safety_settings=self.safety_settings
             )
             
-            return self._parse_response(response.text)
+            # Validate response before parsing
+            response_text = self._extract_response_text(response)
+            return self._parse_response(response_text)
             
         except Exception as e:
             logger.error(f"Error validating ontology: {e}")
@@ -311,7 +445,9 @@ Respond ONLY with the JSON."""
                 safety_settings=self.safety_settings
             )
             
-            refined_data = self._parse_response(response.text)
+            # Validate response before parsing
+            response_text = self._extract_response_text(response)
+            refined_data = self._parse_response(response_text)
             return self._build_ontology(refined_data, 
                                       ontology.created_by_conversation + f"\n\nRefinement: {refinement_request}")
             
