@@ -33,6 +33,8 @@ class Mention:
     end_pos: int
     source_ref: str  # Reference to source document/chunk
     confidence: float = 0.8
+    entity_type: Optional[str] = None
+    context: str = ""
     created_at: datetime = field(default_factory=datetime.now)
 
 
@@ -46,6 +48,19 @@ class Entity:
     confidence: float = 0.8
     created_at: datetime = field(default_factory=datetime.now)
     metadata: Dict[str, Any] = field(default_factory=dict)
+    attributes: Dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class Relationship:
+    """A relationship between two entities."""
+    id: str
+    source_id: str  # Source entity ID
+    target_id: str  # Target entity ID
+    relationship_type: str
+    confidence: float = 0.8
+    created_at: datetime = field(default_factory=datetime.now)
+    attributes: Dict[str, Any] = field(default_factory=dict)
 
 
 class IdentityService:

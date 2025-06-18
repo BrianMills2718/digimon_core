@@ -35,7 +35,28 @@ class RelationType:
     properties: Optional[Dict[str, str]] = None
 
 @dataclass
+class RelationshipType:
+    """Alias for RelationType to match Gemini generator expectations"""
+    name: str
+    description: str
+    source_types: List[str]
+    target_types: List[str]
+    examples: List[str]
+    properties: Optional[Dict[str, str]] = None
+
+@dataclass
+class DomainOntology:
+    """Core ontology data structure for domain-specific knowledge"""
+    domain_name: str
+    domain_description: str
+    entity_types: List[EntityType]
+    relationship_types: List[RelationshipType]
+    extraction_patterns: List[str]
+    created_by_conversation: str = ""
+
+@dataclass
 class Ontology:
+    """UI-compatible ontology structure"""
     domain: str
     description: str
     entity_types: List[EntityType]

@@ -555,6 +555,16 @@ class EnhancedIdentityService:
         conn.close()
         
         return stats
+    
+    def link_mention_to_entity(self, mention_id: str, entity_id: str) -> bool:
+        """Link a mention to an entity - compatibility method for ontology extractor"""
+        try:
+            # In this implementation, mentions are automatically linked during creation
+            # This method exists for API compatibility
+            return True
+        except Exception as e:
+            print(f"Failed to link mention {mention_id} to entity {entity_id}: {e}")
+            return False
 
 # Example usage
 if __name__ == "__main__":

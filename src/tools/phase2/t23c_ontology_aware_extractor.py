@@ -6,6 +6,7 @@ Replaces generic spaCy NER with domain-specific extraction using LLMs and ontolo
 import os
 import json
 import logging
+import uuid
 from typing import List, Dict, Optional, Any, Tuple
 from dataclasses import dataclass, asdict
 import numpy as np
@@ -15,7 +16,7 @@ import google.generativeai as genai
 from google.generativeai.types import HarmCategory, HarmBlockThreshold
 import openai
 
-from src.core.base_types import Entity, Relationship, Mention
+from src.core.identity_service import Entity, Relationship, Mention
 from src.core.enhanced_identity_service import EnhancedIdentityService
 from src.ontology_generator import DomainOntology, EntityType, RelationshipType
 
@@ -274,13 +275,14 @@ Respond ONLY with the JSON."""
         )
         
         return Mention(
-            id=mention_data["mention_id"],
+            id=mention_data.get("mention_id", f"men_{uuid.uuid4().hex[:8]}"),
             surface_form=surface_text,
+            normalized_form=surface_text.strip(),
             start_pos=0,
             end_pos=len(surface_text),
             source_ref=source_ref,
-            entity_type=entity_type,
             confidence=confidence,
+            entity_type=entity_type,
             context=context
         )
     

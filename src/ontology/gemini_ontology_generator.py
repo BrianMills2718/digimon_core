@@ -97,18 +97,18 @@ class GeminiOntologyGenerator:
         constraint_text = ""
         if constraints:
             if "max_entities" in constraints:
-                constraint_text += f"\n- Maximum entity types: {constraints['max_entities']}"
+                constraint_text += f"{chr(10)}- Maximum entity types: {constraints['max_entities']}"
             if "max_relations" in constraints:
-                constraint_text += f"\n- Maximum relationship types: {constraints['max_relations']}"
+                constraint_text += f"{chr(10)}- Maximum relationship types: {constraints['max_relations']}"
             if "complexity" in constraints:
-                constraint_text += f"\n- Complexity level: {constraints['complexity']}"
+                constraint_text += f"{chr(10)}- Complexity level: {constraints['complexity']}"
         
         prompt = f"""Based on the following conversation about a domain, generate a formal ontology specification.
 
 CONVERSATION:
 {conversation}
 
-CONSTRAINTS:{constraint_text if constraint_text else "\nNone"}
+CONSTRAINTS:{constraint_text if constraint_text else chr(10) + "None"}
 
 Generate a domain ontology in the following JSON format:
 {{
