@@ -17,6 +17,7 @@
 
 ### **Development Process**
 - [`SESSION_HANDOFF.md`](../../SESSION_HANDOFF.md) - Critical rules to prevent parallel implementations
+- [`DIRECTORY_EXAMINATION_REPORT.md`](DIRECTORY_EXAMINATION_REPORT.md) - Pre-fix examination findings (P1-P5)
 
 ## 📂 **Project Organization**
 
