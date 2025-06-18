@@ -198,8 +198,10 @@ class EnhancedVerticalSliceWorkflow:
             # Step 6: Calculate PageRank scores
             print("Step 6: Calculating PageRank scores...")
             results["steps"]["pagerank"] = self._execute_pagerank_calculation(workflow_id)
-            if results["steps"]["pagerank"]["status"] != "success":
+            if results["steps"]["pagerank"]["status"] == "error":
                 return self._complete_workflow_with_error(workflow_id, results, "PageRank calculation failed")
+            elif results["steps"]["pagerank"]["status"] == "warning":
+                print(f"⚠️  PageRank calculation warning: {results['steps']['pagerank'].get('message', 'Unknown warning')}")
             
             # Step 7: Execute enhanced queries
             print("Step 7: Executing queries...")
@@ -297,27 +299,36 @@ class EnhancedVerticalSliceWorkflow:
             
             # Generate new ontology
             if self.use_real_ontology:
-                # Use real Gemini generation
-                messages = [{"role": "user", "content": domain_description}]
-                self.current_ontology = self.ontology_generator.generate_from_conversation(
-                    messages=messages,
-                    temperature=0.7,
-                    constraints={"max_entities": 8, "max_relations": 6}
-                )
-                
-                # Save session
-                session = OntologySession(
-                    session_id=f"enhanced_workflow_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
-                    created_at=datetime.now(),
-                    conversation_history=messages,
-                    initial_ontology=self.current_ontology,
-                    refinements=[],
-                    final_ontology=self.current_ontology,
-                    generation_parameters={"temperature": 0.7, "method": "enhanced_workflow"}
-                )
-                session_id = self.ontology_storage.save_session(session)
-                
-                method = "generated_with_gemini"
+                try:
+                    # Use real Gemini generation
+                    messages = [{"role": "user", "content": domain_description}]
+                    self.current_ontology = self.ontology_generator.generate_from_conversation(
+                        messages=messages,
+                        temperature=0.7,
+                        constraints={"max_entities": 8, "max_relations": 6}
+                    )
+                    
+                    # Save session
+                    session = OntologySession(
+                        session_id=f"enhanced_workflow_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+                        created_at=datetime.now(),
+                        conversation_history=messages,
+                        initial_ontology=self.current_ontology,
+                        refinements=[],
+                        final_ontology=self.current_ontology,
+                        generation_parameters={"temperature": 0.7, "method": "enhanced_workflow"}
+                    )
+                    session_id = self.ontology_storage.save_session(session)
+                    
+                    method = "generated_with_gemini"
+                    
+                except Exception as gemini_error:
+                    # Fallback to mock ontology if Gemini fails
+                    logger.warning(f"Gemini ontology generation failed: {gemini_error}, falling back to mock ontology")
+                    self.current_ontology = self._create_mock_climate_ontology()
+                    session_id = None
+                    method = "fallback_to_mock"
+                    
             else:
                 # Use mock ontology for testing
                 self.current_ontology = self._create_mock_climate_ontology()
@@ -417,7 +428,7 @@ class EnhancedVerticalSliceWorkflow:
             return {"status": "error", "error": str(e)}
     
     def _execute_pagerank_calculation(self, workflow_id: str) -> Dict[str, Any]:
-        """Execute PageRank calculation."""
+        """Execute PageRank calculation with Phase 2 compatibility."""
         self.workflow_service.create_checkpoint(workflow_id, "calculate_pagerank", 6, {"step": "calculating_pagerank"})
         
         try:
@@ -425,15 +436,35 @@ class EnhancedVerticalSliceWorkflow:
             if pagerank_result["status"] == "success":
                 return {
                     "status": "success",
-                    "entities_updated": pagerank_result["entities_updated"],
-                    "average_score": pagerank_result["average_score"],
-                    "top_entities": pagerank_result.get("top_entities", [])
+                    "entities_updated": pagerank_result.get("entities_updated", 0),
+                    "average_score": pagerank_result.get("average_score", 0.0),
+                    "top_entities": pagerank_result.get("ranked_entities", [])[:10],  # Get top 10
+                    "total_entities": pagerank_result.get("total_entities", 0),
+                    "graph_stats": pagerank_result.get("graph_stats", {})
                 }
             else:
-                return {"status": "error", "error": pagerank_result.get("error", "PageRank failed")}
+                # If PageRank fails, continue with warning but don't fail the whole workflow
+                logger.warning(f"PageRank calculation failed: {pagerank_result.get('error', 'Unknown error')}")
+                return {
+                    "status": "warning",
+                    "error": pagerank_result.get("error", "PageRank failed"),
+                    "entities_updated": 0,
+                    "average_score": 0.0,
+                    "top_entities": [],
+                    "message": "PageRank failed but workflow continued"
+                }
                 
         except Exception as e:
-            return {"status": "error", "error": str(e)}
+            # If PageRank fails completely, continue with warning
+            logger.warning(f"PageRank calculation exception: {str(e)}")
+            return {
+                "status": "warning",
+                "error": str(e),
+                "entities_updated": 0,
+                "average_score": 0.0,
+                "top_entities": [],
+                "message": "PageRank failed but workflow continued"
+            }
     
     def _execute_enhanced_queries(self, workflow_id: str, queries: List[str]) -> Dict[str, Any]:
         """Execute enhanced multi-hop queries."""

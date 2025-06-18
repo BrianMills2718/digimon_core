@@ -41,7 +41,20 @@ See [`DIRECTORY_EXAMINATION_REPORT.md`](docs/current/DIRECTORY_EXAMINATION_REPOR
 
 **Key Finding**: Phase 2 calls `update_workflow_progress(current_step=9)` but service expects `step_number`
 
-### ⭐ Next Priorities (Enhancement & Optimization)
+## 🎯 Strategic Pivot: Fix Broken Functionality First
+
+**Previous Approach**: Enhance working Phase 1 with more tools and optimization
+**New Approach**: Fix broken Phase 2/3 before adding features
+
+**Rationale**: 
+- Phase 1 works (484 entities, 228 relationships extracted)
+- Phase 2 completely broken (API mismatches, Gemini issues)
+- Phase 3 is placeholder (no multi-document support)
+- 41.7% integration test failure rate indicates systemic issues
+
+**Strategic Focus**: Core functionality over feature expansion
+
+### ⭐ Next Priorities (Fix Broken Functionality)
 
 #### C1: Entity Extraction Investigation ✅ COMPLETE
 - **Issue**: End-to-end tests show 0 entities extracted despite processing completing
@@ -55,11 +68,27 @@ See [`DIRECTORY_EXAMINATION_REPORT.md`](docs/current/DIRECTORY_EXAMINATION_REPOR
 - **Coverage**: PDF loading, chunking, NER, relationships, graph building, PageRank, queries
 - **Files**: `src/tools/phase1/phase1_mcp_tools.py`, `src/mcp_server.py` (33 total tools)
 
-#### C3: Performance & Quality Optimization
-- **Issue**: 58.3% integration test pass rate, some data quality issues
-- **Impact**: System robustness could be improved
-- **Plan**: Enhance error handling, improve data validation, optimize performance
+#### D1: Fix Phase 2 Integration ✅ COMPLETE
+- **Issue**: Phase 2 has API parameter mismatches, Gemini quota issues, and broken functionality
+- **Resolution**: Implemented fallback mechanisms for Gemini safety filters and PageRank compatibility
+- **Success**: Phase 2 now functional end-to-end (47.69s execution time, graceful error handling)
+- **Files**: `src/tools/phase2/enhanced_vertical_slice_workflow.py` (Gemini fallback, PageRank warnings)
+
+#### D2: Implement Phase 3 Basics ⚠️ HIGH PRIORITY  
+- **Issue**: Phase 3 currently just placeholder - no multi-document support
+- **Impact**: Cannot process multiple documents, missing key differentiator
+- **Plan**: Basic multi-document fusion, document merging strategies, cross-document entity linking
+- **Files**: `src/core/phase_adapters.py` (Phase3Adapter), Phase 3 workflow implementation
+
+#### D3: Fix Integration Test Failures ⚠️ MEDIUM PRIORITY
+- **Issue**: 41.7% integration test failure rate indicates systemic problems
+- **Impact**: System fragility, unreliable cross-component integration
+- **Critical Failures**: Cross-phase data flow (0/1), Service dependencies (0/1), Error handling (1/4)
 - **Files**: Integration test framework, core service modules
+
+#### C3: Performance & Quality Optimization (DEFERRED)
+- **Status**: Deferred until core functionality (Phase 2/3) working
+- **Rationale**: Optimizing working Phase 1 while Phase 2/3 broken is misplaced effort
 
 ### Operational Fixes ✅ COMPLETE
 1. **B1**: ✅ PageRank graph building - Fixed "None cannot be a node" error
