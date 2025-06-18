@@ -9,6 +9,22 @@ This file guides Claude Code through the Super-Digimon implementation. It travel
 **Databases**: Docker containers ready, connections not tested  
 **Next Priority**: Implement T107 Identity Service with full adversarial testing
 
+## Milestones
+
+### Milestone 1: Core Services Complete (Phase 0)
+- [ ] T107 Identity Service - Entity resolution with embeddings
+- [ ] T110 Provenance Service - Operation tracking  
+- [ ] T111 Quality Service - Confidence propagation
+- [ ] T121 Workflow State - Checkpoint/restore
+- [ ] All adversarial tests passing
+- [ ] Integration tests between core services
+
+### Milestone 2: Vertical Slice Working (Phase 1)
+- [ ] PDF → PageRank → Answer pipeline functional
+- [ ] All 8 tools integrated and tested
+- [ ] End-to-end test completing in <5 minutes
+- [ ] Quality metrics tracked throughout pipeline
+
 ## Implementation Phases
 
 ### Phase 0: Core Services (Current Priority)
@@ -77,6 +93,83 @@ Only start after Phase 0 is rock-solid with all adversarial tests passing.
 - Load PDF → Extract entities → Build graph → Run PageRank → Query for answers
 - Must complete in <5 minutes for 50-page PDF
 
+## Development Standards
+
+### Code Quality Requirements
+- **Linting**: All code must pass `flake8 --max-line-length=100`
+- **Type Checking**: All code must pass `mypy --strict`
+- **Testing**: All tests must pass with `pytest -v`
+- **Entry Point**: `main.py` must run successfully
+- **Docstrings**: All public functions need Google-style docstrings
+
+### Self-Healing Patterns
+When implementing, ALWAYS follow these patterns to prevent common failures:
+
+1. **Use pathlib for all file operations**
+   ```python
+   # Good: Portable and robust
+   from pathlib import Path
+   config_path = Path(__file__).parent / "config.json"
+   
+   # Bad: Breaks on different systems
+   config_path = "/home/user/project/config.json"
+   ```
+
+2. **Handle missing dependencies gracefully**
+   ```python
+   # Good: Fallback behavior
+   try:
+       import optional_library
+       HAS_OPTIONAL = True
+   except ImportError:
+       HAS_OPTIONAL = False
+       
+   # Bad: Crashes on import
+   import optional_library  # Fails if not installed
+   ```
+
+3. **Validate inputs with clear errors**
+   ```python
+   # Good: Helpful error message
+   if not isinstance(confidence, float) or not 0 <= confidence <= 1:
+       raise ValueError(f"Confidence must be float between 0 and 1, got {confidence}")
+       
+   # Bad: Generic error
+   assert 0 <= confidence <= 1
+   ```
+
+4. **Use connection pools for databases**
+   ```python
+   # Good: Reuse connections
+   from neo4j import GraphDatabase
+   _driver = None
+   
+   def get_driver():
+       global _driver
+       if _driver is None:
+           _driver = GraphDatabase.driver(uri, auth=(user, password))
+       return _driver
+       
+   # Bad: New connection every time
+   def query():
+       driver = GraphDatabase.driver(...)  # Expensive!
+   ```
+
+5. **Return partial results on failure**
+   ```python
+   # Good: Return what succeeded
+   results = {"successful": [], "failed": []}
+   for item in items:
+       try:
+           results["successful"].append(process(item))
+       except Exception as e:
+           results["failed"].append({"item": item, "error": str(e)})
+   return results
+   
+   # Bad: All or nothing
+   return [process(item) for item in items]  # One failure loses everything
+   ```
+
 ## Critical Implementation Rules
 
 ### 1. Database Setup First
@@ -118,6 +211,45 @@ Always use format: `{storage}://{type}/{id}`
 - `neo4j://entity/ent_123`
 - `sqlite://mention/men_456`  
 - `qdrant://embedding/emb_789`
+
+## Environment Variables
+
+Required in `.env` file:
+```bash
+# Database Connections
+NEO4J_URI=bolt://localhost:7687
+NEO4J_USER=neo4j
+NEO4J_PASSWORD=password
+SQLITE_DB_PATH=./data/metadata.db
+QDRANT_URL=http://localhost:6333
+
+# API Keys (already configured)
+OPENAI_API_KEY=sk-...
+GOOGLE_API_KEY=...
+
+# Optional
+LOG_LEVEL=INFO
+CACHE_DIR=./data/cache
+```
+
+## Project Structure (Key Files for Current Phase)
+
+```
+Digimons/
+├── main.py                    # MCP server entry point
+├── .env                       # Environment variables (API keys configured)
+├── docker-compose.yml         # Database services
+├── src/
+│   ├── core/                  # Core services (implement here)
+│   │   ├── identity_service.py         # T107 - Create this
+│   │   ├── enhanced_identity_service.py # Reference implementation
+│   │   └── __init__.py
+│   └── mcp_server.py          # MCP server (update with T107)
+└── tests/
+    └── unit/
+        ├── test_identity_service.py           # Create this
+        └── test_identity_service_adversarial.py # Create this
+```
 
 ## Key Resources
 
