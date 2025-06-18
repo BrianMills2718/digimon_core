@@ -1,6 +1,8 @@
-# Super-Digimon
+# Super-Digimon GraphRAG System
 
-A universal analytical platform that intelligently processes diverse data sources through format-agnostic analysis. Using 121 specialized tools and Claude Code's analytical intelligence, it dynamically selects optimal data structures (graphs, tables, vectors) and seamlessly transforms between formats to enable sophisticated multi-step analytical workflows.
+A knowledge graph extraction system that processes documents (PDFs, text) into structured graph databases. Currently implements basic GraphRAG pipeline with Neo4j storage.
+
+**🚨 HONEST STATUS**: Early development system with **Phase 1 working, Phase 2 broken, documentation previously inflated**.
 
 ## Quick Start
 
@@ -19,156 +21,104 @@ pip install -r requirements.txt
 python -m scripts.test_connection
 ```
 
-## Architecture Overview
+## What Actually Works (Verified)
 
-**System**: Universal analytical platform with intelligent format adaptation and orchestration
-
+### ✅ Phase 1: Basic GraphRAG Pipeline
 ```
-Claude Code (Analytical Intelligence)
-           ↓
-    Natural Language → Optimal Analysis Strategy
-           ↓
-    MCP Protocol Communication  
-           ↓
-121 Python Tools (8 Phases) + Analytical Libraries
-           ↓
-Neo4j (Graphs) + SQLite (Metadata) + Qdrant (Vectors)
+PDF Document → Text Extraction → spaCy NER → Neo4j Graph → PageRank
 ```
 
-**Core Innovation**: Claude Code dynamically selects data formats and tool sequences based on analytical requirements, enabling seamless transitions between graph analysis, statistical processing, and vector operations within a single workflow.
+**Verified Capabilities**:
+- **PDF Processing**: Extract text from PDFs (tested with 293KB files)
+- **Entity Extraction**: spaCy NER finds PERSON, ORG, GPE, DATE entities (tested: 484 entities from wiki1.pdf)
+- **Relationship Extraction**: Pattern-based extraction (tested: 228 relationships)
+- **Graph Storage**: Neo4j database with entity/relationship storage
+- **PageRank Calculation**: Network analysis (fails but doesn't break extraction)
+- **Web UI**: Document upload, processing, visualization at http://localhost:8501
 
-### Tool Phases (121 Tools Total)
-- **Phase 1**: Ingestion (T01-T12) - Multi-format data loading, API connectors  
-- **Phase 2**: Processing (T13-T30) - NLP, entity extraction, format detection
-- **Phase 3**: Construction (T31-T48) - Dynamic structure building (graphs, tables, embeddings)
-- **Phase 4**: Retrieval (T49-T67) - Cross-format querying and data access
-- **Phase 5**: Analysis (T68-T75) - Format-specific algorithms (graph, statistical, vector)
-- **Phase 6**: Storage (T76-T81) - Multi-database management, backup, caching
-- **Phase 7**: Interface (T82-T106) - Natural language processing, monitoring, export
-- **Phase 8**: Core Services (T107-T121) - Identity, versioning, quality tracking, workflow state
+**Performance**: ~3.7s processing time for 293KB PDF
 
-**Key Capability**: Tools work together to enable workflows like: PDF → Text → Entities → Graph → Community Detection → Table → Statistical Analysis → Visualization
+### ❌ Phase 2: Enhanced Pipeline (BROKEN)
+**Status**: Integration failure due to API compatibility issues  
+**Error**: `WorkflowStateService.update_workflow_progress() got an unexpected keyword argument 'current_step'`  
+**Root Cause**: Phase 2 developed against different service API version
 
-## What Makes This Universal?
+### 🔧 Phase 3: Standalone Tools (NOT INTEGRATED)
+**T301 Multi-Document Fusion Tools**: Work independently but not integrated into main pipeline
 
-Unlike traditional systems that force data into a single format (e.g., always graphs), Super-Digimon:
+## Architecture (Current Reality)
 
-1. **Format-Agnostic Ingestion**: Accepts PDFs, CSVs, APIs, databases, and automatically adapts processing
-2. **Dynamic Structure Selection**: Claude Code chooses graphs for relationship analysis, tables for statistics, vectors for similarity
-3. **Seamless Format Conversion**: Tools like T115 (Graph→Table) and T116 (Table→Graph) enable mid-workflow format changes
-4. **Integrated Analytics**: Combines graph algorithms, statistical analysis, machine learning, and visualization in single workflows
-5. **Intelligent Orchestration**: Claude Code reasons about optimal tool sequences and data transformations
-
-**Example Multi-Format Workflow:**
 ```
-Research Papers (PDF) → Text → Entities → Citation Graph → PageRank → 
-Top Authors (Table) → Statistical Analysis → Geographic Clustering → 
-Collaboration Network (Graph) → Community Detection → Summary Report
+Web UI (Streamlit) → Phase 1 Workflow → Neo4j Database
+                      ↓
+               spaCy NER + Pattern Matching
+                      ↓
+              484 entities, 228 relationships
 ```
 
-## Project Structure
+**Actual Tool Count**: ~23 Python files (vs previously claimed 121)  
+**Working Phases**: 1 out of 3  
+**Database Integration**: Neo4j working, SQLite working, Qdrant available
+
+## Test the Current System
+
+### Verify What Works
+```bash
+# Test Phase 1 processing
+python test_phase1_direct.py
+
+# Test UI functionality  
+python test_ui_real.py
+
+# Launch UI for document testing
+python start_graphrag_ui.py
+# Then visit http://localhost:8501
+```
+
+### Verify What's Broken
+```bash
+# Try Phase 2 (will show API compatibility error)
+# Select "Phase 2: Enhanced" in UI and upload document
+# Expected error: "WorkflowStateService.update_workflow_progress() got an unexpected keyword argument 'current_step'"
+```
+
+## Current Project Structure (Reality)
 
 ```
 Digimons/
-├── README.md                    # This file
-├── CLAUDE.md                    # Claude Code guidance
-├── IMPLEMENTATION_ROADMAP.md    # Development roadmap
-├── docs/                        # Documentation
-│   ├── core/                   # Essential technical docs
-│   │   ├── ARCHITECTURE.md     # System design
-│   │   ├── SPECIFICATIONS.md   # All 121 tools
-│   │   ├── COMPATIBILITY_MATRIX.md # Tool integration matrix
-│   │   ├── DATABASE_INTEGRATION.md # Database integration planning
-│   │   ├── IMPLEMENTATION_REQUIREMENTS.md # Complete implementation checklist
-│   │   ├── MCP_SETUP_GUIDE.md  # MCP server setup reference
-│   │   ├── DEVELOPMENT_GUIDE.md # Setup guide
-│   │   └── DESIGN_PATTERNS.md  # Best practices
-│   ├── project/                # Project management
-│   └── archive/                # Historical docs
-└── test_data/                  # Sample datasets
+├── README.md                    # This file (now honest)
+├── CLAUDE.md                    # Updated with integration failure analysis  
+├── STATUS.md                    # What actually works vs broken
+├── ARCHITECTURE.md              # Integration lessons learned
+├── ROADMAP_v2.md                # Architecture-first development plan
+├── src/tools/phase1/            # Working Phase 1 tools (~12 files)
+├── src/tools/phase2/            # Broken Phase 2 integration (~4 files)  
+├── src/tools/phase3/            # Standalone T301 tools (~7 files)
+├── ui/graphrag_ui.py            # Web interface (working)
+├── examples/pdfs/               # Test documents
+├── docs/archive/                # Previous documentation attempts
+└── test_*.py                    # Various test scripts
 ```
 
-## Key Documents
+## Key Documents (Current)
 
-### **For Developers**
-- [`CLAUDE.md`](CLAUDE.md) - Guidance for Claude Code development
-- [`IMPLEMENTATION_ROADMAP.md`](IMPLEMENTATION_ROADMAP.md) - Development roadmap and phases
-- [`docs/core/ARCHITECTURE.md`](docs/core/ARCHITECTURE.md) - System architecture and design
-- [`docs/core/DEVELOPMENT_GUIDE.md`](docs/core/DEVELOPMENT_GUIDE.md) - Setup and development guide
+### **For Understanding Current Status**
+- [`STATUS.md`](STATUS.md) - Honest assessment of what works vs what's broken
+- [`CLAUDE.md`](CLAUDE.md) - Integration failure analysis + new documentation standards
+- [`ARCHITECTURE.md`](ARCHITECTURE.md) - Integration lessons and design patterns
 
-### **Specifications**
-- [`docs/core/SPECIFICATIONS.md`](docs/core/SPECIFICATIONS.md) - Complete 121 tool specifications
-- [`docs/core/COMPATIBILITY_MATRIX.md`](docs/core/COMPATIBILITY_MATRIX.md) - Tool integration and compatibility matrix
-- [`docs/core/DATABASE_INTEGRATION.md`](docs/core/DATABASE_INTEGRATION.md) - Comprehensive database integration planning
-- [`docs/core/IMPLEMENTATION_REQUIREMENTS.md`](docs/core/IMPLEMENTATION_REQUIREMENTS.md) - Complete implementation checklist
-- [`docs/core/MCP_SETUP_GUIDE.md`](docs/core/MCP_SETUP_GUIDE.md) - MCP server setup reference
-- [`docs/core/DESIGN_PATTERNS.md`](docs/core/DESIGN_PATTERNS.md) - Implementation patterns and best practices
+### **For Moving Forward**  
+- [`ROADMAP_v2.md`](ROADMAP_v2.md) - Architecture-first development strategy
+- [`UI_README.md`](UI_README.md) - How to use the working ontology generation UI
 
-## Current Status
+## Lessons Learned
 
-**Phase**: Phase 2 - LLM-Driven Ontology System  
-**Implementation**: Phase 0 + Phase 1 complete, starting Phase 2  
-**Documentation**: Complete specifications and architecture  
-**Next Step**: Build Streamlit ontology chat interface with Gemini 2.5 Flash  
-**Scope**: PhD thesis prototype (functionally complete, not production-ready)
+**Documentation Dysfunction**: We repeatedly created "honest" documentation that became dishonest by claiming aspirational features as implemented.
 
-## Development Approach
+**Integration Failure**: Phase 1→2 switching broke due to API incompatibility that wasn't caught by testing.
 
-### Development Phases Completed
-1. ✅ **Phase 0**: Core services (T107, T110, T111, T121) - All working with adversarial testing
-2. ✅ **Phase 1**: Vertical slice (PDF → PageRank → Answer) - Functional but with generic spaCy entities
-3. 🔄 **Phase 2**: LLM-driven ontology system - Replacing spaCy with domain-specific extraction
+**Path Forward**: Fix integration architecture and documentation verification before adding new features.
 
-### Current Focus: Real GraphRAG Capabilities
-**Problem**: spaCy produces generic entities (PERSON, ORG) that make GraphRAG testing meaningless
-**Solution**: Conversational ontology generation → domain-specific entities → real GraphRAG evaluation
+---
 
-### Risk Mitigation
-- **Specification Drift**: Simple JSON schema validation per tool
-- **Performance Bottlenecks**: Monitor core services, optimize hot spots
-- **Scope Management**: PhD-appropriate mitigations, defer complex infrastructure
-
-## Technology Stack
-
-- **Language**: Python 3.11+
-- **Protocol**: Model Context Protocol (MCP) - Single server
-- **Databases**: Neo4j (graphs) + SQLite (metadata) + Qdrant (vectors)
-- **Development**: Hybrid workflow (local code + Docker services)
-- **Runtime**: Claude Code - The analytical intelligence that provides format-agnostic reasoning and workflow orchestration
-
-## Contributing
-
-1. **Understanding**: Read [`CLAUDE.md`](CLAUDE.md) for development context
-2. **Architecture**: Review [`ARCHITECTURE.md`](ARCHITECTURE.md) for system design
-3. **Implementation**: Follow [`IMPLEMENTATION_ROADMAP.md`](IMPLEMENTATION_ROADMAP.md) for development phases
-4. **Specifications**: Check [`docs/core/SPECIFICATIONS.md`](docs/core/SPECIFICATIONS.md) for tool details
-
-**Important**: Update documentation when implementation differs from specification. Include doc updates in pull requests.
-
-## Testing Strategy
-
-- **Unit Tests**: Each tool tested with real test databases
-- **Integration Tests**: Tool chain workflows validated end-to-end
-- **Quality Tests**: Confidence propagation and partial results verified
-- **Test Data**: Sample datasets in `test_data/` for reproducible testing
-
-## Configuration Management
-
-- **Environment Variables**: Use `.env` file (see `.env.example`)
-- **Database Config**: Neo4j, SQLite, and FAISS connection settings
-- **API Keys**: Store in environment variables, never commit
-- **Docker Config**: All services configured via `docker-compose.yml`
-
-## Deployment
-
-- **Prototype Deployment**: Docker Compose for local demonstration
-- **Sharing**: Export Docker images and data for reproducibility
-- **Documentation**: Jupyter notebooks for thesis demonstrations
-- **Not Included**: Production deployment, scaling, security hardening
-
-## References
-
-- **JayLZhou GraphRAG**: [Original research](https://github.com/JayLZhou/GraphRAG) - Inspired 19 core graph operators
-- **Model Context Protocol**: [MCP Documentation](https://modelcontextprotocol.io/) - Tool integration framework
-- **Claude Code**: [Development environment](https://claude.ai/code) - Analytical intelligence platform
-- **Universal Data Processing**: Extends beyond GraphRAG to format-agnostic analytical workflows
+*This README was completely rewritten on 2025-06-18 to reflect actual system capabilities after discovering systematic documentation inflation. Previous versions claimed "121 tools across 8 phases" but actual implementation was ~23 files with 1 working phase.*

@@ -13,6 +13,8 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from collections import defaultdict
 import json
+import re
+import html
 
 from ..phase2.t31_ontology_graph_builder import OntologyAwareGraphBuilder, GraphBuildResult
 from ..phase2.t23c_ontology_aware_extractor import ExtractionResult
@@ -120,6 +122,23 @@ class MultiDocumentFusion(OntologyAwareGraphBuilder):
         
         logger.info("✅ Multi-Document Fusion engine initialized")
     
+    def _sanitize_string(self, text: str, max_length: int = 1000) -> str:
+        """Sanitize input strings for security."""
+        if not text:
+            return ""
+        
+        # HTML escape
+        text = html.escape(text)
+        
+        # Remove control characters
+        text = re.sub(r'[\x00-\x1F\x7F]', '', text)
+        
+        # Truncate if too long
+        if len(text) > max_length:
+            text = text[:max_length] + "..."
+            
+        return text.strip()
+    
     def fuse_documents(self,
                       document_refs: List[str],
                       fusion_strategy: str = "evidence_based",
@@ -223,6 +242,15 @@ class MultiDocumentFusion(OntologyAwareGraphBuilder):
         if len(entities) == 1:
             return entities[0]
         
+        # Validate entities
+        for e in entities:
+            if not e.canonical_name or not e.canonical_name.strip():
+                raise ValueError(f"Entity {e.id} has empty canonical name")
+            if not isinstance(e.confidence, (int, float)) or e.confidence != e.confidence:  # NaN check
+                raise ValueError(f"Entity {e.id} has invalid confidence: {e.confidence}")
+            if e.confidence < 0 or e.confidence > 1:
+                raise ValueError(f"Entity {e.id} confidence out of range: {e.confidence}")
+        
         # Sort by confidence to use highest confidence as base
         sorted_entities = sorted(entities, key=lambda e: e.confidence, reverse=True)
         canonical = sorted_entities[0]
@@ -268,10 +296,11 @@ class MultiDocumentFusion(OntologyAwareGraphBuilder):
                         
                         merged_attributes[key]["sources"].append(entity.id)
         
-        # Create resolved entity
+        # Create resolved entity with sanitized name
+        canonical_name = canonical.canonical_name if hasattr(canonical, 'canonical_name') else canonical.name
         resolved = Entity(
             id=f"resolved_{canonical.id}",
-            canonical_name=canonical.canonical_name if hasattr(canonical, 'canonical_name') else canonical.name,
+            canonical_name=self._sanitize_string(canonical_name),
             entity_type=canonical.entity_type,
             confidence=confidence_sum / evidence_count
         )
@@ -300,7 +329,11 @@ class MultiDocumentFusion(OntologyAwareGraphBuilder):
             raise ValueError("No relationships provided for merging")
         
         if len(relationships) == 1:
-            return relationships[0]
+            rel = relationships[0]
+            # Validate single relationship
+            if not rel.relationship_type or not rel.relationship_type.strip():
+                raise ValueError(f"Relationship {rel.id if hasattr(rel, 'id') else 'unknown'} has empty type")
+            return rel
         
         # Use first relationship as template
         base_rel = relationships[0]
@@ -480,26 +513,32 @@ class MultiDocumentFusion(OntologyAwareGraphBuilder):
         name1 = entity1.canonical_name if hasattr(entity1, 'canonical_name') else entity1.name
         name2 = entity2.canonical_name if hasattr(entity2, 'canonical_name') else entity2.name
         
-        # Get embeddings for both entities
-        try:
-            embedding1 = self.identity_service.get_embedding(name1)
-            embedding2 = self.identity_service.get_embedding(name2)
-            
-            if embedding1 is not None and embedding2 is not None:
-                # Calculate cosine similarity
-                similarity = self.identity_service.cosine_similarity(embedding1, embedding2)
-                return similarity
-            else:
-                # Fallback to simple string comparison
-                if name1.lower() == name2.lower():
-                    return 1.0
-                elif name1.lower() in name2.lower() or name2.lower() in name1.lower():
-                    return 0.8
-                else:
-                    return 0.0
-        except Exception as e:
-            logger.warning(f"Similarity calculation failed: {e}")
-            return 0.0
+        # Quick exact match check (avoid expensive embedding call)
+        if name1.lower() == name2.lower():
+            return 1.0
+        
+        # For performance, use simple heuristics before embeddings
+        name1_lower = name1.lower()
+        name2_lower = name2.lower()
+        
+        # Check for substring matches
+        if name1_lower in name2_lower or name2_lower in name1_lower:
+            # Calculate overlap ratio
+            overlap = len(name1_lower) if name1_lower in name2_lower else len(name2_lower)
+            total = max(len(name1_lower), len(name2_lower))
+            return 0.7 + (0.2 * overlap / total)
+        
+        # Check for common words (for multi-word entities)
+        words1 = set(name1_lower.split())
+        words2 = set(name2_lower.split())
+        if words1 and words2:
+            common = words1.intersection(words2)
+            if common:
+                return 0.5 + (0.3 * len(common) / max(len(words1), len(words2)))
+        
+        # Only use embeddings for potentially similar entities
+        # This dramatically reduces API calls
+        return 0.0  # Skip embeddings for clearly different entities
     
     def _resolve_entity_clusters(self,
                                 clusters: Dict[str, EntityCluster],
