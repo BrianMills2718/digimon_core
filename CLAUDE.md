@@ -367,11 +367,47 @@ All scenarios now complete without unhandled exceptions. The system handles erro
 - **Clear messages**: Users know exactly why operations failed
 
 ## 🎯 CURRENT PRIORITIES
-1. **C2 Continuation**: Expand MCP tools from 25+ to comprehensive 30+ tool suite
-2. **Verify Neo4j Error Messages**: Ensure all failures have clear explanations
-3. **Document Recovery Patterns**: Create error handling best practices guide
-4. **Stress Testing**: Verify reliability under extreme conditions
-5. **UI Error Handling**: Ensure UI gracefully handles all phase errors
+
+### Immediate: Consistency Reconciliation (Post External Audit)
+Following external LLM analysis identifying critical inconsistencies, priority focus on:
+
+#### 1. **Documentation Reality Audit** ✅ COMPLETE
+- **Status**: Created `docs/current/CURRENT_REALITY_AUDIT.md`
+- **Reality**: 13 tools implemented vs 121 claimed (11% of vision)
+- **Verification**: All claims now backed by executable proof commands
+
+#### 2. **Vision Alignment Resolution** ✅ FRAMEWORKS CREATED  
+- **Status**: Created `docs/current/VISION_ALIGNMENT_PROPOSAL.md`
+- **Issue**: GraphRAG vs Universal Platform positioning conflict resolved
+- **Recommendation**: "GraphRAG-First Universal Analytics" hybrid approach
+
+#### 3. **Tool Count Reconciliation** 🔄 IN PROGRESS
+- **Issue**: 121-tool vision vs 13 actual implementations needs realistic roadmap
+- **Plan**: Phase 1 (20 GraphRAG tools) → Phase 2 (Analytics) → Phase 3 (Platform)
+- **Status**: Creating realistic tool roadmap aligned with resources
+
+#### 4. **API Standardization Framework** ⏳ PENDING
+- **Issue**: Prevent WorkflowStateService-type parameter mismatches
+- **Plan**: Standardized interface contracts across all components
+- **Prevention**: Integration testing gates for API changes
+
+#### 5. **Performance Claims Verification** ⏳ PENDING  
+- **Issue**: Audit all existing performance statements (3.7s vs 85.4s misrepresentation)
+- **Plan**: Verification commands for all performance claims in documentation
+- **Current Verified**: 7.55s without PageRank, 54s with PageRank
+
+### Ongoing: System Development
+6. **C2 Continuation**: Expand MCP tools from 25+ to comprehensive 30+ tool suite
+7. **Verify Neo4j Error Messages**: Ensure all failures have clear explanations  
+8. **Document Recovery Patterns**: Create error handling best practices guide
+9. **Stress Testing**: Verify reliability under extreme conditions
+10. **UI Error Handling**: Ensure UI gracefully handles all phase errors
+
+### Prevention Framework: ✅ IMPLEMENTED
+- **Consistency Framework**: `docs/current/CONSISTENCY_FRAMEWORK.md` 
+- **Verification Standard**: All claims require executable proof
+- **Change Control**: Documentation updates need verification commands
+- **Monthly Audits**: Systematic consistency health reports
 
 ---
 **Details**: See [`TABLE_OF_CONTENTS.md`](docs/current/TABLE_OF_CONTENTS.md)
