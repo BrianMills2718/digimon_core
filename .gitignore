@@ -106,6 +106,9 @@ docker/
 docs/reference/structgpt_paper.txt
 docs/reference/agent_research/
 
+# Large information files to exclude
+docs/core/mcp_llms_full_information.txt
+
 # Note: scripts/ and config/ are now tracked as they contain important utilities
 
 # Keep example files
