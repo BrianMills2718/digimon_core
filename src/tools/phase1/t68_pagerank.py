@@ -21,15 +21,16 @@ import uuid
 from datetime import datetime
 import networkx as nx
 import neo4j
-from neo4j import GraphDatabase
+from neo4j import GraphDatabase, Driver
 
 # Import core services
 from src.core.identity_service import IdentityService
 from src.core.provenance_service import ProvenanceService
 from src.core.quality_service import QualityService
+from src.tools.phase1.base_neo4j_tool import BaseNeo4jTool
 
 
-class PageRankCalculator:
+class PageRankCalculator(BaseNeo4jTool):
     """T68: PageRank Calculator."""
     
     def __init__(
@@ -39,16 +40,21 @@ class PageRankCalculator:
         quality_service: QualityService,
         neo4j_uri: str = "bolt://localhost:7687",
         neo4j_user: str = "neo4j",
-        neo4j_password: str = "password"
+        neo4j_password: str = "password",
+        shared_driver: Optional[Driver] = None
     ):
-        self.identity_service = identity_service
-        self.provenance_service = provenance_service
-        self.quality_service = quality_service
-        self.tool_id = "T68_PAGERANK"
+        # Initialize base class with shared driver
+        super().__init__(
+            identity_service=identity_service,
+            provenance_service=provenance_service,
+            quality_service=quality_service,
+            neo4j_uri=neo4j_uri,
+            neo4j_user=neo4j_user,
+            neo4j_password=neo4j_password,
+            shared_driver=shared_driver
+        )
         
-        # Neo4j connection
-        self.driver = None
-        self._connect_neo4j(neo4j_uri, neo4j_user, neo4j_password)
+        self.tool_id = "T68_PAGERANK"
         
         # PageRank parameters
         self.damping_factor = 0.85  # Standard PageRank damping factor
@@ -56,17 +62,6 @@ class PageRankCalculator:
         self.tolerance = 1e-6       # Convergence tolerance
         self.min_score = 0.0001     # Minimum PageRank score
     
-    def _connect_neo4j(self, uri: str, user: str, password: str):
-        """Connect to Neo4j database."""
-        try:
-            self.driver = GraphDatabase.driver(uri, auth=(user, password))
-            # Test connection
-            with self.driver.session() as session:
-                session.run("RETURN 1")
-            print(f"Connected to Neo4j at {uri}")
-        except Exception as e:
-            print(f"Failed to connect to Neo4j: {e}")
-            self.driver = None
     
     def calculate_pagerank(
         self,
@@ -505,10 +500,6 @@ class PageRankCalculator:
             "message": message
         }
     
-    def close(self):
-        """Close Neo4j connection."""
-        if self.driver:
-            self.driver.close()
     
     def get_tool_info(self) -> Dict[str, Any]:
         """Get tool information."""

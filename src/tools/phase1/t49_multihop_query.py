@@ -20,15 +20,16 @@ from typing import Dict, List, Optional, Any, Set, Tuple
 import uuid
 from datetime import datetime
 import neo4j
-from neo4j import GraphDatabase
+from neo4j import GraphDatabase, Driver
 
 # Import core services
 from src.core.identity_service import IdentityService
 from src.core.provenance_service import ProvenanceService
 from src.core.quality_service import QualityService
+from src.tools.phase1.base_neo4j_tool import BaseNeo4jTool
 
 
-class MultiHopQuery:
+class MultiHopQuery(BaseNeo4jTool):
     """T49: Multi-hop Graph Query."""
     
     def __init__(
@@ -38,16 +39,21 @@ class MultiHopQuery:
         quality_service: QualityService,
         neo4j_uri: str = "bolt://localhost:7687",
         neo4j_user: str = "neo4j",
-        neo4j_password: str = "password"
+        neo4j_password: str = "password",
+        shared_driver: Optional[Driver] = None
     ):
-        self.identity_service = identity_service
-        self.provenance_service = provenance_service
-        self.quality_service = quality_service
-        self.tool_id = "T49_MULTIHOP_QUERY"
+        # Initialize base class with shared driver
+        super().__init__(
+            identity_service=identity_service,
+            provenance_service=provenance_service,
+            quality_service=quality_service,
+            neo4j_uri=neo4j_uri,
+            neo4j_user=neo4j_user,
+            neo4j_password=neo4j_password,
+            shared_driver=shared_driver
+        )
         
-        # Neo4j connection
-        self.driver = None
-        self._connect_neo4j(neo4j_uri, neo4j_user, neo4j_password)
+        self.tool_id = "T49_MULTIHOP_QUERY"
         
         # Query parameters
         self.max_hops = 3               # Maximum number of hops
@@ -55,17 +61,6 @@ class MultiHopQuery:
         self.min_path_weight = 0.01     # Minimum path weight threshold
         self.pagerank_boost = 2.0       # Boost factor for PageRank scores
     
-    def _connect_neo4j(self, uri: str, user: str, password: str):
-        """Connect to Neo4j database."""
-        try:
-            self.driver = GraphDatabase.driver(uri, auth=(user, password))
-            # Test connection
-            with self.driver.session() as session:
-                session.run("RETURN 1")
-            print(f"Connected to Neo4j at {uri}")
-        except Exception as e:
-            print(f"Failed to connect to Neo4j: {e}")
-            self.driver = None
     
     def query_graph(
         self,
@@ -546,10 +541,6 @@ class MultiHopQuery:
             "message": message
         }
     
-    def close(self):
-        """Close Neo4j connection."""
-        if self.driver:
-            self.driver.close()
     
     def get_tool_info(self) -> Dict[str, Any]:
         """Get tool information."""
