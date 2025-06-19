@@ -4,14 +4,21 @@
 **Root Cause**: Inconsistent interface contracts between phases and services  
 **Solution**: Standardized API patterns with enforcement mechanisms
 
+> **📌 IMPORTANT NOTE**: This document uses a HISTORICAL example of a resolved API mismatch (`current_step` vs `step_number`) as a learning case. This specific issue has been FIXED in commit c7d5fa4. The example is retained to demonstrate why standardization is critical and to prevent similar issues in the future.
+
 ---
 
 ## Problem Analysis
 
-### Historical API Mismatch Example
-**Issue**: Phase 2 called WorkflowStateService with `current_step` parameter while service expected `step_number`
-**Impact**: Complete Phase 1 → Phase 2 integration failure
-**Root Cause**: No standardized interface contracts between components
+### Historical API Mismatch Example (✅ RESOLVED)
+**⚠️ NOTE: This is a HISTORICAL example of a problem that has been FIXED**  
+**Status**: ✅ **RESOLVED** - This issue was fixed in commit c7d5fa4  
+**Purpose**: This example demonstrates why API standardization is critical
+
+**Historical Issue**: Phase 2 called WorkflowStateService with `current_step` parameter while service expected `step_number`  
+**Historical Impact**: Complete Phase 1 → Phase 2 integration failure  
+**Root Cause**: No standardized interface contracts between components  
+**Resolution**: Fixed by standardizing all parameters to use `step_number` consistently
 
 ### Current Risk Areas
 1. **Parameter Naming**: Inconsistent names for same concepts (`step_number` vs `current_step`)
@@ -220,7 +227,8 @@ def test_phase_interface_compliance():
         
 def test_parameter_consistency():
     """Verify consistent parameter naming across components"""
-    # Check WorkflowStateService uses step_number not current_step
+    # Prevent reintroduction of RESOLVED historical issue:
+    # Check WorkflowStateService uses step_number (NOT the old current_step)
     assert 'step_number' in WorkflowStateService.update_step.__annotations__
     assert 'current_step' not in WorkflowStateService.update_step.__annotations__
     
@@ -241,9 +249,12 @@ def test_response_format_compliance():
 #!/bin/bash
 
 # Check for API parameter consistency
+# This prevents reintroduction of the HISTORICAL current_step vs step_number issue (RESOLVED)
 echo "Checking API parameter consistency..."
 if grep -r "current_step" src/ --include="*.py"; then
     echo "ERROR: Found 'current_step' parameter. Use 'step_number' instead."
+    echo "NOTE: This was a historical issue that has been RESOLVED."
+    echo "We check to prevent regression to the old problematic parameter name."
     exit 1
 fi
 
@@ -282,10 +293,11 @@ class APIIntegrationTests:
         """Test service calls use correct parameter names"""
         workflow_service = WorkflowStateService()
         
-        # Should work with step_number, not current_step
+        # Verify the HISTORICAL issue remains RESOLVED:
+        # Should work with step_number (the old current_step parameter has been fixed)
         response = workflow_service.update_step(
             workflow_id="test",
-            step_number=2  # NOT current_step
+            step_number=2  # CORRECT: Using step_number (NOT the old problematic current_step)
         )
         assert response.success
 ```

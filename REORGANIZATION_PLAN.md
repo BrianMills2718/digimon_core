@@ -1,7 +1,7 @@
 # GraphRAG Repository Reorganization Plan
 
 **Status**: PARTIALLY COMPLETE - Documentation consolidated, code reorganization pending  
-**Note**: Documentation consolidation completed per CONSOLIDATION_COMPLETE.md, code structure reorganization remains as future work
+**Note**: Documentation consolidation ongoing per CONSOLIDATION_PROGRESS.md, code structure reorganization remains as future work
 
 ## 🎯 Reorganization Goals
 

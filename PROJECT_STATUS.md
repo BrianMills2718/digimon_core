@@ -46,7 +46,8 @@
 | Document Fusion Engine | ✅ Working | 20% deduplication | 2024-06-19 |
 | MCP Server | ✅ Working | 33 tools available | 2024-06-19 |
 
-**Overall Phase 3**: ✅ **FUNCTIONAL** - Basic implementation complete
+**Overall Phase 3**: ✅ **FUNCTIONAL AS STANDALONE TOOLS** - Basic implementation complete
+**Integration Status**: ⚠️ **NOT INTEGRATED** - Tools work independently but are not connected to the main GraphRAG pipeline workflow
 
 ### User Interface
 | Component | Status | Performance | Last Tested |
@@ -145,7 +146,7 @@
 ### Technical Debt
 - **File Organization**: Documentation consolidated, code reorganization pending per REORGANIZATION_PLAN.md
 - **Test File Consolidation**: Too many ad-hoc test files (planned cleanup)  
-- **Documentation Scattered**: Mostly resolved - see CONSOLIDATION_COMPLETE.md
+- **Documentation Scattered**: Mostly resolved - see CONSOLIDATION_PROGRESS.md
 - **Hardcoded Values**: Chunk overlap, entity confidence thresholds, embedding batch sizes need configuration
 - **Integration Testing Gap**: Components tested in isolation, missing cross-phase integration tests
 - **Vision-Reality Gap**: 121-tool vision vs 13 actual implementations - documented in TECHNICAL_DEBT_AUDIT.md
