@@ -22,28 +22,15 @@ import uuid
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-# Import components based on availability - CRASH LOUDLY IF MISSING
-try:
-    from src.tools.phase1.vertical_slice_workflow import VerticalSliceWorkflow
-    PHASE1_AVAILABLE = True
-except ImportError as e:
-    st.error("❌ CRITICAL: Phase 1 pipeline not available")
-    st.error(f"Import error: {e}")
-    st.error("Phase 1 is required for basic functionality")
-    st.stop()
+# Global availability flags - set properly at module level
+PHASE1_AVAILABLE = True  # Always available
+PHASE2_AVAILABLE = True  # Will be updated in render_system_status
+PHASE3_AVAILABLE = True  # Will be updated in render_system_status
 
-try:
-    from src.tools.phase2.enhanced_vertical_slice_workflow import EnhancedVerticalSliceWorkflow
-    from src.tools.phase2.interactive_graph_visualizer import InteractiveGraphVisualizer
-    PHASE2_AVAILABLE = True
-except ImportError:
-    PHASE2_AVAILABLE = False
-
-try:
-    from src.tools.phase3.t301_multi_document_fusion_tools import *
-    PHASE3_AVAILABLE = True
-except ImportError:
-    PHASE3_AVAILABLE = False
+# Global lazy import cache
+_phase1_workflow = None
+_phase2_workflow = None
+_phase3_workflow = None
 
 # MCP connection
 try:
@@ -155,23 +142,45 @@ def render_system_status():
     with st.sidebar:
         st.header("🔧 System Status")
         
+        # Debug info
+        st.text(f"Working dir: {os.getcwd()}")
+        st.text(f"Python path: {sys.path[0]}")
+        
         # Phase availability
         st.subheader("Available Phases")
         
         # Phase 1 (always available)
         st.markdown('✅ <span class="status-available">Phase 1: Basic Pipeline</span>', unsafe_allow_html=True)
         
-        # Phase 2
-        if PHASE2_AVAILABLE:
+        # Phase 2 - lightweight check without importing
+        global PHASE2_AVAILABLE
+        try:
+            from src.tools.phase2.enhanced_vertical_slice_workflow import EnhancedVerticalSliceWorkflow
             st.markdown('✅ <span class="status-available">Phase 2: Ontology System</span>', unsafe_allow_html=True)
-        else:
+            PHASE2_AVAILABLE = True
+        except ImportError as e:
             st.markdown('❌ <span class="status-missing">Phase 2: Not Available</span>', unsafe_allow_html=True)
+            st.text(f"Debug: Phase 2 import error: {e}")
+            PHASE2_AVAILABLE = False
+        except Exception as e:
+            st.markdown('❌ <span class="status-missing">Phase 2: Error</span>', unsafe_allow_html=True)
+            st.text(f"Debug: Phase 2 error: {e}")
+            PHASE2_AVAILABLE = False
         
-        # Phase 3
-        if PHASE3_AVAILABLE:
+        # Phase 3 - lightweight check without importing 
+        global PHASE3_AVAILABLE
+        try:
+            from src.core.phase_adapters import Phase3Adapter
             st.markdown('✅ <span class="status-available">Phase 3: Multi-Document Fusion</span>', unsafe_allow_html=True)
-        else:
+            PHASE3_AVAILABLE = True
+        except ImportError as e:
             st.markdown('❌ <span class="status-missing">Phase 3: Not Available</span>', unsafe_allow_html=True)
+            st.text(f"Debug: Phase 3 import error: {e}")
+            PHASE3_AVAILABLE = False
+        except Exception as e:
+            st.markdown('❌ <span class="status-missing">Phase 3: Error</span>', unsafe_allow_html=True)
+            st.text(f"Debug: Phase 3 error: {e}")
+            PHASE3_AVAILABLE = False
         
         # MCP Server
         if MCP_AVAILABLE:
@@ -299,10 +308,21 @@ def process_documents(uploaded_files, test_phase="Phase 1: Basic"):
     # Display results
     display_processing_results(results)
 
+def _get_phase1_workflow():
+    """Lazy load Phase 1 workflow."""
+    global _phase1_workflow
+    if _phase1_workflow is None:
+        try:
+            from src.tools.phase1.vertical_slice_workflow import VerticalSliceWorkflow
+            _phase1_workflow = VerticalSliceWorkflow()
+        except ImportError as e:
+            raise Exception(f"❌ Phase 1 not available: {e}")
+    return _phase1_workflow
+
 def process_with_phase1(file_path: str, filename: str) -> DocumentProcessingResult:
     """Process document with Phase 1 basic pipeline"""
     try:
-        workflow = VerticalSliceWorkflow()
+        workflow = _get_phase1_workflow()
         
         # Extract basic query for testing
         query = "What are the main entities and relationships in this document?"
@@ -404,15 +424,21 @@ def process_with_phase1(file_path: str, filename: str) -> DocumentProcessingResu
     except Exception as e:
         raise Exception(f"Phase 1 processing failed: {str(e)}")
 
+def _get_phase2_workflow():
+    """Lazy load Phase 2 workflow."""
+    global _phase2_workflow
+    if _phase2_workflow is None:
+        try:
+            from src.tools.phase2.enhanced_vertical_slice_workflow import EnhancedVerticalSliceWorkflow
+            _phase2_workflow = EnhancedVerticalSliceWorkflow()
+        except ImportError as e:
+            raise Exception(f"❌ Phase 2 not available: {e}")
+    return _phase2_workflow
+
 def process_with_phase2(file_path: str, filename: str) -> DocumentProcessingResult:
     """Process document with Phase 2 enhanced pipeline"""
-    if not PHASE2_AVAILABLE:
-        raise Exception("❌ Phase 2 not available. Install Phase 2 components first.")
-    
     try:
-        from src.tools.phase2.enhanced_vertical_slice_workflow import EnhancedVerticalSliceWorkflow
-        
-        workflow = EnhancedVerticalSliceWorkflow()
+        workflow = _get_phase2_workflow()
         
         # Use ontology-aware processing
         query = "What are the main entities and relationships in this document?"
@@ -435,23 +461,62 @@ def process_with_phase2(file_path: str, filename: str) -> DocumentProcessingResu
     except Exception as e:
         raise Exception(f"Phase 2 processing failed: {str(e)}")
 
+def _get_phase3_adapter():
+    """Lazy load Phase 3 adapter."""
+    global _phase3_workflow  
+    if _phase3_workflow is None:
+        try:
+            from src.core.phase_adapters import Phase3Adapter
+            _phase3_workflow = Phase3Adapter()
+        except ImportError as e:
+            raise Exception(f"❌ Phase 3 not available: {e}")
+    return _phase3_workflow
+
 def process_with_phase3(file_path: str, filename: str) -> DocumentProcessingResult:
     """Process document with Phase 3 multi-document fusion"""
-    if not PHASE3_AVAILABLE:
-        raise Exception("❌ Phase 3 not available. T301 fusion tools not installed.")
-    
-    if not PHASE2_AVAILABLE:
-        raise Exception("❌ Phase 3 requires Phase 2. Install Phase 2 components first.")
-    
     try:
-        # Use Phase 2 as base, then add T301 fusion
-        result = process_with_phase2(file_path, filename)
+        # Import Phase 3 interface
+        from src.core.graphrag_phase_interface import ProcessingRequest
         
-        # TODO: Add actual T301 multi-document fusion here
-        # This would involve calling the T301 MCP tools for entity clustering, etc.
-        # For now, this is the same as Phase 2 until T301 integration is complete
+        # Get Phase 3 adapter
+        phase3 = _get_phase3_adapter()
         
-        result.phase_used = "Phase 3"
+        # Create processing request for multi-document workflow
+        # Note: Phase 3 is designed for multiple documents, but we'll use single document here
+        request = ProcessingRequest(
+            workflow_id=f"ui_phase3_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+            documents=[file_path],
+            queries=["Extract main entities and relationships from this document"],
+            domain_description="General document analysis"
+        )
+        
+        # Execute Phase 3 processing
+        phase_result = phase3.execute(request)
+        
+        # Extract metrics from Phase 3 result
+        if phase_result.status == "success":
+            fusion_summary = phase_result.results.get("processing_summary", {})
+            
+            result = DocumentProcessingResult(
+                document_id=f"phase3_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+                filename=filename,
+                entities_found=fusion_summary.get("total_entities_after_fusion", 0),
+                relationships_found=fusion_summary.get("total_relationships", 0),
+                processing_time=phase_result.execution_time,
+                phase_used="Phase 3",
+                graph_data={
+                    "documents_processed": phase_result.results.get("documents_processed", 1),
+                    "fusion_reduction": fusion_summary.get("fusion_reduction", 0),
+                    "entities_before_fusion": fusion_summary.get("total_entities_before_fusion", 0),
+                    "entities_after_fusion": fusion_summary.get("total_entities_after_fusion", 0),
+                    "confidence_score": phase_result.confidence_score,
+                    "raw_result": phase_result.results
+                }
+            )
+        else:
+            # Phase 3 failed - raise exception following the pattern of other phases
+            raise Exception(f"Phase 3 execution failed: {phase_result.error_message}")
+        
         return result
     
     except Exception as e:

@@ -1,0 +1,14 @@
+CAPABILITY 003 TEST LOG
+==================================================
+Capability: PDFLoader.get_supported_formats()
+Description: Return list of supported file formats
+File: src/tools/phase1/t01_pdf_loader.py
+Class: PDFLoader
+Method: get_supported_formats
+Test Type: method
+==================================================
+STATUS: FAIL
+EVIDENCE: Failed to test capability: Cannot import src.tools.phase1.t01_pdf_loader: No module named 'src'
+ERROR: Cannot import src.tools.phase1.t01_pdf_loader: No module named 'src'
+EXECUTION TIME: 0.0003 seconds
+TIMESTAMP: Thu Jun 19 13:05:37 2025

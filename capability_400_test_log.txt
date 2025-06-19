@@ -1,0 +1,14 @@
+CAPABILITY 400 TEST LOG
+==================================================
+Capability: Placeholder.capability_400()
+Description: Placeholder capability 400
+File: src/placeholder/capability_400.py
+Class: PlaceholderClass
+Method: capability_400
+Test Type: method
+==================================================
+STATUS: FAIL
+EVIDENCE: Failed to test capability: Cannot import src.placeholder.capability_400: No module named 'src'
+ERROR: Cannot import src.placeholder.capability_400: No module named 'src'
+EXECUTION TIME: 0.0003 seconds
+TIMESTAMP: Thu Jun 19 13:05:40 2025

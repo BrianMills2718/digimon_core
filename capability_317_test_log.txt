@@ -1,0 +1,14 @@
+CAPABILITY 317 TEST LOG
+==================================================
+Capability: Placeholder.capability_317()
+Description: Placeholder capability 317
+File: src/placeholder/capability_317.py
+Class: PlaceholderClass
+Method: capability_317
+Test Type: method
+==================================================
+STATUS: FAIL
+EVIDENCE: Failed to test capability: Cannot import src.placeholder.capability_317: No module named 'src'
+ERROR: Cannot import src.placeholder.capability_317: No module named 'src'
+EXECUTION TIME: 0.0003 seconds
+TIMESTAMP: Thu Jun 19 13:05:40 2025

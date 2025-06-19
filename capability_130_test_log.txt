@@ -1,0 +1,14 @@
+CAPABILITY 130 TEST LOG
+==================================================
+Capability: Placeholder.capability_130()
+Description: Placeholder capability 130
+File: src/placeholder/capability_130.py
+Class: PlaceholderClass
+Method: capability_130
+Test Type: method
+==================================================
+STATUS: FAIL
+EVIDENCE: Failed to test capability: Cannot import src.placeholder.capability_130: No module named 'src'
+ERROR: Cannot import src.placeholder.capability_130: No module named 'src'
+EXECUTION TIME: 0.0003 seconds
+TIMESTAMP: Thu Jun 19 13:05:39 2025

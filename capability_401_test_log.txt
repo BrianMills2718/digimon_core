@@ -1,0 +1,14 @@
+CAPABILITY 401 TEST LOG
+==================================================
+Capability: Placeholder.capability_401()
+Description: Placeholder capability 401
+File: src/placeholder/capability_401.py
+Class: PlaceholderClass
+Method: capability_401
+Test Type: method
+==================================================
+STATUS: FAIL
+EVIDENCE: Failed to test capability: Cannot import src.placeholder.capability_401: No module named 'src'
+ERROR: Cannot import src.placeholder.capability_401: No module named 'src'
+EXECUTION TIME: 0.0004 seconds
+TIMESTAMP: Thu Jun 19 13:05:40 2025

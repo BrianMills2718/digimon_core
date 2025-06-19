@@ -1,0 +1,14 @@
+CAPABILITY 264 TEST LOG
+==================================================
+Capability: Placeholder.capability_264()
+Description: Placeholder capability 264
+File: src/placeholder/capability_264.py
+Class: PlaceholderClass
+Method: capability_264
+Test Type: method
+==================================================
+STATUS: FAIL
+EVIDENCE: Failed to test capability: Cannot import src.placeholder.capability_264: No module named 'src'
+ERROR: Cannot import src.placeholder.capability_264: No module named 'src'
+EXECUTION TIME: 0.0003 seconds
+TIMESTAMP: Thu Jun 19 13:05:40 2025

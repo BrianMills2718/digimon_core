@@ -1,0 +1,14 @@
+CAPABILITY 104 TEST LOG
+==================================================
+Capability: Placeholder.capability_104()
+Description: Placeholder capability 104
+File: src/placeholder/capability_104.py
+Class: PlaceholderClass
+Method: capability_104
+Test Type: method
+==================================================
+STATUS: FAIL
+EVIDENCE: Failed to test capability: Cannot import src.placeholder.capability_104: No module named 'src'
+ERROR: Cannot import src.placeholder.capability_104: No module named 'src'
+EXECUTION TIME: 0.0004 seconds
+TIMESTAMP: Thu Jun 19 13:05:38 2025

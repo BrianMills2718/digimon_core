@@ -1,0 +1,14 @@
+CAPABILITY 255 TEST LOG
+==================================================
+Capability: Placeholder.capability_255()
+Description: Placeholder capability 255
+File: src/placeholder/capability_255.py
+Class: PlaceholderClass
+Method: capability_255
+Test Type: method
+==================================================
+STATUS: FAIL
+EVIDENCE: Failed to test capability: Cannot import src.placeholder.capability_255: No module named 'src'
+ERROR: Cannot import src.placeholder.capability_255: No module named 'src'
+EXECUTION TIME: 0.0003 seconds
+TIMESTAMP: Thu Jun 19 13:05:40 2025

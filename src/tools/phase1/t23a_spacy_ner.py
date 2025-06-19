@@ -42,9 +42,9 @@ class SpacyNER:
         self.quality_service = quality_service
         self.tool_id = "T23A_SPACY_NER"
         
-        # Initialize spaCy model
+        # Lazy load spaCy model (only when needed)
         self.nlp = None
-        self._initialize_spacy_model()
+        self._model_initialized = False
         
         # Standard entity types to extract
         self.target_entity_types = {
@@ -66,7 +66,10 @@ class SpacyNER:
         self.base_confidence = 0.85
     
     def _initialize_spacy_model(self):
-        """Initialize spaCy model with error handling."""
+        """Initialize spaCy model with error handling (lazy loading)."""
+        if self._model_initialized:
+            return
+            
         try:
             # Try to load the medium English model first
             try:
@@ -79,10 +82,13 @@ class SpacyNER:
                     # Create a blank English model as fallback
                     self.nlp = English()
                     print("Warning: No spaCy model found. Using blank model. Install with: python -m spacy download en_core_web_sm")
+            
+            self._model_initialized = True
                     
         except Exception as e:
             print(f"Error initializing spaCy: {e}")
             self.nlp = None
+            self._model_initialized = False
     
     def extract_entities(
         self,
@@ -112,6 +118,15 @@ class SpacyNER:
         )
         
         try:
+            # Initialize spaCy model only when needed
+            self._initialize_spacy_model()
+            
+            if not self.nlp:
+                return self._complete_with_error(
+                    operation_id,
+                    "spaCy model not available"
+                )
+            
             # Input validation
             if not text or not text.strip():
                 return self._complete_with_error(

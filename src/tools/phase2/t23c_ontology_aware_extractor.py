@@ -53,7 +53,9 @@ class OntologyAwareExtractor:
         self.identity_service = identity_service
         
         # Initialize Gemini
-        self.google_api_key = google_api_key or os.getenv("GOOGLE_API_KEY")
+        self.google_api_key = (google_api_key or 
+                              os.getenv("GOOGLE_API_KEY") or 
+                              os.getenv("GOOGLE_AI_STUDIO_KEY"))
         if not self.google_api_key:
             raise ValueError("Google API key required")
         
@@ -358,40 +360,28 @@ Respond ONLY with the JSON."""
     def _resolve_or_create_entity(self, surface_text: str, entity_type: str,
                                  ontology: DomainOntology, confidence: float) -> Entity:
         """Resolve to existing entity or create new one."""
-        # Try to find similar existing entities
-        similar = self.identity_service.find_similar_entities(surface_text, threshold=0.85)
+        # Use the find_or_create_entity method which combines both operations
+        entity_data = self.identity_service.find_or_create_entity(
+            mention_text=surface_text,
+            entity_type=entity_type,
+            context=f"Ontology: {ontology.domain_name}",
+            confidence=confidence
+        )
         
-        if similar:
-            # Use the most similar existing entity
-            return Entity(
-                id=similar[0]["entity_id"],
-                canonical_name=similar[0]["canonical_name"],
-                entity_type=entity_type,
-                confidence=max(confidence, similar[0]["confidence"]),
-                attributes={
-                    "ontology_domain": ontology.domain_name,
-                    "resolved": True,
-                    "similarity_score": similar[0]["similarity"]
-                }
-            )
-        else:
-            # Create new entity
-            entity_data = self.identity_service.create_entity(
-                canonical_name=surface_text,
-                entity_type=entity_type,
-                confidence=confidence
-            )
-            
-            return Entity(
-                id=entity_data["entity_id"],
-                canonical_name=surface_text,
-                entity_type=entity_type,
-                confidence=confidence,
-                attributes={
-                    "ontology_domain": ontology.domain_name,
-                    "resolved": False
-                }
-            )
+        # Determine if this was resolved from existing entity
+        is_resolved = entity_data.get("action") == "found"
+        
+        return Entity(
+            id=entity_data["entity_id"],
+            canonical_name=entity_data["canonical_name"],
+            entity_type=entity_type,
+            confidence=confidence,
+            attributes={
+                "ontology_domain": ontology.domain_name,
+                "resolved": is_resolved,
+                "similarity_score": entity_data.get("similarity_score", 1.0)
+            }
+        )
     
     def _generate_embeddings(self, entities: List[Entity], ontology: DomainOntology):
         """Generate contextual embeddings for entities using OpenAI."""

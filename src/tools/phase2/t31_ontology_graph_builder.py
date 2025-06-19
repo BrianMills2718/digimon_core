@@ -279,27 +279,34 @@ class OntologyAwareGraphBuilder:
         
         try:
             with self.driver.session() as session:
-                # Create relationship with rich metadata
-                session.run(f"""
+                # Sanitize relationship type for Neo4j
+                safe_rel_type = self._sanitize_relationship_type(relationship.relationship_type)
+                
+                # Create relationship with rich metadata using dynamic query construction
+                query = f"""
                     MATCH (source:Entity {{id: $source_id}})
                     MATCH (target:Entity {{id: $target_id}})
-                    MERGE (source)-[r:{relationship.relationship_type}]->(target)
+                    MERGE (source)-[r:`{safe_rel_type}`]->(target)
                     ON CREATE SET 
                         r.id = randomUUID(),
                         r.created_at = datetime(),
                         r.confidence = $confidence,
                         r.source_documents = [$source_document],
                         r.ontology_domain = $ontology_domain,
-                        r.attributes = $attributes
+                        r.attributes = $attributes,
+                        r.relationship_type = $relationship_type
                     ON MATCH SET
                         r.source_documents = r.source_documents + $source_document,
                         r.confidence = CASE 
                             WHEN $confidence > r.confidence THEN $confidence 
                             ELSE r.confidence 
                         END
-                """, {
+                """
+                
+                session.run(query, {
                     "source_id": source_neo4j_id,
                     "target_id": target_neo4j_id,
+                    "relationship_type": relationship.relationship_type,  # Store original type as property
                     "confidence": relationship.confidence,
                     "source_document": source_document,
                     "ontology_domain": self.current_ontology.domain_name if self.current_ontology else "unknown",
@@ -343,6 +350,19 @@ class OntologyAwareGraphBuilder:
                 return valid_type
         
         return list(self.valid_relationship_types)[0] if self.valid_relationship_types else "RELATED_TO"
+    
+    def _sanitize_relationship_type(self, rel_type: str) -> str:
+        """Sanitize relationship type for Neo4j compatibility."""
+        import re
+        # Remove special characters and replace with underscores
+        sanitized = re.sub(r'[^A-Za-z0-9_]', '_', rel_type)
+        # Remove leading/trailing underscores and collapse multiple underscores
+        sanitized = re.sub(r'_+', '_', sanitized).strip('_')
+        # Ensure it starts with a letter (Neo4j requirement)
+        if sanitized and not sanitized[0].isalpha():
+            sanitized = 'REL_' + sanitized
+        # Fallback for empty strings
+        return sanitized if sanitized else 'UNKNOWN_RELATION'
     
     def _calculate_graph_metrics(self, source_document: str) -> GraphMetrics:
         """Calculate comprehensive graph quality metrics."""

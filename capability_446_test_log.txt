@@ -1,0 +1,14 @@
+CAPABILITY 446 TEST LOG
+==================================================
+Capability: Placeholder.capability_446()
+Description: Placeholder capability 446
+File: src/placeholder/capability_446.py
+Class: PlaceholderClass
+Method: capability_446
+Test Type: method
+==================================================
+STATUS: FAIL
+EVIDENCE: Failed to test capability: Cannot import src.placeholder.capability_446: No module named 'src'
+ERROR: Cannot import src.placeholder.capability_446: No module named 'src'
+EXECUTION TIME: 0.0003 seconds
+TIMESTAMP: Thu Jun 19 13:05:41 2025

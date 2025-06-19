@@ -1,0 +1,14 @@
+CAPABILITY 183 TEST LOG
+==================================================
+Capability: Placeholder.capability_183()
+Description: Placeholder capability 183
+File: src/placeholder/capability_183.py
+Class: PlaceholderClass
+Method: capability_183
+Test Type: method
+==================================================
+STATUS: FAIL
+EVIDENCE: Failed to test capability: Cannot import src.placeholder.capability_183: No module named 'src'
+ERROR: Cannot import src.placeholder.capability_183: No module named 'src'
+EXECUTION TIME: 0.0003 seconds
+TIMESTAMP: Thu Jun 19 13:05:39 2025

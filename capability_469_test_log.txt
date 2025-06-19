@@ -1,0 +1,14 @@
+CAPABILITY 469 TEST LOG
+==================================================
+Capability: Placeholder.capability_469()
+Description: Placeholder capability 469
+File: src/placeholder/capability_469.py
+Class: PlaceholderClass
+Method: capability_469
+Test Type: method
+==================================================
+STATUS: FAIL
+EVIDENCE: Failed to test capability: Cannot import src.placeholder.capability_469: No module named 'src'
+ERROR: Cannot import src.placeholder.capability_469: No module named 'src'
+EXECUTION TIME: 0.0003 seconds
+TIMESTAMP: Thu Jun 19 13:05:41 2025

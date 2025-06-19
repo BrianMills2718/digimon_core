@@ -85,9 +85,10 @@ class ServiceManager:
                     )
                     self._neo4j_config = config_key
                     
-                    # Test connection
+                    # Test connection with proper single record handling
                     with self._neo4j_driver.session() as session:
-                        session.run("RETURN 1")
+                        result = session.run("RETURN 1 as test")
+                        result.single()  # Consume single record properly
                     print(f"Shared Neo4j connection established to {uri}")
                 except Exception as e:
                     print(f"WARNING: Neo4j connection failed: {e}")

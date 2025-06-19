@@ -1,0 +1,14 @@
+CAPABILITY 008 TEST LOG
+==================================================
+Capability: PDFLoader._handle_extraction_errors()
+Description: Handle PDF extraction failures gracefully
+File: src/tools/phase1/t01_pdf_loader.py
+Class: PDFLoader
+Method: _handle_extraction_errors
+Test Type: private_method
+==================================================
+STATUS: FAIL
+EVIDENCE: Failed to test capability: Cannot import src.tools.phase1.t01_pdf_loader: No module named 'src'
+ERROR: Cannot import src.tools.phase1.t01_pdf_loader: No module named 'src'
+EXECUTION TIME: 0.0003 seconds
+TIMESTAMP: Thu Jun 19 13:05:37 2025

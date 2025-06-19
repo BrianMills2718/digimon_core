@@ -1,0 +1,14 @@
+CAPABILITY 274 TEST LOG
+==================================================
+Capability: Placeholder.capability_274()
+Description: Placeholder capability 274
+File: src/placeholder/capability_274.py
+Class: PlaceholderClass
+Method: capability_274
+Test Type: method
+==================================================
+STATUS: FAIL
+EVIDENCE: Failed to test capability: Cannot import src.placeholder.capability_274: No module named 'src'
+ERROR: Cannot import src.placeholder.capability_274: No module named 'src'
+EXECUTION TIME: 0.0003 seconds
+TIMESTAMP: Thu Jun 19 13:05:40 2025

@@ -1,0 +1,14 @@
+CAPABILITY 395 TEST LOG
+==================================================
+Capability: Placeholder.capability_395()
+Description: Placeholder capability 395
+File: src/placeholder/capability_395.py
+Class: PlaceholderClass
+Method: capability_395
+Test Type: method
+==================================================
+STATUS: FAIL
+EVIDENCE: Failed to test capability: Cannot import src.placeholder.capability_395: No module named 'src'
+ERROR: Cannot import src.placeholder.capability_395: No module named 'src'
+EXECUTION TIME: 0.0003 seconds
+TIMESTAMP: Thu Jun 19 13:05:40 2025

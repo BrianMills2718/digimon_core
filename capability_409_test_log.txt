@@ -1,0 +1,14 @@
+CAPABILITY 409 TEST LOG
+==================================================
+Capability: Placeholder.capability_409()
+Description: Placeholder capability 409
+File: src/placeholder/capability_409.py
+Class: PlaceholderClass
+Method: capability_409
+Test Type: method
+==================================================
+STATUS: FAIL
+EVIDENCE: Failed to test capability: Cannot import src.placeholder.capability_409: No module named 'src'
+ERROR: Cannot import src.placeholder.capability_409: No module named 'src'
+EXECUTION TIME: 0.0004 seconds
+TIMESTAMP: Thu Jun 19 13:05:40 2025

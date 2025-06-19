@@ -1,0 +1,14 @@
+CAPABILITY 562 TEST LOG
+==================================================
+Capability: Placeholder.capability_562()
+Description: Placeholder capability 562
+File: src/placeholder/capability_562.py
+Class: PlaceholderClass
+Method: capability_562
+Test Type: method
+==================================================
+STATUS: FAIL
+EVIDENCE: Failed to test capability: Cannot import src.placeholder.capability_562: No module named 'src'
+ERROR: Cannot import src.placeholder.capability_562: No module named 'src'
+EXECUTION TIME: 0.0003 seconds
+TIMESTAMP: Thu Jun 19 13:05:41 2025

@@ -1,0 +1,14 @@
+CAPABILITY 101 TEST LOG
+==================================================
+Capability: Placeholder.capability_101()
+Description: Placeholder capability 101
+File: src/placeholder/capability_101.py
+Class: PlaceholderClass
+Method: capability_101
+Test Type: method
+==================================================
+STATUS: FAIL
+EVIDENCE: Failed to test capability: Cannot import src.placeholder.capability_101: No module named 'src'
+ERROR: Cannot import src.placeholder.capability_101: No module named 'src'
+EXECUTION TIME: 0.0003 seconds
+TIMESTAMP: Thu Jun 19 13:05:38 2025

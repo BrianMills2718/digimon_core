@@ -1,0 +1,14 @@
+CAPABILITY 326 TEST LOG
+==================================================
+Capability: Placeholder.capability_326()
+Description: Placeholder capability 326
+File: src/placeholder/capability_326.py
+Class: PlaceholderClass
+Method: capability_326
+Test Type: method
+==================================================
+STATUS: FAIL
+EVIDENCE: Failed to test capability: Cannot import src.placeholder.capability_326: No module named 'src'
+ERROR: Cannot import src.placeholder.capability_326: No module named 'src'
+EXECUTION TIME: 0.0003 seconds
+TIMESTAMP: Thu Jun 19 13:05:40 2025

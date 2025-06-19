@@ -1,0 +1,14 @@
+CAPABILITY 013 TEST LOG
+==================================================
+Capability: TextChunker.get_chunking_stats()
+Description: Return chunking statistics and metadata
+File: src/tools/phase1/t15a_text_chunker.py
+Class: TextChunker
+Method: get_chunking_stats
+Test Type: method
+==================================================
+STATUS: FAIL
+EVIDENCE: Failed to test capability: Cannot import src.tools.phase1.t15a_text_chunker: No module named 'src'
+ERROR: Cannot import src.tools.phase1.t15a_text_chunker: No module named 'src'
+EXECUTION TIME: 0.0003 seconds
+TIMESTAMP: Thu Jun 19 13:05:37 2025

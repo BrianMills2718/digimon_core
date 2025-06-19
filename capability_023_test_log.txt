@@ -1,0 +1,14 @@
+CAPABILITY 023 TEST LOG
+==================================================
+Capability: Placeholder.capability_023()
+Description: Placeholder capability 23
+File: src/placeholder/capability_023.py
+Class: PlaceholderClass
+Method: capability_023
+Test Type: method
+==================================================
+STATUS: FAIL
+EVIDENCE: Failed to test capability: Cannot import src.placeholder.capability_023: No module named 'src'
+ERROR: Cannot import src.placeholder.capability_023: No module named 'src'
+EXECUTION TIME: 0.0003 seconds
+TIMESTAMP: Thu Jun 19 13:05:37 2025
