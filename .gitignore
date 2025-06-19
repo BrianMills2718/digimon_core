@@ -90,13 +90,19 @@ Thumbs.db
 *.p12
 
 # Archive directory (contains experimental implementations and cached data)
-archive/experimental_implementations/data/
-archive/experimental_implementations/__pycache__/
-archive/experimental_implementations/**/__pycache__/
-archive/experimental_implementations/**/*.pyc
-archive/experimental_implementations/**/*.db
-archive/experimental_implementations/**/*.sqlite*
-archive/experimental_implementations/**/*.log
+# Exclude confusing historical documentation from external assessment
+archive/experimental_implementations/
+archive/documentation_drafts/
+archive/deprecated_code/
+archive/old_tests/
+archive/session_documents/
+
+# Exclude historical planning documents that contain conflicting visions
+docs/planning/
+docs/archive/
+
+# Keep only analysis reports that are useful for current status
+# archive/analysis_reports/ - KEPT for current system validation
 
 # Directories to exclude from this repository
 tools/
