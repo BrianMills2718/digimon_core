@@ -31,7 +31,8 @@
 | Enhanced Graph Building | ⚠️ Dependent | Blocked by API issue | 2025-06-19 |
 | Interactive Visualization | ⚠️ Dependent | Blocked by API issue | 2025-06-19 |
 
-**Overall Phase 2**: ❌ **BROKEN** - API compatibility issue: expects `document_paths` parameter but uses `pdf_path` parameter, and potential `current_step` vs `step_number` API mismatch
+**Overall Phase 2**: ❌ **BROKEN** - API compatibility issue: expects `document_paths` parameter but uses `pdf_path` parameter, and `current_step` vs `step_number` API mismatch in WorkflowStateService  
+**Note**: Phase2Adapter instantiation works (hence adapter tests pass), but full workflow fails due to service API mismatches
 
 ### Phase 3: Multi-Document Fusion
 | Component | Status | Performance | Last Tested |
@@ -69,13 +70,14 @@
 ## 🧪 Test Status
 
 ### Functional Integration Tests
-| Test Suite | Status | Success Rate | Last Run |
-|------------|--------|--------------|----------|
-| Phase 1 Integration | ✅ PASS | 100% | 2024-06-19 |
-| Phase 2 Integration | ✅ PASS | 100% | 2024-06-19 |
-| Cross-Component | ✅ PASS | 100% | 2024-06-19 |
+| Test Suite | Status | Success Rate | Last Run | Notes |
+|------------|--------|--------------|----------|-------|
+| Phase 1 Integration | ✅ PASS | 100% | 2024-06-19 | Complete end-to-end testing |
+| Phase 2 Adapter | ✅ PASS | 100% | 2024-06-19 | ⚠️ Adapter only, not full workflow |
+| Cross-Component | ✅ PASS | 100% | 2024-06-19 | Working components only |
 
-**Overall Test Health**: ✅ **100% PASS RATE**
+**Overall Test Health**: ⚠️ **Tests pass but don't cover known API issues**  
+**Note**: Phase 2 adapter tests pass, but actual Phase 2 workflow has WorkflowStateService API mismatch
 
 ### Stress and Reliability Tests
 | Test Category | Status | Success Rate | Last Run |
@@ -86,6 +88,12 @@
 | Compatibility Validation | ✅ PASS | 80% | 2024-06-19 |
 
 ## 🔧 Infrastructure Status
+
+### Framework Compliance
+| Framework | Status | Compliance | Issues |
+|-----------|--------|------------|--------|
+| CONSISTENCY_FRAMEWORK.md | ⚠️ Partial | 75% | Test descriptions vs reality mismatch |
+| API_STANDARDIZATION_FRAMEWORK.md | ❌ Violated | 60% | Phase 2 still has `current_step` issue |
 
 ### Dependencies
 | Service | Status | Version | Health |
@@ -107,8 +115,11 @@
 
 ### Active Issues
 1. **PageRank Performance**: 86% of processing time - acceptable for current use
-2. **Gemini Safety Filters**: Blocks some content - pattern-based fallback working
+2. **Gemini Safety Filters**: Blocks some content - pattern-based fallback working  
 3. **Neo4j Warnings**: Multiple record warnings - functional but verbose
+4. **Phase 2 API Mismatch**: WorkflowStateService parameter incompatibility
+   - **Verification**: Try Phase 2 workflow in UI → see `current_step` error
+   - **Root Cause**: Violates API_STANDARDIZATION_FRAMEWORK.md
 
 ### Resolved Issues ✅
 1. ✅ **Phase 2 Entity Extraction Failures** - Fixed with pattern-based fallback
