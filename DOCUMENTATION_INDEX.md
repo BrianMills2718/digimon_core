@@ -12,8 +12,8 @@
 ### Essential Development Files
 - **Architecture Overview**: [docs/current/ARCHITECTURE.md](./docs/current/ARCHITECTURE.md)
 - **System Roadmap**: [docs/current/ROADMAP_v2.md](./docs/current/ROADMAP_v2.md)
-- **Performance Results**: [docs/current/PERFORMANCE_ANALYSIS.md](./docs/current/PERFORMANCE_ANALYSIS.md)
-- **Testing Framework**: [docs/current/TESTING_GUIDE.md](./docs/current/TESTING_GUIDE.md)
+- **Error Handling Guide**: [docs/current/ERROR_HANDLING_BEST_PRACTICES.md](./docs/current/ERROR_HANDLING_BEST_PRACTICES.md)
+- **Performance Claims**: [docs/current/PERFORMANCE_CLAIMS_VERIFICATION.md](./docs/current/PERFORMANCE_CLAIMS_VERIFICATION.md)
 
 ## 📁 File Organization Structure
 
@@ -63,15 +63,14 @@ config/
 |------|---------|-------------|
 | [PROJECT_STATUS.md](./PROJECT_STATUS.md) | Check what's working/broken | Before starting any work |
 | [CLAUDE.md](./CLAUDE.md) | Development context and instructions | Active development |
-| [docs/current/TESTING_GUIDE.md](./docs/current/TESTING_GUIDE.md) | Testing procedures | Before adding features |
 | [docs/current/ROADMAP_v2.md](./docs/current/ROADMAP_v2.md) | Planned work and priorities | Planning sessions |
 
 ### Problem-Solving References
 | File | Purpose | When to Use |
 |------|---------|-------------|
-| [docs/current/TROUBLESHOOTING.md](./docs/current/TROUBLESHOOTING.md) | Common issues and solutions | When encountering errors |
 | [docs/current/ERROR_HANDLING_BEST_PRACTICES.md](./docs/current/ERROR_HANDLING_BEST_PRACTICES.md) | Error handling patterns | Implementing error handling |
-| [docs/current/PERFORMANCE_ANALYSIS.md](./docs/current/PERFORMANCE_ANALYSIS.md) | Performance optimization | Performance issues |
+| [docs/current/PERFORMANCE_CLAIMS_VERIFICATION.md](./docs/current/PERFORMANCE_CLAIMS_VERIFICATION.md) | Performance verification | Validating performance claims |
+| [archive/analysis_reports/](./archive/analysis_reports/) | Historical analysis and test reports | Troubleshooting reference |
 
 ## 🧪 Testing and Validation
 
@@ -100,11 +99,11 @@ config/
 6. **Document**: Update relevant documentation
 
 ### Fixing Issues
-1. **Identify Root Cause**: Use [docs/current/TROUBLESHOOTING.md](./docs/current/TROUBLESHOOTING.md)
+1. **Identify Root Cause**: Use [archive/analysis_reports/](./archive/analysis_reports/) for historical context
 2. **Create Reproduction Test**: Add to appropriate test suite
-3. **Implement Fix**: Follow error handling best practices
+3. **Implement Fix**: Follow [error handling best practices](./docs/current/ERROR_HANDLING_BEST_PRACTICES.md)
 4. **Validate Fix**: Ensure all tests pass
-5. **Update Documentation**: Record solution in troubleshooting guide
+5. **Update Documentation**: Record solution in relevant documentation
 
 ### Before Each Commit
 1. **Run Functional Tests**: Ensure 100% pass rate

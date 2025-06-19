@@ -87,29 +87,34 @@ python start_graphrag_ui.py
 ```
 Digimons/
 ├── README.md                    # This file (now honest)
-├── CLAUDE.md                    # Updated with integration failure analysis  
-├── STATUS.md                    # What actually works vs broken
-├── ARCHITECTURE.md              # Integration lessons learned
-├── ROADMAP_v2.md                # Architecture-first development plan
+├── CLAUDE.md                    # Development context and instructions
+├── PROJECT_STATUS.md            # Real-time system health dashboard
+├── DOCUMENTATION_INDEX.md       # Master navigation hub
+├── docs/current/                # Active documentation
+│   ├── ARCHITECTURE.md          # System architecture overview
+│   ├── ROADMAP_v2.md            # Development priorities and roadmap
+│   └── UI_README.md             # UI usage guide
 ├── src/tools/phase1/            # Working Phase 1 tools (~12 files)
 ├── src/tools/phase2/            # Broken Phase 2 integration (~4 files)  
 ├── src/tools/phase3/            # Standalone T301 tools (~7 files)
+├── tests/functional/            # Mandatory functional integration tests
+├── tests/performance/           # Performance and optimization tests
+├── tests/stress/                # Stress and reliability tests
 ├── ui/graphrag_ui.py            # Web interface (working)
-├── examples/pdfs/               # Test documents
-├── docs/archive/                # Previous documentation attempts
-└── test_*.py                    # Various test scripts
+├── examples/                    # Test documents and sample data
+└── archive/                     # Historical files and previous attempts
 ```
 
 ## Key Documents (Current)
 
 ### **For Understanding Current Status**
-- [`STATUS.md`](STATUS.md) - Honest assessment of what works vs what's broken
-- [`CLAUDE.md`](CLAUDE.md) - Integration failure analysis + new documentation standards
-- [`ARCHITECTURE.md`](ARCHITECTURE.md) - Integration lessons and design patterns
+- [`PROJECT_STATUS.md`](PROJECT_STATUS.md) - Real-time system health and functionality dashboard
+- [`CLAUDE.md`](CLAUDE.md) - Development context and instructions
+- [`docs/current/ARCHITECTURE.md`](docs/current/ARCHITECTURE.md) - System architecture overview
 
 ### **For Moving Forward**  
-- [`ROADMAP_v2.md`](ROADMAP_v2.md) - Architecture-first development strategy
-- [`UI_README.md`](UI_README.md) - How to use the working ontology generation UI
+- [`docs/current/ROADMAP_v2.md`](docs/current/ROADMAP_v2.md) - Development priorities and roadmap
+- [`docs/current/UI_README.md`](docs/current/UI_README.md) - How to use the working ontology generation UI
 
 ## Lessons Learned
 
