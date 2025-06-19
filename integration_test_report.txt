@@ -1,16 +1,16 @@
 GraphRAG Integration Test Report
 ==================================================
 Suite: GraphRAG Full Integration Test
-Start: 2025-06-18 22:37:55.089001
-End: 2025-06-18 22:37:55.089123
+Start: 2025-06-18 23:54:11.168875
+End: 2025-06-18 23:54:11.169030
 Duration: 0.00 seconds
 
 Summary:
-  Total tests: 12
-  Passed: 7
-  Failed: 5
+  Total tests: 15
+  Passed: 15
+  Failed: 0
   Skipped: 0
-  Success rate: 58.3%
+  Success rate: 100.0%
 
 INTERFACE Tests:
 ------------------------------
@@ -20,8 +20,10 @@ INTERFACE Tests:
 
 DATA_FLOW Tests:
 ------------------------------
-  ❌ Cross-Phase Data Flow (0.000s)
-      Error: name 'phase_registry' is not defined
+  ✅ Validation Format: Phase 1: Basic (0.000s)
+      Details: {'validation_errors': 1}
+  ✅ Validation Format: Phase 2: Enhanced (0.000s)
+      Details: {'validation_errors': 2}
 
 UI_INTEGRATION Tests:
 ------------------------------
@@ -30,20 +32,21 @@ UI_INTEGRATION Tests:
 
 ERROR_HANDLING Tests:
 ------------------------------
-  ❌ Error Test: Missing File (0.000s)
-      Error: name 'phase_registry' is not defined
-  ❌ Error Test: Empty Documents (0.000s)
-      Error: name 'phase_registry' is not defined
-  ❌ Error Test: Empty Queries (0.000s)
-      Error: name 'phase_registry' is not defined
+  ✅ Error Test: Missing File (0.000s)
+      Details: {'validation_errors': 1}
+  ✅ Error Test: Empty Documents (0.000s)
+      Details: {'validation_errors': 1}
+  ✅ Error Test: Empty Queries (0.000s)
+      Details: {'validation_errors': 2}
   ✅ Error Test: Invalid Phase (0.000s)
 
 PERFORMANCE Tests:
 ------------------------------
   ✅ Phase Initialization Performance (0.000s)
-      Details: {'init_time_seconds': 1.2159347534179688e-05}
+      Details: {'init_time_seconds': 1.2636184692382812e-05}
 
 DEPENDENCIES Tests:
 ------------------------------
-  ❌ Service Dependencies Error (0.000s)
-      Error: name 'phase_registry' is not defined
+  ✅ Service Dependencies: Phase 1: Basic (0.000s)
+  ✅ Service Dependencies: Phase 2: Enhanced (0.000s)
+  ✅ Service Dependencies: Phase 3: Multi-Document (0.000s)

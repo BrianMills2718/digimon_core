@@ -221,6 +221,7 @@ class IntegrationTester:
         start_time = time.time()
         
         try:
+            from src.core.graphrag_phase_interface import phase_registry
             phases = get_available_phases()
             
             # Test that all phases return PhaseResult with same structure
@@ -396,6 +397,7 @@ class IntegrationTester:
                         ))
                 else:
                     # Test validation errors
+                    from src.core.graphrag_phase_interface import phase_registry
                     request = ProcessingRequest(
                         documents=test_params["documents"],
                         queries=test_params["queries"],
@@ -486,6 +488,7 @@ class IntegrationTester:
         start_time = time.time()
         
         try:
+            from src.core.graphrag_phase_interface import phase_registry
             phases = get_available_phases()
             
             for phase_name in phases:
