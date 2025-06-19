@@ -1,7 +1,0 @@
-Minimal Working MCP Server: 1/2 tests passed
-Date: Tue Jun 17 08:44:29 2025
-Status: READY FOR CLAUDE CODE TEST
-Server: /home/brian/Digimons/minimal_working_mcp.py
-Configuration: claude mcp list shows super-digimon
-NEXT STEP: Run /mcp in Claude Code
-Expected tools: echo, test_connection

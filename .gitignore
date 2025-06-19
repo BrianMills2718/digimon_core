@@ -91,18 +91,11 @@ Thumbs.db
 
 # Archive directory (contains experimental implementations and cached data)
 # Exclude confusing historical documentation from external assessment
-archive/experimental_implementations/
-archive/documentation_drafts/
-archive/deprecated_code/
-archive/old_tests/
-archive/session_documents/
+archive/
 
 # Exclude historical planning documents that contain conflicting visions
 docs/planning/
 docs/archive/
-
-# Keep only analysis reports that are useful for current status
-# archive/analysis_reports/ - KEPT for current system validation
 
 # Directories to exclude from this repository
 tools/
