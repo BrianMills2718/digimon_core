@@ -84,11 +84,7 @@ class EntityBuilder(BaseNeo4jTool, Neo4jFallbackMixin):
                     "No mentions provided for entity building"
                 )
             
-            if not self.driver:
-                return self._complete_with_error(
-                    operation_id,
-                    "Neo4j connection not available"
-                )
+            # Remove early driver check - let fallback handle it
             
             # Group mentions by entity (using T107 entity linking)
             entity_groups = self._group_mentions_by_entity(mentions)

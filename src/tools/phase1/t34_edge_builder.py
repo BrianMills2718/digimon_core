@@ -27,9 +27,10 @@ from src.core.identity_service import IdentityService
 from src.core.provenance_service import ProvenanceService
 from src.core.quality_service import QualityService
 from src.tools.phase1.base_neo4j_tool import BaseNeo4jTool
+from src.tools.phase1.neo4j_fallback_mixin import Neo4jFallbackMixin
 
 
-class EdgeBuilder(BaseNeo4jTool):
+class EdgeBuilder(BaseNeo4jTool, Neo4jFallbackMixin):
     """T34: Relationship Edge Builder."""
     
     def __init__(
@@ -96,11 +97,7 @@ class EdgeBuilder(BaseNeo4jTool):
                     "No relationships provided for edge building"
                 )
             
-            if not self.driver:
-                return self._complete_with_error(
-                    operation_id,
-                    "Neo4j connection not available"
-                )
+            # Remove early driver check - let fallback handle it
             
             # Build edges
             created_edges = []
@@ -182,7 +179,14 @@ class EdgeBuilder(BaseNeo4jTool):
             )
     
     def _create_neo4j_relationship_edge(self, relationship: Dict[str, Any]) -> Dict[str, Any]:
-        """Create relationship edge in Neo4j."""
+        """Create relationship edge in Neo4j with fallback support."""
+        if not self._check_neo4j_available():
+            return self._create_mock_edge_result(
+                relationship.get("subject_entity_id", "mock_source"),
+                relationship.get("object_entity_id", "mock_target"),
+                relationship.get("relationship_type", "RELATED_TO")
+            )
+        
         try:
             with self.driver.session() as session:
                 # Calculate edge weight

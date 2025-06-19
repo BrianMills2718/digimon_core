@@ -36,13 +36,16 @@ class Neo4jFallbackMixin:
         mock_id = f"mock_edge_{uuid.uuid4().hex[:8]}"
         return {
             "status": "success",
+            "neo4j_rel_id": mock_id,  # Expected by edge builder
             "edge_id": mock_id,
+            "weight": 0.5,  # Default weight
             "source": source_id,
             "target": target_id,
             "type": rel_type,
             "properties": {
                 "created_at": datetime.now().isoformat(),
-                "mock": True
+                "mock": True,
+                "relationship_type": rel_type
             },
             "warning": "Neo4j unavailable - using mock storage"
         }

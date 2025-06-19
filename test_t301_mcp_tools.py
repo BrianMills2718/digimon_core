@@ -89,4 +89,3 @@ if __name__ == "__main__":
         print("Some MCP tool components need attention")
     
     sys.exit(0 if result else 1)
-EOF < /dev/null
