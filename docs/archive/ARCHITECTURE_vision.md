@@ -1,9 +1,10 @@
 # Super-Digimon Architecture - HISTORICAL VISION ⚠️
 
 ## ⚠️ DOCUMENTATION NOTICE
-**This document contains CONFLICTING VISION STATEMENTS from the original design.**  
-**Current Vision**: See `docs/current/VISION_ALIGNMENT_PROPOSAL.md` for unified "GraphRAG-First Universal Analytics" approach.  
-**Status**: This "universal analytical platform" vision conflicts with GraphRAG positioning in other documents.
+**This document contains HISTORICAL VISION CONFLICT - "Universal Analytical Platform" vs "GraphRAG System"**  
+**Issue**: This document states "This is NOT a GraphRAG system" while current roadmap positions as "GraphRAG-First Universal Analytics"  
+**Current Vision**: See `docs/current/VISION_ALIGNMENT_PROPOSAL.md` for resolved positioning  
+**Status**: CONFLICTING - Do not use for current project direction
 
 ## System Overview (Original Vision)
 

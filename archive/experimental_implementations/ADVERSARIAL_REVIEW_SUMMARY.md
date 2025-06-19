@@ -1,4 +1,10 @@
-# Adversarial Review Summary - January 17, 2025
+# Adversarial Review Summary - EXPERIMENTAL IMPLEMENTATION ⚠️
+
+## ⚠️ DOCUMENTATION NOTICE
+**This review documents SPECIFICATION DRIFT from the archived experimental implementation.**  
+**Issue**: Documents T31 tool having "specification drift" where "create entity nodes" became "full community detection"  
+**Current Status**: See `docs/current/CURRENT_REALITY_AUDIT.md` for actual implemented tools  
+**Historical Context**: January 17, 2025
 
 ## What We Tested
 
