@@ -89,15 +89,24 @@ Thumbs.db
 *.crt
 *.p12
 
+# Archive directory (contains experimental implementations and cached data)
+archive/experimental_implementations/data/
+archive/experimental_implementations/__pycache__/
+archive/experimental_implementations/**/__pycache__/
+archive/experimental_implementations/**/*.pyc
+archive/experimental_implementations/**/*.db
+archive/experimental_implementations/**/*.sqlite*
+archive/experimental_implementations/**/*.log
+
 # Directories to exclude from this repository
 tools/
 test_data/
-scripts/
 future_work_not_for_v1/
 docker/
-config/
 docs/reference/structgpt_paper.txt
 docs/reference/agent_research/
+
+# Note: scripts/ and config/ are now tracked as they contain important utilities
 
 # Keep example files
 !.env.example
