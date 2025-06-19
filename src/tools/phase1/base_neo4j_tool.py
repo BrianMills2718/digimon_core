@@ -53,7 +53,15 @@ class BaseNeo4jTool:
                 session.run("RETURN 1")
             print(f"Connected to Neo4j at {uri}")
         except Exception as e:
-            print(f"WARNING: Failed to connect to Neo4j: {e}")
+            error_msg = str(e).lower()
+            if any(keyword in error_msg for keyword in ["connection", "network", "timeout", "unreachable", "refused"]):
+                print(f"WARNING: Neo4j network connection failed: {e}")
+                print("Network connectivity issue - check if Neo4j is running and accessible")
+            elif any(keyword in error_msg for keyword in ["authentication", "auth", "credentials", "unauthorized"]):
+                print(f"WARNING: Neo4j authentication failed: {e}")
+                print("Authentication error - verify username and password are correct")
+            else:
+                print(f"WARNING: Failed to connect to Neo4j: {e}")
             print("Continuing without Neo4j - graph operations will be limited")
             self.driver = None
     

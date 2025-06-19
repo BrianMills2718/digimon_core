@@ -30,6 +30,48 @@ from src.tools.phase1.base_neo4j_tool import BaseNeo4jTool
 from src.tools.phase1.neo4j_fallback_mixin import Neo4jFallbackMixin
 
 
+class MultiHopQueryEngine(BaseNeo4jTool, Neo4jFallbackMixin):
+    """Multi-hop Query Engine - Main interface for query functionality."""
+    
+    def __init__(
+        self,
+        identity_service: IdentityService,
+        provenance_service: ProvenanceService,
+        quality_service: QualityService,
+        neo4j_uri: str = "bolt://localhost:7687",
+        neo4j_user: str = "neo4j",
+        neo4j_password: str = "password",
+        shared_driver: Optional[Driver] = None
+    ):
+        super().__init__(
+            identity_service=identity_service,
+            provenance_service=provenance_service,
+            quality_service=quality_service,
+            neo4j_uri=neo4j_uri,
+            neo4j_user=neo4j_user,
+            neo4j_password=neo4j_password,
+            shared_driver=shared_driver
+        )
+        
+        # Initialize the actual query engine
+        self.query_engine = MultiHopQuery(
+            identity_service=identity_service,
+            provenance_service=provenance_service,
+            quality_service=quality_service,
+            neo4j_uri=neo4j_uri,
+            neo4j_user=neo4j_user,
+            neo4j_password=neo4j_password,
+            shared_driver=shared_driver
+        )
+    
+    def query_graph(self, query_text: str, **kwargs) -> Dict[str, Any]:
+        """Execute multi-hop query."""
+        return self.query_engine.query_graph(query_text, **kwargs)
+    
+    def get_tool_info(self) -> Dict[str, Any]:
+        """Get tool information."""
+        return self.query_engine.get_tool_info()
+
 class MultiHopQuery(BaseNeo4jTool, Neo4jFallbackMixin):
     """T49: Multi-hop Graph Query."""
     

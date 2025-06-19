@@ -92,20 +92,35 @@ class VerticalSliceWorkflow:
     
     def execute_workflow(
         self,
-        pdf_path: str,
-        query: str,
-        workflow_name: str = "PDF_to_Answer_Workflow"
+        pdf_path: str = None,
+        query: str = None,
+        workflow_name: str = "PDF_to_Answer_Workflow",
+        document_paths: List[str] = None,
+        queries: List[str] = None
     ) -> Dict[str, Any]:
         """Execute the complete vertical slice workflow.
         
         Args:
-            pdf_path: Path to PDF file to process
-            query: Question to answer using the graph
+            pdf_path: Path to PDF file to process (deprecated - use document_paths)
+            query: Question to answer using the graph (deprecated - use queries)
             workflow_name: Name for workflow tracking
+            document_paths: List of document paths (new interface)
+            queries: List of queries (new interface)
             
         Returns:
             Complete workflow results with answers
         """
+        # Handle new interface
+        if document_paths:
+            pdf_path = document_paths[0] if document_paths else None
+        if queries:
+            query = queries[0] if queries else "What are the main entities and relationships?"
+        
+        # Validate inputs
+        if not pdf_path:
+            return {"status": "error", "error": "No PDF path provided"}
+        if not query:
+            query = "What are the main entities and relationships?"
         # Start workflow tracking
         workflow_id = self.workflow_service.start_workflow(
             name=workflow_name,

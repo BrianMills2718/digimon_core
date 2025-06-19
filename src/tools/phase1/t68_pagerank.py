@@ -95,7 +95,7 @@ class PageRankCalculator(BaseNeo4jTool, Neo4jFallbackMixin):
             if not self.driver:
                 return self._complete_with_error(
                     operation_id,
-                    "Neo4j connection not available - cannot calculate PageRank"
+                    "Neo4j network connection failed - cannot calculate PageRank. Check if Neo4j is running and network connectivity is available."
                 )
             
             # Load graph from Neo4j
@@ -267,10 +267,22 @@ class PageRankCalculator(BaseNeo4jTool, Neo4jFallbackMixin):
                 }
                 
         except Exception as e:
-            return {
-                "status": "error",
-                "error": f"Failed to load graph from Neo4j: {str(e)}"
-            }
+            error_msg = str(e).lower()
+            if any(keyword in error_msg for keyword in ["connection", "network", "timeout", "unreachable", "refused"]):
+                return {
+                    "status": "error",
+                    "error": f"Neo4j network connection error: {str(e)}. Check database connectivity and network settings."
+                }
+            elif any(keyword in error_msg for keyword in ["authentication", "auth", "credentials", "unauthorized"]):
+                return {
+                    "status": "error", 
+                    "error": f"Neo4j authentication failed: {str(e)}. Verify username and password are correct."
+                }
+            else:
+                return {
+                    "status": "error",
+                    "error": f"Failed to load graph from Neo4j: {str(e)}"
+                }
     
     def _create_networkx_graph(self, graph_data: Dict[str, Any]) -> nx.DiGraph:
         """Create NetworkX directed graph from Neo4j data."""

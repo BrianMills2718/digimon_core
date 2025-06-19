@@ -15,6 +15,7 @@ from collections import defaultdict
 import json
 import re
 import html
+from pathlib import Path
 
 from ..phase2.t31_ontology_graph_builder import OntologyAwareGraphBuilder, GraphBuildResult
 from ..phase2.t23c_ontology_aware_extractor import ExtractionResult
@@ -80,6 +81,38 @@ class EntityCluster:
     confidence: float = 0.0
     evidence: List[str] = field(default_factory=list)
 
+
+class BasicMultiDocumentWorkflow:
+    """Basic multi-document processing workflow."""
+    
+    def __init__(self):
+        self.fusion_engine = MultiDocumentFusion()
+    
+    def process_documents(self, document_paths: List[str]) -> Dict[str, Any]:
+        """Process multiple documents through fusion workflow."""
+        try:
+            # Convert file paths to document refs
+            document_refs = [f"doc_{i}_{Path(path).stem}" for i, path in enumerate(document_paths)]
+            
+            # Execute fusion
+            fusion_result = self.fusion_engine.fuse_documents(
+                document_refs=document_refs,
+                fusion_strategy="evidence_based"
+            )
+            
+            return {
+                "status": "success",
+                "fusion_result": fusion_result.to_dict(),
+                "documents_processed": len(document_paths),
+                "entities_found": fusion_result.entities_after_fusion,
+                "relationships_found": fusion_result.relationships_after_fusion
+            }
+            
+        except Exception as e:
+            return {
+                "status": "error",
+                "error": f"Multi-document processing failed: {str(e)}"
+            }
 
 class MultiDocumentFusion(OntologyAwareGraphBuilder):
     """

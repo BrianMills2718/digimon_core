@@ -6,7 +6,7 @@ import uuid
 from typing import Dict, List, Optional, Set, Tuple
 from datetime import datetime
 import numpy as np
-import openai
+from openai import OpenAI
 from dotenv import load_dotenv
 import sqlite3
 from pathlib import Path
@@ -23,7 +23,7 @@ class EnhancedIdentityService:
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         
         # OpenAI client for embeddings
-        openai.api_key = os.getenv("OPENAI_API_KEY")
+        self.openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
         self.embedding_model = "text-embedding-ada-002"  # Use older model for compatibility
         
         # Initialize database
@@ -82,11 +82,11 @@ class EnhancedIdentityService:
             return self.embedding_cache[text]
         
         try:
-            response = openai.Embedding.create(
+            response = self.openai_client.embeddings.create(
                 model=self.embedding_model,
                 input=text
             )
-            embedding = np.array(response['data'][0]['embedding'])
+            embedding = np.array(response.data[0].embedding)
             self.embedding_cache[text] = embedding
             return embedding
         except Exception as e:

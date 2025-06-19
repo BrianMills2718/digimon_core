@@ -14,7 +14,7 @@ from datetime import datetime
 
 import google.generativeai as genai
 from google.generativeai.types import HarmCategory, HarmBlockThreshold
-import openai
+from openai import OpenAI
 
 from src.core.identity_service import Entity, Relationship, Mention
 from src.core.enhanced_identity_service import EnhancedIdentityService
@@ -73,8 +73,7 @@ class OntologyAwareExtractor:
         # Initialize OpenAI for embeddings
         self.openai_api_key = openai_api_key or os.getenv("OPENAI_API_KEY")
         if self.openai_api_key:
-            openai.api_key = self.openai_api_key
-            self.openai_client = True  # Flag indicating OpenAI is available
+            self.openai_client = OpenAI(api_key=self.openai_api_key)
         else:
             logger.warning("OpenAI API key not provided. Embeddings will use mock values.")
             self.openai_client = None
@@ -340,12 +339,15 @@ Respond ONLY with the JSON."""
             
             try:
                 # Generate embedding
-                response = openai.Embedding.create(
-                    model="text-embedding-ada-002",
-                    input=context
-                )
-                
-                embedding = response['data'][0]['embedding']
+                if self.openai_client:
+                    response = self.openai_client.embeddings.create(
+                        model="text-embedding-ada-002",
+                        input=context
+                    )
+                    embedding = response.data[0].embedding
+                else:
+                    # No OpenAI client available
+                    raise Exception("OpenAI client not available")
                 
                 # Store embedding (would go to Qdrant in production)
                 entity.attributes["embedding"] = embedding
