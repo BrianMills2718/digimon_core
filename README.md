@@ -2,7 +2,7 @@
 
 A GraphRAG system designed for extensibility into broader analytical workflows. Processes documents (PDFs, text) into structured graph databases with plans for universal analytical platform capabilities. Currently implements core GraphRAG pipeline with Neo4j storage.
 
-**🚨 CURRENT STATUS**: Early development system with **Phase 1 working, Phase 2 has API integration issues**. Documentation accuracy restored per CONSISTENCY_FRAMEWORK.md.
+**🚨 CURRENT STATUS**: Early development system with **Phase 1 working, Phase 2 partially functional with integration challenges**. Documentation accuracy restored per CONSISTENCY_FRAMEWORK.md.
 
 ## Quick Start
 
@@ -28,6 +28,9 @@ python -m scripts.test_connection
 PDF Document → Text Extraction → spaCy NER → Neo4j Graph → PageRank
 ```
 
+**Implementation Status**: 13 core GraphRAG tools implemented (11% of original 121-tool vision)  
+**Total Available**: 33 tools (13 core + 20 MCP) - see [TOOL_COUNT_CLARIFICATION.md](docs/current/TOOL_COUNT_CLARIFICATION.md)
+
 **Verified Capabilities**:
 - **PDF Processing**: Extract text from PDFs (tested with 293KB files)
 - **Entity Extraction**: spaCy NER finds PERSON, ORG, GPE, DATE entities (tested: 484 entities from wiki1.pdf)
@@ -38,10 +41,10 @@ PDF Document → Text Extraction → spaCy NER → Neo4j Graph → PageRank
 
 **Performance**: 7.55s processing time (without PageRank) for 293KB PDF - verified metrics from performance optimization
 
-### ❌ Phase 2: Enhanced Pipeline (BROKEN)
-**Status**: Integration failure due to API compatibility issues  
-**Error**: `WorkflowStateService.update_workflow_progress() got an unexpected keyword argument 'current_step'`  
-**Root Cause**: Phase 2 developed against different service API version
+### ⚠️ Phase 2: Enhanced Pipeline (PARTIALLY FUNCTIONAL)
+**Status**: API parameter issue fixed, but integration challenges remain  
+**Fixed**: ~~`current_step` vs `step_number`~~ ✅ RESOLVED (see PHASE2_API_STATUS_UPDATE.md)  
+**Remaining Issues**: Phase 1→2 data flow, Gemini safety filters, integration test gaps
 
 ### 🔧 Phase 3: Standalone Tools (NOT INTEGRATED)
 **T301 Multi-Document Fusion Tools**: Work independently but not integrated into main pipeline
