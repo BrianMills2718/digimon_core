@@ -31,7 +31,11 @@
 | Enhanced Graph Building | ⚠️ Dependent | Blocked by API issue | 2025-06-19 |
 | Interactive Visualization | ⚠️ Dependent | Blocked by API issue | 2025-06-19 |
 
-**Overall Phase 2**: ❌ **BROKEN** - API compatibility issue: expects `document_paths` parameter but uses `pdf_path` parameter, and `current_step` vs `step_number` API mismatch in WorkflowStateService  
+**Overall Phase 2**: ❌ **BROKEN** - Multiple API compatibility issues documented in CONSISTENCY_FRAMEWORK.md  
+**Primary Issues**:  
+- WorkflowStateService API mismatch: `current_step` vs `step_number` parameter inconsistency  
+- Integration failures between Phase 1 → Phase 2 data flow  
+**Verification**: `python tests/integration/test_phase2_integration.py` (expected to fail)  
 **Note**: Phase2Adapter instantiation works (hence adapter tests pass), but full workflow fails due to service API mismatches
 
 ### Phase 3: Multi-Document Fusion
@@ -92,8 +96,14 @@
 ### Framework Compliance
 | Framework | Status | Compliance | Issues |
 |-----------|--------|------------|--------|
-| CONSISTENCY_FRAMEWORK.md | ⚠️ Partial | 75% | Test descriptions vs reality mismatch |
-| API_STANDARDIZATION_FRAMEWORK.md | ❌ Violated | 60% | Phase 2 still has `current_step` issue |
+| CONSISTENCY_FRAMEWORK.md | ⚠️ Partial | 75% | Vision-reality gap documented but not resolved |
+| API_STANDARDIZATION_FRAMEWORK.md | ❌ Critical Violation | 40% | WorkflowStateService parameter mismatch breaks Phase 2 |
+| TECHNICAL_DEBT_AUDIT.md | ✅ Complete | 100% | Comprehensive debt inventory with remediation plan |
+
+**Critical API Violations**:
+- `current_step` vs `step_number` parameter inconsistency
+- `pdf_path` vs `document_paths` signature mismatch  
+- Missing integration testing framework per framework requirements
 
 ### Dependencies
 | Service | Status | Version | Health |
@@ -132,8 +142,11 @@
 
 ### Technical Debt
 - **File Organization**: Current structure needs reorganization (planned)
-- **Test File Consolidation**: Too many ad-hoc test files (planned cleanup)
+- **Test File Consolidation**: Too many ad-hoc test files (planned cleanup)  
 - **Documentation Scattered**: Multiple documentation locations (reorganizing)
+- **Hardcoded Values**: Chunk overlap, entity confidence thresholds, embedding batch sizes need configuration
+- **Integration Testing Gap**: Components tested in isolation, missing cross-phase integration tests
+- **Vision-Reality Gap**: 121-tool vision vs 13 actual implementations requires realistic roadmap
 
 ## 🛠️ Quick Commands
 

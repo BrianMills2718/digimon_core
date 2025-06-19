@@ -8,7 +8,9 @@
 **Secondary Goal**: Extensible platform designed to integrate additional analytical capabilities  
 **Growth Path**: Start with best-in-class GraphRAG, expand to broader analytical workflows over time
 
-This resolves the historical vision inconsistency between "GraphRAG system" and "universal platform" positioning.
+This resolves the historical vision inconsistency between "GraphRAG system" and "universal platform" positioning documented in `docs/current/VISION_ALIGNMENT_PROPOSAL.md`.
+
+**Vision-Reality Reconciliation**: Original vision of 121 universal analytical tools vs current 13 GraphRAG tools (11% implementation) addressed through realistic roadmap in `docs/current/TOOL_ROADMAP_RECONCILIATION.md`.
 
 ## 🎯 Current Status: PHASE 1 FUNCTIONAL, PHASE 2 BROKEN ⚠️
 
