@@ -389,14 +389,14 @@ All tools depend on these core services:
 | T77 | SQLite CRUD | All metadata operations |
 | T121 | State management | Workflow → SQLite checkpoints |
 
-#### FAISS Integration Tools
+#### Qdrant Integration Tools
 | Tool | Operation | Data Flow |
 |------|-----------|-----------|
-| T41-T44 | Embedding creation | Text/Nodes → FAISS vectors |
-| T45-T46 | Index building | Vectors → FAISS indices |
-| T49 | Entity search | Query → FAISS → Entity refs |
-| T56 | Relationship search | Query → FAISS → Relationship refs |
-| T78 | FAISS CRUD | All vector operations |
+| T41-T44 | Embedding creation | Text/Nodes → Qdrant vectors |
+| T45-T46 | Collection building | Vectors → Qdrant collections |
+| T49 | Entity search | Query → Qdrant → Entity refs |
+| T56 | Relationship search | Query → Qdrant → Relationship refs |
+| T78 | Qdrant CRUD | All vector operations |
 
 ## Consistency and Integrity
 

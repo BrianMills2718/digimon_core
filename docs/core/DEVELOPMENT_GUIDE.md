@@ -69,7 +69,7 @@ Create `requirements.txt` in project root:
 # Core dependencies
 mcp==0.9.0
 neo4j==5.14.0
-faiss-cpu==1.7.4
+qdrant-client==1.7.0
 sqlalchemy==2.0.23
 pydantic==2.5.0
 
@@ -99,8 +99,8 @@ NEO4J_URI=bolt://localhost:7687
 NEO4J_USER=neo4j
 NEO4J_PASSWORD=password
 
-# FAISS Configuration
-FAISS_INDEX_PATH=./data/faiss_index
+# Qdrant Configuration
+QDRANT_URL=http://localhost:6333
 
 # SQLite Configuration
 SQLITE_DB_PATH=./data/metadata.db

@@ -158,7 +158,7 @@ All data types inherit from BaseObject and include quality tracking:
 |------|--------|---------|----------------|
 | T76: Neo4j Storage | Any refs | Storage confirmation | No quality change |
 | T77: SQLite Storage | Metadata | Storage confirmation | No quality change |
-| T78: FAISS Storage | Embedding refs | Index confirmation | No quality change |
+| T78: Qdrant Storage | Embedding refs | Collection confirmation | No quality change |
 
 ### Phase 7: Interface (T82-T106)
 
@@ -206,8 +206,8 @@ T31 (Entity Building) - Uses T107 Identity Service
 T34 (Relationship Building)
     ↓ [Relationships with min entity confidence] → Neo4j storage
 T41 (Entity Embeddings)
-    ↓ [Vector representations] → FAISS storage
-T76 (Neo4j Storage) + T77 (SQLite Storage) + T78 (FAISS Storage)
+    ↓ [Vector representations] → Qdrant storage
+T76 (Neo4j Storage) + T77 (SQLite Storage) + T78 (Qdrant Storage)
 ```
 
 ### 2. Graph to Statistical Analysis
@@ -343,14 +343,14 @@ This contract system enables:
 ### Storage Distribution Strategy
 - **Neo4j**: Entities, relationships, communities, graph structure
 - **SQLite**: Mentions, documents, chunks, workflow state, provenance, quality scores
-- **FAISS**: Entity embeddings, chunk embeddings, similarity indices
+- **Qdrant**: Entity embeddings, chunk embeddings, similarity collections
 
 ### Reference Resolution System
 All tools must use the universal reference format:
 ```
 neo4j://entity/ent_12345
 sqlite://mention/mention_67890  
-faiss://embedding/vec_54321
+qdrant://embedding/vec_54321
 ```
 
 ### Quality Tracking Integration
@@ -362,7 +362,7 @@ Every database operation must:
 
 ### Transaction Coordination
 Multi-database operations require:
-1. FAISS operations first (non-transactional)
+1. Qdrant operations first (limited transactional)
 2. Neo4j and SQLite in coordinated transactions
 3. Rollback procedures for partial failures
 4. Integrity validation across databases
@@ -383,8 +383,8 @@ Multi-database operations require:
 
 ### Multi-Database Workflows
 Test complete data flows across all three databases:
-1. Document → SQLite → Entity extraction → Neo4j → Embeddings → FAISS
-2. Query → FAISS search → Neo4j enrichment → SQLite provenance
+1. Document → SQLite → Entity extraction → Neo4j → Embeddings → Qdrant
+2. Query → Qdrant search → Neo4j enrichment → SQLite provenance
 3. Analysis → Neo4j algorithms → Statistical conversion → Results storage
 
 ### Consistency Validation

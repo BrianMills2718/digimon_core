@@ -7,9 +7,9 @@
 
 ## Overview (Original Vision)
 
-The original vision was for a GraphRAG system with **121 specialized tools** organized into 7 lifecycle phases plus critical infrastructure services. This document provides the specification for that aspirational vision.
+The original vision was for a GraphRAG-First Universal Analytics system with **121 planned specialized tools** organized into 7 lifecycle phases plus critical infrastructure services. This document provides the specification for that aspirational vision.
 
-**Current Reality**: 13 tools implemented (11% of original vision)  
+**Current Reality**: 13 tools implemented (11% of planned tools)  
 **Realistic Roadmap**: Phase 1 (20 tools) → Phase 2 (35 tools) → Phase 3 (60 tools)
 
 **Update**: Added 14 new tools (T107-T120) based on mock workflow analysis, including identity services, format converters, and advanced capabilities.
@@ -330,10 +330,10 @@ Generate inductive node embeddings
 - `features`: array - Node features
 - `dimensions`: integer (default: 128)
 
-### T45: FAISS Vector Indexer
-Build FAISS vector index
+### T45: Qdrant Vector Indexer
+Build Qdrant vector index
 - `embeddings`: array - Vector embeddings
-- `index_type`: string (default: "IVF")
+- `collection_name`: string - Collection identifier
 
 ### T46: Annoy Vector Indexer
 Build Annoy vector index
@@ -512,10 +512,10 @@ SQLite metadata operations
 - `table`: string - Table name
 - `data`: dict - Data to operate on
 
-### T78: FAISS Manager
-FAISS index operations
+### T78: Qdrant Manager
+Qdrant vector database operations
 - `operation`: string - add/search/save/load
-- `index`: faiss.Index
+- `collection`: string - Collection name
 - `vectors`: array (optional)
 
 ### T79: Backup System
@@ -688,7 +688,7 @@ Explore transformation history
 ### Storage Architecture
 - **Neo4j**: Primary graph database (entities, relationships, communities)
 - **SQLite**: Metadata storage (documents, configuration)
-- **FAISS**: Vector search indices
+- **Qdrant**: Vector search database (replacing FAISS per architectural decision)
 - **Cache**: Computation results (Redis/DiskCache)
 
 ### Key Architectural Patterns
