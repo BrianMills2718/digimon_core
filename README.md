@@ -43,7 +43,7 @@ PDF Document → Text Extraction → spaCy NER → Neo4j Graph → PageRank
 
 ### ⚠️ Phase 2: Enhanced Pipeline (PARTIALLY FUNCTIONAL)
 **Status**: API parameter issue fixed, but integration challenges remain  
-**Fixed**: ~~`current_step` vs `step_number`~~ ✅ RESOLVED  
+**Fixed**: ~~`current_step` vs `step_number`~~ ✅ RESOLVED (see [PHASE2_API_STATUS_UPDATE.md](docs/current/PHASE2_API_STATUS_UPDATE.md))  
 **Remaining Issues**: Phase 1→2 data flow, Gemini safety filters, integration test gaps
 
 ### 🔧 Phase 3: Multi-Document Fusion (FUNCTIONAL AS STANDALONE - NOT INTEGRATED)
@@ -85,11 +85,12 @@ python start_graphrag_ui.py
 # Then visit http://localhost:8501
 ```
 
-### Verify What's Broken
+### Verify Phase 2 Status
 ```bash
-# Try Phase 2 (will show API compatibility error)
+# Test Phase 2 (API issue fixed but integration challenges remain)
 # Select "Phase 2: Enhanced" in UI and upload document
-# Expected error: "WorkflowStateService.update_workflow_progress() got an unexpected keyword argument 'current_step'"
+# Note: The previous 'current_step' error has been FIXED - see docs/current/PHASE2_API_STATUS_UPDATE.md
+# Current issues: Data flow integration and Gemini API safety filters
 ```
 
 ## Current Project Structure (Reality)

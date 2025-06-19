@@ -47,7 +47,7 @@
 4. **Query timeout**: Hardcoded 30 seconds
 
 ### Integration Problems
-1. **Phase 1→2**: ~~API mismatch (`current_step` vs `step_number`)~~ **FIXED** - Still has data flow integration challenges
+1. **Phase 1→2**: ~~API mismatch (`current_step` vs `step_number`)~~ **FIXED** (see [PHASE2_API_STATUS_UPDATE.md](PHASE2_API_STATUS_UPDATE.md)) - Still has data flow integration challenges
 2. **Phase 2→3**: No standard interface defined
 3. **UI coupling**: Direct tool calls instead of abstraction
 4. **Phase 2 Specific**: Gemini API safety filters blocking legitimate content

@@ -80,17 +80,18 @@ python tests/integration/test_api_contracts.py
 **Issue**: Inconsistent naming conventions leading to WorkflowStateService-type failures  
 **Impact**: Complete integration breakdown between phases, violates API_STANDARDIZATION_FRAMEWORK.md
 
-#### Parameter Naming Inconsistencies
+#### Parameter Naming Inconsistencies (current_step issue FIXED)
 ```python
 # WorkflowStateService expects:
 def update_workflow_progress(self, workflow_id: str, step_number: int, status: str)
 
-# Phase 2 calls with:
+# Phase 2 PREVIOUSLY called with (FIXED in commit c7d5fa4):
 workflow_service.update_workflow_progress(
     workflow_id="test",
-    current_step=9,  # ❌ Should be step_number
-    metadata={}      # ❌ Should be status
+    current_step=9,  # ✅ FIXED - Now uses step_number
+    metadata={}      # ✅ FIXED - Now uses status
 )
+# Fix documented in: docs/current/PHASE2_API_STATUS_UPDATE.md
 
 # Document processing inconsistencies:
 execute_workflow(pdf_path="...")           # Phase 1 signature

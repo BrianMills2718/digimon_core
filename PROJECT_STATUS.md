@@ -33,7 +33,7 @@
 
 **Overall Phase 2**: ⚠️ **PARTIALLY FUNCTIONAL** - API parameter issue fixed, but integration challenges remain  
 **Primary Issues**:  
-- ~~WorkflowStateService API mismatch: `current_step` vs `step_number`~~ ✅ FIXED  
+- ~~WorkflowStateService API mismatch: `current_step` vs `step_number`~~ ✅ FIXED (see [docs/current/PHASE2_API_STATUS_UPDATE.md](docs/current/PHASE2_API_STATUS_UPDATE.md))  
 - Integration failures between Phase 1 → Phase 2 data flow  
 - Gemini API safety filters blocking legitimate content  
 **Verification**: `python tests/integration/test_phase2_integration.py`  
@@ -100,13 +100,13 @@
 | Framework | Status | Compliance | Issues |
 |-----------|--------|------------|--------|
 | CONSISTENCY_FRAMEWORK.md | ⚠️ Partial | 75% | Vision-reality gap documented but not resolved |
-| API_STANDARDIZATION_FRAMEWORK.md | ❌ Critical Violation | 40% | WorkflowStateService parameter mismatch breaks Phase 2 |
+| API_STANDARDIZATION_FRAMEWORK.md | ⚠️ Improved | 70% | Historical violation fixed (see [docs/current/PHASE2_API_STATUS_UPDATE.md](docs/current/PHASE2_API_STATUS_UPDATE.md)) |
 | TECHNICAL_DEBT_AUDIT.md | ✅ Complete | 100% | Comprehensive debt inventory with remediation plan |
 
-**Critical API Violations**:
-- `current_step` vs `step_number` parameter inconsistency
-- `pdf_path` vs `document_paths` signature mismatch  
-- Missing integration testing framework per framework requirements
+**Framework Compliance Issues**:
+- ~~`current_step` vs `step_number` parameter inconsistency~~ ✅ FIXED
+- `pdf_path` vs `document_paths` signature variations remain  
+- Missing comprehensive integration testing framework per framework requirements
 
 ### Dependencies
 | Service | Status | Version | Health |
@@ -130,9 +130,7 @@
 1. **PageRank Performance**: 86% of processing time - acceptable for current use
 2. **Gemini Safety Filters**: Blocks some content - pattern-based fallback working  
 3. **Neo4j Warnings**: Multiple record warnings - functional but verbose
-4. **Phase 2 API Mismatch**: WorkflowStateService parameter incompatibility
-   - **Verification**: Try Phase 2 workflow in UI → see `current_step` error
-   - **Root Cause**: Violates API_STANDARDIZATION_FRAMEWORK.md
+4. **Phase 2 Integration**: Data flow and integration testing gaps (API mismatch fixed - see [docs/current/PHASE2_API_STATUS_UPDATE.md](docs/current/PHASE2_API_STATUS_UPDATE.md))
 
 ### Resolved Issues ✅
 1. ✅ **Phase 2 Entity Extraction Failures** - Fixed with pattern-based fallback

@@ -11,7 +11,7 @@ Super-Digimon was conceived as a universal analytical platform with 121 speciali
 
 ### Current Reality
 - **Phase 1**: Basic GraphRAG pipeline working (8 tools)
-- **Phase 2**: Ontology enhancement broken (integration failure)
+- **Phase 2**: Ontology enhancement partially functional (API fixed, integration challenges remain)
 - **Phase 3**: Multi-document fusion standalone only (5 tools)
 - **Total**: 13 of 121 planned tools implemented (~11%)
 
@@ -32,7 +32,7 @@ Super-Digimon was conceived as a universal analytical platform with 121 speciali
 │  ┌─────────────────┐  ┌─────────────────┐  ┌──────────────┐ │
 │  │    Phase 1      │  │    Phase 2      │  │   Phase 3    │ │
 │  │ (Basic Pipeline)│  │ (Ontology-Aware)│  │(Multi-Doc)   │ │
-│  │   ✅ WORKS      │  │  ❌ BROKEN      │  │ 🔧 STANDALONE│ │
+│  │   ✅ WORKS      │  │  ⚠️ PARTIAL     │  │ 🔧 STANDALONE│ │
 │  └─────────────────┘  └─────────────────┘  └──────────────┘ │
 └─────────────────────────────────────────────────────────────┐
 ┌─────────────────────────────────────────────────────────────┐
@@ -64,14 +64,15 @@ execute_enhanced_workflow(pdf_path: str, domain_description: str,
                          queries: List[str], workflow_name: str)
 ```
 
-### 2. Service API Evolution
-WorkflowStateService changed without backward compatibility:
+### 2. Service API Evolution (HISTORICAL - NOW FIXED)
+WorkflowStateService had a parameter mismatch that has been resolved:
 ```python
-# Phase 1 expects
-update_workflow_progress(workflow_id, step_number, status)
+# Historical issue (FIXED in commit c7d5fa4):
+# Phase 1 expected: update_workflow_progress(workflow_id, step_number, status)
+# Phase 2 called: update_workflow_progress(workflow_id, current_step=9, metadata={})
 
-# Phase 2 calls
-update_workflow_progress(workflow_id, current_step=9, metadata={})
+# Current: Both phases now use consistent parameter names
+# See docs/current/PHASE2_API_STATUS_UPDATE.md for fix details
 ```
 
 ### 3. No Integration Testing

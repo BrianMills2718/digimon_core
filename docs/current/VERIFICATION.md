@@ -89,24 +89,23 @@ try:
         ['Test query'],
         'test_workflow'
     )
-    print('❌ UNEXPECTED: Phase 2 should have failed with API error')
+    print('✓ SUCCESS: Phase 2 API issue has been FIXED (see docs/current/PHASE2_API_STATUS_UPDATE.md)')
 except Exception as e:
-    if 'current_step' in str(e):
-        print(f'✓ EXPECTED: Phase 2 fails with API error: {e}')
-    else:
-        print(f'❌ UNEXPECTED ERROR: {e}')
+    # Note: The previous 'current_step' error has been fixed
+    print(f'⚠️ Different error (integration challenges remain): {e}')
 "
 ```
 
 ### UI Phase 2 Testing (Manual)
 ```bash
-# Manual test to demonstrate UI integration failure
+# Manual test to check Phase 2 status (API fixed, integration challenges remain)
 python start_graphrag_ui.py
 # 1. Visit http://localhost:8501
 # 2. Select "Phase 2: Enhanced" in sidebar
 # 3. Upload any PDF
 # 4. Click "Process Documents"  
-# 5. Expected: Error message about 'current_step' parameter
+# 5. Note: Previous 'current_step' error is FIXED - see docs/current/PHASE2_API_STATUS_UPDATE.md
+# 6. Current issues: Data flow integration and Gemini API safety filters
 ```
 
 ## 🔧 Phase 3 Verification (Standalone Only)

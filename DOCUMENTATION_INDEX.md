@@ -76,6 +76,7 @@ config/
 | [docs/current/TOOL_COUNT_CLARIFICATION.md](./docs/current/TOOL_COUNT_CLARIFICATION.md) | Resolves tool count discrepancies | Understanding implementation progress |
 | [docs/current/TOOL_COUNT_METHODOLOGY.md](./docs/current/TOOL_COUNT_METHODOLOGY.md) | Standardized tool counting method | Official counting standard |
 | [docs/current/INTEGRATION_TESTING_GAP_ANALYSIS.md](./docs/current/INTEGRATION_TESTING_GAP_ANALYSIS.md) | Critical testing coverage gaps | Test planning and honesty |
+| [docs/current/PHASE2_API_STATUS_UPDATE.md](./docs/current/PHASE2_API_STATUS_UPDATE.md) | Phase 2 API fix documentation | Understanding resolved issues |
 | [archive/analysis_reports/](./archive/analysis_reports/) | Historical analysis and test reports | Troubleshooting reference |
 
 ## 🧪 Testing and Validation

@@ -61,11 +61,11 @@ python start_graphrag_ui.py  # → http://localhost:8501
 
 ### **Understand Integration Problem**
 ```bash
-# Demonstrate Phase 2 API failure
+# Test Phase 2 status (API issue fixed, integration challenges remain)
 # 1. python start_graphrag_ui.py
 # 2. Select "Phase 2: Enhanced" 
 # 3. Upload any PDF
-# 4. Expected error: "current_step" parameter issue
+# 4. Note: Previous "current_step" error is FIXED - see PHASE2_API_STATUS_UPDATE.md
 ```
 
 ## 📋 **Key Files by Purpose**
@@ -105,10 +105,11 @@ python test_ui_integration.py --all-phases
 
 ## 🚨 **Current Critical Issues**
 
-### **Phase 1→2 Integration Broken**
-- **Error**: `WorkflowStateService.update_workflow_progress() got an unexpected keyword argument 'current_step'`
-- **Root cause**: API compatibility break between phases
-- **User impact**: UI crashes when switching from Phase 1 to Phase 2
+### **Phase 1→2 Integration Challenges**
+- **Previous Error**: ~~`WorkflowStateService.update_workflow_progress() got an unexpected keyword argument 'current_step'`~~ ✅ FIXED
+- **Current Issues**: Data flow integration gaps, Gemini API safety filters
+- **User impact**: Phase 2 partially functional but needs comprehensive integration testing
+- **Fix documentation**: See [PHASE2_API_STATUS_UPDATE.md](PHASE2_API_STATUS_UPDATE.md)
 
 ### **Documentation Dysfunction Fixed**
 - **Problem**: Systematic inflation of capabilities (claimed 121 tools, had 23 files)
