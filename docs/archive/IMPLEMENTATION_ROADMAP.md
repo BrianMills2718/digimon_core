@@ -1,4 +1,11 @@
-# Implementation Roadmap v2 - Universal Analytical Platform
+# Implementation Roadmap v2 - HISTORICAL VISION ⚠️
+
+## ⚠️ DOCUMENTATION NOTICE - VISION CONFLICT RESOLVED
+**This document contains HISTORICAL VISION CONFLICT - NOW RESOLVED**  
+**Historical Conflict**: This document claimed "Universal Analytical Platform" vs current "GraphRAG-First Universal Analytics"  
+**Resolution**: Adopted hybrid "GraphRAG-First Universal Analytics" positioning per `docs/current/VISION_ALIGNMENT_PROPOSAL.md`  
+**Current Status**: HISTORICAL REFERENCE - Vision conflict resolved, document kept for roadmap context  
+**Active Vision**: GraphRAG system designed for extensibility into broader analytical workflows
 
 **Updated**: 2025-06-17 - Reflects MCP ecosystem integration, LLM enhancement, and universal analytical platform vision
 
@@ -15,7 +22,7 @@
 
 ## Vision: Universal Analytical Platform
 
-**Core Innovation**: Claude Code as intelligent analytical orchestrator that dynamically selects optimal data formats (graphs, tables, vectors) and seamlessly orchestrates analysis across 121 specialized tools + MCP server ecosystem.
+**Core Innovation**: Claude Code as intelligent analytical orchestrator that dynamically selects optimal data formats (graphs, tables, vectors) and seamlessly orchestrates analysis across 121 planned specialized tools + MCP server ecosystem. (Note: Currently 13 tools implemented - 11% of vision)
 
 **Not GraphRAG**: This is a format-agnostic analytical platform that happens to include graph capabilities, not a graph-centric system.
 

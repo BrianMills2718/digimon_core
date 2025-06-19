@@ -1,4 +1,10 @@
-"""Enhanced Identity Service using FAISS for vector similarity search"""
+"""Enhanced Identity Service using FAISS for vector similarity search
+
+⚠️  ARCHITECTURAL NOTE: This is a legacy FAISS implementation.
+Current planning documents indicate a switch to Qdrant for better flexibility and filtering.
+See docs/planning/2025.06172110_planning_needs_to_be_integrated.md for the architectural decision.
+This file is kept for backward compatibility but new development should use Qdrant.
+"""
 
 import os
 import json
