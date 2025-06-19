@@ -7,7 +7,7 @@ import tempfile
 from pathlib import Path
 
 # Add project root to path  
-project_root = Path(__file__).parent
+project_root = Path(__file__).parent.parent.parent  # Go up from tests/functional/
 sys.path.insert(0, str(project_root))
 
 def test_phase1_functional():
