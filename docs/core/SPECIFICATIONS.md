@@ -1,8 +1,16 @@
-# Super-Digimon Tool Specifications
+# GraphRAG Tool Specifications
 
-## Overview
+## ⚠️ DOCUMENTATION NOTICE
+**This document contains ASPIRATIONAL SPECIFICATIONS from the original 121-tool vision.**  
+**Current Reality**: Only 13 tools are implemented. See `docs/current/CURRENT_REALITY_AUDIT.md` and `docs/current/TOOL_ROADMAP_RECONCILIATION.md` for accurate status.  
+**Status**: This represents the original vision, not current implementation.
 
-Super-Digimon is a GraphRAG system with **121 specialized tools** organized into 7 lifecycle phases plus critical infrastructure services. This document provides the authoritative specification for all tools.
+## Overview (Original Vision)
+
+The original vision was for a GraphRAG system with **121 specialized tools** organized into 7 lifecycle phases plus critical infrastructure services. This document provides the specification for that aspirational vision.
+
+**Current Reality**: 13 tools implemented (11% of original vision)  
+**Realistic Roadmap**: Phase 1 (20 tools) → Phase 2 (35 tools) → Phase 3 (60 tools)
 
 **Update**: Added 14 new tools (T107-T120) based on mock workflow analysis, including identity services, format converters, and advanced capabilities.
 

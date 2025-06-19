@@ -1,8 +1,13 @@
-# Milestone 2: Vertical Slice Implementation - COMPLETED ✅
+# Milestone 2: Vertical Slice Implementation - HISTORICAL CLAIM ⚠️
 
-## Summary
+## ⚠️ DOCUMENTATION NOTICE
+**This document contains HISTORICAL CLAIMS from the experimental implementation.**  
+**Current Reality**: See `docs/current/CURRENT_REALITY_AUDIT.md` for accurate system status.  
+**Status**: This milestone claim was from the archived experimental implementation and does not reflect the current active system.
 
-We have successfully completed Milestone 2, demonstrating a complete GraphRAG workflow from PDF ingestion through natural language answer generation using OpenAI's GPT-3.5-turbo.
+## Summary (Historical)
+
+This document claimed completion of Milestone 2, demonstrating a complete GraphRAG workflow from PDF ingestion through natural language answer generation using OpenAI's GPT-3.5-turbo.
 
 ## What Was Achieved
 

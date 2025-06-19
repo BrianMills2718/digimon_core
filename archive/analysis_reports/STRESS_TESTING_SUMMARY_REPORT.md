@@ -42,6 +42,8 @@ This report presents the results of comprehensive stress testing performed on th
 ### ⚠️ **AREAS FOR IMPROVEMENT: Policy Compliance Issues**
 
 #### 1. **Error Message Clarity: NEEDS IMPROVEMENT ❌**
+**Note**: This conflicts with UI_ERROR_HANDLING_ANALYSIS_REPORT.md which rated UI error handling as "A+ Outstanding (98.7/100)". The difference is that this assessment covers extreme stress scenarios while the UI report covered normal operation error cases.
+
 - **Issue**: Only 33.3% of stress scenarios provide sufficiently clear error messages
 - **Impact**: Users may not understand why operations failed under stress
 - **Specific Problems**:

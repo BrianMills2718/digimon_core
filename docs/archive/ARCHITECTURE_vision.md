@@ -1,8 +1,13 @@
-# Super-Digimon Architecture
+# Super-Digimon Architecture - HISTORICAL VISION ⚠️
 
-## System Overview
+## ⚠️ DOCUMENTATION NOTICE
+**This document contains CONFLICTING VISION STATEMENTS from the original design.**  
+**Current Vision**: See `docs/current/VISION_ALIGNMENT_PROPOSAL.md` for unified "GraphRAG-First Universal Analytics" approach.  
+**Status**: This "universal analytical platform" vision conflicts with GraphRAG positioning in other documents.
 
-Super-Digimon is a **universal analytical platform** that provides format-agnostic data processing through **121 specialized tools** organized in **8 phases**. The system dynamically selects optimal data structures (graphs, tables, vectors) and seamlessly transforms between formats to enable sophisticated multi-step analytical workflows.
+## System Overview (Original Vision)
+
+This document originally described Super-Digimon as a **universal analytical platform** that provides format-agnostic data processing through **121 specialized tools** organized in **8 phases**. The system was envisioned to dynamically select optimal data structures (graphs, tables, vectors) and seamlessly transform between formats to enable sophisticated multi-step analytical workflows.
 
 **Key Innovation**: Claude Code serves as the analytical intelligence that interprets natural language requests and orchestrates optimal tool sequences, choosing the most appropriate data format (graph, table, vector) for each analytical step. This enables complex workflows that combine graph algorithms, statistical analysis, machine learning, and visualization in a single coherent process.
 

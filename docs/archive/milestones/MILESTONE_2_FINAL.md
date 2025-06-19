@@ -1,8 +1,13 @@
-# Milestone 2: TRUE GraphRAG Implementation - COMPLETED ✅
+# Milestone 2: TRUE GraphRAG Implementation - HISTORICAL CLAIM ⚠️
 
-## Executive Summary
+## ⚠️ DOCUMENTATION NOTICE
+**This document contains HISTORICAL CLAIMS from the experimental implementation.**  
+**Current Reality**: See `docs/current/CURRENT_REALITY_AUDIT.md` for accurate system status.  
+**Status**: This milestone claim was from the archived experimental implementation and does not reflect the current active system.
 
-We have successfully implemented a TRUE GraphRAG system that passes adversarial testing. The system now creates and traverses actual knowledge graphs with typed relationships, not just isolated entities.
+## Executive Summary (Historical)
+
+This document claimed successful implementation of a TRUE GraphRAG system that passes adversarial testing. The system was described as creating and traversing actual knowledge graphs with typed relationships, not just isolated entities.
 
 ## What Was Achieved
 

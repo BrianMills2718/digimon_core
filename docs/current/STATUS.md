@@ -18,7 +18,7 @@
   - spaCy NER extraction (12 entity types: PERSON, ORG, GPE, DATE, etc.)
   - Neo4j graph storage and PageRank calculation (fails but doesn't break extraction)
   - Multi-hop querying and relationship analysis
-- **Performance**: ~3.7s processing time for 293KB PDF
+- **Performance**: ⚠️ **DISCREDITED CLAIM REMOVED** - See `PERFORMANCE_CLAIMS_VERIFICATION.md` for current verified performance (7.55s without PageRank, 54s with PageRank)
 - **Quality**: Real entity extraction with confidence scores
 - **UI Integration**: ✅ Works perfectly in web interface
 
