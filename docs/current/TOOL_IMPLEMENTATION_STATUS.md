@@ -1,13 +1,13 @@
 # Tool Implementation Status
 
-**Last Updated**: 2025-06-18  
+**Last Updated**: 2025-06-19  
 **Note**: This tracks which tools are implemented, NOT whether they integrate properly.
 
 ## 📊 Implementation Summary
 
 - **Implemented**: 13 of planned 121 tools (~11%)
 - **Phase 1**: 8 tools (working in integration)
-- **Phase 2**: 2 tools (broken integration)
+- **Phase 2**: 2 tools (partially functional - API fixed, integration challenges remain)
 - **Phase 3**: 5 tools (standalone only)
 
 ## ✅ Implemented Tools
@@ -22,9 +22,9 @@
 - **T34**: EdgeBuilder - Relationship edge creation
 - **T41**: TextEmbedder - Vector embeddings
 
-### Phase 2: Ontology (BROKEN INTEGRATION)
-- **T23c**: OntologyAwareExtractor - Enhanced entity extraction
-- **T31**: OntologyGraphBuilder - Ontology-based graph construction
+### Phase 2: Ontology (PARTIALLY FUNCTIONAL)
+- **T23c**: OntologyAwareExtractor - Enhanced entity extraction (API fixed, integration testing needed)
+- **T31**: OntologyGraphBuilder - Ontology-based graph construction (API fixed, integration testing needed)
 
 ### Phase 3: Analysis (STANDALONE ONLY)
 - **T301**: Multi-document fusion tools (5 sub-tools)
@@ -47,9 +47,10 @@
 4. **Query timeout**: Hardcoded 30 seconds
 
 ### Integration Problems
-1. **Phase 1→2**: API mismatch (`current_step` vs `step_number`)
+1. **Phase 1→2**: ~~API mismatch (`current_step` vs `step_number`)~~ **FIXED** - Still has data flow integration challenges
 2. **Phase 2→3**: No standard interface defined
 3. **UI coupling**: Direct tool calls instead of abstraction
+4. **Phase 2 Specific**: Gemini API safety filters blocking legitimate content
 
 ## 📋 Testing Commands
 
@@ -57,7 +58,7 @@
 # Test Phase 1 (should work)
 python test_phase1_direct.py
 
-# Test Phase 2 (will fail on integration)
+# Test Phase 2 (API fixed but integration challenges remain)
 python test_phase2_adversarial.py
 
 # Test Phase 3 standalone
@@ -71,4 +72,9 @@ Tool implementation ≠ System integration. Many tools work in isolation but fai
 - Service API evolution
 - No integration testing framework
 
-See [`ARCHITECTURE.md`](ARCHITECTURE.md) for integration issues.
+**Phase 2 Status Update**: The `current_step` vs `step_number` API issue has been **FIXED** (see `PHASE2_API_STATUS_UPDATE.md`). However, Phase 2 still faces integration challenges including:
+- Data flow issues between Phase 1 → Phase 2
+- Gemini API safety filters blocking legitimate content  
+- Need for comprehensive end-to-end integration tests
+
+See [`ARCHITECTURE.md`](ARCHITECTURE.md) for integration issues and [`PHASE2_API_STATUS_UPDATE.md`](PHASE2_API_STATUS_UPDATE.md) for the API fix details.
