@@ -84,7 +84,11 @@ class EntityBuilder(BaseNeo4jTool, Neo4jFallbackMixin):
                     "No mentions provided for entity building"
                 )
             
-            # Remove early driver check - let fallback handle it
+            if not self.driver:
+                return self._complete_with_error(
+                    operation_id,
+                    "Neo4j connection not available - cannot build entity graph"
+                )
             
             # Group mentions by entity (using T107 entity linking)
             entity_groups = self._group_mentions_by_entity(mentions)
@@ -208,9 +212,12 @@ class EntityBuilder(BaseNeo4jTool, Neo4jFallbackMixin):
         entity_info: Dict[str, Any], 
         mentions: List[Dict[str, Any]]
     ) -> Dict[str, Any]:
-        """Create entity node in Neo4j with fallback support."""
-        if not self._check_neo4j_available():
-            return self._create_mock_entity_result(entity_info)
+        """Create entity node in Neo4j."""
+        if not self.driver:
+            return {
+                "status": "error",
+                "error": "Neo4j connection not available - cannot store entities"
+            }
         
         try:
             with self.driver.session() as session:

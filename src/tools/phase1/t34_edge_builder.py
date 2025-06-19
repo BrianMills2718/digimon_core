@@ -97,7 +97,11 @@ class EdgeBuilder(BaseNeo4jTool, Neo4jFallbackMixin):
                     "No relationships provided for edge building"
                 )
             
-            # Remove early driver check - let fallback handle it
+            if not self.driver:
+                return self._complete_with_error(
+                    operation_id,
+                    "Neo4j connection not available - cannot build relationship graph"
+                )
             
             # Build edges
             created_edges = []
@@ -179,13 +183,12 @@ class EdgeBuilder(BaseNeo4jTool, Neo4jFallbackMixin):
             )
     
     def _create_neo4j_relationship_edge(self, relationship: Dict[str, Any]) -> Dict[str, Any]:
-        """Create relationship edge in Neo4j with fallback support."""
-        if not self._check_neo4j_available():
-            return self._create_mock_edge_result(
-                relationship.get("subject_entity_id", "mock_source"),
-                relationship.get("object_entity_id", "mock_target"),
-                relationship.get("relationship_type", "RELATED_TO")
-            )
+        """Create relationship edge in Neo4j."""
+        if not self.driver:
+            return {
+                "status": "error",
+                "error": "Neo4j connection not available - cannot store relationships"
+            }
         
         try:
             with self.driver.session() as session:

@@ -102,24 +102,11 @@ class MultiHopQuery(BaseNeo4jTool, Neo4jFallbackMixin):
                     "Query text cannot be empty"
                 )
             
-            if not self._check_neo4j_available():
-                # Return mock query result
-                mock_result = self._create_mock_query_result(query_text)
-                
-                # Complete operation
-                completion_result = self.provenance_service.complete_operation(
-                    operation_id=operation_id,
-                    outputs=[],
-                    success=True,
-                    metadata={
-                        "mock_data": True,
-                        "neo4j_unavailable": True
-                    }
+            if not self.driver:
+                return self._complete_with_error(
+                    operation_id,
+                    "Neo4j connection not available - cannot query graph"
                 )
-                
-                mock_result["operation_id"] = operation_id
-                mock_result["provenance"] = completion_result
-                return mock_result
             
             max_hops = max(1, min(self.max_hops, max_hops))  # Clamp to valid range
             result_limit = max(1, min(self.max_results, result_limit))
