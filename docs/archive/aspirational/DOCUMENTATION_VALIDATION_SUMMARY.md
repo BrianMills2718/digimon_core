@@ -15,7 +15,7 @@
 - **Resolution**: 
   - Added missing T28 (Entity Confidence Scorer) in proper sequence
   - Confirmed all T107-T121 Core Services are fully specified
-  - Updated all tool count references to accurately reflect 121 tools
+  - Updated all tool count references to accurately reflect 121 planned tools (13 implemented in current reality)
 
 #### 2. Missing Core Services Specifications - RESOLVED
 - **Issue**: T107-T121 (Phase 8 Core Services) were mentioned but not fully specified
