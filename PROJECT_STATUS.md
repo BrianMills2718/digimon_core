@@ -141,12 +141,14 @@
 7. ✅ **Integration Test Failures** - Achieved 100% pass rate
 
 ### Technical Debt
-- **File Organization**: Current structure needs reorganization (planned)
+- **File Organization**: Documentation consolidated, code reorganization pending per REORGANIZATION_PLAN.md
 - **Test File Consolidation**: Too many ad-hoc test files (planned cleanup)  
-- **Documentation Scattered**: Multiple documentation locations (reorganizing)
+- **Documentation Scattered**: Mostly resolved - see CONSOLIDATION_COMPLETE.md
 - **Hardcoded Values**: Chunk overlap, entity confidence thresholds, embedding batch sizes need configuration
 - **Integration Testing Gap**: Components tested in isolation, missing cross-phase integration tests
-- **Vision-Reality Gap**: 121-tool vision vs 13 actual implementations requires realistic roadmap
+- **Vision-Reality Gap**: 121-tool vision vs 13 actual implementations - documented in TECHNICAL_DEBT_AUDIT.md
+- **❌ CRITICAL: NO MOCKS Policy Violation**: Neo4jFallbackMixin violates core principle - see NO_MOCKS_POLICY_VIOLATION.md
+- **Service Implementation Confusion**: 3 identity services, unclear primary - see IDENTITY_SERVICE_CLARIFICATION.md
 
 ## 🛠️ Quick Commands
 

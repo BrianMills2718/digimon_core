@@ -87,7 +87,7 @@
 - [ ] `Phase1Wrapper` implementing `GraphRAGPhase`
 - [ ] UI integration via adapter pattern
 - [ ] Automated tests showing no regression
-- [ ] Performance validation (still ~3.7s processing)
+- [ ] Performance validation (maintain 7.55s without PageRank)
 
 **Success Criteria**: Phase 1 works identically through new interface
 

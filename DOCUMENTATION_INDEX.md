@@ -71,6 +71,8 @@ config/
 | [docs/current/ERROR_HANDLING_BEST_PRACTICES.md](./docs/current/ERROR_HANDLING_BEST_PRACTICES.md) | Error handling patterns | Implementing error handling |
 | [docs/current/PERFORMANCE_CLAIMS_VERIFICATION.md](./docs/current/PERFORMANCE_CLAIMS_VERIFICATION.md) | Performance verification | Validating performance claims |
 | [docs/current/TECHNICAL_DEBT_AUDIT.md](./docs/current/TECHNICAL_DEBT_AUDIT.md) | Comprehensive technical debt inventory | Before refactoring, planning work |
+| [docs/current/NO_MOCKS_POLICY_VIOLATION.md](./docs/current/NO_MOCKS_POLICY_VIOLATION.md) | Critical policy violation documentation | Immediate action required |
+| [docs/current/IDENTITY_SERVICE_CLARIFICATION.md](./docs/current/IDENTITY_SERVICE_CLARIFICATION.md) | Multiple service implementation analysis | Service selection decisions |
 | [archive/analysis_reports/](./archive/analysis_reports/) | Historical analysis and test reports | Troubleshooting reference |
 
 ## 🧪 Testing and Validation
