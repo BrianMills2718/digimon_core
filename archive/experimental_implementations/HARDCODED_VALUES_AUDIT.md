@@ -1,6 +1,11 @@
-# Hardcoded Values Audit
+# Hardcoded Values Audit - EXPERIMENTAL IMPLEMENTATION ⚠️
 
-Results from automated detection on January 17, 2025.
+## ⚠️ DOCUMENTATION NOTICE
+**This audit is from the ARCHIVED EXPERIMENTAL IMPLEMENTATION.**  
+**Current Active Code**: Located in `/src/` directory  
+**Status**: These hardcoded values are from `archive/experimental_implementations/src/` and do not affect the current active system.
+
+Results from automated detection on January 17, 2025 (experimental implementation).
 
 ## Summary
 - **31 hardcoded values** found across 13 files
