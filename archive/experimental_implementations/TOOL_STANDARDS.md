@@ -1,4 +1,10 @@
-# Tool Implementation Standards
+# Tool Implementation Standards - EXPERIMENTAL IMPLEMENTATION ⚠️
+
+## ⚠️ DOCUMENTATION NOTICE
+**This document contains TOOL STANDARDS from the archived experimental implementation.**  
+**Issue**: These standards were not consistently followed, leading to hardcoded values and specification drift  
+**Historical Context**: Standards defined for experimental implementation that had quality issues  
+**Current Status**: See `docs/current/` for active system standards
 
 ## Overview
 This document defines the standards and patterns that ALL Super-Digimon tools must follow.

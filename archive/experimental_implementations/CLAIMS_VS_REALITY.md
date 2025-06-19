@@ -1,4 +1,10 @@
-# Claims vs Reality Tracker
+# Claims vs Reality Tracker - EXPERIMENTAL IMPLEMENTATION ⚠️
+
+## ⚠️ DOCUMENTATION NOTICE
+**This document tracks MILESTONE COMPLETION CLAIMS from the archived experimental implementation.**  
+**Issue**: Documents claims about "Milestone 2 Complete" and "TRUE GraphRAG Working" that were contradicted by testing  
+**Historical Context**: Part of the quality control process for experimental implementation  
+**Current Status**: See `docs/current/PROJECT_STATUS.md` for actual current system status
 
 ## Purpose
 Track all claims made about system capabilities vs what adversarial testing reveals. This helps identify patterns of overconfidence and premature success declarations.

@@ -1,4 +1,10 @@
-# Adversarial Testing Summary
+# Adversarial Testing Summary - EXPERIMENTAL IMPLEMENTATION ⚠️
+
+## ⚠️ DOCUMENTATION NOTICE
+**This document contains TESTING RESULTS from the archived experimental implementation.**  
+**Historical Context**: Adversarial testing that identified quality issues in experimental implementation  
+**Issue**: Shows initial 0% relationship extraction accuracy, later improved to 80%  
+**Current Status**: See `tests/` directory for current active system testing
 
 ## Round 2 Results
 

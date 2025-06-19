@@ -1,4 +1,10 @@
-# Super-Digimon GraphRAG System Implementation
+# Super-Digimon GraphRAG System Implementation - EXPERIMENTAL ⚠️
+
+## ⚠️ DOCUMENTATION NOTICE
+**This document is from the ARCHIVED EXPERIMENTAL IMPLEMENTATION.**  
+**Tool Count Claims**: This document refers to "121 specialized tools" - see `docs/current/CURRENT_REALITY_AUDIT.md` for actual 13 tools implemented  
+**Current Active System**: Located in `/src/` directory, not this experimental implementation  
+**Historical Context**: January 2025 experimental implementation
 
 ## Project Overview
 Super-Digimon is a GraphRAG (Graph Retrieval-Augmented Generation) system with 121 specialized tools across 8 phases. The system combines Neo4j graph storage, FAISS vector search, and SQLite metadata to provide intelligent graph analysis through natural language queries via MCP protocol.

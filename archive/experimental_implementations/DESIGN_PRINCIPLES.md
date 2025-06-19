@@ -1,4 +1,10 @@
-# Super-Digimon Design Principles
+# Super-Digimon Design Principles - EXPERIMENTAL IMPLEMENTATION ⚠️
+
+## ⚠️ DOCUMENTATION NOTICE
+**This document contains DESIGN PRINCIPLES from the archived experimental implementation.**  
+**Issue**: Critique mentions "specification drift and hardcoded values" conflicts with these principles  
+**Reality**: These principles were aspirational but not consistently followed in experimental implementation  
+**Current Status**: See `docs/current/` for active system design principles
 
 ## 1. Tool Configurability
 
