@@ -53,7 +53,8 @@ class BaseNeo4jTool:
                 session.run("RETURN 1")
             print(f"Connected to Neo4j at {uri}")
         except Exception as e:
-            print(f"Failed to connect to Neo4j: {e}")
+            print(f"WARNING: Failed to connect to Neo4j: {e}")
+            print("Continuing without Neo4j - graph operations will be limited")
             self.driver = None
     
     def close(self):

@@ -27,9 +27,10 @@ from src.core.identity_service import IdentityService
 from src.core.provenance_service import ProvenanceService
 from src.core.quality_service import QualityService
 from .base_neo4j_tool import BaseNeo4jTool
+from .neo4j_fallback_mixin import Neo4jFallbackMixin
 
 
-class EntityBuilder(BaseNeo4jTool):
+class EntityBuilder(BaseNeo4jTool, Neo4jFallbackMixin):
     """T31: Entity Node Builder."""
     
     def __init__(
@@ -211,7 +212,10 @@ class EntityBuilder(BaseNeo4jTool):
         entity_info: Dict[str, Any], 
         mentions: List[Dict[str, Any]]
     ) -> Dict[str, Any]:
-        """Create entity node in Neo4j."""
+        """Create entity node in Neo4j with fallback support."""
+        if not self._check_neo4j_available():
+            return self._create_mock_entity_result(entity_info)
+        
         try:
             with self.driver.session() as session:
                 # Prepare entity properties

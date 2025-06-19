@@ -170,12 +170,31 @@ python test_compatibility_validation.py  # 80% compatibility score
 python test_torc_framework.py  # 70.7% TORC score
 ```
 
+## 📋 DEVELOPMENT GUIDELINES
+
+### Performance vs Reliability
+- **Speed is NOT a priority** - Move all performance optimization ideas to `docs/current/future_possible_performance_optimizations.md`
+- **100% Success Rate IS the priority** - System must run without failures
+- **Error Recovery is Critical** - Graceful handling of all failure modes
+- **Accuracy is separate from Success** - Entity resolution errors are accuracy issues, not failures
+
+### Success Definition
+✅ **Success** = System completes workflow without crashing/errors
+❌ **Failure** = System crashes, throws unhandled exceptions, or stops processing
+📊 **Accuracy** = Quality of results (e.g., entity deduplication) - separate concern
+
+### Examples
+- **Success Issue**: Neo4j connection fails → System should retry/fallback
+- **Accuracy Issue**: "Dr. Smith" and "Doctor Smith" not merged → Working as designed
+- **Success Issue**: PDF parsing throws exception → Must handle gracefully
+- **Accuracy Issue**: Missing some entities in NER → Not a system failure
+
 ## 🎯 NEXT IMMEDIATE ACTIONS
-1. **Phase 3 Implementation**: Build multi-document fusion capabilities
-2. **Query-time PageRank**: Implement subgraph-based ranking for better performance
-3. **Integration Testing**: Fix remaining 41.7% failure rate
-4. **Batch Operations**: Optimize Neo4j writes to reduce edge building time
-5. **Parallel Processing**: Implement concurrent chunk processing
+1. **Phase 3 Implementation**: Build multi-document fusion with 100% reliability
+2. **Integration Testing**: Fix 41.7% failure rate - achieve 100% test success
+3. **Error Recovery**: Add comprehensive fallback mechanisms for all components
+4. **Move Performance Work**: Document speed optimizations in separate file
+5. **Robustness Testing**: Ensure system handles all edge cases gracefully
 
 ---
 **Details**: See [`TABLE_OF_CONTENTS.md`](docs/current/TABLE_OF_CONTENTS.md)

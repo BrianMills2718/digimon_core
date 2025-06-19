@@ -75,19 +75,25 @@ class ServiceManager:
                 self._neo4j_driver = None
             
             if not self._neo4j_driver:
-                self._neo4j_driver = GraphDatabase.driver(
-                    uri,
-                    auth=(user, password),
-                    max_connection_pool_size=50,
-                    connection_acquisition_timeout=30.0,
-                    keep_alive=True
-                )
-                self._neo4j_config = config_key
-                
-                # Test connection
-                with self._neo4j_driver.session() as session:
-                    session.run("RETURN 1")
-                print(f"Shared Neo4j connection established to {uri}")
+                try:
+                    self._neo4j_driver = GraphDatabase.driver(
+                        uri,
+                        auth=(user, password),
+                        max_connection_pool_size=50,
+                        connection_acquisition_timeout=30.0,
+                        keep_alive=True
+                    )
+                    self._neo4j_config = config_key
+                    
+                    # Test connection
+                    with self._neo4j_driver.session() as session:
+                        session.run("RETURN 1")
+                    print(f"Shared Neo4j connection established to {uri}")
+                except Exception as e:
+                    print(f"WARNING: Neo4j connection failed: {e}")
+                    print("Continuing without Neo4j - some features may be limited")
+                    self._neo4j_driver = None
+                    self._neo4j_config = None
         
         return self._neo4j_driver
     

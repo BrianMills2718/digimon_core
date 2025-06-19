@@ -225,32 +225,33 @@ class Phase2Adapter(GraphRAGPhase):
 
 
 class Phase3Adapter(GraphRAGPhase):
-    """Adapter for Phase 3 Multi-Document workflow (placeholder for future implementation)"""
+    """Adapter for Phase 3 Multi-Document workflow"""
     
     def __init__(self):
         super().__init__("Phase 3: Multi-Document", "1.0")
+        # Import here to avoid circular imports
+        from src.tools.phase3.basic_multi_document_workflow import BasicMultiDocumentWorkflow
+        self.workflow = BasicMultiDocumentWorkflow()
     
     def execute(self, request: ProcessingRequest) -> PhaseResult:
-        """Phase 3 is not yet fully implemented"""
-        return self.create_error_result("Phase 3 multi-document workflow not yet implemented")
+        """Execute Phase 3 multi-document processing"""
+        try:
+            # Delegate to the actual implementation
+            return self.workflow.execute(request)
+        except Exception as e:
+            # 100% reliability - always return a result
+            return self.create_error_result(
+                f"Phase 3 adapter error: {str(e)}",
+                execution_time=0.0
+            )
     
     def get_capabilities(self) -> Dict[str, Any]:
-        """Return Phase 3 planned capabilities"""
-        return {
-            "supported_document_types": ["pdf", "docx", "txt", "html"],
-            "required_services": ["neo4j", "sqlite", "openai", "google"],
-            "optional_services": ["qdrant"],
-            "max_document_size": 50_000_000,  # 50MB
-            "supports_batch_processing": True,
-            "supports_multiple_queries": True,
-            "uses_ontology": True,
-            "supports_multi_document": True,
-            "fusion_strategies": ["horizontal", "vertical", "semantic"]
-        }
+        """Return Phase 3 capabilities"""
+        return self.workflow.get_capabilities()
     
     def validate_input(self, request: ProcessingRequest) -> List[str]:
-        """Validate Phase 3 input requirements"""
-        return ["Phase 3 is not yet implemented"]
+        """Validate Phase 3 input"""
+        return self.workflow.validate_input(request)
 
 
 def initialize_phase_adapters():
