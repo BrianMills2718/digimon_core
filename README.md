@@ -1,6 +1,6 @@
-# Super-Digimon GraphRAG System
+# Super-Digimon GraphRAG-First Universal Analytics
 
-A knowledge graph extraction system that processes documents (PDFs, text) into structured graph databases. Currently implements basic GraphRAG pipeline with Neo4j storage.
+A GraphRAG system designed for extensibility into broader analytical workflows. Processes documents (PDFs, text) into structured graph databases with plans for universal analytical platform capabilities. Currently implements core GraphRAG pipeline with Neo4j storage.
 
 **🚨 HONEST STATUS**: Early development system with **Phase 1 working, Phase 2 broken, documentation previously inflated**.
 
@@ -36,7 +36,7 @@ PDF Document → Text Extraction → spaCy NER → Neo4j Graph → PageRank
 - **PageRank Calculation**: Network analysis (fails but doesn't break extraction)
 - **Web UI**: Document upload, processing, visualization at http://localhost:8501
 
-**Performance**: ~3.7s processing time for 293KB PDF
+**Performance**: 7.55s processing time (without PageRank) for 293KB PDF - verified metrics from performance optimization
 
 ### ❌ Phase 2: Enhanced Pipeline (BROKEN)
 **Status**: Integration failure due to API compatibility issues  
