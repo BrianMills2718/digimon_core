@@ -72,9 +72,9 @@ Tool implementation ≠ System integration. Many tools work in isolation but fai
 - Service API evolution
 - No integration testing framework
 
-**Phase 2 Status Update**: The `current_step` vs `step_number` API issue has been **FIXED** (see `PHASE2_API_STATUS_UPDATE.md`). However, Phase 2 still faces integration challenges including:
+**Phase 2 Status Update**: The `current_step` vs `step_number` API issue has been **FIXED**. However, Phase 2 still faces integration challenges including:
 - Data flow issues between Phase 1 → Phase 2
 - Gemini API safety filters blocking legitimate content  
 - Need for comprehensive end-to-end integration tests
 
-See [`ARCHITECTURE.md`](ARCHITECTURE.md) for integration issues and [`PHASE2_API_STATUS_UPDATE.md`](PHASE2_API_STATUS_UPDATE.md) for the API fix details.
+See [`ARCHITECTURE.md`](ARCHITECTURE.md) for integration issues.

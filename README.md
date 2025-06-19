@@ -43,7 +43,7 @@ PDF Document → Text Extraction → spaCy NER → Neo4j Graph → PageRank
 
 ### ⚠️ Phase 2: Enhanced Pipeline (PARTIALLY FUNCTIONAL)
 **Status**: API parameter issue fixed, but integration challenges remain  
-**Fixed**: ~~`current_step` vs `step_number`~~ ✅ RESOLVED (see PHASE2_API_STATUS_UPDATE.md)  
+**Fixed**: ~~`current_step` vs `step_number`~~ ✅ RESOLVED  
 **Remaining Issues**: Phase 1→2 data flow, Gemini safety filters, integration test gaps
 
 ### 🔧 Phase 3: Multi-Document Fusion (FUNCTIONAL AS STANDALONE - NOT INTEGRATED)

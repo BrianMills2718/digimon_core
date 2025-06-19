@@ -40,8 +40,8 @@ Enhanced Query Answering (GraphRAG)
 
 | Component | Model | Version | Purpose | API Provider |
 |-----------|-------|---------|---------|--------------|
-| Ontology Generation | gemini-2.0-flash-exp | Latest | Structured ontology creation | Google |
-| Entity Extraction | gemini-2.0-flash-exp | Latest | Domain-specific NER | Google |
+| Ontology Generation | gemini-2.5-flash | Latest | Structured ontology creation | Google |
+| Entity Extraction | gemini-2.5-flash | Latest | Domain-specific NER | Google |
 | Embeddings | text-embedding-3-small | Latest | Semantic similarity | OpenAI |
 | Storage | Neo4j + SQLite + Qdrant | 5.x/Latest/Latest | Graph + Metadata + Vectors | Local |
 

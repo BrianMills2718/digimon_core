@@ -74,6 +74,7 @@ config/
 | [docs/current/NO_MOCKS_POLICY_VIOLATION.md](./docs/current/NO_MOCKS_POLICY_VIOLATION.md) | Critical policy violation documentation | Immediate action required |
 | [docs/current/IDENTITY_SERVICE_CLARIFICATION.md](./docs/current/IDENTITY_SERVICE_CLARIFICATION.md) | Multiple service implementation analysis | Service selection decisions |
 | [docs/current/TOOL_COUNT_CLARIFICATION.md](./docs/current/TOOL_COUNT_CLARIFICATION.md) | Resolves tool count discrepancies | Understanding implementation progress |
+| [docs/current/TOOL_COUNT_METHODOLOGY.md](./docs/current/TOOL_COUNT_METHODOLOGY.md) | Standardized tool counting method | Official counting standard |
 | [docs/current/INTEGRATION_TESTING_GAP_ANALYSIS.md](./docs/current/INTEGRATION_TESTING_GAP_ANALYSIS.md) | Critical testing coverage gaps | Test planning and honesty |
 | [archive/analysis_reports/](./archive/analysis_reports/) | Historical analysis and test reports | Troubleshooting reference |
 

@@ -33,7 +33,7 @@
 
 **Overall Phase 2**: ⚠️ **PARTIALLY FUNCTIONAL** - API parameter issue fixed, but integration challenges remain  
 **Primary Issues**:  
-- ~~WorkflowStateService API mismatch: `current_step` vs `step_number`~~ ✅ FIXED (see PHASE2_API_STATUS_UPDATE.md)  
+- ~~WorkflowStateService API mismatch: `current_step` vs `step_number`~~ ✅ FIXED  
 - Integration failures between Phase 1 → Phase 2 data flow  
 - Gemini API safety filters blocking legitimate content  
 **Verification**: `python tests/integration/test_phase2_integration.py`  
