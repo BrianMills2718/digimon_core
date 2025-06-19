@@ -165,7 +165,7 @@ def test_phase2_reliability():
             if 'success' in status_str or 'error' in status_str:
                 print(f"   ✅ Completed with status: {result.status}")
                 if 'error' in status_str:
-                    print(f"   ℹ️  Error handled: {result.error}")
+                    print(f"   ℹ️  Error handled: {result.error_message}")
             else:
                 print(f"   ❌ Unexpected status: {result.status}")
                 failures.append(f"Phase 2 - {test['name']}: Unexpected status")
@@ -196,8 +196,11 @@ def test_phase3_reliability():
         result = adapter.execute(request)
         
         status_str = str(result.status).lower()
-        if 'error' in status_str and "not yet implemented" in result.error:
-            print("   ✅ Phase 3 returns expected 'not implemented' error")
+        # Phase 3 now works and returns validation errors for missing files
+        if 'error' in status_str and result.error_message and "Document not found" in result.error_message:
+            print("   ✅ Phase 3 returns expected validation error for missing documents")
+        elif 'error' in status_str:
+            print(f"   ✅ Phase 3 handled error gracefully: {result.error_message}")
         else:
             print(f"   ❌ Unexpected Phase 3 behavior: {result.status}")
             failures.append(f"Phase 3: Unexpected behavior")

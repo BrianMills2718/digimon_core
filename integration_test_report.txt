@@ -1,8 +1,8 @@
 GraphRAG Integration Test Report
 ==================================================
 Suite: GraphRAG Full Integration Test
-Start: 2025-06-18 21:46:57.740921
-End: 2025-06-18 21:46:57.741044
+Start: 2025-06-18 22:37:55.089001
+End: 2025-06-18 22:37:55.089123
 Duration: 0.00 seconds
 
 Summary:
@@ -41,7 +41,7 @@ ERROR_HANDLING Tests:
 PERFORMANCE Tests:
 ------------------------------
   ✅ Phase Initialization Performance (0.000s)
-      Details: {'init_time_seconds': 8.106231689453125e-06}
+      Details: {'init_time_seconds': 1.2159347534179688e-05}
 
 DEPENDENCIES Tests:
 ------------------------------
