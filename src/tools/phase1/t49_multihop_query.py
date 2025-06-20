@@ -23,14 +23,21 @@ import neo4j
 from neo4j import GraphDatabase, Driver
 
 # Import core services
-from src.core.identity_service import IdentityService
-from src.core.provenance_service import ProvenanceService
-from src.core.quality_service import QualityService
-from src.tools.phase1.base_neo4j_tool import BaseNeo4jTool
-from src.tools.phase1.neo4j_fallback_mixin import Neo4jFallbackMixin
+try:
+    from src.core.identity_service import IdentityService
+    from src.core.provenance_service import ProvenanceService
+    from src.core.quality_service import QualityService
+    from src.tools.phase1.base_neo4j_tool import BaseNeo4jTool
+    from src.tools.phase1.neo4j_error_handler import Neo4jErrorHandler
+except ImportError:
+    from core.identity_service import IdentityService
+    from core.provenance_service import ProvenanceService
+    from core.quality_service import QualityService
+    from tools.phase1.base_neo4j_tool import BaseNeo4jTool
+    from tools.phase1.neo4j_error_handler import Neo4jErrorHandler
 
 
-class MultiHopQueryEngine(BaseNeo4jTool, Neo4jFallbackMixin):
+class MultiHopQueryEngine(BaseNeo4jTool):
     """Multi-hop Query Engine - Main interface for query functionality."""
     
     def __init__(
@@ -72,7 +79,7 @@ class MultiHopQueryEngine(BaseNeo4jTool, Neo4jFallbackMixin):
         """Get tool information."""
         return self.query_engine.get_tool_info()
 
-class MultiHopQuery(BaseNeo4jTool, Neo4jFallbackMixin):
+class MultiHopQuery(BaseNeo4jTool):
     """T49: Multi-hop Graph Query."""
     
     def __init__(
@@ -144,11 +151,10 @@ class MultiHopQuery(BaseNeo4jTool, Neo4jFallbackMixin):
                     "Query text cannot be empty"
                 )
             
-            if not self.driver:
-                return self._complete_with_error(
-                    operation_id,
-                    "Neo4j connection not available - cannot query graph"
-                )
+            # Check Neo4j availability
+            driver_error = Neo4jErrorHandler.check_driver_available(self.driver)
+            if driver_error:
+                return self._complete_with_neo4j_error(operation_id, driver_error)
             
             max_hops = max(1, min(self.max_hops, max_hops))  # Clamp to valid range
             result_limit = max(1, min(self.max_results, result_limit))
@@ -250,7 +256,10 @@ class MultiHopQuery(BaseNeo4jTool, Neo4jFallbackMixin):
     def _extract_query_entities(self, query_text: str) -> List[str]:
         """Extract potential entity names from query text."""
         # Improved entity extraction - search for all meaningful terms
-        if not self.driver:
+        # Check Neo4j availability
+        driver_error = Neo4jErrorHandler.check_driver_available(self.driver)
+        if driver_error:
+            print(f"Neo4j unavailable for entity extraction: {driver_error['message']}")
             return []
         
         try:
@@ -361,10 +370,8 @@ class MultiHopQuery(BaseNeo4jTool, Neo4jFallbackMixin):
                 }
                 
         except Exception as e:
-            return {
-                "status": "error",
-                "error": f"Multi-hop search failed: {str(e)}"
-            }
+            error_result = Neo4jErrorHandler.create_operation_error("multihop_search", e)
+            return error_result
     
     def _find_1hop_paths(self, session, start_entity_id: str, limit: int) -> List[Dict[str, Any]]:
         """Find 1-hop paths from start entity."""
@@ -564,6 +571,19 @@ class MultiHopQuery(BaseNeo4jTool, Neo4jFallbackMixin):
             "error": error_message,
             "operation_id": operation_id
         }
+    
+    def _complete_with_neo4j_error(self, operation_id: str, error_dict: Dict[str, Any]) -> Dict[str, Any]:
+        """Complete operation with Neo4j error following NO MOCKS policy."""
+        self.provenance_service.complete_operation(
+            operation_id=operation_id,
+            outputs=[],
+            success=False,
+            error_message=error_dict.get("error", "Neo4j operation failed")
+        )
+        
+        # Return the full error dictionary from Neo4jErrorHandler
+        error_dict["operation_id"] = operation_id
+        return error_dict
     
     def _complete_success(self, operation_id: str, outputs: List[str], message: str) -> Dict[str, Any]:
         """Complete operation successfully with message."""

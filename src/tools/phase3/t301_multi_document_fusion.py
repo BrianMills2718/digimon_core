@@ -19,7 +19,7 @@ from pathlib import Path
 
 from ..phase2.t31_ontology_graph_builder import OntologyAwareGraphBuilder, GraphBuildResult
 from ..phase2.t23c_ontology_aware_extractor import ExtractionResult
-from ...core.enhanced_identity_service import EnhancedIdentityService
+from ...core.identity_service import IdentityService
 from ...core.identity_service import Entity, Relationship
 from ...core.quality_service import QualityService
 from ...core.provenance_service import ProvenanceService
@@ -144,7 +144,7 @@ class MultiDocumentFusion(OntologyAwareGraphBuilder):
         self.conflict_resolution_model = conflict_resolution_model or "gemini-2.0-flash-exp"
         
         # Additional services for fusion
-        self.identity_service = EnhancedIdentityService()
+        self.identity_service = IdentityService(use_embeddings=True)
         self.quality_service = QualityService()
         self.provenance_service = ProvenanceService()
         

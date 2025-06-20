@@ -8,9 +8,14 @@ Target: 3x speedup by eliminating redundant connections.
 from typing import Optional
 from neo4j import GraphDatabase, Driver
 
-from src.core.identity_service import IdentityService
-from src.core.provenance_service import ProvenanceService
-from src.core.quality_service import QualityService
+try:
+    from src.core.identity_service import IdentityService
+    from src.core.provenance_service import ProvenanceService
+    from src.core.quality_service import QualityService
+except ImportError:
+    from core.identity_service import IdentityService
+    from core.provenance_service import ProvenanceService
+    from core.quality_service import QualityService
 
 
 class BaseNeo4jTool:

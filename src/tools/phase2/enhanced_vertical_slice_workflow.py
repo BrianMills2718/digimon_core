@@ -44,7 +44,7 @@ from src.ontology.gemini_ontology_generator import GeminiOntologyGenerator
 from src.core.ontology_storage_service import OntologyStorageService, OntologySession
 
 # Import core services
-from src.core.enhanced_identity_service import EnhancedIdentityService
+from src.core.identity_service import IdentityService
 from src.core.quality_service import QualityService
 from src.core.workflow_state_service import WorkflowStateService
 
@@ -67,14 +67,16 @@ class EnhancedVerticalSliceWorkflow:
         """Initialize the enhanced workflow."""
         self.confidence_threshold = confidence_threshold
         
-        # Initialize services
-        self.identity_service = EnhancedIdentityService()
+        # Initialize services with enhanced features enabled
+        self.identity_service = IdentityService(
+            use_embeddings=True,
+            persistence_path="./data/identity_enhanced.db"
+        )
         self.quality_service = QualityService()
         self.workflow_service = WorkflowStateService(storage_dir=workflow_storage_dir)
         self.ontology_storage = OntologyStorageService()
         
-        # Initialize legacy identity service for Phase 1 tools compatibility
-        from src.core.identity_service import IdentityService
+        # Initialize legacy identity service for Phase 1 tools compatibility  
         from src.core.provenance_service import ProvenanceService
         legacy_identity_service = IdentityService()
         provenance_service = ProvenanceService()
@@ -104,24 +106,43 @@ class EnhancedVerticalSliceWorkflow:
         logger.info("✅ Enhanced Vertical Slice Workflow initialized")
     
     def execute_enhanced_workflow(self, 
-                                 pdf_path: str,
-                                 domain_description: str,
-                                 queries: List[str],
+                                 pdf_path: str = None,
+                                 domain_description: str = None,
+                                 queries: List[str] = None,
                                  workflow_name: str = "enhanced_workflow",
-                                 use_existing_ontology: Optional[str] = None) -> Dict[str, Any]:
+                                 use_existing_ontology: Optional[str] = None,
+                                 document_paths: List[str] = None,
+                                 workflow_id: str = None,
+                                 use_mock_apis: bool = False) -> Dict[str, Any]:
         """
         Execute the complete enhanced workflow.
         
         Args:
-            pdf_path: Path to PDF document
+            pdf_path: Path to PDF document (deprecated - use document_paths)
             domain_description: Description of domain for ontology generation
             queries: List of questions to answer
-            workflow_name: Name for workflow tracking
+            workflow_name: Name for workflow tracking (deprecated - use workflow_id)
             use_existing_ontology: Optional ontology session ID to reuse
+            document_paths: List of document paths (new standard interface)
+            workflow_id: Workflow identifier (new standard interface)
+            use_mock_apis: Use mock APIs instead of real ones for testing
             
         Returns:
             Complete workflow results with enhanced analysis
         """
+        # Handle new standardized interface
+        if document_paths:
+            pdf_path = document_paths[0] if document_paths else None
+        if workflow_id:
+            workflow_name = workflow_id
+        
+        # Ensure required parameters have defaults
+        if not pdf_path:
+            raise ValueError("Document path is required (provide pdf_path or document_paths)")
+        if not domain_description:
+            domain_description = "General document analysis"
+        if not queries:
+            queries = ["What are the main entities and relationships in this document?"]
         start_time = time.time()
         
         # Start workflow tracking
@@ -174,7 +195,7 @@ class EnhancedVerticalSliceWorkflow:
             # Step 3: Generate or load domain ontology
             print("Step 3: Creating domain ontology...")
             results["steps"]["ontology_generation"] = self._execute_ontology_generation(
-                workflow_id, domain_description, use_existing_ontology
+                workflow_id, domain_description, use_existing_ontology, use_mock_apis
             )
             if results["steps"]["ontology_generation"]["status"] != "success":
                 return self._complete_workflow_with_error(workflow_id, results, "Ontology generation failed")
@@ -184,7 +205,8 @@ class EnhancedVerticalSliceWorkflow:
             results["steps"]["entity_extraction"] = self._execute_ontology_aware_extraction(
                 workflow_id,
                 results["steps"]["text_chunking"]["chunks"],
-                results["steps"]["pdf_loading"]["document"]["document_ref"]
+                results["steps"]["pdf_loading"]["document"]["document_ref"],
+                use_mock_apis
             )
             if results["steps"]["entity_extraction"]["status"] != "success":
                 return self._complete_workflow_with_error(workflow_id, results, "Entity extraction failed")
@@ -229,6 +251,12 @@ class EnhancedVerticalSliceWorkflow:
             execution_time = time.time() - start_time
             results["execution_time"] = execution_time
             results["status"] = "success"
+            
+            # Add top-level entity and relationship counts for Phase2Adapter
+            extraction_results = results.get("steps", {}).get("entity_extraction", {})
+            results["entity_count"] = extraction_results.get("total_entities", 0)
+            results["relationship_count"] = extraction_results.get("total_relationships", 0)
+            results["average_confidence"] = extraction_results.get("average_confidence", 0.0)
             
             # Update workflow progress to completion
             self.workflow_service.update_workflow_progress(
@@ -281,7 +309,8 @@ class EnhancedVerticalSliceWorkflow:
         }
     
     def _execute_ontology_generation(self, workflow_id: str, domain_description: str, 
-                                   existing_session_id: Optional[str] = None) -> Dict[str, Any]:
+                                   existing_session_id: Optional[str] = None, 
+                                   use_mock_apis: bool = False) -> Dict[str, Any]:
         """Execute ontology generation or loading step."""
         self.workflow_service.create_checkpoint(workflow_id, "generate_ontology", 3, {"step": "creating_ontology"})
         
@@ -301,7 +330,7 @@ class EnhancedVerticalSliceWorkflow:
                     }
             
             # Generate new ontology
-            if self.use_real_ontology:
+            if self.use_real_ontology and not use_mock_apis:
                 try:
                     # Use real Gemini generation
                     messages = [{"role": "user", "content": domain_description}]
@@ -353,7 +382,7 @@ class EnhancedVerticalSliceWorkflow:
             return {"status": "error", "error": str(e)}
     
     def _execute_ontology_aware_extraction(self, workflow_id: str, chunks: List[Dict], 
-                                         document_ref: str) -> Dict[str, Any]:
+                                         document_ref: str, use_mock_apis: bool = False) -> Dict[str, Any]:
         """Execute ontology-aware entity extraction."""
         self.workflow_service.create_checkpoint(workflow_id, "extract_entities", 4, {"step": "ontology_extraction"})
         
@@ -362,13 +391,20 @@ class EnhancedVerticalSliceWorkflow:
             all_relationships = []
             all_mentions = []
             
+            logger.info(f"Starting extraction for {len(chunks)} chunks")
+            logger.info(f"Current ontology: {self.current_ontology.domain_name if self.current_ontology else 'None'}")
+            
             for i, chunk in enumerate(chunks):
+                logger.info(f"Extracting from chunk {i}, text length: {len(chunk['text'])}")
                 extraction_result = self.ontology_extractor.extract_entities(
                     text=chunk["text"],
                     ontology=self.current_ontology,
                     source_ref=f"{document_ref}_chunk_{i}",
-                    confidence_threshold=self.confidence_threshold
+                    confidence_threshold=self.confidence_threshold,
+                    use_mock_apis=use_mock_apis
                 )
+                
+                logger.info(f"Chunk {i} extraction: {len(extraction_result.entities)} entities, {len(extraction_result.relationships)} relationships")
                 
                 all_entities.extend(extraction_result.entities)
                 all_relationships.extend(extraction_result.relationships)
@@ -391,6 +427,12 @@ class EnhancedVerticalSliceWorkflow:
             for entity in all_entities:
                 entity_type_counts[entity.entity_type] = entity_type_counts.get(entity.entity_type, 0) + 1
             
+            # Warn if no entities were extracted
+            if len(all_entities) == 0:
+                logger.warning("No entities were extracted. This might indicate a mismatch between the domain ontology and the document content.")
+                logger.warning(f"Current ontology domain: {self.current_ontology.domain_name}")
+                logger.warning("Consider using a domain description that better matches your document content.")
+            
             return {
                 "status": "success",
                 "extraction_result": consolidated_result,
@@ -398,11 +440,15 @@ class EnhancedVerticalSliceWorkflow:
                 "total_relationships": len(all_relationships),
                 "total_mentions": len(all_mentions),
                 "entity_type_distribution": entity_type_counts,
-                "avg_confidence": sum(e.confidence for e in all_entities) / len(all_entities) if all_entities else 0
+                "avg_confidence": sum(e.confidence for e in all_entities) / len(all_entities) if all_entities else 0,
+                "average_confidence": sum(e.confidence for e in all_entities) / len(all_entities) if all_entities else 0  # Add this for compatibility
             }
             
         except Exception as e:
-            return {"status": "error", "error": str(e)}
+            import traceback
+            logger.error(f"Entity extraction error: {str(e)}")
+            logger.error(f"Traceback: {traceback.format_exc()}")
+            return {"status": "error", "error": str(e), "traceback": traceback.format_exc()}
     
     def _execute_enhanced_graph_building(self, workflow_id: str, extraction_result: ExtractionResult,
                                        document_ref: str) -> Dict[str, Any]:

@@ -24,14 +24,23 @@ import neo4j
 from neo4j import GraphDatabase, Driver
 
 # Import core services
-from src.core.identity_service import IdentityService
-from src.core.provenance_service import ProvenanceService
-from src.core.quality_service import QualityService
-from src.tools.phase1.base_neo4j_tool import BaseNeo4jTool
-from src.tools.phase1.neo4j_fallback_mixin import Neo4jFallbackMixin
+try:
+    from src.core.identity_service import IdentityService
+    from src.core.provenance_service import ProvenanceService
+    from src.core.quality_service import QualityService
+    from src.tools.phase1.base_neo4j_tool import BaseNeo4jTool
+    from src.tools.phase1.neo4j_error_handler import Neo4jErrorHandler
+    from src.core.config import get_config
+except ImportError:
+    from core.identity_service import IdentityService
+    from core.provenance_service import ProvenanceService
+    from core.quality_service import QualityService
+    from tools.phase1.base_neo4j_tool import BaseNeo4jTool
+    from tools.phase1.neo4j_error_handler import Neo4jErrorHandler
+    from core.config import get_config
 
 
-class PageRankCalculator(BaseNeo4jTool, Neo4jFallbackMixin):
+class PageRankCalculator(BaseNeo4jTool):
     """T68: PageRank Calculator."""
     
     def __init__(
@@ -57,11 +66,15 @@ class PageRankCalculator(BaseNeo4jTool, Neo4jFallbackMixin):
         
         self.tool_id = "T68_PAGERANK"
         
-        # PageRank parameters
-        self.damping_factor = 0.85  # Standard PageRank damping factor
-        self.max_iterations = 100   # Maximum iterations for convergence
-        self.tolerance = 1e-6       # Convergence tolerance
-        self.min_score = 0.0001     # Minimum PageRank score
+        # Load configuration for PageRank parameters
+        config = get_config()
+        gc = config.graph_construction
+        
+        # PageRank parameters from configuration
+        self.damping_factor = gc.pagerank_damping_factor
+        self.max_iterations = gc.pagerank_iterations
+        self.tolerance = gc.pagerank_tolerance
+        self.min_score = gc.pagerank_min_score
     
     
     def calculate_pagerank(
@@ -92,11 +105,10 @@ class PageRankCalculator(BaseNeo4jTool, Neo4jFallbackMixin):
         
         try:
             # Input validation
-            if not self.driver:
-                return self._complete_with_error(
-                    operation_id,
-                    "Neo4j network connection failed - cannot calculate PageRank. Check if Neo4j is running and network connectivity is available."
-                )
+            # Check Neo4j availability
+            driver_error = Neo4jErrorHandler.check_driver_available(self.driver)
+            if driver_error:
+                return self._complete_with_neo4j_error(operation_id, driver_error)
             
             # Load graph from Neo4j
             graph_data = self._load_graph_from_neo4j(entity_filter)
@@ -217,34 +229,46 @@ class PageRankCalculator(BaseNeo4jTool, Neo4jFallbackMixin):
                 
                 where_clause = "WHERE " + " AND ".join(entity_conditions) if entity_conditions else ""
                 
-                # Load nodes (entities) - exclude entities with NULL entity_id
+                # Optimized single query to load entire graph
+                # This reduces round trips and is more efficient
                 additional_conditions = " AND a.entity_id IS NOT NULL AND b.entity_id IS NOT NULL"
                 where_clause_with_null_check = where_clause + additional_conditions if where_clause else "WHERE a.entity_id IS NOT NULL AND b.entity_id IS NOT NULL"
                 
-                node_query = f"""
+                # Single query that gets both nodes and relationships
+                graph_query = f"""
                 MATCH (a:Entity)-[r]->(b:Entity)
                 {where_clause_with_null_check}
-                RETURN DISTINCT a.entity_id as entity_id, a.canonical_name as name, 
-                       a.confidence as confidence, a.entity_type as entity_type
-                UNION
-                MATCH (a:Entity)-[r]->(b:Entity)
-                {where_clause_with_null_check}
-                RETURN DISTINCT b.entity_id as entity_id, b.canonical_name as name,
-                       b.confidence as confidence, b.entity_type as entity_type
+                WITH collect(DISTINCT {{
+                    entity_id: a.entity_id,
+                    name: a.canonical_name,
+                    confidence: a.confidence,
+                    entity_type: a.entity_type
+                }}) + collect(DISTINCT {{
+                    entity_id: b.entity_id,
+                    name: b.canonical_name,
+                    confidence: b.confidence,
+                    entity_type: b.entity_type
+                }}) as all_nodes,
+                collect({{
+                    source: a.entity_id,
+                    target: b.entity_id,
+                    weight: r.weight,
+                    confidence: r.confidence,
+                    relationship_type: type(r)
+                }}) as all_edges
+                UNWIND all_nodes as node
+                WITH collect(DISTINCT node) as nodes, all_edges[0..size(all_edges)] as edges
+                RETURN nodes, edges
                 """
                 
-                nodes = session.run(node_query, **params).data()
+                result = session.run(graph_query, **params).single()
                 
-                # Load edges (relationships) - exclude relationships with NULL entity_id
-                edge_query = f"""
-                MATCH (a:Entity)-[r]->(b:Entity)
-                {where_clause_with_null_check}
-                RETURN a.entity_id as source, b.entity_id as target, 
-                       r.weight as weight, r.confidence as confidence,
-                       type(r) as relationship_type
-                """
-                
-                edges = session.run(edge_query, **params).data()
+                if result:
+                    nodes = result["nodes"]
+                    edges = result["edges"]
+                else:
+                    nodes = []
+                    edges = []
                 
                 # Create node mapping
                 node_mapping = {}
@@ -394,30 +418,44 @@ class PageRankCalculator(BaseNeo4jTool, Neo4jFallbackMixin):
     
     def _store_pagerank_scores(self, ranked_entities: List[Dict[str, Any]]) -> Dict[str, Any]:
         """Store PageRank scores back to Neo4j entities."""
-        if not self.driver:
-            return {"status": "error", "error": "Neo4j not connected"}
+        # Check Neo4j availability
+        driver_error = Neo4jErrorHandler.check_driver_available(self.driver)
+        if driver_error:
+            return driver_error
         
         try:
+            # Prepare batch updates
+            updates = [{
+                "id": entity["entity_id"],
+                "score": entity["pagerank_score"],
+                "rank": entity["rank"],
+                "percentile": entity["percentile"],
+                "calculated_at": entity["calculated_at"]
+            } for entity in ranked_entities]
+            
             with self.driver.session() as session:
-                for entity in ranked_entities:
-                    session.run("""
-                    MATCH (e:Entity {entity_id: $entity_id})
-                    SET e.pagerank_score = $score,
-                        e.pagerank_rank = $rank,
-                        e.pagerank_percentile = $percentile,
-                        e.pagerank_calculated_at = $calculated_at
-                    """,
-                    entity_id=entity["entity_id"],
-                    score=entity["pagerank_score"],
-                    rank=entity["rank"],
-                    percentile=entity["percentile"],
-                    calculated_at=entity["calculated_at"]
-                    )
+                # Use UNWIND for batch update - much faster than individual queries
+                result = session.run("""
+                    UNWIND $updates as update
+                    MATCH (e:Entity {entity_id: update.id})
+                    SET e.pagerank_score = update.score,
+                        e.pagerank_rank = update.rank,
+                        e.pagerank_percentile = update.percentile,
+                        e.pagerank_calculated_at = update.calculated_at
+                    RETURN count(e) as updated_count
+                """, updates=updates)
                 
-                return {"status": "success", "entities_updated": len(ranked_entities)}
+                record = result.single()
+                updated_count = record["updated_count"] if record else 0
+                
+                return {
+                    "status": "success", 
+                    "entities_updated": updated_count,
+                    "entities_submitted": len(ranked_entities)
+                }
                 
         except Exception as e:
-            return {"status": "error", "error": f"Failed to store PageRank scores: {str(e)}"}
+            return Neo4jErrorHandler.create_operation_error("store_pagerank_scores", e)
     
     def _calculate_pagerank_stats(self, ranked_entities: List[Dict[str, Any]]) -> Dict[str, Any]:
         """Calculate statistics about PageRank scores."""
@@ -445,7 +483,10 @@ class PageRankCalculator(BaseNeo4jTool, Neo4jFallbackMixin):
         min_score: float = None
     ) -> List[Dict[str, Any]]:
         """Get top-ranked entities from Neo4j."""
-        if not self.driver:
+        # Check Neo4j availability
+        driver_error = Neo4jErrorHandler.check_driver_available(self.driver)
+        if driver_error:
+            print(f"Neo4j unavailable: {driver_error['message']}")
             return []
         
         try:
@@ -476,7 +517,8 @@ class PageRankCalculator(BaseNeo4jTool, Neo4jFallbackMixin):
                 return result.data()
                 
         except Exception as e:
-            print(f"Error getting top entities: {e}")
+            error_result = Neo4jErrorHandler.create_operation_error("get_top_entities", e)
+            print(f"Neo4j operation failed: {error_result['message']}")
             return []
     
     def _complete_with_error(self, operation_id: str, error_message: str) -> Dict[str, Any]:
@@ -493,6 +535,19 @@ class PageRankCalculator(BaseNeo4jTool, Neo4jFallbackMixin):
             "error": error_message,
             "operation_id": operation_id
         }
+    
+    def _complete_with_neo4j_error(self, operation_id: str, error_dict: Dict[str, Any]) -> Dict[str, Any]:
+        """Complete operation with Neo4j error following NO MOCKS policy."""
+        self.provenance_service.complete_operation(
+            operation_id=operation_id,
+            outputs=[],
+            success=False,
+            error_message=error_dict.get("error", "Neo4j operation failed")
+        )
+        
+        # Return the full error dictionary from Neo4jErrorHandler
+        error_dict["operation_id"] = operation_id
+        return error_dict
     
     def _complete_success(self, operation_id: str, outputs: List[str], message: str) -> Dict[str, Any]:
         """Complete operation successfully with message."""

@@ -23,14 +23,19 @@ import neo4j
 from neo4j import GraphDatabase, Driver
 
 # Import core services
-from src.core.identity_service import IdentityService
-from src.core.provenance_service import ProvenanceService
-from src.core.quality_service import QualityService
+try:
+    from src.core.identity_service import IdentityService
+    from src.core.provenance_service import ProvenanceService
+    from src.core.quality_service import QualityService
+except ImportError:
+    from core.identity_service import IdentityService
+    from core.provenance_service import ProvenanceService
+    from core.quality_service import QualityService
 from .base_neo4j_tool import BaseNeo4jTool
-from .neo4j_fallback_mixin import Neo4jFallbackMixin
+from .neo4j_error_handler import Neo4jErrorHandler
 
 
-class EntityBuilder(BaseNeo4jTool, Neo4jFallbackMixin):
+class EntityBuilder(BaseNeo4jTool):
     """T31: Entity Node Builder."""
     
     def __init__(
@@ -84,11 +89,10 @@ class EntityBuilder(BaseNeo4jTool, Neo4jFallbackMixin):
                     "No mentions provided for entity building"
                 )
             
-            if not self.driver:
-                return self._complete_with_error(
-                    operation_id,
-                    "Neo4j connection not available - cannot build entity graph"
-                )
+            # Check Neo4j availability
+            driver_error = Neo4jErrorHandler.check_driver_available(self.driver)
+            if driver_error:
+                return self._complete_with_neo4j_error(operation_id, driver_error)
             
             # Group mentions by entity (using T107 entity linking)
             entity_groups = self._group_mentions_by_entity(mentions)
@@ -213,11 +217,10 @@ class EntityBuilder(BaseNeo4jTool, Neo4jFallbackMixin):
         mentions: List[Dict[str, Any]]
     ) -> Dict[str, Any]:
         """Create entity node in Neo4j."""
-        if not self.driver:
-            return {
-                "status": "error",
-                "error": "Neo4j connection not available - cannot store entities"
-            }
+        # Check Neo4j availability
+        driver_error = Neo4jErrorHandler.check_driver_available(self.driver)
+        if driver_error:
+            return driver_error
         
         try:
             with self.driver.session() as session:
@@ -266,10 +269,7 @@ class EntityBuilder(BaseNeo4jTool, Neo4jFallbackMixin):
                     }
                     
         except Exception as e:
-            return {
-                "status": "error",
-                "error": f"Neo4j operation failed: {str(e)}"
-            }
+            return Neo4jErrorHandler.create_operation_error("create_entity_node", e)
     
     def _get_type_confidence(self, entity_type: Optional[str]) -> float:
         """Get confidence modifier for entity type."""
@@ -304,7 +304,10 @@ class EntityBuilder(BaseNeo4jTool, Neo4jFallbackMixin):
     
     def get_entity_by_neo4j_id(self, neo4j_id: int) -> Optional[Dict[str, Any]]:
         """Retrieve entity from Neo4j by ID."""
-        if not self.driver:
+        # Check Neo4j availability
+        driver_error = Neo4jErrorHandler.check_driver_available(self.driver)
+        if driver_error:
+            print(f"Neo4j unavailable: {driver_error['message']}")
             return None
         
         try:
@@ -319,7 +322,8 @@ class EntityBuilder(BaseNeo4jTool, Neo4jFallbackMixin):
                     return dict(record["e"])
                 
         except Exception as e:
-            print(f"Error retrieving entity {neo4j_id}: {e}")
+            error_result = Neo4jErrorHandler.create_operation_error("get_entity_by_neo4j_id", e)
+            print(f"Neo4j operation failed: {error_result['message']}")
         
         return None
     
@@ -330,7 +334,10 @@ class EntityBuilder(BaseNeo4jTool, Neo4jFallbackMixin):
         limit: int = 100
     ) -> List[Dict[str, Any]]:
         """Search entities in Neo4j."""
-        if not self.driver:
+        # Check Neo4j availability
+        driver_error = Neo4jErrorHandler.check_driver_available(self.driver)
+        if driver_error:
+            print(f"Neo4j unavailable: {driver_error['message']}")
             return []
         
         try:
@@ -366,7 +373,8 @@ class EntityBuilder(BaseNeo4jTool, Neo4jFallbackMixin):
                 return entities
                 
         except Exception as e:
-            print(f"Error searching entities: {e}")
+            error_result = Neo4jErrorHandler.create_operation_error("search_entities", e)
+            print(f"Neo4j operation failed: {error_result['message']}")
             return []
     
     def _complete_with_error(self, operation_id: str, error_message: str) -> Dict[str, Any]:
@@ -383,6 +391,19 @@ class EntityBuilder(BaseNeo4jTool, Neo4jFallbackMixin):
             "error": error_message,
             "operation_id": operation_id
         }
+    
+    def _complete_with_neo4j_error(self, operation_id: str, error_dict: Dict[str, Any]) -> Dict[str, Any]:
+        """Complete operation with Neo4j error following NO MOCKS policy."""
+        self.provenance_service.complete_operation(
+            operation_id=operation_id,
+            outputs=[],
+            success=False,
+            error_message=error_dict.get("error", "Neo4j operation failed")
+        )
+        
+        # Return the full error dictionary from Neo4jErrorHandler
+        error_dict["operation_id"] = operation_id
+        return error_dict
     
     def _complete_success(self, operation_id: str, outputs: List[str], message: str) -> Dict[str, Any]:
         """Complete operation successfully with message."""
@@ -404,8 +425,10 @@ class EntityBuilder(BaseNeo4jTool, Neo4jFallbackMixin):
     
     def get_neo4j_stats(self) -> Dict[str, Any]:
         """Get Neo4j database statistics."""
-        if not self.driver:
-            return {"status": "error", "error": "Neo4j not connected"}
+        # Check Neo4j availability
+        driver_error = Neo4jErrorHandler.check_driver_available(self.driver)
+        if driver_error:
+            return driver_error
         
         try:
             with self.driver.session() as session:
@@ -426,10 +449,7 @@ class EntityBuilder(BaseNeo4jTool, Neo4jFallbackMixin):
                 }
                 
         except Exception as e:
-            return {
-                "status": "error",
-                "error": f"Failed to get Neo4j stats: {str(e)}"
-            }
+            return Neo4jErrorHandler.create_operation_error("get_neo4j_stats", e)
     
     
     def get_tool_info(self) -> Dict[str, Any]:

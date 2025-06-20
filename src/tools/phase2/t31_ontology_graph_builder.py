@@ -16,7 +16,7 @@ import neo4j
 from neo4j import GraphDatabase
 
 from src.core.identity_service import Entity, Relationship
-from src.core.enhanced_identity_service import EnhancedIdentityService
+from src.core.identity_service import IdentityService
 from src.tools.phase2.t23c_ontology_aware_extractor import OntologyAwareExtractor, ExtractionResult
 from src.ontology_generator import DomainOntology
 from src.core.ontology_storage_service import OntologyStorageService
@@ -86,7 +86,7 @@ class OntologyAwareGraphBuilder:
             raise
         
         # Initialize services
-        self.identity_service = EnhancedIdentityService()
+        self.identity_service = IdentityService(use_embeddings=True)
         self.ontology_storage = OntologyStorageService()
         
         # Entity resolution cache

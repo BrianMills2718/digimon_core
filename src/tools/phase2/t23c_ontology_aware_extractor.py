@@ -17,7 +17,7 @@ from google.generativeai.types import HarmCategory, HarmBlockThreshold
 from openai import OpenAI
 
 from src.core.identity_service import Entity, Relationship, Mention
-from src.core.enhanced_identity_service import EnhancedIdentityService
+from src.core.identity_service import IdentityService
 from src.ontology_generator import DomainOntology, EntityType, RelationshipType
 
 logger = logging.getLogger(__name__)
@@ -39,7 +39,7 @@ class OntologyAwareExtractor:
     """
     
     def __init__(self, 
-                 identity_service: EnhancedIdentityService,
+                 identity_service: IdentityService,
                  google_api_key: Optional[str] = None,
                  openai_api_key: Optional[str] = None):
         """
@@ -84,7 +84,8 @@ class OntologyAwareExtractor:
                         text: str, 
                         ontology: DomainOntology,
                         source_ref: str,
-                        confidence_threshold: float = 0.7) -> ExtractionResult:
+                        confidence_threshold: float = 0.7,
+                        use_mock_apis: bool = False) -> ExtractionResult:
         """
         Extract entities and relationships from text using domain ontology.
         
@@ -99,8 +100,11 @@ class OntologyAwareExtractor:
         """
         start_time = datetime.now()
         
-        # Step 1: Use Gemini to extract based on ontology
-        raw_extraction = self._gemini_extract(text, ontology)
+        # Step 1: Use Gemini to extract based on ontology (or mock if requested)
+        if use_mock_apis:
+            raw_extraction = self._mock_extract(text, ontology)
+        else:
+            raw_extraction = self._gemini_extract(text, ontology)
         
         # Step 2: Create mentions and entities
         entities = []
@@ -178,17 +182,71 @@ class OntologyAwareExtractor:
             }
         )
     
+    def _mock_extract(self, text: str, ontology: DomainOntology) -> Dict[str, Any]:
+        """Generate mock extraction results for testing purposes."""
+        logger.info(f"Using mock extraction for text length: {len(text)}")
+        logger.info(f"Ontology domain: {ontology.domain_name}")
+        
+        # Create mock entities based on simple text analysis and ontology
+        mock_entities = []
+        mock_relationships = []
+        
+        # Extract potential entity names using simple heuristics
+        words = text.split()
+        capitalized_words = [w for w in words if w[0].isupper() and len(w) > 2]
+        
+        # Map to ontology entity types
+        for i, word in enumerate(capitalized_words[:5]):  # Limit to 5 entities
+            if i < len(ontology.entity_types):
+                entity_type = ontology.entity_types[i]
+                mock_entities.append({
+                    "text": word,
+                    "type": entity_type.name,
+                    "confidence": 0.85,
+                    "context": f"Mock entity extracted from text"
+                })
+        
+        # Create mock relationships between consecutive entities
+        for i in range(len(mock_entities) - 1):
+            if i < len(ontology.relationship_types):
+                rel_type = ontology.relationship_types[i]
+                mock_relationships.append({
+                    "source": mock_entities[i]["text"],
+                    "target": mock_entities[i + 1]["text"],
+                    "relation": rel_type.name,
+                    "confidence": 0.8
+                })
+        
+        logger.info(f"Mock extraction: {len(mock_entities)} entities, {len(mock_relationships)} relationships")
+        
+        return {
+            "entities": mock_entities,
+            "relationships": mock_relationships,
+            "extraction_metadata": {
+                "method": "mock",
+                "ontology_domain": ontology.domain_name,
+                "text_length": len(text)
+            }
+        }
+    
     def _gemini_extract(self, text: str, ontology: DomainOntology) -> Dict[str, Any]:
         """Use Gemini to extract entities and relationships based on ontology."""
+        logger.info(f"_gemini_extract called with text length: {len(text)}")
+        logger.info(f"Ontology domain: {ontology.domain_name}")
+        
         # Build entity and relationship descriptions
         entity_desc = []
         for et in ontology.entity_types:
             examples = ", ".join(et.examples[:3]) if et.examples else "no examples"
             entity_desc.append(f"- {et.name}: {et.description} (examples: {examples})")
         
+        logger.info(f"Entity types: {len(entity_desc)}")
+        
         rel_desc = []
         for rt in ontology.relationship_types:
             rel_desc.append(f"- {rt.name}: {rt.description} (connects {rt.source_types} to {rt.target_types})")
+        
+        logger.info(f"Relationship types: {len(rel_desc)}")
         
         guidelines = "\n".join(f"- {g}" for g in ontology.extraction_patterns)
         
@@ -208,6 +266,8 @@ EXTRACTION GUIDELINES:
 
 TEXT TO ANALYZE:
 {text}
+
+NOTE: Only extract entities and relationships that match the ontology types above. If the text doesn't contain any entities matching the defined types, return empty arrays.
 
 Extract entities and relationships in this JSON format:
 {{
@@ -239,6 +299,8 @@ Important:
 
 Respond ONLY with the JSON."""
         
+        logger.info(f"Sending prompt to Gemini (first 500 chars): {prompt[:500]}...")
+        
         try:
             response = self.gemini_model.generate_content(
                 prompt,
@@ -253,6 +315,8 @@ Respond ONLY with the JSON."""
             # Parse response - handle safety filter blocks
             try:
                 cleaned = response.text.strip()
+                logger.info(f"Gemini raw response (first 500 chars): {cleaned[:500]}...")
+                
                 if cleaned.startswith("```json"):
                     cleaned = cleaned[7:]
                 if cleaned.startswith("```"):
@@ -260,10 +324,13 @@ Respond ONLY with the JSON."""
                 if cleaned.endswith("```"):
                     cleaned = cleaned[:-3]
                 
-                return json.loads(cleaned)
+                result = json.loads(cleaned)
+                logger.info(f"Gemini extraction successful: {len(result.get('entities', []))} entities, {len(result.get('relationships', []))} relationships")
+                return result
             except Exception as parse_error:
                 # Response parsing failed - likely safety filter block
                 logger.warning(f"Failed to parse Gemini response: {parse_error}")
+                logger.warning(f"Response text was: {response.text[:500]}...")
                 raise Exception(f"Gemini response parsing failed: {parse_error}")
             
         except Exception as e:

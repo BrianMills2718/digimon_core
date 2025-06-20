@@ -45,7 +45,7 @@ class WorkflowProgress:
     workflow_id: str
     name: str
     started_at: datetime
-    current_step: int
+    step_number: int  # Standardized parameter name (was current_step)
     total_steps: int
     completed_steps: Set[int] = field(default_factory=set)
     failed_steps: Set[int] = field(default_factory=set)
@@ -123,7 +123,7 @@ class WorkflowStateService:
                 workflow_id=workflow_id,
                 name=name,
                 started_at=datetime.now(),
-                current_step=0,
+                step_number=0,
                 total_steps=total_steps
             )
             
@@ -212,7 +212,7 @@ class WorkflowStateService:
             self.checkpoint_files[checkpoint_id] = checkpoint_file
             
             # Update workflow progress
-            workflow.current_step = step_number
+            workflow.step_number = step_number
             workflow.last_checkpoint_id = checkpoint_id
             
             return checkpoint_id
@@ -289,7 +289,7 @@ class WorkflowStateService:
                 }
             
             workflow = self.workflows[workflow_id]
-            workflow.current_step = step_number
+            workflow.step_number = step_number
             workflow.status = status
             workflow.error_message = error_message
             
@@ -304,7 +304,7 @@ class WorkflowStateService:
             return {
                 "status": "success",
                 "workflow_id": workflow_id,
-                "current_step": step_number,
+                "step_number": step_number,
                 "workflow_status": status,
                 "progress_percent": (len(workflow.completed_steps) / workflow.total_steps) * 100
             }
@@ -336,7 +336,7 @@ class WorkflowStateService:
                 "name": workflow.name,
                 "status": workflow.status,
                 "started_at": workflow.started_at.isoformat(),
-                "current_step": workflow.current_step,
+                "step_number": workflow.step_number,
                 "total_steps": workflow.total_steps,
                 "completed_steps": len(workflow.completed_steps),
                 "failed_steps": len(workflow.failed_steps),
@@ -423,6 +423,60 @@ class WorkflowStateService:
             return {
                 "status": "error",
                 "error": f"Failed to cleanup: {str(e)}"
+            }
+    
+    def create_workflow(self, workflow_id: str, total_steps: int) -> Dict[str, Any]:
+        """Create new workflow tracking entry (API contract compliance method).
+        
+        Creates a workflow with the specified ID rather than generating one.
+        
+        Args:
+            workflow_id: Workflow identifier
+            total_steps: Total number of steps in workflow
+            
+        Returns:
+            Creation result with status
+        """
+        try:
+            # Input validation
+            if not workflow_id or total_steps <= 0:
+                return {
+                    "status": "error",
+                    "error": "Workflow ID and positive total_steps are required",
+                    "workflow_id": workflow_id
+                }
+            
+            # Check if workflow already exists
+            if workflow_id in self.workflows:
+                return {
+                    "status": "error",
+                    "error": f"Workflow {workflow_id} already exists",
+                    "workflow_id": workflow_id
+                }
+            
+            # Create workflow directly with specified ID
+            workflow = WorkflowProgress(
+                workflow_id=workflow_id,
+                name=workflow_id,  # Use ID as name for API contract compliance
+                started_at=datetime.now(),
+                step_number=0,
+                total_steps=total_steps
+            )
+            
+            self.workflows[workflow_id] = workflow
+            
+            return {
+                "status": "success",
+                "workflow_id": workflow_id,
+                "total_steps": total_steps,
+                "message": "Workflow created successfully"
+            }
+            
+        except Exception as e:
+            return {
+                "status": "error",
+                "error": str(e),
+                "workflow_id": workflow_id
             }
     
     def get_service_statistics(self) -> Dict[str, Any]:

@@ -12,6 +12,7 @@ from neo4j import GraphDatabase
 from .identity_service import IdentityService
 from .provenance_service import ProvenanceService
 from .quality_service import QualityService
+from .config import get_config
 
 
 class ServiceManager:
@@ -35,13 +36,29 @@ class ServiceManager:
             self._quality_service = None
             self._neo4j_driver = None
             self._neo4j_config = None
+            self._identity_config = None  # Store identity service configuration
     
     @property
     def identity_service(self) -> IdentityService:
         """Get shared identity service instance."""
         if not self._identity_service:
-            self._identity_service = IdentityService()
+            # Use configuration if set, otherwise default to minimal behavior
+            config = self._identity_config or {}
+            self._identity_service = IdentityService(**config)
         return self._identity_service
+    
+    def configure_identity_service(self, **config):
+        """Configure identity service before first use.
+        
+        Args:
+            use_embeddings: Enable semantic similarity
+            persistence_path: Path to SQLite database
+            similarity_threshold: Threshold for entity matching
+            etc.
+        """
+        if self._identity_service:
+            raise RuntimeError("Cannot configure identity service after it's been created")
+        self._identity_config = config
     
     @property
     def provenance_service(self) -> ProvenanceService:
@@ -59,11 +76,20 @@ class ServiceManager:
     
     def get_neo4j_driver(
         self,
-        uri: str = "bolt://localhost:7687",
-        user: str = "neo4j",
-        password: str = "password"
+        uri: str = None,
+        user: str = None,
+        password: str = None
     ):
-        """Get shared Neo4j driver instance with connection pooling."""
+        """Get shared Neo4j driver instance with connection pooling using configuration."""
+        # Load configuration if parameters not provided
+        config = get_config()
+        neo4j_config = config.neo4j
+        
+        # Use provided parameters or fall back to configuration
+        uri = uri or neo4j_config.uri
+        user = user or neo4j_config.user
+        password = password or neo4j_config.password
+        
         config_key = f"{uri}:{user}"
         
         if self._neo4j_driver and self._neo4j_config == config_key:
@@ -79,9 +105,9 @@ class ServiceManager:
                     self._neo4j_driver = GraphDatabase.driver(
                         uri,
                         auth=(user, password),
-                        max_connection_pool_size=50,
-                        connection_acquisition_timeout=30.0,
-                        keep_alive=True
+                        max_connection_pool_size=neo4j_config.max_connection_pool_size,
+                        connection_acquisition_timeout=neo4j_config.connection_acquisition_timeout,
+                        keep_alive=neo4j_config.keep_alive
                     )
                     self._neo4j_config = config_key
                     

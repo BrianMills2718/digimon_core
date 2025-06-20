@@ -23,14 +23,21 @@ import neo4j
 from neo4j import GraphDatabase, Driver
 
 # Import core services
-from src.core.identity_service import IdentityService
-from src.core.provenance_service import ProvenanceService
-from src.core.quality_service import QualityService
-from src.tools.phase1.base_neo4j_tool import BaseNeo4jTool
-from src.tools.phase1.neo4j_fallback_mixin import Neo4jFallbackMixin
+try:
+    from src.core.identity_service import IdentityService
+    from src.core.provenance_service import ProvenanceService
+    from src.core.quality_service import QualityService
+    from src.tools.phase1.base_neo4j_tool import BaseNeo4jTool
+    from src.tools.phase1.neo4j_error_handler import Neo4jErrorHandler
+except ImportError:
+    from core.identity_service import IdentityService
+    from core.provenance_service import ProvenanceService
+    from core.quality_service import QualityService
+    from tools.phase1.base_neo4j_tool import BaseNeo4jTool
+    from tools.phase1.neo4j_error_handler import Neo4jErrorHandler
 
 
-class EdgeBuilder(BaseNeo4jTool, Neo4jFallbackMixin):
+class EdgeBuilder(BaseNeo4jTool):
     """T34: Relationship Edge Builder."""
     
     def __init__(
@@ -97,11 +104,10 @@ class EdgeBuilder(BaseNeo4jTool, Neo4jFallbackMixin):
                     "No relationships provided for edge building"
                 )
             
-            if not self.driver:
-                return self._complete_with_error(
-                    operation_id,
-                    "Neo4j connection not available - cannot build relationship graph"
-                )
+            # Check Neo4j availability
+            driver_error = Neo4jErrorHandler.check_driver_available(self.driver)
+            if driver_error:
+                return self._complete_with_neo4j_error(operation_id, driver_error)
             
             # Build edges
             created_edges = []
@@ -184,11 +190,10 @@ class EdgeBuilder(BaseNeo4jTool, Neo4jFallbackMixin):
     
     def _create_neo4j_relationship_edge(self, relationship: Dict[str, Any]) -> Dict[str, Any]:
         """Create relationship edge in Neo4j."""
-        if not self.driver:
-            return {
-                "status": "error",
-                "error": "Neo4j connection not available - cannot store relationships"
-            }
+        # Check Neo4j availability
+        driver_error = Neo4jErrorHandler.check_driver_available(self.driver)
+        if driver_error:
+            return driver_error
         
         try:
             with self.driver.session() as session:
@@ -243,10 +248,7 @@ class EdgeBuilder(BaseNeo4jTool, Neo4jFallbackMixin):
                     }
                     
         except Exception as e:
-            return {
-                "status": "error",
-                "error": f"Neo4j operation failed: {str(e)}"
-            }
+            return Neo4jErrorHandler.create_operation_error("create_relationship_edge", e)
     
     def _calculate_edge_weight(self, relationship: Dict[str, Any]) -> float:
         """Calculate edge weight from relationship confidence and other factors."""
@@ -352,7 +354,10 @@ class EdgeBuilder(BaseNeo4jTool, Neo4jFallbackMixin):
     
     def get_relationship_by_neo4j_id(self, neo4j_rel_id: int) -> Optional[Dict[str, Any]]:
         """Retrieve relationship from Neo4j by ID."""
-        if not self.driver:
+        # Check Neo4j availability
+        driver_error = Neo4jErrorHandler.check_driver_available(self.driver)
+        if driver_error:
+            print(f"Neo4j unavailable: {driver_error['message']}")
             return None
         
         try:
@@ -378,7 +383,8 @@ class EdgeBuilder(BaseNeo4jTool, Neo4jFallbackMixin):
                     return rel_data
                 
         except Exception as e:
-            print(f"Error retrieving relationship {neo4j_rel_id}: {e}")
+            error_result = Neo4jErrorHandler.create_operation_error("get_relationship_by_neo4j_id", e)
+            print(f"Neo4j operation failed: {error_result['message']}")
         
         return None
     
@@ -390,7 +396,10 @@ class EdgeBuilder(BaseNeo4jTool, Neo4jFallbackMixin):
         limit: int = 100
     ) -> List[Dict[str, Any]]:
         """Search relationships in Neo4j."""
-        if not self.driver:
+        # Check Neo4j availability
+        driver_error = Neo4jErrorHandler.check_driver_available(self.driver)
+        if driver_error:
+            print(f"Neo4j unavailable: {driver_error['message']}")
             return []
         
         try:
@@ -437,13 +446,16 @@ class EdgeBuilder(BaseNeo4jTool, Neo4jFallbackMixin):
                 return relationships
                 
         except Exception as e:
-            print(f"Error searching relationships: {e}")
+            error_result = Neo4jErrorHandler.create_operation_error("search_relationships", e)
+            print(f"Neo4j operation failed: {error_result['message']}")
             return []
     
     def get_neo4j_graph_stats(self) -> Dict[str, Any]:
         """Get Neo4j graph statistics."""
-        if not self.driver:
-            return {"status": "error", "error": "Neo4j not connected"}
+        # Check Neo4j availability
+        driver_error = Neo4jErrorHandler.check_driver_available(self.driver)
+        if driver_error:
+            return driver_error
         
         try:
             with self.driver.session() as session:
@@ -477,10 +489,7 @@ class EdgeBuilder(BaseNeo4jTool, Neo4jFallbackMixin):
                 }
                 
         except Exception as e:
-            return {
-                "status": "error",
-                "error": f"Failed to get Neo4j graph stats: {str(e)}"
-            }
+            return Neo4jErrorHandler.create_operation_error("get_neo4j_graph_stats", e)
     
     def _complete_with_error(self, operation_id: str, error_message: str) -> Dict[str, Any]:
         """Complete operation with error."""
@@ -496,6 +505,19 @@ class EdgeBuilder(BaseNeo4jTool, Neo4jFallbackMixin):
             "error": error_message,
             "operation_id": operation_id
         }
+    
+    def _complete_with_neo4j_error(self, operation_id: str, error_dict: Dict[str, Any]) -> Dict[str, Any]:
+        """Complete operation with Neo4j error following NO MOCKS policy."""
+        self.provenance_service.complete_operation(
+            operation_id=operation_id,
+            outputs=[],
+            success=False,
+            error_message=error_dict.get("error", "Neo4j operation failed")
+        )
+        
+        # Return the full error dictionary from Neo4jErrorHandler
+        error_dict["operation_id"] = operation_id
+        return error_dict
     
     def _complete_success(self, operation_id: str, outputs: List[str], message: str) -> Dict[str, Any]:
         """Complete operation successfully with message."""

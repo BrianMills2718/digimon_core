@@ -10,9 +10,9 @@ from typing import Dict, List, Any, Optional
 from pathlib import Path
 import traceback
 
-from src.core.graphrag_phase_interface import ProcessingRequest, PhaseResult, PhaseStatus, GraphRAGPhase
-from src.tools.phase1.vertical_slice_workflow_optimized import OptimizedVerticalSliceWorkflow
-from src.core.service_manager import get_service_manager
+from core.graphrag_phase_interface import ProcessingRequest, PhaseResult, PhaseStatus, GraphRAGPhase
+from tools.phase1.vertical_slice_workflow_optimized import OptimizedVerticalSliceWorkflow
+from core.service_manager import get_service_manager
 
 
 class BasicMultiDocumentWorkflow(GraphRAGPhase):
@@ -71,8 +71,10 @@ class BasicMultiDocumentWorkflow(GraphRAGPhase):
         except Exception as e:
             # 100% reliability - always return a result
             error_trace = traceback.format_exc()
+            print(f"❌ Phase 3 Exception: {str(e)}")
+            print(f"Traceback:\n{error_trace}")
             return self.create_error_result(
-                f"Phase 3 processing error: {str(e)}",
+                f"Phase 3 processing error: {str(e)}\nTraceback: {error_trace}",
                 execution_time=0.0
             )
     
