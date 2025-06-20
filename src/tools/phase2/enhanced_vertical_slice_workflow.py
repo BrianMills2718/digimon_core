@@ -179,15 +179,15 @@ class EnhancedVerticalSliceWorkflow:
             
             # Step 1: Load PDF
             print("Step 1: Loading PDF...")
-            results["steps"]["pdf_loading"] = self._execute_pdf_loading(workflow_id, pdf_path)
-            if results["steps"]["pdf_loading"]["status"] != "success":
-                return self._complete_workflow_with_error(workflow_id, results, "PDF loading failed")
+            results["steps"]["document_loading"] = self._execute_document_loading(workflow_id, pdf_path)
+            if results["steps"]["document_loading"]["status"] != "success":
+                return self._complete_workflow_with_error(workflow_id, results, "Document loading failed")
             
             # Step 2: Chunk text
             print("Step 2: Chunking text...")
             results["steps"]["text_chunking"] = self._execute_text_chunking(
                 workflow_id, 
-                results["steps"]["pdf_loading"]["document"]
+                results["steps"]["document_loading"]["document"]
             )
             if results["steps"]["text_chunking"]["status"] != "success":
                 return self._complete_workflow_with_error(workflow_id, results, "Text chunking failed")
@@ -205,7 +205,7 @@ class EnhancedVerticalSliceWorkflow:
             results["steps"]["entity_extraction"] = self._execute_ontology_aware_extraction(
                 workflow_id,
                 results["steps"]["text_chunking"]["chunks"],
-                results["steps"]["pdf_loading"]["document"]["document_ref"],
+                results["steps"]["document_loading"]["document"]["document_ref"],
                 use_mock_apis
             )
             if results["steps"]["entity_extraction"]["status"] != "success":
@@ -216,7 +216,7 @@ class EnhancedVerticalSliceWorkflow:
             results["steps"]["graph_building"] = self._execute_enhanced_graph_building(
                 workflow_id,
                 results["steps"]["entity_extraction"]["extraction_result"],
-                results["steps"]["pdf_loading"]["document"]["document_ref"]
+                results["steps"]["document_loading"]["document"]["document_ref"]
             )
             if results["steps"]["graph_building"]["status"] != "success":
                 return self._complete_workflow_with_error(workflow_id, results, "Graph building failed")
@@ -238,7 +238,7 @@ class EnhancedVerticalSliceWorkflow:
             print("Step 8: Creating visualizations...")
             results["steps"]["visualization"] = self._execute_visualization_creation(
                 workflow_id,
-                results["steps"]["pdf_loading"]["document"]["document_ref"]
+                results["steps"]["document_loading"]["document"]["document_ref"]
             )
             results["visualizations"] = results["steps"]["visualization"].get("visualizations", {})
             
@@ -273,19 +273,19 @@ class EnhancedVerticalSliceWorkflow:
             logger.error(traceback.format_exc())
             return self._complete_workflow_with_error(workflow_id, results, error_msg)
     
-    def _execute_pdf_loading(self, workflow_id: str, pdf_path: str) -> Dict[str, Any]:
-        """Execute PDF loading step."""
-        self.workflow_service.create_checkpoint(workflow_id, "load_pdf", 1, {"step": "loading_pdf"})
+    def _execute_document_loading(self, workflow_id: str, document_path: str) -> Dict[str, Any]:
+        """Execute document loading step."""
+        self.workflow_service.create_checkpoint(workflow_id, "load_document", 1, {"step": "loading_document"})
         
-        pdf_result = self.pdf_loader.load_pdf(pdf_path)
-        if pdf_result["status"] != "success":
-            return {"status": "error", "error": pdf_result.get("error")}
+        doc_result = self.pdf_loader.load_pdf(document_path)
+        if doc_result["status"] != "success":
+            return {"status": "error", "error": doc_result.get("error")}
         
         return {
             "status": "success",
-            "document": pdf_result["document"],
-            "confidence": pdf_result["document"]["confidence"],
-            "text_length": len(pdf_result["document"]["text"])
+            "document": doc_result["document"],
+            "confidence": doc_result["document"]["confidence"],
+            "text_length": len(doc_result["document"]["text"])
         }
     
     def _execute_text_chunking(self, workflow_id: str, document: Dict[str, Any]) -> Dict[str, Any]:

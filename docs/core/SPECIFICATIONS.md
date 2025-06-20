@@ -1,18 +1,41 @@
-# GraphRAG Tool Specifications
+# GraphRAG System Specifications
+
+## 🎯 System Overview
+
+The GraphRAG system is a comprehensive document processing and graph analysis platform with multi-layered capabilities.
+
+## 📊 Capabilities & Tools Overview
+
+### **Terminology Definitions**
+- **Capability**: Any class, function, or method in the codebase (571 total)
+- **Core Tool**: Integrated workflow component used internally (13 active)
+- **MCP Tool**: Exposed tool available via MCP server protocol (29 available)
+- **Planned Tool**: Aspirational tool from original 121-tool roadmap (108 planned)
+
+### **Current System Status**
+- **✅ Implemented Capabilities**: 571 (classes, functions, methods across all files)
+- **✅ Core GraphRAG Tools**: 13 (working tools in active workflows)
+- **✅ MCP Server Tools**: 29 (external API access via MCP protocol)
+- **📋 Planned Tools**: 108 (aspirational roadmap tools not yet implemented)
+
+### **Capability Distribution**
+- **Phase 1**: 200 capabilities (35% - most mature)
+- **Core Services**: 144 capabilities (25% - foundational)
+- **Phase 2**: 69 capabilities (12% - enhanced processing)
+- **Phase 3**: 64 capabilities (11% - multi-document)
+- **UI/Testing/Other**: 94 capabilities (17% - supporting)
+
+### **MCP Tool Access**
+29 tools exposed via MCP server for external integration:
+- **Phase 1**: Individual pipeline components (PDF loading, entity extraction, etc.)
+- **Core Services**: Identity, provenance, quality, workflow state management
+- **Phase 3**: Multi-document fusion and advanced workflows
 
 ## ⚠️ DOCUMENTATION NOTICE
-**This document contains ASPIRATIONAL SPECIFICATIONS from the original 121-tool vision.**  
-**Current Reality**: Only 13 tools are implemented. See `docs/current/CURRENT_REALITY_AUDIT.md` and `docs/current/TOOL_ROADMAP_RECONCILIATION.md` for accurate status.  
-**Status**: This represents the original vision, not current implementation.
-
-## Overview (Original Vision)
-
-The original vision was for a GraphRAG-First Universal Analytics system with **121 planned specialized tools** organized into 7 lifecycle phases plus critical infrastructure services. This document provides the specification for that aspirational vision.
-
-**Current Reality**: 13 tools implemented (11% of planned tools)  
-**Realistic Roadmap**: Phase 1 (20 tools) → Phase 2 (35 tools) → Phase 3 (60 tools)
-
-**Update**: Added 14 new tools (T107-T120) based on mock workflow analysis, including identity services, format converters, and advanced capabilities.
+**This document contains both CURRENT REALITY and ASPIRATIONAL SPECIFICATIONS.**  
+**Current Reality**: 13 core tools implemented, 29 MCP tools available, 571 total capabilities  
+**Aspirational Vision**: Original 121-tool roadmap (108 tools still planned)  
+**Status**: Working system with comprehensive capabilities, significant roadmap remaining
 
 ## Tool Organization by Phase
 

@@ -28,22 +28,16 @@ def check_neo4j():
         return False, str(e)
 
 
-def process_pdf(pdf_path: str, query: str, output_format: str = "text"):
-    """Process a PDF and answer a query."""
-    print(f"\n📄 Processing: {pdf_path}")
+def process_documents(document_paths: list, query: str, output_format: str = "text"):
+    """Process documents and answer a query."""
+    print(f"\n📄 Processing: {', '.join(document_paths)}")
     print(f"❓ Query: {query}")
     print("-" * 60)
     
-    # Check if file exists
-    if not os.path.exists(pdf_path):
-        print(f"❌ Error: File not found: {pdf_path}")
-        return
-    
-    # Check if it's a PDF
-    with open(pdf_path, 'rb') as f:
-        header = f.read(4)
-        if not header.startswith(b'%PDF'):
-            print(f"❌ Error: Not a valid PDF file")
+    # Check if files exist
+    for doc_path in document_paths:
+        if not os.path.exists(doc_path):
+            print(f"❌ Error: File not found: {doc_path}")
             return
     
     # Initialize workflow
@@ -53,9 +47,9 @@ def process_pdf(pdf_path: str, query: str, output_format: str = "text"):
     # Execute workflow
     print("⚙️  Processing (this may take 1-3 minutes)...")
     result = workflow.execute_workflow(
-        pdf_path=pdf_path,
-        query=query,
-        workflow_name=f"CLI_{Path(pdf_path).stem}"
+        document_paths=document_paths,
+        queries=[query],
+        workflow_name=f"CLI_{Path(document_paths[0]).stem}"
     )
     
     # Display results
@@ -94,7 +88,7 @@ def process_pdf(pdf_path: str, query: str, output_format: str = "text"):
         
         # Save results if requested
         if output_format == "json":
-            output_file = f"{Path(pdf_path).stem}_results.json"
+            output_file = f"{Path(document_paths[0]).stem}_results.json"
             with open(output_file, 'w') as f:
                 json.dump(result, f, indent=2)
             print(f"\n💾 Results saved to: {output_file}")
@@ -153,9 +147,9 @@ def main():
     subparsers = parser.add_subparsers(dest='command', help='Available commands')
     
     # Process command
-    process_parser = subparsers.add_parser('process', help='Process a PDF and answer a query')
-    process_parser.add_argument('pdf_path', help='Path to the PDF file')
-    process_parser.add_argument('query', help='Question to answer about the PDF')
+    process_parser = subparsers.add_parser('process', help='Process documents and answer a query')
+    process_parser.add_argument('document_paths', nargs='+', help='Path(s) to the document file(s)')
+    process_parser.add_argument('query', help='Question to answer about the documents')
     process_parser.add_argument('--json', action='store_true', help='Save results as JSON')
     
     # Stats command
@@ -167,7 +161,7 @@ def main():
     args = parser.parse_args()
     
     if args.command == 'process':
-        process_pdf(args.pdf_path, args.query, 'json' if args.json else 'text')
+        process_documents(args.document_paths, args.query, 'json' if args.json else 'text')
     
     elif args.command == 'stats':
         show_graph_stats()

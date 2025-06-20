@@ -28,8 +28,8 @@ python -m scripts.test_connection
 PDF Document → Text Extraction → spaCy NER → Neo4j Graph → PageRank
 ```
 
-**Implementation Status**: 13 core GraphRAG tools implemented (11% of original 121-tool vision)  
-**Total Available**: 33 tools (13 core + 20 MCP) - see [TOOL_COUNT_CLARIFICATION.md](docs/current/TOOL_COUNT_CLARIFICATION.md)
+**Implementation Status**: 13 core GraphRAG tools, 29 MCP tools, 571 total capabilities  
+**Tooling Overview**: See comprehensive breakdown in [SPECIFICATIONS.md](docs/core/SPECIFICATIONS.md)
 
 **Verified Capabilities**:
 - **PDF Processing**: Extract text from PDFs (tested with 293KB files)

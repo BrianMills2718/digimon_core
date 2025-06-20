@@ -417,18 +417,18 @@ def get_workflow_statistics() -> Dict[str, Any]:
 
 @mcp.tool()
 def execute_pdf_to_answer_workflow(
-    pdf_path: str,
+    document_paths: List[str],
     query: str,
     workflow_name: str = "PDF_Analysis"
 ) -> Dict[str, Any]:
     """Execute complete PDF → PageRank → Answer workflow.
     
     Args:
-        pdf_path: Path to PDF file to process
+        document_paths: List of document file paths to process
         query: Question to answer using the extracted graph
         workflow_name: Name for workflow tracking
     """
-    return vertical_slice.execute_workflow(pdf_path, query, workflow_name)
+    return vertical_slice.execute_workflow(document_paths=document_paths, queries=[query], workflow_name=workflow_name)
 
 
 @mcp.tool()

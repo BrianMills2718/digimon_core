@@ -63,13 +63,17 @@ def create_phase1_mcp_tools(mcp: FastMCP):
     # =============================================================================
     
     @mcp.tool()
-    def load_pdf(pdf_path: str) -> Dict[str, Any]:
-        """Load and extract text from a PDF document.
+    def load_documents(document_paths: List[str]) -> Dict[str, Any]:
+        """Load and extract text from document files.
         
         Args:
-            pdf_path: Path to the PDF file to load
+            document_paths: List of paths to document files to load
         """
-        return pdf_loader.load_pdf(pdf_path)
+        results = []
+        for path in document_paths:
+            result = pdf_loader.load_pdf(path)  # pdf_loader can handle various formats
+            results.append(result)
+        return {"documents": results, "total_loaded": len(results)}
     
     @mcp.tool()
     def get_pdf_loader_info() -> Dict[str, Any]:
