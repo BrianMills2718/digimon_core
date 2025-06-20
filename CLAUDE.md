@@ -151,6 +151,70 @@ scripts/            # Utility scripts for development
 config/             # Environment configurations
 ```
 
+## 🚨 ROOT DIRECTORY RULES (MANDATORY)
+
+**KEEP ROOT CLEAN** - Maximum 15 files in root directory
+- ✅ **ALLOWED**: Core config files (CLAUDE.md, README.md, requirements.txt, docker-compose.yml)
+- ✅ **ALLOWED**: Main entry points (main.py, start_*.py for services)
+- ❌ **FORBIDDEN**: Test files (test_*.py) - Must go in tests/ subdirectories
+- ❌ **FORBIDDEN**: Reports/audits (*.md reports) - Must go in docs/current/ or archive/
+- ❌ **FORBIDDEN**: Duplicate/variant files - Clean up before adding new versions
+
+## 📋 BEFORE CREATING ANY FILE
+
+**ASK THESE QUESTIONS FIRST:**
+1. **Does this belong in root?** → If test/report/audit → NO, use proper directory
+2. **Does similar file exist?** → If yes → Edit existing or move old to archive/
+3. **Is this temporary?** → If yes → Use /tmp/ or add to .gitignore
+4. **What's the lifecycle?** → Active development vs historical record
+
+## 🧪 MANDATORY TEST FILE PLACEMENT
+
+**BY FILE NAME PATTERN:**
+- `test_*.py` → MUST go in `tests/functional/`, `tests/performance/`, or `tests/stress/`
+- `*_test.py` → Same rule applies
+- `test_*_integration*.py` → `tests/functional/`
+- `test_*_performance*.py` → `tests/performance/`
+- `test_*_stress*.py` → `tests/stress/`
+
+**NEVER IN ROOT:** No test files allowed in root directory
+
+## 🔄 FILE LIFECYCLE RULES
+
+**WHEN CREATING VARIANTS** (e.g., `start_ui_v2.py`):
+1. Move old version to `archive/` first
+2. Rename new version to original name
+3. Update all references
+
+**WHEN FILES BECOME OBSOLETE:**
+1. Move to `archive/deprecated/` with date
+2. Update any documentation references
+3. Add entry to `archive/CHANGELOG.md`
+
+## ✅ DIRECTORY STRUCTURE VERIFICATION
+
+```bash
+# Check root directory file count (should be ≤15)
+ls -1 | wc -l
+
+# Verify no test files in root
+ls test_*.py 2>/dev/null && echo "❌ VIOLATION: Test files in root" || echo "✅ Clean"
+
+# Check test directory structure exists
+[ -d "tests/functional" ] && [ -d "tests/performance" ] && [ -d "tests/stress" ] && echo "✅ Test structure correct" || echo "❌ Missing test directories"
+```
+
+## 📁 FILE PLACEMENT DECISION TREE
+
+**New file type?** → Ask:
+- Is it a test? → `tests/[functional|performance|stress]/`
+- Is it documentation? → `docs/current/` 
+- Is it a report/audit? → `docs/current/` or `archive/`
+- Is it a script? → `scripts/`
+- Is it config? → `config/`
+- Is it a main entry point? → Root (but limit to 3-4 max)
+- Is it temporary/experimental? → Create in appropriate subdir, not root
+
 ## 🚨 Critical Configuration
 **⚠️ GEMINI MODEL**: Must use `gemini-2.5-flash` (1000 RPM limit)
 - DO NOT change to `gemini-2.0-flash-exp` (10 RPM limit) 
