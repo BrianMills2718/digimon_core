@@ -33,10 +33,10 @@ This resolves the historical vision inconsistency between "GraphRAG system" and 
 
 ```bash
 # Verify Phase 1 Works (Expected: "✅ SUCCESS: Extracted XXX entities and XXX relationships")
-python test_phase1_direct.py
+python tests/functional/test_graphrag_system_direct.py
 
 # Verify UI Functional (Expected: "🎉 UI should be functional for basic testing!")
-python test_ui_real.py
+python tests/functional/test_ui_complete_user_journeys.py
 
 # Verify Performance Target (Expected: "Processing time: X.XXs" where X < 10)
 python tests/performance/test_optimized_workflow.py
