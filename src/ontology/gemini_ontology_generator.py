@@ -1,6 +1,6 @@
 """
-Gemini 2.5 Flash Ontology Generator with structured output.
-Uses Google's Generative AI for domain-specific ontology generation.
+OpenAI o3-mini Ontology Generator with structured output.
+Uses OpenAI's o3-mini model for domain-specific ontology generation.
 """
 
 import os
@@ -8,8 +8,7 @@ import json
 import re
 from typing import List, Dict, Optional, Any
 from dataclasses import dataclass, asdict
-import google.generativeai as genai
-from google.generativeai.types import HarmCategory, HarmBlockThreshold
+from openai import OpenAI
 import logging
 
 from src.ontology_generator import DomainOntology, EntityType, RelationshipType
@@ -18,31 +17,22 @@ logger = logging.getLogger(__name__)
 
 
 class GeminiOntologyGenerator:
-    """Generate domain ontologies using Gemini 2.5 Flash with structured output."""
+    """Generate domain ontologies using OpenAI o3-mini with structured output."""
     
     def __init__(self, api_key: Optional[str] = None):
         """
-        Initialize Gemini generator.
+        Initialize OpenAI generator.
         
         Args:
-            api_key: Google API key. If None, uses GOOGLE_API_KEY env var.
+            api_key: OpenAI API key. If None, uses OPENAI_API_KEY env var.
         """
-        self.api_key = api_key or os.getenv("GOOGLE_API_KEY")
+        self.api_key = api_key or os.getenv("OPENAI_API_KEY")
         if not self.api_key:
-            raise ValueError("Google API key required. Set GOOGLE_API_KEY env var or pass api_key.")
+            raise ValueError("OpenAI API key required. Set OPENAI_API_KEY env var or pass api_key.")
         
-        genai.configure(api_key=self.api_key)
-        # IMPORTANT: DO NOT CHANGE THIS MODEL - gemini-2.5-flash has 1000 RPM limit
-        # Other models have much lower limits (e.g., 10 RPM) and will cause quota errors
-        self.model = genai.GenerativeModel('gemini-2.5-flash')
-        
-        # Safety settings to allow academic content
-        self.safety_settings = {
-            HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
-            HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
-            HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
-            HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
-        }
+        self.client = OpenAI(api_key=self.api_key)
+        # o3-mini is a real OpenAI model - do not change this
+        self.model = "o3-mini"
     
     def generate_from_conversation(self, messages: List[Dict[str, str]], 
                                  temperature: float = 0.7,
@@ -65,19 +55,19 @@ class GeminiOntologyGenerator:
         prompt = self._create_ontology_prompt(conversation_text, constraints)
         
         try:
-            # Generate with Gemini
-            response = self.model.generate_content(
-                prompt,
-                generation_config=genai.types.GenerationConfig(
-                    temperature=temperature,
-                    candidate_count=1,
-                    max_output_tokens=4000,
-                ),
-                safety_settings=self.safety_settings
+            # Generate with OpenAI o3-mini
+            print(f"OPENAI o3-mini API PROMPT:\n{prompt}\n" + "="*80)
+            response = self.client.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {"role": "user", "content": prompt}
+                ],
+                max_completion_tokens=4000,
+                response_format={"type": "json_object"}
             )
             
-            # Validate response before parsing
-            response_text = self._extract_response_text(response)
+            # Extract response text
+            response_text = response.choices[0].message.content
             
             # Parse structured output
             ontology_data = self._parse_response(response_text)
@@ -89,58 +79,6 @@ class GeminiOntologyGenerator:
             logger.error(f"Error generating ontology: {e}")
             raise
     
-    def _extract_response_text(self, response) -> str:
-        """
-        Extract text from Gemini response with proper error handling.
-        
-        Args:
-            response: Gemini GenerateContentResponse object
-            
-        Returns:
-            Extracted response text
-            
-        Raises:
-            ValueError: If response is blocked, empty, or invalid
-        """
-        # Check if response has candidates
-        if not response.candidates:
-            raise ValueError("No response candidates returned from Gemini")
-        
-        candidate = response.candidates[0]
-        
-        # Check finish reason
-        finish_reason = candidate.finish_reason
-        if finish_reason == 2:  # SAFETY
-            safety_ratings = getattr(candidate, 'safety_ratings', [])
-            safety_issues = [
-                f"{rating.category.name}: {rating.probability.name}" 
-                for rating in safety_ratings 
-                if rating.probability.name in ['HIGH', 'MEDIUM']
-            ]
-            raise ValueError(f"Response blocked by safety filters: {safety_issues}")
-        elif finish_reason == 3:  # RECITATION
-            raise ValueError("Response blocked due to recitation concerns")
-        elif finish_reason == 4:  # OTHER
-            raise ValueError("Response generation stopped for unknown reasons")
-        elif finish_reason != 1:  # Not STOP (successful completion)
-            raise ValueError(f"Response generation incomplete (finish_reason: {finish_reason})")
-        
-        # Try to extract text content
-        try:
-            if hasattr(response, 'text') and response.text:
-                return response.text
-            elif candidate.content and candidate.content.parts:
-                # Extract from parts if direct text access fails
-                text_parts = []
-                for part in candidate.content.parts:
-                    if hasattr(part, 'text') and part.text:
-                        text_parts.append(part.text)
-                if text_parts:
-                    return ''.join(text_parts)
-        except Exception as e:
-            logger.warning(f"Error accessing response.text: {e}")
-        
-        raise ValueError("No valid text content found in response")
 
     def _format_conversation(self, messages: List[Dict[str, str]]) -> str:
         """Format conversation messages into text."""
@@ -162,14 +100,14 @@ class GeminiOntologyGenerator:
             if "complexity" in constraints:
                 constraint_text += f"{chr(10)}- Complexity level: {constraints['complexity']}"
         
-        prompt = f"""Based on the following conversation about a domain, generate a formal ontology specification.
+        prompt = f"""Based on the following conversation about a domain, please help create a structured knowledge framework.
 
 CONVERSATION:
 {conversation}
 
 CONSTRAINTS:{constraint_text if constraint_text else chr(10) + "None"}
 
-Generate a domain ontology in the following JSON format:
+Please provide a structured knowledge framework in the following JSON format:
 {{
     "domain_name": "Short domain name",
     "domain_description": "One paragraph description of the domain",
@@ -190,9 +128,9 @@ Generate a domain ontology in the following JSON format:
             "examples": ["Entity1 RELATIONSHIP Entity2"]
         }}
     ],
-    "extraction_guidelines": [
+    "identification_guidelines": [
         "Guideline 1 for identifying entities in text",
-        "Guideline 2 for identifying relationships",
+        "Guideline 2 for identifying relationships", 
         "Guideline 3 for handling ambiguity"
     ]
 }}
@@ -203,9 +141,9 @@ Important requirements:
 3. Include 3-5 concrete examples for each type
 4. Focus on domain-specific types, not generic ones
 5. Relationships should connect specific entity types
-6. Extraction guidelines should be actionable
+6. Guidelines should be helpful for academic research
 
-Respond ONLY with the JSON, no additional text."""
+Please respond with the JSON format only."""
         
         return prompt
     
@@ -330,7 +268,7 @@ Respond ONLY with the JSON, no additional text."""
             domain_description=data["domain_description"],
             entity_types=entity_types,
             relationship_types=relationship_types,
-            extraction_patterns=data.get("extraction_guidelines", []),
+            extraction_patterns=data.get("identification_guidelines", data.get("extraction_guidelines", [])),
             created_by_conversation=conversation
         )
     
@@ -380,18 +318,16 @@ Extract entities and relationships in this JSON format:
 Respond ONLY with the JSON."""
         
         try:
-            response = self.model.generate_content(
-                prompt,
-                generation_config=genai.types.GenerationConfig(
-                    temperature=0.3,  # Lower temperature for extraction
-                    candidate_count=1,
-                    max_output_tokens=2000,
-                ),
-                safety_settings=self.safety_settings
+            response = self.client.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {"role": "user", "content": prompt}
+                ],
+                max_completion_tokens=2000,
+                response_format={"type": "json_object"}
             )
             
-            # Validate response before parsing
-            response_text = self._extract_response_text(response)
+            response_text = response.choices[0].message.content
             return self._parse_response(response_text)
             
         except Exception as e:
@@ -435,18 +371,16 @@ Generate the refined ontology in the same JSON format. Make only the requested c
 Respond ONLY with the JSON."""
         
         try:
-            response = self.model.generate_content(
-                prompt,
-                generation_config=genai.types.GenerationConfig(
-                    temperature=0.5,
-                    candidate_count=1,
-                    max_output_tokens=4000,
-                ),
-                safety_settings=self.safety_settings
+            response = self.client.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {"role": "user", "content": prompt}
+                ],
+                max_completion_tokens=4000,
+                response_format={"type": "json_object"}
             )
             
-            # Validate response before parsing
-            response_text = self._extract_response_text(response)
+            response_text = response.choices[0].message.content
             refined_data = self._parse_response(response_text)
             return self._build_ontology(refined_data, 
                                       ontology.created_by_conversation + f"\n\nRefinement: {refinement_request}")

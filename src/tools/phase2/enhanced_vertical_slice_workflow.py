@@ -22,6 +22,10 @@ from typing import Dict, List, Optional, Any, Tuple
 from pathlib import Path
 from datetime import datetime
 import traceback
+from dotenv import load_dotenv
+
+# Load environment variables for API keys
+load_dotenv()
 
 # Import Phase 1 tools (reusable)
 from ..phase1.t01_pdf_loader import PDFLoader
@@ -78,7 +82,7 @@ class EnhancedVerticalSliceWorkflow:
         # Initialize Phase 1 tools (reusable) with required services
         self.pdf_loader = PDFLoader(legacy_identity_service, provenance_service, self.quality_service)
         self.text_chunker = TextChunker(legacy_identity_service, provenance_service, self.quality_service)
-        self.pagerank_calculator = PageRankCalculator(neo4j_uri, neo4j_user, neo4j_password)
+        self.pagerank_calculator = PageRankCalculator(legacy_identity_service, provenance_service, self.quality_service, neo4j_uri, neo4j_user, neo4j_password)
         self.query_engine = MultiHopQuery(neo4j_uri, neo4j_user, neo4j_password)
         
         # Initialize Phase 2 tools
@@ -292,7 +296,6 @@ class EnhancedVerticalSliceWorkflow:
                         "status": "success",
                         "method": "loaded_existing",
                         "session_id": existing_session_id,
-                        "ontology": self.current_ontology,
                         "entity_types": len(self.current_ontology.entity_types),
                         "relationship_types": len(self.current_ontology.relationship_types)
                     }
@@ -342,7 +345,6 @@ class EnhancedVerticalSliceWorkflow:
                 "status": "success",
                 "method": method,
                 "session_id": session_id,
-                "ontology": self.current_ontology,
                 "entity_types": len(self.current_ontology.entity_types),
                 "relationship_types": len(self.current_ontology.relationship_types)
             }

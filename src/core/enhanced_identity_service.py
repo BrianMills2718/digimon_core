@@ -24,7 +24,7 @@ class EnhancedIdentityService:
         
         # OpenAI client for embeddings
         self.openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-        self.embedding_model = "text-embedding-ada-002"  # Use older model for compatibility
+        self.embedding_model = "text-embedding-3-small"  # Using text-embedding-3-small as requested
         
         # Initialize database
         self._init_database()
