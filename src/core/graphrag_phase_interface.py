@@ -52,6 +52,10 @@ class ProcessingRequest:
     confidence_threshold: float = 0.7
     max_entities: Optional[int] = None
     use_mock_apis: bool = False
+    
+    # Phase integration data (for data flow between phases)
+    phase1_graph_data: Optional[Dict[str, Any]] = None    # P1 results for P2/P3
+    phase2_enhanced_data: Optional[Dict[str, Any]] = None # P2 results for P3
 
 
 class GraphRAGPhase(ABC):

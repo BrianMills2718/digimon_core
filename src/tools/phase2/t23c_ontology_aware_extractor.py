@@ -100,11 +100,12 @@ class OntologyAwareExtractor:
         """
         start_time = datetime.now()
         
-        # Step 1: Use Gemini to extract based on ontology (or mock if requested)
+        # Step 1: Use OpenAI to extract based on ontology (or mock if requested)
         if use_mock_apis:
             raw_extraction = self._mock_extract(text, ontology)
         else:
-            raw_extraction = self._gemini_extract(text, ontology)
+            # Use OpenAI instead of Gemini to avoid safety filter issues
+            raw_extraction = self._openai_extract(text, ontology)
         
         # Step 2: Create mentions and entities
         entities = []
@@ -336,6 +337,94 @@ Respond ONLY with the JSON."""
         except Exception as e:
             logger.error(f"Gemini extraction failed: {e}")
             # Fallback to simple pattern-based extraction for testing
+            return self._fallback_pattern_extraction(text, ontology)
+    
+    def _openai_extract(self, text: str, ontology: DomainOntology) -> Dict[str, Any]:
+        """Use OpenAI to extract entities and relationships based on ontology."""
+        logger.info(f"_openai_extract called with text length: {len(text)}")
+        logger.info(f"Ontology domain: {ontology.domain_name}")
+        
+        if not self.openai_client:
+            logger.warning("OpenAI client not available, falling back to pattern extraction")
+            return self._fallback_pattern_extraction(text, ontology)
+        
+        # Build entity and relationship descriptions (same as Gemini)
+        entity_desc = []
+        for et in ontology.entity_types:
+            examples = ", ".join(et.examples[:3]) if et.examples else "no examples"
+            entity_desc.append(f"- {et.name}: {et.description} (examples: {examples})")
+        
+        rel_desc = []
+        for rt in ontology.relationship_types:
+            rel_desc.append(f"- {rt.name}: {rt.description} (connects {rt.source_types} to {rt.target_types})")
+        
+        # Build prompt (same as Gemini but formatted for OpenAI)
+        prompt = f"""Extract entities and relationships from the following text using the domain ontology.
+
+**Domain:** {ontology.domain_name}
+
+**Entity Types:**
+{chr(10).join(entity_desc)}
+
+**Relationship Types:**
+{chr(10).join(rel_desc)}
+
+**Text to analyze:**
+{text}
+
+**Instructions:**
+1. Identify entities that match the defined types
+2. Find relationships between entities
+3. Return confidence scores (0.0-1.0)
+4. Include context for each extraction
+
+**Response format (JSON only):**
+{{
+    "entities": [
+        {{"text": "entity text", "type": "EntityType", "confidence": 0.9, "context": "surrounding text"}}
+    ],
+    "relationships": [
+        {{"source": "entity1", "target": "entity2", "relation": "RelationType", "confidence": 0.8, "context": "context"}}
+    ]
+}}
+
+Respond ONLY with valid JSON."""
+        
+        logger.info(f"Sending prompt to OpenAI (first 500 chars): {prompt[:500]}...")
+        
+        try:
+            response = self.openai_client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0.3,  # Low temperature for consistent extraction
+                max_tokens=4000,
+            )
+            
+            # Parse response
+            try:
+                cleaned = response.choices[0].message.content.strip()
+                logger.info(f"OpenAI raw response (first 500 chars): {cleaned[:500]}...")
+                
+                # Clean JSON formatting
+                if cleaned.startswith("```json"):
+                    cleaned = cleaned[7:]
+                if cleaned.startswith("```"):
+                    cleaned = cleaned[3:]
+                if cleaned.endswith("```"):
+                    cleaned = cleaned[:-3]
+                
+                result = json.loads(cleaned)
+                logger.info(f"OpenAI extraction successful: {len(result.get('entities', []))} entities, {len(result.get('relationships', []))} relationships")
+                return result
+                
+            except Exception as parse_error:
+                logger.warning(f"Failed to parse OpenAI response: {parse_error}")
+                logger.warning(f"Response text was: {cleaned[:500]}...")
+                raise Exception(f"OpenAI response parsing failed: {parse_error}")
+            
+        except Exception as e:
+            logger.error(f"OpenAI extraction failed: {e}")
+            # Fallback to pattern-based extraction
             return self._fallback_pattern_extraction(text, ontology)
     
     def _fallback_pattern_extraction(self, text: str, ontology: DomainOntology) -> Dict[str, Any]:
