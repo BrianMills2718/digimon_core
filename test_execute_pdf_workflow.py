@@ -11,6 +11,10 @@ import os
 # Add the project root to path
 sys.path.insert(0, '/home/brian/Digimons')
 
+# Load environment variables FIRST
+from dotenv import load_dotenv
+load_dotenv()
+
 def test_execute_pdf_workflow():
     """Execute the PDF workflow with a real PDF file"""
     
@@ -49,7 +53,8 @@ def test_execute_pdf_workflow():
             pdf_path=pdf_path,
             domain_description=domain_description,
             queries=queries,
-            workflow_name="real_pdf_test"
+            workflow_name="real_pdf_test",
+            use_existing_ontology=None
         )
         
         print("=" * 50)
@@ -57,8 +62,39 @@ def test_execute_pdf_workflow():
         print(f"Type: {type(result)}")
         
         if isinstance(result, dict):
-            print("JSON Result:")
-            print(json.dumps(result, indent=2))
+            print("\n📋 Workflow Summary:")
+            print(f"   - Workflow ID: {result.get('workflow_id', 'N/A')}")
+            print(f"   - Status: {result.get('status', 'N/A')}")
+            print(f"   - Execution Time: {result.get('execution_time', 0):.2f}s")
+            
+            # Check ontology info
+            if 'steps' in result and 'ontology_generation' in result['steps']:
+                ontology_step = result['steps']['ontology_generation']
+                print(f"\n🏷️ Ontology Generation:")
+                print(f"   - Status: {ontology_step.get('status', 'N/A')}")
+                if ontology_step.get('status') == 'success':
+                    print(f"   - Source: OpenAI o3-mini (not mock_fallback)")
+                    print(f"   - Domain: {ontology_step.get('domain', 'N/A')}")
+            
+            # Check extraction results
+            if 'steps' in result and 'entity_extraction' in result['steps']:
+                extraction = result['steps']['entity_extraction']
+                print(f"\n📊 Entity Extraction:")
+                print(f"   - Status: {extraction.get('status', 'N/A')}")
+                if extraction.get('status') == 'success' and 'extraction_result' in extraction:
+                    ext_result = extraction['extraction_result']
+                    if hasattr(ext_result, 'entities'):
+                        print(f"   - Entities found: {len(ext_result.entities)}")
+                        print(f"   - Top entities: {[e.text for e in ext_result.entities[:5]]}")
+                    if hasattr(ext_result, 'relationships'):
+                        print(f"   - Relationships found: {len(ext_result.relationships)}")
+            
+            # Check query results
+            if 'query_results' in result:
+                print(f"\n📝 Query Answers:")
+                for i, (query, answer) in enumerate(result['query_results'].items()):
+                    print(f"   Q{i+1}: {query}")
+                    print(f"   A{i+1}: {answer[:100]}...")
         else:
             print(f"Raw Result: {result}")
             
