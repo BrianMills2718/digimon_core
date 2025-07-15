@@ -1,0 +1,89 @@
+project_name: "Super-Digimon GraphRAG System"
+project_path: "/home/brian/Digimons"
+output_format: "xml"
+output_file: "digimons-comprehensive-review.md"
+keep_repomix: true
+
+ignore_patterns:
+  - "*.pyc"
+  - "__pycache__"
+  - ".git"
+  - ".venv"
+  - "venv"
+  - "env"
+  - ".pytest_cache"
+  - "*.egg-info"
+  - "build"
+  - "dist"
+  - "htmlcov"
+  - ".coverage"
+  - ".mypy_cache"
+  - "*.log"
+  - "gemini-review*.md"
+  - "repomix-output.*"
+  - "archive/*"
+  - "data/*"
+  - "external_tools/*"
+  - "*.Zone.Identifier"
+  - "checkpoint_*.json"
+
+documentation_files:
+  - "README.md"
+  - "CLAUDE.md"
+  - "PROJECT_STATUS.md"
+  - "DOCUMENTATION_INDEX.md"
+  - "docs/current/ARCHITECTURE.md"
+  - "docs/current/ROADMAP_v2.md"
+  - "docs/current/API_STANDARDIZATION_FRAMEWORK.md"
+  - "docs/current/INTEGRATION_TESTING_GAP_ANALYSIS.md"
+
+claims_of_success: |
+  System Status Claims from PROJECT_STATUS.md:
+  - "Overall System Status: ⚠️ INTEGRATION IN PROGRESS" 
+  - "Phase 1: Basic PDF→Graph→Query Pipeline - ✅ FULLY FUNCTIONAL"
+  - "All CLAUDE.md Priorities: ✅ COMPLETE - All three roadmap priorities successfully implemented"
+  - "Functional Integration Tests: ⚠️ FUNCTIONAL WITH GAPS - P1→P2→P3 pipeline working"
+  - "Phase 2: ⚠️ PARTIALLY FUNCTIONAL - API parameter issue fixed, but integration challenges remain"
+  - "Phase 3: ✅ FUNCTIONAL AS STANDALONE TOOLS - Basic implementation complete"
+  
+  Architecture Claims from README.md:
+  - "13 core GraphRAG tools, 29 MCP tools, 571 total capabilities"
+  - "Performance: 7.55s processing time (without PageRank) for 293KB PDF - verified metrics"
+  - "11.3x speed optimization achieved"
+  - "484 entities from wiki1.pdf, 228 relationships extracted"
+  
+  Technical Implementation Claims:
+  - "NO hardcoded values - Centralized configuration system implemented"
+  - "API Standardization: Consistent parameter naming, contract enforcement, migration system"
+  - "Identity Service Consolidation: Unified 3 implementations into single service"
+  - "PageRank Performance: Created optimization plan, implemented quick wins"
+  - "No Mocks Policy Violation: Removed Neo4jFallbackMixin, implemented proper error handling"
+  
+  Integration Claims:
+  - "P1→P2→P3 Integration: ✅ 24 entities, 30 relationships extracted successfully (Phase 1)"
+  - "Phase 2: ✅ 4 entities, 3 relationships (with ontology-aware extraction and mock APIs)"
+  - "Phase 3: ✅ 19 entities, 30 relationships (with multi-document fusion)"
+  - "Integration Issues Resolved: Full P1→P2→P3 pipeline now working end-to-end"
+
+custom_prompt: |
+  Perform a comprehensive and critical evaluation of this GraphRAG system focusing on:
+  
+  1. **Architecture Reality Check**: Does the actual implementation match the architectural claims?
+  2. **Claims vs Code**: Systematically verify each claim against the actual codebase
+  3. **Integration Status**: Is the P1→P2→P3 pipeline actually working as claimed?
+  4. **Code Quality**: Assess the actual quality, patterns, and technical debt
+  5. **Performance Claims**: Can the performance metrics be validated from the code?
+  6. **Configuration System**: Is the "no hardcoded values" claim accurate?
+  7. **API Standardization**: Has API consistency actually been achieved?
+  8. **Testing Coverage**: Do the integration tests support the functionality claims?
+  9. **Documentation Accuracy**: How well does the documentation reflect the actual implementation?
+  10. **Production Readiness**: Is this system actually ready for real-world use?
+  
+  Be especially skeptical and look for:
+  - Aspirational documentation vs actual implementation
+  - Incomplete features described as complete
+  - Performance claims without proper measurement
+  - Integration claims without proper testing
+  - Technical debt hidden behind positive status reports
+  
+  Focus on GraphRAG pipeline functionality, Neo4j integration, LLM/AI components, and the MCP server architecture.

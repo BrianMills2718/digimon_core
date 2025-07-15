@@ -12,6 +12,8 @@ import socket
 from typing import Optional, Dict, Any
 import logging
 
+from .config import ConfigurationManager
+
 logger = logging.getLogger(__name__)
 
 
@@ -19,17 +21,21 @@ class Neo4jDockerManager:
     """Manages Neo4j Docker container lifecycle automatically"""
     
     def __init__(self, 
-                 container_name: str = "neo4j-graphrag",
-                 host: str = "localhost", 
-                 port: int = 7687,
-                 username: str = "neo4j",
-                 password: str = "password"):
+                 container_name: str = "neo4j-graphrag"):
         self.container_name = container_name
-        self.host = host
-        self.port = port
-        self.username = username
-        self.password = password
-        self.bolt_uri = f"bolt://{host}:{port}"
+        
+        # Get configuration from ConfigurationManager
+        config_manager = ConfigurationManager()
+        config = config_manager.get_config()
+        
+        # Extract host and port from URI
+        uri_parts = config.neo4j.uri.replace("bolt://", "").split(":")
+        self.host = uri_parts[0]
+        self.port = int(uri_parts[1]) if len(uri_parts) > 1 else 7687
+        
+        self.username = config.neo4j.user
+        self.password = config.neo4j.password
+        self.bolt_uri = config.neo4j.uri
         
     def is_port_open(self, timeout: int = 1) -> bool:
         """Check if Neo4j port is accessible"""

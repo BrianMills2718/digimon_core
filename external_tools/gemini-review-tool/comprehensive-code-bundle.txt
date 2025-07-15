@@ -1,0 +1,709 @@
+=== COMPREHENSIVE CODEBASE REVIEW BUNDLE ===
+Generated: Mon Jul 14 20:05:44 PDT 2025
+Purpose: Find ALL remaining issues after major fixes
+
+=== CORE SERVICES ===
+--- Core Configuration ---
+"""Centralized Configuration Management System
+
+Provides a unified configuration system to replace hardcoded values throughout
+the codebase. Supports YAML configuration files with environment-specific overrides
+and runtime validation.
+
+Addresses Configuration Management Debt identified in TECHNICAL_DEBT_AUDIT.md
+"""
+
+import os
+import yaml
+from typing import Dict, Any, Optional, Union
+from pathlib import Path
+from dataclasses import dataclass, field
+import threading
+
+
+@dataclass
+class EntityProcessingConfig:
+    """Configuration for entity processing."""
+    confidence_threshold: float = 0.7
+    chunk_overlap_size: int = 50
+    embedding_batch_size: int = 100
+    max_entities_per_chunk: int = 20
+
+
+@dataclass
+class TextProcessingConfig:
+    """Configuration for text processing."""
+    chunk_size: int = 512
+    semantic_similarity_threshold: float = 0.85
+    max_chunks_per_document: int = 100
+
+
+@dataclass
+class GraphConstructionConfig:
+    """Configuration for graph construction."""
+    pagerank_iterations: int = 100
+    pagerank_damping_factor: float = 0.85
+    pagerank_tolerance: float = 1e-6
+    pagerank_min_score: float = 0.0001
+    max_relationships_per_entity: int = 50
+    graph_pruning_threshold: float = 0.1
+
+
+@dataclass
+class APIConfig:
+    """Configuration for API interactions."""
+    retry_attempts: int = 3
+    timeout_seconds: int = 30
+
+--- Service Manager ---
+"""Service Manager - Singleton pattern for shared services
+
+Implements performance optimization F1 from CLAUDE.md.
+Provides shared service instances across all tools to prevent duplication.
+Target: 10x speedup by eliminating redundant service creation.
+"""
+
+from typing import Optional, Dict, Any
+import threading
+from neo4j import GraphDatabase
+
+from .identity_service import IdentityService
+from .provenance_service import ProvenanceService
+from .quality_service import QualityService
+from .config import get_config
+
+
+class ServiceManager:
+    """Singleton service manager for shared services."""
+    
+    _instance = None
+    _lock = threading.Lock()
+    
+    def __new__(cls, *args, **kwargs):
+        if not cls._instance:
+            with cls._lock:
+                if not cls._instance:
+                    cls._instance = super().__new__(cls)
+        return cls._instance
+    
+    def __init__(self):
+        if not hasattr(self, "_initialized"):
+            self._initialized = True
+            self._identity_service = None
+            self._provenance_service = None
+            self._quality_service = None
+            self._neo4j_driver = None
+            self._neo4j_config = None
+            self._identity_config = None  # Store identity service configuration
+    
+    @property
+    def identity_service(self) -> IdentityService:
+        """Get shared identity service instance."""
+        if not self._identity_service:
+            # Use configuration if set, otherwise default to minimal behavior
+            config = self._identity_config or {}
+            self._identity_service = IdentityService(**config)
+        return self._identity_service
+    
+    def configure_identity_service(self, **config):
+
+--- Phase Adapters ---
+"""
+Phase Adapters - Bridge existing phase implementations to the standard interface
+
+These adapters wrap existing phase implementations to provide a consistent
+interface without requiring massive refactoring of working code.
+"""
+
+import time
+from typing import Dict, List, Any, Optional
+from pathlib import Path
+
+from .graphrag_phase_interface import (
+    GraphRAGPhase, PhaseResult, ProcessingRequest, PhaseStatus, register_phase
+)
+
+
+class Phase1Adapter(GraphRAGPhase):
+    """Adapter for Phase 1 Basic GraphRAG workflow"""
+    
+    def __init__(self):
+        super().__init__("Phase 1: Basic", "1.0")
+        self._workflow = None
+    
+    def _get_workflow(self):
+        """Lazy load Phase 1 workflow"""
+        if self._workflow is None:
+            from ..tools.phase1.vertical_slice_workflow import VerticalSliceWorkflow
+            self._workflow = VerticalSliceWorkflow()
+        return self._workflow
+    
+    def execute(self, request: ProcessingRequest) -> PhaseResult:
+        """Execute Phase 1 workflow with adapter translation"""
+        start_time = time.time()
+        
+        try:
+            # Validate input
+            errors = self.validate_input(request)
+            if errors:
+                return self.create_error_result(f"Validation failed: {'; '.join(errors)}")
+            
+            workflow = self._get_workflow()
+            
+            # Execute workflow using standardized interface (Phase 1 supports both)
+            result = workflow.execute_workflow(
+                document_paths=request.documents,  # Use standardized interface
+                queries=request.queries,           # Use standardized interface  
+                workflow_name=request.workflow_id
+            )
+            
+            execution_time = time.time() - start_time
+            
+            # Translate result to standard format
+            if result.get("status") == "success":
+                # Extract entity and relationship counts from workflow_summary
+                workflow_summary = result.get("workflow_summary", {})
+                entity_count = workflow_summary.get("entities_extracted", 0)
+                relationship_count = workflow_summary.get("relationships_found", 0)
+                
+                return self.create_success_result(
+                    execution_time=execution_time,
+                    entity_count=entity_count,
+                    relationship_count=relationship_count,
+                    confidence_score=result.get("confidence", 0.0),
+                    results={
+                        "graph_metrics": result.get("graph_metrics", {}),
+                        "query_result": result.get("query_result", {}),
+                        "workflow_summary": workflow_summary,
+                        "phase1_raw": result  # Include original for debugging
+                    }
+                )
+            else:
+                return self.create_error_result(
+                    result.get("error", "Phase 1 execution failed"),
+                    execution_time
+                )
+                
+        except Exception as e:
+            execution_time = time.time() - start_time
+            return self.create_error_result(f"Phase 1 adapter error: {str(e)}", execution_time)
+    
+
+=== PHASE 1 IMPLEMENTATION ===
+--- Main Workflow ---
+"""Vertical Slice Workflow Integration
+
+Orchestrates the complete PDF → PageRank → Answer workflow.
+Demonstrates end-to-end functionality of the Phase 1 implementation.
+
+Workflow Steps:
+1. T01: Load PDF document
+2. T15a: Chunk text into segments  
+3. T23a: Extract entities from chunks
+4. T27: Extract relationships between entities
+5. T31: Build entity nodes in Neo4j
+6. T34: Build relationship edges in Neo4j
+7. T68: Calculate PageRank scores
+8. T49: Execute multi-hop queries
+
+This integration proves the vertical slice architecture works.
+"""
+
+from typing import Dict, List, Optional, Any
+import os
+from pathlib import Path
+import traceback
+
+# Import Phase 1 tools
+from .t01_pdf_loader import PDFLoader
+from .t15a_text_chunker import TextChunker
+from .t23a_spacy_ner import SpacyNER
+from .t27_relationship_extractor import RelationshipExtractor
+from .t31_entity_builder import EntityBuilder
+from .t34_edge_builder import EdgeBuilder
+from .t68_pagerank import PageRankCalculator
+from .t49_multihop_query import MultiHopQuery
+
+# Import core services
+from src.core.service_manager import get_service_manager
+from src.core.workflow_state_service import WorkflowStateService
+from src.core.config import ConfigurationManager
+
+
+class VerticalSliceWorkflow:
+    """Complete PDF → PageRank → Answer workflow."""
+    
+    def __init__(
+        self,
+        workflow_storage_dir: str = "./data/workflows"
+    ):
+        # Get configuration
+        config_manager = ConfigurationManager()
+        self.config = config_manager.get_config()
+        
+        # Get shared service manager
+        self.service_manager = get_service_manager()
+        
+        # Use shared services from manager
+        self.identity_service = self.service_manager.identity_service
+        self.provenance_service = self.service_manager.provenance_service
+        self.quality_service = self.service_manager.quality_service
+        
+        # Get shared Neo4j driver using configuration
+        self.neo4j_driver = self.service_manager.get_neo4j_driver(
+
+--- PDF Loader ---
+"""T01: PDF Document Loader - Minimal Implementation
+
+Loads PDF documents and extracts clean text with confidence scoring.
+This is the entry point for the vertical slice workflow.
+
+Minimal implementation focusing on:
+- Basic text extraction using pypdf
+- Simple confidence scoring (0.9 for clean text)
+- Document metadata preservation
+- Integration with core services (T107, T110, T111)
+
+Deferred features:
+- OCR for scanned PDFs
+- Table and image extraction
+- Advanced quality assessment
+- Multiple PDF processing engines
+"""
+
+from typing import Dict, List, Optional, Any
+import os
+from pathlib import Path
+import uuid
+from datetime import datetime
+import pypdf
+import sys
+
+# Import core services
+from src.core.identity_service import IdentityService
+from src.core.provenance_service import ProvenanceService
+from src.core.quality_service import QualityService
+
+
+class PDFLoader:
+    """T01: PDF Document Loader."""
+    
+    def __init__(
+        self,
+        identity_service: IdentityService,
+        provenance_service: ProvenanceService,
+        quality_service: QualityService
+
+--- Entity Builder ---
+"""T31: Entity Node Builder - Minimal Implementation
+
+Converts entity mentions into graph nodes and stores them in Neo4j.
+Critical component for building the graph structure in the vertical slice.
+
+Minimal implementation focusing on:
+- Mention aggregation to entities via T107
+- Canonical name assignment
+- Basic Neo4j node creation
+- Simple deduplication by name
+
+Deferred features:
+- Complex entity merging algorithms
+- Advanced property assignment
+- Entity type hierarchies
+- Cross-document entity resolution
+"""
+
+from typing import Dict, List, Optional, Any
+import uuid
+from datetime import datetime
+import neo4j
+from neo4j import GraphDatabase, Driver
+
+# Import core services
+try:
+    from src.core.identity_service import IdentityService
+    from src.core.provenance_service import ProvenanceService
+    from src.core.quality_service import QualityService
+except ImportError:
+    from core.identity_service import IdentityService
+    from core.provenance_service import ProvenanceService
+    from core.quality_service import QualityService
+from .base_neo4j_tool import BaseNeo4jTool
+from .neo4j_error_handler import Neo4jErrorHandler
+
+
+class EntityBuilder(BaseNeo4jTool):
+    """T31: Entity Node Builder."""
+    
+
+=== PHASE 2 IMPLEMENTATION ===
+--- Enhanced Workflow ---
+"""
+Enhanced Vertical Slice Workflow - Phase 2
+Replaces spaCy NER with ontology-aware extraction for real GraphRAG capabilities.
+
+Enhanced Workflow Steps:
+1. T01: Load PDF document
+2. T15a: Chunk text into segments
+3. T120: Generate domain ontology (or use existing)
+4. T23c: Ontology-aware entity extraction
+5. T31: Enhanced graph building with semantic validation
+6. T68: Calculate PageRank scores
+7. T49: Enhanced multi-hop queries with ontological reasoning
+8. Interactive visualization and analysis
+
+This demonstrates the complete ontology-driven pipeline.
+"""
+
+import os
+import json
+import time
+from typing import Dict, List, Optional, Any, Tuple
+from pathlib import Path
+from datetime import datetime
+import traceback
+from dotenv import load_dotenv
+
+# Load environment variables for API keys
+load_dotenv()
+
+# Import Phase 1 tools (reusable)
+from ..phase1.t01_pdf_loader import PDFLoader
+from ..phase1.t15a_text_chunker import TextChunker
+from ..phase1.t68_pagerank import PageRankCalculator
+from ..phase1.t49_multihop_query import MultiHopQuery
+
+# Import Phase 2 tools
+from .t23c_ontology_aware_extractor import OntologyAwareExtractor, ExtractionResult
+from .t31_ontology_graph_builder import OntologyAwareGraphBuilder, GraphBuildResult
+from .interactive_graph_visualizer import InteractiveGraphVisualizer, GraphVisualizationConfig
+
+
+=== PHASE 3 IMPLEMENTATION ===
+--- Multi-Document Workflow ---
+"""Phase 3: Basic Multi-Document Workflow
+
+Implements basic multi-document fusion following CLAUDE.md guidelines:
+- 100% reliability (no crashes)
+- Graceful error handling
+- Basic entity fusion across documents
+"""
+
+from typing import Dict, List, Any, Optional
+from pathlib import Path
+import traceback
+
+from core.graphrag_phase_interface import ProcessingRequest, PhaseResult, PhaseStatus, GraphRAGPhase
+from tools.phase1.vertical_slice_workflow_optimized import OptimizedVerticalSliceWorkflow
+from core.service_manager import get_service_manager
+
+
+class BasicMultiDocumentWorkflow(GraphRAGPhase):
+    """Basic implementation of Phase 3 multi-document processing"""
+    
+    def __init__(self):
+        super().__init__("Phase 3: Multi-Document Basic", "0.2.0")
+        self.service_manager = get_service_manager()
+    
+    def execute(self, request: ProcessingRequest) -> PhaseResult:
+        """Execute multi-document processing with 100% reliability"""
+        try:
+            # Validate input
+            validation_errors = self.validate_input(request)
+            if validation_errors:
+                return self.create_error_result(
+                    f"Validation failed: {'; '.join(validation_errors)}",
+                    execution_time=0.1
+                )
+            
+            # Check if we have previous phase data for integration
+            previous_data = {}
+            if request.phase1_graph_data:
+                previous_data["phase1"] = request.phase1_graph_data
+                print(f"Phase 3 received Phase 1 data: {request.phase1_graph_data.get('entities', 0)} entities")
+
+=== UI COMPONENTS ===
+--- Main UI Entry Point ---
+#!/usr/bin/env python3
+"""
+Launcher for GraphRAG Testing UI
+Starts the Streamlit interface for testing Super-Digimon capabilities
+"""
+
+import subprocess
+import sys
+import os
+from pathlib import Path
+
+def main():
+    """Launch the GraphRAG testing UI"""
+    
+    # Ensure we're in the correct directory
+    project_root = Path(__file__).parent
+    os.chdir(project_root)
+    
+    # Set environment variables
+    env = os.environ.copy()
+    env["PYTHONPATH"] = str(project_root)
+    
+    # UI file path
+    ui_file = project_root / "ui" / "graphrag_ui.py"
+    
+    if not ui_file.exists():
+        print(f"❌ UI file not found: {ui_file}")
+        return 1
+    
+    print("🚀 Starting GraphRAG Testing UI...")
+    print(f"📁 Project root: {project_root}")
+    print(f"🌐 UI will be available at: http://localhost:8501")
+    print("📝 Use Ctrl+C to stop the server")
+    print("-" * 50)
+    
+    try:
+        # Launch Streamlit
+        cmd = [
+            sys.executable, "-m", "streamlit", "run", 
+            str(ui_file),
+
+--- GraphRAG UI ---
+#!/usr/bin/env python3
+"""
+GraphRAG Testing UI for Super-Digimon
+Web interface for testing and visualizing GraphRAG capabilities with custom datasets
+"""
+
+import streamlit as st
+import json
+import os
+import sys
+from datetime import datetime
+from pathlib import Path
+from typing import Dict, List, Optional, Any, Tuple
+import pandas as pd
+import plotly.graph_objects as go
+import plotly.express as px
+import networkx as nx
+from dataclasses import dataclass, asdict
+import tempfile
+import uuid
+
+# Add project root to path
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
+# Global availability flags - set properly at module level
+PHASE1_AVAILABLE = True  # Always available
+PHASE2_AVAILABLE = True  # Will be updated in render_system_status
+PHASE3_AVAILABLE = True  # Will be updated in render_system_status
+
+# Global lazy import cache
+_phase1_workflow = None
+_phase2_workflow = None
+_phase3_workflow = None
+
+# MCP connection
+try:
+    import mcp
+    from src.mcp_server import mcp as super_digimon_mcp
+    MCP_AVAILABLE = True
+except ImportError:
+
+=== MCP SERVER ===
+--- MCP Server Implementation ---
+"""Super-Digimon MCP Server
+
+Main MCP server exposing the core services as tools.
+Provides the foundation for the 121-tool GraphRAG system.
+
+Currently implements:
+- T107: Identity Service tools
+- T110: Provenance Service tools  
+- T111: Quality Service tools
+- T121: Workflow State Service tools
+"""
+
+from fastmcp import FastMCP
+from typing import Dict, List, Optional, Any
+import os
+from pathlib import Path
+
+# Import core services
+from src.core.identity_service import IdentityService
+from src.core.provenance_service import ProvenanceService
+from src.core.quality_service import QualityService, QualityTier
+from src.core.workflow_state_service import WorkflowStateService
+
+# Import Phase 1 tools
+from src.tools.phase1.vertical_slice_workflow import VerticalSliceWorkflow
+from src.tools.phase1.phase1_mcp_tools import create_phase1_mcp_tools
+
+# Initialize MCP server
+mcp = FastMCP("super-digimon")
+
+# Initialize core services
+identity_service = IdentityService()
+provenance_service = ProvenanceService()
+quality_service = QualityService()
+
+# Get workflow storage directory from environment
+workflow_storage = os.getenv("WORKFLOW_STORAGE_DIR", "./data/workflows")
+workflow_service = WorkflowStateService(workflow_storage)
+
+# Initialize vertical slice workflow
+vertical_slice = VerticalSliceWorkflow(workflow_storage_dir=workflow_storage)
+
+
+# =============================================================================
+# T107: Identity Service Tools
+# =============================================================================
+
+@mcp.tool()
+def create_mention(
+    surface_form: str,
+
+=== TESTING FRAMEWORK ===
+--- Integration Test Framework ---
+"""
+GraphRAG Integration Testing Framework
+
+This framework provides comprehensive integration testing for the GraphRAG system,
+focusing on cross-component compatibility and preventing integration failures.
+"""
+
+import time
+import json
+import tempfile
+import shutil
+from typing import Dict, List, Any, Optional, Tuple
+from pathlib import Path
+from dataclasses import dataclass, asdict
+from datetime import datetime
+import traceback
+
+from src.core.graphrag_phase_interface import (
+    ProcessingRequest, PhaseResult, PhaseStatus, get_available_phases, execute_phase
+)
+from src.core.phase_adapters import initialize_phase_adapters
+from src.ui.ui_phase_adapter import get_ui_phase_manager, process_document_with_phase
+
+
+@dataclass
+class IntegrationTestResult:
+    """Result of an integration test"""
+    test_name: str
+    test_type: str
+    status: str  # "pass", "fail", "skip"
+    execution_time: float
+    details: Dict[str, Any]
+    error_message: Optional[str] = None
+
+
+@dataclass 
+class IntegrationTestSuite:
+    """Collection of integration test results"""
+    suite_name: str
+    start_time: datetime
+
+=== CONFIGURATION FILES ===
+--- Docker Compose ---
+version: '3.8'
+
+services:
+  neo4j:
+    image: neo4j:5-community
+    container_name: super_digimon_neo4j
+    environment:
+      - NEO4J_AUTH=neo4j/password
+      - NEO4J_PLUGINS=["graph-data-science"]
+      - NEO4J_dbms_security_procedures_unrestricted=gds.*
+      - NEO4J_dbms_memory_heap_initial__size=512m
+      - NEO4J_dbms_memory_heap_max__size=2G
+    ports:
+      - "7474:7474"  # HTTP
+      - "7687:7687"  # Bolt
+    volumes:
+      - neo4j_data:/data
+      - neo4j_logs:/logs
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:7474/browser/"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: super_digimon_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+volumes:
+  neo4j_data:
+    driver: local
+  neo4j_logs:
+    driver: local
+  redis_data:
+    driver: local
+--- Requirements ---
+# Super-Digimon GraphRAG System Dependencies
+# Core MCP Framework
+fastmcp>=0.9.0
+mcp>=0.9.0
+
+# Database Drivers
+neo4j>=5.14.0
+sqlalchemy>=2.0.23
+faiss-cpu>=1.7.4
+redis>=5.0.1
+
+# NLP and ML
+spacy>=3.7.2
+sentence-transformers>=2.2.2
+networkx>=3.2.1
+numpy>=1.24.3
+
+# Data Processing
+pydantic>=2.5.0
+pypdf>=3.17.0
+
+=== PROJECT STRUCTURE ===
+src/tools/phase1/vertical_slice_workflow.py
+src/tools/phase1/t15a_text_chunker.py
+src/tools/phase1/t01_pdf_loader.py
+src/tools/phase1/t49_enhanced_query.py
+src/tools/phase1/t23a_spacy_ner.py
+src/tools/phase1/__init__.py
+src/tools/phase1/t34_edge_builder.py
+src/tools/phase1/neo4j_error_handler.py
+src/tools/phase1/t23c_llm_entity_extractor.py
+src/tools/phase1/phase1_mcp_tools.py
+src/tools/phase1/t41_text_embedder.py
+src/tools/phase1/base_neo4j_tool.py
+src/tools/phase1/t49_multihop_query.py
+src/tools/phase1/t68_pagerank.py
+src/tools/phase1/vertical_slice_workflow_optimized.py
+src/tools/phase1/t68_pagerank_optimized.py
+src/tools/phase1/t31_entity_builder.py
+src/tools/phase1/t27_relationship_extractor.py
+src/tools/__init__.py
+src/tools/phase3/basic_multi_document_workflow.py
+src/tools/phase3/__init__.py
+src/tools/phase3/t301_mcp_tools.py
+src/tools/phase3/t301_fusion_tools.py
+src/tools/phase3/t301_multi_document_fusion_tools.py
+src/tools/phase3/t301_multi_document_fusion.py
+src/tools/phase2/__init__.py
+src/tools/phase2/interactive_graph_visualizer.py
+src/tools/phase2/t23c_ontology_aware_extractor.py
+src/tools/phase2/t31_ontology_graph_builder.py
+src/tools/phase2/enhanced_vertical_slice_workflow.py
+...
+Total Python files in src/:
+49

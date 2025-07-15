@@ -1,0 +1,51 @@
+project_name: "My Python Project"
+project_path: "."
+output_format: "xml"
+output_file: "gemini-review.md"
+keep_repomix: false
+
+ignore_patterns:
+  - "*.pyc"
+  - "__pycache__"
+  - ".git"
+  - ".venv"
+  - "venv"
+  - "env"
+  - ".pytest_cache"
+  - "*.egg-info"
+  - "build"
+  - "dist"
+  - "htmlcov"
+  - ".coverage"
+  - ".mypy_cache"
+  - "*.log"
+  - "gemini-review*.md"
+  - "repomix-output.*"
+
+documentation_files:
+  - "README.md"
+  - "docs/*.md"
+  - "API.md"
+  - "ARCHITECTURE.md"
+  - "CONTRIBUTING.md"
+
+custom_prompt: |
+  Focus on Python best practices including:
+  - PEP 8 compliance
+  - Type hints usage
+  - Proper exception handling
+  - Async/await patterns if applicable
+  - Package structure and imports
+
+review_templates:
+  django:
+    prompt: "Review Django application for security, performance, and best practices"
+    focus: ["models", "views", "urls", "middleware", "settings security"]
+  
+  fastapi:
+    prompt: "Review FastAPI application focusing on async patterns and API design"
+    focus: ["endpoints", "dependencies", "async/await", "pydantic models"]
+  
+  data-science:
+    prompt: "Review data science code for correctness and efficiency"
+    focus: ["data processing", "model training", "visualization", "reproducibility"]

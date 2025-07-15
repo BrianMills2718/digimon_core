@@ -1,0 +1,56 @@
+project_name: "Autocoder CC - Enterprise Roadmap Review"
+project_path: "./autocoder_cc"
+output_format: "xml"
+output_file: "roadmap-compliance-review.md"
+keep_repomix: false
+
+ignore_patterns:
+  - "*.pyc"
+  - "__pycache__"
+  - ".git"
+  - ".venv"
+  - "venv"
+  - ".pytest_cache"
+  - "*.egg-info"
+  - "build"
+  - "dist"
+  - "*.log"
+  - "gemini-review*.md"
+  - "repomix-output.*"
+  - "generated_system_example"
+  - "examples"
+
+documentation_files:
+  - "./autocoder_cc/docs/Enterprise_roadmap_v2.md"
+  - "./autocoder_cc/docs/cursor_notes_2025.07121340.md"
+  - "./autocoder_cc/README.md"
+
+claims_of_success: |
+  Phase 0 Foundation Tasks Completed:
+  - Centralized Configuration with Pydantic Settings implemented
+  - Plugin-based architecture with Strategy/Factory patterns
+  - Composition over inheritance implemented
+  - AST-based code analysis replacing string matching
+  
+  Phase 1 Progress:
+  - Flask completely removed, FastAPI standardized
+  - Message bus architecture with RabbitMQ
+  - CQRS pattern implementation
+  - JWT authentication and RBAC
+  - Structured logging and monitoring
+  
+  Key Achievements:
+  - NO hardcoded values
+  - NO placeholders or NotImplementedError
+  - NO monolithic generators
+  - Real working implementations throughout
+
+custom_prompt: |
+  Perform a critical evaluation against the Enterprise Roadmap v2 requirements.
+  Be especially skeptical of claims vs. reality.
+  Focus on:
+  1. Phase 0 completion status
+  2. Architectural compliance
+  3. Code quality and technical debt
+  4. Production readiness
+  5. Discrepancies between documentation and implementation

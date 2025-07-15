@@ -34,6 +34,7 @@ from .t49_multihop_query import MultiHopQuery
 # Import core services
 from src.core.service_manager import get_service_manager
 from src.core.workflow_state_service import WorkflowStateService
+from src.core.config import ConfigurationManager
 
 
 class VerticalSliceWorkflow:
@@ -41,11 +42,12 @@ class VerticalSliceWorkflow:
     
     def __init__(
         self,
-        neo4j_uri: str = "bolt://localhost:7687",
-        neo4j_user: str = "neo4j", 
-        neo4j_password: str = "password",
         workflow_storage_dir: str = "./data/workflows"
     ):
+        # Get configuration
+        config_manager = ConfigurationManager()
+        self.config = config_manager.get_config()
+        
         # Get shared service manager
         self.service_manager = get_service_manager()
         
@@ -54,8 +56,12 @@ class VerticalSliceWorkflow:
         self.provenance_service = self.service_manager.provenance_service
         self.quality_service = self.service_manager.quality_service
         
-        # Get shared Neo4j driver
-        self.neo4j_driver = self.service_manager.get_neo4j_driver(neo4j_uri, neo4j_user, neo4j_password)
+        # Get shared Neo4j driver using configuration
+        self.neo4j_driver = self.service_manager.get_neo4j_driver(
+            self.config.neo4j.uri,
+            self.config.neo4j.user,
+            self.config.neo4j.password
+        )
         
         # Initialize workflow service (not shared)
         self.workflow_service = WorkflowStateService(workflow_storage_dir)
@@ -75,52 +81,53 @@ class VerticalSliceWorkflow:
         )
         self.entity_builder = EntityBuilder(
             self.identity_service, self.provenance_service, self.quality_service,
-            neo4j_uri, neo4j_user, neo4j_password, shared_driver=self.neo4j_driver
+            self.config.neo4j.uri, self.config.neo4j.user, self.config.neo4j.password, 
+            shared_driver=self.neo4j_driver
         )
         self.edge_builder = EdgeBuilder(
             self.identity_service, self.provenance_service, self.quality_service,
-            neo4j_uri, neo4j_user, neo4j_password, shared_driver=self.neo4j_driver
+            self.config.neo4j.uri, self.config.neo4j.user, self.config.neo4j.password, 
+            shared_driver=self.neo4j_driver
         )
         self.pagerank_calculator = PageRankCalculator(
             self.identity_service, self.provenance_service, self.quality_service,
-            neo4j_uri, neo4j_user, neo4j_password, shared_driver=self.neo4j_driver
+            self.config.neo4j.uri, self.config.neo4j.user, self.config.neo4j.password, 
+            shared_driver=self.neo4j_driver
         )
         self.query_engine = MultiHopQuery(
             self.identity_service, self.provenance_service, self.quality_service,
-            neo4j_uri, neo4j_user, neo4j_password, shared_driver=self.neo4j_driver
+            self.config.neo4j.uri, self.config.neo4j.user, self.config.neo4j.password, 
+            shared_driver=self.neo4j_driver
         )
     
     def execute_workflow(
         self,
-        pdf_path: str = None,
-        query: str = None,
-        workflow_name: str = "PDF_to_Answer_Workflow",
-        document_paths: List[str] = None,
-        queries: List[str] = None
+        document_paths: List[str],
+        queries: List[str] = None,
+        workflow_name: str = "PDF_to_Answer_Workflow"
     ) -> Dict[str, Any]:
         """Execute the complete vertical slice workflow.
         
         Args:
-            pdf_path: Path to PDF file to process (deprecated - use document_paths)
-            query: Question to answer using the graph (deprecated - use queries)
+            document_paths: List of document paths to process (required)
+            queries: List of queries to execute (optional)
             workflow_name: Name for workflow tracking
-            document_paths: List of document paths (new interface)
-            queries: List of queries (new interface)
             
         Returns:
             Complete workflow results with answers
         """
-        # Handle new interface
-        if document_paths:
-            pdf_path = document_paths[0] if document_paths else None
-        if queries:
-            query = queries[0] if queries else "What are the main entities and relationships?"
-        
         # Validate inputs
-        if not pdf_path:
-            return {"status": "error", "error": "No PDF path provided"}
-        if not query:
+        if not document_paths or not document_paths[0]:
+            return {"status": "error", "error": "No document paths provided"}
+        
+        # For Phase 1, use first document only
+        pdf_path = document_paths[0]
+        
+        # Default query if none provided
+        if not queries or not queries[0]:
             query = "What are the main entities and relationships?"
+        else:
+            query = queries[0]
         # Start workflow tracking
         workflow_id = self.workflow_service.start_workflow(
             name=workflow_name,

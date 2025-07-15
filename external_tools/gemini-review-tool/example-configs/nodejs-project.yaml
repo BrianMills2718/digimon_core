@@ -1,0 +1,48 @@
+project_name: "My Node.js Project"
+project_path: "."
+output_format: "xml"
+output_file: "gemini-review.md"
+keep_repomix: false
+
+ignore_patterns:
+  - "node_modules"
+  - ".git"
+  - "dist"
+  - "build"
+  - "coverage"
+  - ".next"
+  - ".nuxt"
+  - "*.log"
+  - ".env*"
+  - "package-lock.json"
+  - "yarn.lock"
+  - "pnpm-lock.yaml"
+  - "gemini-review*.md"
+  - "repomix-output.*"
+
+documentation_files:
+  - "README.md"
+  - "docs/*.md"
+  - "API.md"
+  - "CONTRIBUTING.md"
+
+custom_prompt: |
+  Focus on Node.js/JavaScript best practices including:
+  - Modern ES6+ syntax usage
+  - Async/await vs callbacks
+  - Error handling patterns
+  - Security vulnerabilities (npm audit)
+  - Performance considerations
+
+review_templates:
+  express:
+    prompt: "Review Express.js application for security, middleware usage, and routing"
+    focus: ["middleware", "routing", "error handling", "security headers"]
+  
+  react:
+    prompt: "Review React application for component design and performance"
+    focus: ["component structure", "hooks usage", "state management", "performance"]
+  
+  typescript:
+    prompt: "Review TypeScript code for type safety and best practices"
+    focus: ["type definitions", "interfaces", "generics", "strict mode compliance"]

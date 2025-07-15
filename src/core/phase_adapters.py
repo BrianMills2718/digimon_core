@@ -22,18 +22,10 @@ class Phase1Adapter(GraphRAGPhase):
         self._workflow = None
     
     def _get_workflow(self):
-        """Lazy load Phase 1 workflow to avoid import issues"""
+        """Lazy load Phase 1 workflow"""
         if self._workflow is None:
-            try:
-                from src.tools.phase1.vertical_slice_workflow import VerticalSliceWorkflow
-                self._workflow = VerticalSliceWorkflow()
-            except ImportError:
-                # Handle case where we're running from a different directory
-                import sys
-                from pathlib import Path
-                sys.path.insert(0, str(Path(__file__).parent.parent.parent))
-                from src.tools.phase1.vertical_slice_workflow import VerticalSliceWorkflow
-                self._workflow = VerticalSliceWorkflow()
+            from ..tools.phase1.vertical_slice_workflow import VerticalSliceWorkflow
+            self._workflow = VerticalSliceWorkflow()
         return self._workflow
     
     def execute(self, request: ProcessingRequest) -> PhaseResult:
@@ -131,18 +123,10 @@ class Phase2Adapter(GraphRAGPhase):
         self._workflow = None
     
     def _get_workflow(self):
-        """Lazy load Phase 2 workflow to avoid import issues"""
+        """Lazy load Phase 2 workflow"""
         if self._workflow is None:
-            try:
-                from src.tools.phase2.enhanced_vertical_slice_workflow import EnhancedVerticalSliceWorkflow
-                self._workflow = EnhancedVerticalSliceWorkflow()
-            except ImportError:
-                # Handle case where we're running from a different directory
-                import sys
-                from pathlib import Path
-                sys.path.insert(0, str(Path(__file__).parent.parent.parent))
-                from src.tools.phase2.enhanced_vertical_slice_workflow import EnhancedVerticalSliceWorkflow
-                self._workflow = EnhancedVerticalSliceWorkflow()
+            from ..tools.phase2.enhanced_vertical_slice_workflow import EnhancedVerticalSliceWorkflow
+            self._workflow = EnhancedVerticalSliceWorkflow()
         return self._workflow
     
     def execute(self, request: ProcessingRequest) -> PhaseResult:
@@ -271,17 +255,9 @@ class Phase3Adapter(GraphRAGPhase):
     
     def __init__(self):
         super().__init__("Phase 3: Multi-Document", "1.0")
-        # Import here to avoid circular imports
-        try:
-            from src.tools.phase3.basic_multi_document_workflow import BasicMultiDocumentWorkflow
-            self.workflow = BasicMultiDocumentWorkflow()
-        except ImportError:
-            # Handle case where we're running from a different directory
-            import sys
-            from pathlib import Path
-            sys.path.insert(0, str(Path(__file__).parent.parent.parent))
-            from src.tools.phase3.basic_multi_document_workflow import BasicMultiDocumentWorkflow
-            self.workflow = BasicMultiDocumentWorkflow()
+        # Import using relative import
+        from ..tools.phase3.basic_multi_document_workflow import BasicMultiDocumentWorkflow
+        self.workflow = BasicMultiDocumentWorkflow()
     
     def execute(self, request: ProcessingRequest) -> PhaseResult:
         """Execute Phase 3 multi-document processing"""
