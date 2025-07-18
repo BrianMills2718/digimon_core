@@ -73,12 +73,6 @@
 - **Commercial**: Requires commercial license
 - **Source**: https://neo4j.com/
 
-### Qdrant
-- **License**: Apache 2.0 License
-- **Usage**: Commercial use OK
-- **Attribution**: Required
-- **Source**: https://qdrant.tech/
-
 ### PostgreSQL
 - **License**: PostgreSQL License
 - **Usage**: Commercial use OK

@@ -15,7 +15,7 @@
 - **RAM**: 16 GB (holds ~30M Neo4j nodes)
 - **Disk**: 100 GB SSD
 - **GPU**: optional, only for embedding refresh
-- **Tested on MacBook M3** — all Docker containers run, but Qdrant indexing 10 M vectors saturates CPU for 35 min.
+- **Tested on MacBook M3** — all Docker containers run, but ~~Qdrant indexing 10 M vectors saturates CPU for 35 min~~ Neo4j indexing performance is under review.
 
 ### Recommended Configuration
 - **CPU**: 8 vCPU
@@ -29,17 +29,17 @@
 
 ### Toy Dataset (50k nodes)
 - **Neo4j load**: 17s
-- **Qdrant vector insert**: 11s
+- **Neo4j vector insert (10k)**: TBD
 - **Total processing time**: ~30s
 
 ### Medium Dataset (1M nodes)
 - **Neo4j load**: 5m 23s
-- **Qdrant vector insert**: 3m 45s
+- **Neo4j vector insert (100k)**: TBD
 - **Total processing time**: ~10m
 
 ### Large Dataset (10M nodes)
 - **Neo4j load**: 45m 12s
-- **Qdrant vector insert**: 32m 8s
+- **Neo4j vector insert (1M)**: TBD
 - **Total processing time**: ~80m
 
 ---
@@ -51,7 +51,7 @@
 - **Index storage**: ~500MB for 1M nodes
 - **Transaction logs**: ~100MB per day of heavy usage
 
-### Qdrant Vector Database
+### Neo4j Vector Index
 - **Vector storage**: ~4GB for 1M embeddings (1536 dimensions)
 - **Metadata storage**: ~200MB for 1M entities
 - **Index storage**: ~1GB for 1M vectors
@@ -118,7 +118,7 @@
 - **Indexes**: Create indexes on frequently queried properties
 - **Cypher optimization**: Use parameterized queries
 
-### Qdrant Optimization
+### Neo4j Vector Index Optimization
 - **Vector dimensions**: Optimize for your embedding model
 - **Distance metrics**: Choose appropriate metric for your use case
 - **Index type**: Use HNSW for approximate search
@@ -143,7 +143,7 @@
 ### Monitoring Tools
 - **System**: Prometheus + Grafana
 - **Neo4j**: Neo4j Browser + monitoring plugins
-- **Qdrant**: Built-in metrics endpoint
+- **Neo4j**: APOC-based monitoring
 - **Application**: Custom metrics via Python
 
 ---

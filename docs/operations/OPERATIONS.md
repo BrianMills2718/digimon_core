@@ -53,7 +53,7 @@ make full-backup
 
 # This command dumps:
 # - Neo4j database
-# - Qdrant vector database
+# - Redis cache
 # - PII vault
 # - Configuration files
 # - Log files
@@ -171,10 +171,7 @@ To reload OPA/Rego policies without downtime:
 cypher-shell "CALL dbms.listConnections()"
 cypher-shell "CALL dbms.listTransactions()"
 
-# Qdrant maintenance
-curl -X GET "http://localhost:6333/collections"
-
-# SQLite maintenance
+# Redis maintenance
 sqlite3 metadata.db "VACUUM;"
 ```
 
@@ -202,7 +199,7 @@ sudo systemctl restart docker
 docker stats
 
 # Restart memory-intensive services
-docker compose restart neo4j qdrant
+docker compose restart neo4j
 
 # Increase memory limits in docker-compose.yml
 ```
@@ -277,11 +274,10 @@ python scripts/data_audit.py
 
 ### Horizontal Scaling
 ```bash
+# To be added: Neo4j cluster scaling instructions
+
 # Add Neo4j instances
 docker compose up -d neo4j-2 neo4j-3
-
-# Add Qdrant instances
-docker compose up -d qdrant-2 qdrant-3
 
 # Configure load balancing
 python scripts/configure_load_balancer.py
@@ -293,8 +289,7 @@ python scripts/configure_load_balancer.py
 helm install kgas ./helm/kgas
 
 # Scale horizontally
-kubectl scale deployment kgas-neo4j --replicas=3
-kubectl scale deployment kgas-qdrant --replicas=3
+kubectl scale statefulset kgas-neo4j --replicas=3
 
 # Monitor deployment
 kubectl get pods -l app=kgas

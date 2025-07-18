@@ -65,11 +65,15 @@ volumes:
 Create `requirements.txt` in project root:
 ```
 # Core dependencies
-mcp==0.9.0
+fastapi==0.104.1
+uvicorn==0.24.0
 neo4j==5.14.0
-qdrant-client==1.7.0
-sqlalchemy==2.0.23
-pydantic==2.5.0
+redis==5.0.1
+pydantic==2.5.2
+python-dotenv==1.0.0
+requests==2.31.0
+tiktoken==0.5.1
+pyyaml==6.0.1
 
 # NLP tools
 spacy==3.7.2
@@ -77,7 +81,6 @@ nltk==3.8.1
 transformers==4.35.0
 
 # Utilities
-python-dotenv==1.0.0
 click==8.1.7
 rich==13.7.0
 
@@ -95,10 +98,11 @@ Create `.env` in project root:
 # Neo4j Configuration
 NEO4J_URI=bolt://localhost:7687
 NEO4J_USER=neo4j
-NEO4J_PASSWORD=password
+NEO4J_PASSWORD=your_password
 
-# Qdrant Configuration
-QDRANT_URL=http://localhost:6333
+# Redis Configuration
+REDIS_HOST=localhost
+REDIS_PORT=6379
 
 # SQLite Configuration
 SQLITE_DB_PATH=./data/metadata.db

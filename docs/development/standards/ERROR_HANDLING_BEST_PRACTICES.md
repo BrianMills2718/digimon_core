@@ -92,7 +92,7 @@ def operation(self, inputs):
 ```
 **Examples:**
 - "OpenAI API unavailable - text processing disabled"
-- "Qdrant service unavailable - vector search disabled"
+- "Vector index service unavailable - vector search disabled"
 
 #### Configuration Errors
 ```

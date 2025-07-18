@@ -27,17 +27,6 @@ services:
       - neo4j_import:/var/lib/neo4j/import
       - neo4j_plugins:/plugins
 
-  qdrant:
-    image: qdrant/qdrant:v1.7.0
-    ports:
-      - "6333:6333"
-      - "6334:6334"
-    volumes:
-      - qdrant_data:/qdrant/storage
-    environment:
-      - QDRANT__SERVICE__HTTP_PORT=6333
-      - QDRANT__SERVICE__GRPC_PORT=6334
-
   kgas-app:
     build: .
     ports:
@@ -58,7 +47,6 @@ volumes:
   neo4j_logs:
   neo4j_import:
   neo4j_plugins:
-  qdrant_data:
 ```
 
 ---

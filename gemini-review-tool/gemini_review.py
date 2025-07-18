@@ -858,6 +858,15 @@ Be thorough and skeptical. Look for discrepancies between the claims and the act
             
     def save_results(self, results: str, output_path: str = "gemini-review.md"):
         """Save the analysis results to a file."""
+        # Ensure validation reports are saved in the validation-reports subdirectory
+        output_path = Path(output_path)
+        
+        # If the output file is a validation report, save it in the validation-reports directory
+        if "validation" in output_path.name.lower() or "verify" in output_path.name.lower():
+            validation_reports_dir = Path("validation-reports")
+            validation_reports_dir.mkdir(exist_ok=True)
+            output_path = validation_reports_dir / output_path.name
+        
         print(f"💾 Saving results to {output_path}...")
         
         with open(output_path, 'w', encoding='utf-8') as f:
@@ -916,7 +925,8 @@ Be thorough and skeptical. Look for discrepancies between the claims and the act
                                       project_path, ignore_patterns, include_patterns, documentation_files)
             
             # Step 4: Save results
-            self.save_results(results)
+            output_file = config.output_file if config else "gemini-review.md"
+            self.save_results(results, output_file)
             
             # Step 5: Cleanup (unless asked to keep)
             if not keep_repomix and repomix_file:

@@ -1,0 +1,61 @@
+# KGAS Centralized Configuration
+# This file serves as the main configuration entry point for the KGAS system
+
+# Environment Configuration
+environments:
+  development:
+    docker_compose: "./environments/docker-compose.yml"
+    database_url: "bolt://localhost:7687"
+    llm_provider: "openai"
+    log_level: "DEBUG"
+  
+  production:
+    docker_compose: "./environments/docker-compose.prod.yml"
+    database_url: "${NEO4J_URL}"
+    llm_provider: "${LLM_PROVIDER}"
+    log_level: "INFO"
+
+# Monitoring Configuration
+monitoring:
+  prometheus:
+    config: "./monitoring/prometheus.yml"
+    port: 9090
+  
+  grafana:
+    datasources: "./monitoring/grafana-datasources.yml"
+    port: 3000
+  
+  docker_compose: "./monitoring/docker-compose.monitoring.yml"
+
+# Contract System Configuration
+contracts:
+  tool_contract_schema: "./schemas/tool_contract_schema.yaml"
+  phase1_to_phase2_adapter: "./contracts/Phase1ToPhase2Adapter.yaml"
+
+# Project Configuration
+project:
+  pyproject: "./pyproject.toml"
+  
+# Example Configurations
+examples:
+  gemini_review: "./examples/gemini-review.yaml"
+  docs_review: "./examples/docs-review.yaml"
+  verification_review: "./examples/verification-review.yaml"
+
+# Core System Settings
+core:
+  max_concurrent_documents: 10
+  backup_retention_days: 30
+  metrics_collection_interval: 30
+  
+# Security Settings
+security:
+  encrypt_backups: true
+  require_pii_encryption: true
+  max_api_rate_limit: 100
+  
+# Performance Settings
+performance:
+  memory_limit_gb: 8
+  processing_timeout_seconds: 300
+  parallel_processing_enabled: true
