@@ -12,7 +12,6 @@ from pathlib import Path
 from datetime import datetime
 
 # Add src to path for imports
-sys.path.insert(0, str(Path(__file__).parent))
 
 def test_execute_pdf_to_answer_workflow():
     """Test execute_pdf_to_answer_workflow by calling it through the MCP interface"""

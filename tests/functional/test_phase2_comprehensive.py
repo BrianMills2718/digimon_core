@@ -11,7 +11,6 @@ import traceback
 from pathlib import Path
 
 # Add src to path
-sys.path.insert(0, str(Path(__file__).parent / "src"))
 
 def test_phase2_comprehensive():
     """Test Phase 2 with real API calls and Neo4j integration."""
@@ -19,11 +18,13 @@ def test_phase2_comprehensive():
     
     try:
         # Import all required components
-        from tools.phase2.enhanced_vertical_slice_workflow import EnhancedVerticalSliceWorkflow
-        from tools.phase2.t23c_ontology_aware_extractor import OntologyAwareExtractor
-        from tools.phase2.t31_ontology_graph_builder import OntologyAwareGraphBuilder
-        from core.enhanced_identity_service import EnhancedIdentityService
-        from ontology_generator import DomainOntology, EntityType, RelationshipType
+        from src.core.pipeline_orchestrator import PipelineOrchestrator
+        from src.core.tool_factory import create_unified_workflow_config, Phase, OptimizationLevel
+        from src.core.config_manager import ConfigManager
+        from src.tools.phase2.t23c_ontology_aware_extractor import OntologyAwareExtractor
+        from src.tools.phase2.t31_ontology_graph_builder import OntologyAwareGraphBuilder
+        from src.core.identity_service import IdentityService
+        from src.ontology_generator import DomainOntology, EntityType, RelationshipType
         
         print("✅ All Phase 2 imports successful")
         
@@ -66,7 +67,7 @@ def test_phase2_comprehensive():
         # Step 1: Test ontology-aware extraction
         print("\n🔍 Step 1: Testing Ontology-Aware Extraction...")
         
-        identity_service = EnhancedIdentityService()
+        identity_service = IdentityService()
         try:
             extractor = OntologyAwareExtractor(identity_service)
             print("✅ Ontology extractor initialized")
@@ -101,8 +102,8 @@ def test_phase2_comprehensive():
             if "API key" in str(e) or "quota" in str(e).lower():
                 print("  ℹ️  This is expected if API keys are not configured")
                 # Create mock extraction result for testing graph builder
-                from tools.phase2.t23c_ontology_aware_extractor import ExtractionResult
-                from core.identity_service import Entity, Relationship, Mention
+                from src.tools.phase2.t23c_ontology_aware_extractor import ExtractionResult
+                from src.core.identity_service import Entity, Relationship, Mention
                 
                 mock_entities = [
                     Entity(id="ent_1", canonical_name="Dr. Sarah Johnson", entity_type="PERSON", confidence=0.9),
@@ -173,13 +174,17 @@ def test_phase2_comprehensive():
         print("\n🚀 Step 3: Testing Enhanced Workflow Integration...")
         
         try:
-            workflow = EnhancedVerticalSliceWorkflow()
+            config_manager = ConfigManager()
+            config = create_unified_workflow_config(
+                phase=Phase.PHASE2,
+                optimization_level=OptimizationLevel.STANDARD,
+                workflow_storage_dir="./data"
+            )
+            orchestrator = PipelineOrchestrator(config, config_manager)
             print("✅ Enhanced workflow initialized")
             
             # Note: Full workflow test would require a PDF file and might take time
             print("  ℹ️  Skipping full workflow execution for performance")
-            
-            workflow.cleanup()
             
         except Exception as e:
             print(f"❌ Enhanced workflow failed: {e}")

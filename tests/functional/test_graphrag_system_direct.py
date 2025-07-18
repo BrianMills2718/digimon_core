@@ -13,7 +13,9 @@ def test_phase1_real():
     print("🧪 Testing Phase 1 with Real Document")
     
     try:
-        from src.tools.phase1.vertical_slice_workflow import VerticalSliceWorkflow
+        from src.core.pipeline_orchestrator import PipelineOrchestrator
+        from src.core.tool_factory import create_unified_workflow_config, Phase, OptimizationLevel
+        from src.core.config_manager import ConfigManager
         
         # Use actual PDF from examples if it exists
         pdf_path = "examples/pdfs/wiki1.pdf"
@@ -28,30 +30,25 @@ def test_phase1_real():
                 """)
                 pdf_path = f.name
         
-        workflow = VerticalSliceWorkflow()
-        result = workflow.execute_workflow(
-            pdf_path, 
-            "What are the main people and organizations mentioned?", 
-            "direct_test"
+        config_manager = ConfigManager()
+        workflow_config = create_unified_workflow_config(
+            phase=Phase.PHASE1, 
+            optimization_level=OptimizationLevel.STANDARD,
+            workflow_storage_dir="./data"
+        )
+        orchestrator = PipelineOrchestrator(workflow_config, config_manager)
+        result = orchestrator.execute(
+            [pdf_path], 
+            ["What are the main people and organizations mentioned?"]
         )
         
-        status = result.get("status", "unknown")
-        steps = result.get("steps", {})
-        error = result.get("error")
+        final_result = result.get("final_result", {})
+        entities = len(final_result.get("entities", []))
+        relationships = len(final_result.get("relationships", []))
+        query_results = final_result.get("query_results", [])
         
-        print(f"✅ Phase 1 Status: {status}")
-        print(f"✅ Steps Completed: {len(steps)}")
-        
-        if error:
-            print(f"❌ Phase 1 Error: {error}")
-            return False
-        
-        # Check what we actually extracted
-        entity_step = steps.get("entity_extraction", {})
-        rel_step = steps.get("relationship_extraction", {})
-        
-        entities = entity_step.get("total_entities", 0)
-        relationships = rel_step.get("total_relationships", 0)
+        print(f"✅ Phase 1 completed successfully")
+        print(f"✅ Query results: {len(query_results)} results")
         
         print(f"✅ Entities Found: {entities}")
         print(f"✅ Relationships Found: {relationships}")
@@ -74,16 +71,25 @@ def test_phase2_real():
     print("\n🧪 Testing Phase 2")
     
     try:
-        from src.tools.phase2.enhanced_vertical_slice_workflow import EnhancedVerticalSliceWorkflow
+        from src.core.pipeline_orchestrator import PipelineOrchestrator
+        from src.core.tool_factory import create_unified_workflow_config, Phase, OptimizationLevel
+        from src.core.config_manager import ConfigManager
         
         with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False) as f:
             f.write("Dr. Smith studies AI at MIT.")
             file_path = f.name
         
-        workflow = EnhancedVerticalSliceWorkflow()
-        result = workflow.execute_enhanced_workflow(file_path, "What entities exist?", "test2")
+        config_manager = ConfigManager()
+        config = create_unified_workflow_config(
+            phase=Phase.PHASE2,
+            optimization_level=OptimizationLevel.STANDARD,
+            workflow_storage_dir="./data"
+        )
+        orchestrator = PipelineOrchestrator(config, config_manager)
+        result = orchestrator.execute([file_path], ["What entities exist?"])
         
-        entities = len(result.get("entities", []))
+        final_result = result.get("final_result", {})
+        entities = len(final_result.get("entities", []))
         print(f"✅ Phase 2: Found {entities} entities")
         return entities > 0
         

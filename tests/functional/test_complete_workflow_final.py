@@ -7,7 +7,6 @@ import sys
 import os
 import time
 import subprocess
-sys.path.insert(0, '/home/brian/Digimons')
 
 def run_workflow_with_timeout():
     """Run the workflow and capture the final result"""
@@ -19,10 +18,18 @@ def run_workflow_with_timeout():
     print("=" * 60)
     
     try:
-        from src.tools.phase2.enhanced_vertical_slice_workflow import EnhancedVerticalSliceWorkflow
+        from src.core.pipeline_orchestrator import PipelineOrchestrator
+        from src.core.tool_factory import create_unified_workflow_config, Phase, OptimizationLevel
+        from src.core.config_manager import ConfigManager
         
         # Initialize workflow
-        workflow = EnhancedVerticalSliceWorkflow()
+        config_manager = ConfigManager()
+        config = create_unified_workflow_config(
+            phase=Phase.PHASE1,
+            optimization_level=OptimizationLevel.STANDARD,
+            workflow_storage_dir="./data"
+        )
+        orchestrator = PipelineOrchestrator(config, config_manager)
         
         # Test parameters
         pdf_path = "/home/brian/Digimons/examples/pdfs/test_document.pdf"
@@ -44,12 +51,7 @@ def run_workflow_with_timeout():
         # Capture stdout but still show progress
         captured_output = StringIO()
         
-        result = workflow.execute_enhanced_workflow(
-            pdf_path=pdf_path,
-            domain_description=domain_description,
-            queries=queries,
-            workflow_name="final_gemini_fix_test"
-        )
+        result = orchestrator.execute([pdf_path], queries)
         
         execution_time = time.time() - start_time
         
@@ -57,43 +59,22 @@ def run_workflow_with_timeout():
         print("=" * 60)
         print("📊 WORKFLOW RESULT:")
         
-        status = result.get('status', 'unknown')
-        print(f"🎯 Overall Status: {status}")
+        final_result = result.get("final_result", {})
+        entities = len(final_result.get("entities", []))
+        relationships = len(final_result.get("relationships", []))
+        query_results = final_result.get("query_results", [])
         
-        if status == 'success':
+        print(f"🎯 Entities extracted: {entities}")
+        print(f"🎯 Relationships extracted: {relationships}")
+        print(f"🎯 Query results: {len(query_results)} results")
+        
+        if entities > 0 or relationships > 0:
             print("🎉 WORKFLOW COMPLETED SUCCESSFULLY!")
-            
-            # Show step results
-            steps = result.get('steps', {})
-            print("\n📋 Step Results:")
-            for step_name, step_result in steps.items():
-                step_status = step_result.get('status', 'unknown')
-                emoji = "✅" if step_status == "success" else "⚠️" if step_status == "warning" else "❌"
-                print(f"  {emoji} {step_name}: {step_status}")
-                
-                # Show key metrics for some steps
-                if step_name == 'entity_extraction' and step_status == 'success':
-                    total_entities = step_result.get('total_entities', 0)
-                    print(f"      → Entities extracted: {total_entities}")
-                elif step_name == 'graph_building' and step_status == 'success':
-                    entities_created = step_result.get('entities_created', 0)
-                    relationships_created = step_result.get('relationships_created', 0)
-                    print(f"      → Entities: {entities_created}, Relationships: {relationships_created}")
-                elif step_name == 'pagerank' and step_status in ['success', 'warning']:
-                    total_entities = step_result.get('total_entities', 0)
-                    print(f"      → PageRank calculated for {total_entities} entities")
-            
-            # Show query results
-            query_results = result.get('query_results', {})
-            if query_results:
-                print("\n💡 Query Results:")
-                for query_name, query_result in query_results.items():
-                    query_status = query_result.get('status', 'unknown')
-                    print(f"  📝 {query_name}: {query_status}")
-            
+            status = 'success'
             return True, result
         else:
-            print(f"❌ WORKFLOW FAILED: {result.get('error', 'Unknown error')}")
+            print("❌ WORKFLOW PRODUCED NO RESULTS")
+            status = 'failed'
             return False, result
             
     except Exception as e:

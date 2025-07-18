@@ -13,6 +13,7 @@ from .identity_service import IdentityService
 from .provenance_service import ProvenanceService
 from .quality_service import QualityService
 from .config import get_config
+from .logging_config import get_logger
 
 
 class ServiceManager:
@@ -20,6 +21,7 @@ class ServiceManager:
     
     _instance = None
     _lock = threading.Lock()
+    _init_lock = threading.Lock()  # Additional lock for thread-safe initialization
     
     def __new__(cls, *args, **kwargs):
         if not cls._instance:
@@ -29,14 +31,16 @@ class ServiceManager:
         return cls._instance
     
     def __init__(self):
-        if not hasattr(self, "_initialized"):
-            self._initialized = True
-            self._identity_service = None
-            self._provenance_service = None
-            self._quality_service = None
-            self._neo4j_driver = None
-            self._neo4j_config = None
-            self._identity_config = None  # Store identity service configuration
+        with self._init_lock:  # Protect initialization
+            if not hasattr(self, "_initialized"):
+                self._initialized = True
+                self._identity_service = None
+                self._provenance_service = None
+                self._quality_service = None
+                self._neo4j_driver = None
+                self._neo4j_config = None
+                self._identity_config = None  # Store identity service configuration
+                self.logger = get_logger("core.service_manager")
     
     @property
     def identity_service(self) -> IdentityService:
@@ -115,10 +119,10 @@ class ServiceManager:
                     with self._neo4j_driver.session() as session:
                         result = session.run("RETURN 1 as test")
                         result.single()  # Consume single record properly
-                    print(f"Shared Neo4j connection established to {uri}")
+                    self.logger.info(f"Shared Neo4j connection established to {uri}")
                 except Exception as e:
-                    print(f"WARNING: Neo4j connection failed: {e}")
-                    print("Continuing without Neo4j - some features may be limited")
+                    self.logger.info(f"WARNING: Neo4j connection failed: {e}")
+                    self.logger.info("Continuing without Neo4j - some features may be limited")
                     self._neo4j_driver = None
                     self._neo4j_config = None
         
@@ -130,6 +134,23 @@ class ServiceManager:
             self._neo4j_driver.close()
             self._neo4j_driver = None
         self._neo4j_config = None
+    
+    def get_identity_service(self) -> IdentityService:
+        """Get shared identity service instance."""
+        return self.identity_service
+    
+    def get_provenance_service(self) -> ProvenanceService:
+        """Get shared provenance service instance."""
+        return self.provenance_service
+    
+    def get_quality_service(self) -> QualityService:
+        """Get shared quality service instance."""
+        return self.quality_service
+    
+    def get_neo4j_manager(self):
+        """Get Neo4j manager instance for compatibility."""
+        from .neo4j_manager import Neo4jManager
+        return Neo4jManager()
     
     def get_service_stats(self) -> Dict[str, Any]:
         """Get statistics about shared services."""

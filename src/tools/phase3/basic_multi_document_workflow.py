@@ -10,17 +10,33 @@ from typing import Dict, List, Any, Optional
 from pathlib import Path
 import traceback
 
-from core.graphrag_phase_interface import ProcessingRequest, PhaseResult, PhaseStatus, GraphRAGPhase
-from tools.phase1.vertical_slice_workflow_optimized import OptimizedVerticalSliceWorkflow
-from core.service_manager import get_service_manager
+from ...core.graphrag_phase_interface import ProcessingRequest, PhaseResult, PhaseStatus, GraphRAGPhase
+from ..phase1.vertical_slice_workflow import VerticalSliceWorkflow
+from ...core.service_manager import get_service_manager
+from ...core.logging_config import get_logger
+from ...core.tool_factory import create_unified_workflow_config, Phase, OptimizationLevel
+from ...core.pipeline_orchestrator import PipelineOrchestrator
 
 
 class BasicMultiDocumentWorkflow(GraphRAGPhase):
     """Basic implementation of Phase 3 multi-document processing"""
     
-    def __init__(self):
+    def __init__(self, identity_service=None, provenance_service=None, quality_service=None):
         super().__init__("Phase 3: Multi-Document Basic", "0.2.0")
+        # Allow tools to work standalone for testing
+        if identity_service is None:
+            from ...core.service_manager import ServiceManager
+            service_manager = ServiceManager()
+            self.identity_service = service_manager.identity_service
+            self.provenance_service = service_manager.provenance_service
+            self.quality_service = service_manager.quality_service
+        else:
+            self.identity_service = identity_service
+            self.provenance_service = provenance_service
+            self.quality_service = quality_service
+        
         self.service_manager = get_service_manager()
+        self.logger = get_logger("phase3.basic_workflow")
     
     def execute(self, request: ProcessingRequest) -> PhaseResult:
         """Execute multi-document processing with 100% reliability"""
@@ -37,10 +53,10 @@ class BasicMultiDocumentWorkflow(GraphRAGPhase):
             previous_data = {}
             if request.phase1_graph_data:
                 previous_data["phase1"] = request.phase1_graph_data
-                print(f"Phase 3 received Phase 1 data: {request.phase1_graph_data.get('entities', 0)} entities")
+                self.logger.info("Phase 3 received Phase 1 data: %d entities", request.phase1_graph_data.get('entities', 0))
             if request.phase2_enhanced_data:
                 previous_data["phase2"] = request.phase2_enhanced_data
-                print(f"Phase 3 received Phase 2 data: {request.phase2_enhanced_data.get('entities', 0)} entities")
+                self.logger.info("Phase 3 received Phase 2 data: %d entities", request.phase2_enhanced_data.get('entities', 0))
                 
             # Process documents - if we have previous data, build on it; otherwise process from scratch
             if previous_data:
@@ -83,8 +99,7 @@ class BasicMultiDocumentWorkflow(GraphRAGPhase):
         except Exception as e:
             # 100% reliability - always return a result
             error_trace = traceback.format_exc()
-            print(f"❌ Phase 3 Exception: {str(e)}")
-            print(f"Traceback:\n{error_trace}")
+            self.logger.error("❌ Phase 3 Exception: %s", str(e), exc_info=True)
             return self.create_error_result(
                 f"Phase 3 processing error: {str(e)}\nTraceback: {error_trace}",
                 execution_time=0.0
@@ -98,7 +113,8 @@ class BasicMultiDocumentWorkflow(GraphRAGPhase):
             doc_name = Path(doc_path).name
             try:
                 # Use Phase 1 workflow for each document
-                workflow = OptimizedVerticalSliceWorkflow()
+                workflow_config = create_unified_workflow_config(phase=Phase.PHASE1, optimization_level=OptimizationLevel.STANDARD)
+                workflow = PipelineOrchestrator(workflow_config)
                 
                 # Process with a generic query
                 result = workflow.execute_workflow(
@@ -164,7 +180,8 @@ class BasicMultiDocumentWorkflow(GraphRAGPhase):
                     base_entities += enhanced_entities
                     base_relationships += enhanced_relationships
                     
-                    print(f"Phase 3 combining: P1({previous_data.get('phase1', {}).get('entities', 0)}e) + P2({enhanced_entities}e) = {base_entities}e total")
+                    self.logger.info("Phase 3 combining: P1(%de) + P2(%de) = %de total", 
+                                   previous_data.get('phase1', {}).get('entities', 0), enhanced_entities, base_entities)
                 
                 # Simulate Phase 3 adding multi-document fusion value
                 # Phase 3 should add its own fusion contribution

@@ -1,0 +1,130 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "KGAS API Performance",
+    "tags": [
+      "kgas",
+      "api",
+      "performance"
+    ],
+    "timezone": "browser",
+    "refresh": "5s",
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "panels": [
+      {
+        "id": 1,
+        "title": "API Call Rate",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "sum(rate(kgas_api_calls_total[5m])) by (api_provider)",
+            "legendFormat": "{{api_provider}}",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "unit": "reqps"
+          }
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 0
+        }
+      },
+      {
+        "id": 2,
+        "title": "API Call Duration",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, sum(rate(kgas_api_call_duration_seconds_bucket[5m])) by (le, api_provider))",
+            "legendFormat": "{{api_provider}} 95th percentile",
+            "refId": "A"
+          },
+          {
+            "expr": "histogram_quantile(0.50, sum(rate(kgas_api_call_duration_seconds_bucket[5m])) by (le, api_provider))",
+            "legendFormat": "{{api_provider}} 50th percentile",
+            "refId": "B"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "unit": "s"
+          }
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 0
+        }
+      },
+      {
+        "id": 3,
+        "title": "API Success Rate",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "sum(rate(kgas_api_calls_total{status=\"success\"}[5m])) by (api_provider) / sum(rate(kgas_api_calls_total[5m])) by (api_provider) * 100",
+            "legendFormat": "{{api_provider}} Success Rate",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "unit": "percent",
+            "min": 0,
+            "max": 100
+          }
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 8
+        }
+      },
+      {
+        "id": 4,
+        "title": "API Error Rate",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "sum(rate(kgas_api_calls_total{status!=\"success\"}[5m])) by (api_provider, status)",
+            "legendFormat": "{{api_provider}} {{status}}",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "unit": "reqps"
+          }
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 8
+        }
+      }
+    ]
+  }
+}

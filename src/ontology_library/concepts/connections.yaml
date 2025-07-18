@@ -1,0 +1,267 @@
+# Connection Concepts from Social/Behavioral/Communication Science Theories
+# Based on Tables 3.1-3.3 from the dissertation proposal
+
+# Social/Interpersonal Connections
+IdentifiesWith:
+  indigenous_term: ["identifies with", "identification", "social identification", "in-group membership"]
+  description: "An individual adopts the identity, values, or characteristics of a group or entity."
+  subTypeOf: []
+  references: ["Tajfel & Turner, 1979", "Kelman, 1958", "Burke & Stets, 2009"]
+  domain: ["IndividualActor"]
+  range: ["SocialGroup", "Identity", "Institution"]
+  is_directed: true
+  is_symmetric: false
+  cardinality: "many-to-many"
+
+BelongsTo:
+  indigenous_term: ["belongs to", "member of", "affiliated with", "part of"]
+  description: "An actor is a member or part of a larger group or organization."
+  subTypeOf: []
+  references: ["Hogg & Abrams, 1988", "Brewer, 1991"]
+  domain: ["IndividualActor", "SocialGroup"]
+  range: ["SocialGroup", "Institution", "Network"]
+  is_directed: true
+  is_symmetric: false
+  cardinality: "many-to-many"
+
+# Influence/Persuasion Connections
+Influences:
+  indigenous_term: ["influences", "affects", "impacts", "persuades", "sways"]
+  description: "One entity exerts influence on another, potentially changing beliefs, attitudes, or behaviors."
+  subTypeOf: []
+  references: ["Cialdini, 2001", "Kelman, 1958", "French & Raven, 1959"]
+  domain: ["IndividualActor", "SocialGroup", "Institution", "Message", "Source"]
+  range: ["IndividualActor", "SocialGroup", "Belief", "Attitude", "Behavior"]
+  is_directed: true
+  is_symmetric: false
+  cardinality: "many-to-many"
+
+Persuades:
+  indigenous_term: ["persuades", "convinces", "changes mind", "wins over"]
+  description: "Intentional influence attempt resulting in attitude or belief change."
+  subTypeOf: ["Influences"]
+  references: ["Petty & Cacioppo, 1986", "Hovland et al., 1953", "O'Keefe, 2016"]
+  domain: ["Source", "Message", "IndividualActor"]
+  range: ["IndividualActor", "Audience", "SocialGroup"]
+  is_directed: true
+  is_symmetric: false
+  cardinality: "many-to-many"
+
+# Communication Connections
+Communicates:
+  indigenous_term: ["communicates", "transmits", "sends", "conveys", "shares"]
+  description: "Transfer of information or messages between entities."
+  subTypeOf: []
+  references: ["Shannon & Weaver, 1949", "Berlo, 1960", "Schramm, 1954"]
+  domain: ["Source", "IndividualActor", "Institution"]
+  range: ["Audience", "IndividualActor", "SocialGroup"]
+  is_directed: true
+  is_symmetric: false
+  cardinality: "many-to-many"
+
+Frames:
+  indigenous_term: ["frames", "presents", "portrays", "characterizes", "depicts"]
+  description: "Presents information in a particular way to influence interpretation."
+  subTypeOf: ["Communicates"]
+  references: ["Entman, 1993", "Druckman, 2022", "Chong & Druckman, 2007"]
+  domain: ["Source", "Message", "Institution"]
+  range: ["Event", "Issue", "IndividualActor", "SocialGroup"]
+  is_directed: true
+  is_symmetric: false
+  cardinality: "many-to-many"
+
+# Belief/Attitude Connections
+HoldsBeliefAbout:
+  indigenous_term: ["believes", "thinks", "holds view", "has opinion about"]
+  description: "An actor maintains a particular belief about an entity or concept."
+  subTypeOf: []
+  references: ["Fishbein & Ajzen, 1975", "Rokeach, 1968"]
+  domain: ["IndividualActor", "SocialGroup"]
+  range: ["Belief", "Entity", "Event", "Message"]
+  is_directed: true
+  is_symmetric: false
+  cardinality: "many-to-many"
+
+HasAttitudeToward:
+  indigenous_term: ["has attitude toward", "feels about", "evaluates", "judges"]
+  description: "An actor has an evaluative stance toward an entity."
+  subTypeOf: []
+  references: ["Eagly & Chaiken, 1993", "Allport, 1935"]
+  domain: ["IndividualActor", "SocialGroup"]
+  range: ["Entity", "Behavior", "SocialGroup", "Institution"]
+  is_directed: true
+  is_symmetric: false
+  cardinality: "many-to-many"
+
+# Behavioral Connections
+PerformsBehavior:
+  indigenous_term: ["performs", "does", "engages in", "executes", "carries out"]
+  description: "An actor engages in a specific behavior or action."
+  subTypeOf: []
+  references: ["Ajzen, 1991", "Bandura, 1977", "Skinner, 1953"]
+  domain: ["IndividualActor", "SocialGroup"]
+  range: ["Behavior"]
+  is_directed: true
+  is_symmetric: false
+  cardinality: "many-to-many"
+
+IntendsTo:
+  indigenous_term: ["intends to", "plans to", "aims to", "will", "expects to"]
+  description: "An actor has an intention to perform a behavior."
+  subTypeOf: []
+  references: ["Ajzen & Fishbein, 1980", "Gollwitzer, 1999"]
+  domain: ["IndividualActor", "SocialGroup"]
+  range: ["Behavior", "Intention"]
+  is_directed: true
+  is_symmetric: false
+  cardinality: "many-to-many"
+
+# Normative Connections
+FollowsNorm:
+  indigenous_term: ["follows norm", "conforms to", "adheres to", "complies with"]
+  description: "An actor follows or adheres to a social norm."
+  subTypeOf: []
+  references: ["Cialdini & Goldstein, 2004", "Bicchieri, 2006"]
+  domain: ["IndividualActor", "SocialGroup"]
+  range: ["Norm"]
+  is_directed: true
+  is_symmetric: false
+  cardinality: "many-to-many"
+
+EnforcesNorm:
+  indigenous_term: ["enforces", "sanctions", "punishes", "rewards", "reinforces"]
+  description: "An entity enforces or maintains a norm through sanctions or rewards."
+  subTypeOf: []
+  references: ["Ostrom, 1990", "Coleman, 1990"]
+  domain: ["SocialGroup", "Institution", "IndividualActor"]
+  range: ["Norm"]
+  is_directed: true
+  is_symmetric: false
+  cardinality: "many-to-many"
+
+# Network/Structural Connections
+ConnectedTo:
+  indigenous_term: ["connected to", "linked to", "tied to", "networked with"]
+  description: "General network connection between entities."
+  subTypeOf: []
+  references: ["Granovetter, 1973", "Burt, 1992", "Wasserman & Faust, 1994"]
+  domain: ["IndividualActor", "SocialGroup", "Institution"]
+  range: ["IndividualActor", "SocialGroup", "Institution"]
+  is_directed: false
+  is_symmetric: true
+  cardinality: "many-to-many"
+
+BridgesBetween:
+  indigenous_term: ["bridges", "connects", "links", "spans", "mediates"]
+  description: "An entity serves as a bridge between two otherwise disconnected entities."
+  subTypeOf: []
+  references: ["Burt, 2005", "Granovetter, 1973"]
+  domain: ["IndividualActor", "Institution", "SocialGroup"]
+  range: ["Network", "SocialGroup"]
+  is_directed: true
+  is_symmetric: false
+  cardinality: "many-to-many"
+
+# Authority/Power Connections
+HasAuthorityOver:
+  indigenous_term: ["has authority over", "commands", "leads", "governs", "controls"]
+  description: "One entity has formal authority or power over another."
+  subTypeOf: []
+  references: ["Weber, 1947", "French & Raven, 1959", "Lukes, 1974"]
+  domain: ["Institution", "IndividualActor", "SocialGroup"]
+  range: ["IndividualActor", "SocialGroup", "Institution"]
+  is_directed: true
+  is_symmetric: false
+  cardinality: "many-to-many"
+
+ComplyWith:
+  indigenous_term: ["complies with", "obeys", "follows", "submits to", "defers to"]
+  description: "An actor complies with the authority or directives of another entity."
+  subTypeOf: []
+  references: ["Milgram, 1963", "Tyler, 2006", "Kelman & Hamilton, 1989"]
+  domain: ["IndividualActor", "SocialGroup"]
+  range: ["Institution", "IndividualActor", "Norm"]
+  is_directed: true
+  is_symmetric: false
+  cardinality: "many-to-many"
+
+# Information Flow Connections
+SharesInformationWith:
+  indigenous_term: ["shares with", "informs", "tells", "discloses to", "reveals to"]
+  description: "Information is shared between entities."
+  subTypeOf: []
+  references: ["Rogers, 2003", "Katz & Lazarsfeld, 1955"]
+  domain: ["IndividualActor", "Source", "Institution"]
+  range: ["IndividualActor", "Audience", "SocialGroup"]
+  is_directed: true
+  is_symmetric: false
+  cardinality: "many-to-many"
+
+ReceivesFrom:
+  indigenous_term: ["receives from", "gets from", "obtains from", "hears from"]
+  description: "An entity receives information or influence from another."
+  subTypeOf: []
+  references: ["Shannon & Weaver, 1949", "McGuire, 1969"]
+  domain: ["Audience", "IndividualActor", "SocialGroup"]
+  range: ["Source", "Channel", "IndividualActor"]
+  is_directed: true
+  is_symmetric: false
+  cardinality: "many-to-many"
+
+# Causal/Effect Connections
+Causes:
+  indigenous_term: ["causes", "leads to", "results in", "produces", "generates"]
+  description: "One entity or event causes an effect or outcome."
+  subTypeOf: []
+  references: ["Pearl, 2009", "Rubin, 1974", "Holland, 1986"]
+  domain: ["Event", "Behavior", "Message", "Intervention"]
+  range: ["Behavior", "Belief", "Attitude", "Event"]
+  is_directed: true
+  is_symmetric: false
+  cardinality: "many-to-many"
+
+ModeratesEffectOf:
+  indigenous_term: ["moderates", "conditions", "qualifies", "interacts with"]
+  description: "An entity moderates or conditions the effect of one entity on another."
+  subTypeOf: []
+  references: ["Baron & Kenny, 1986", "Hayes, 2013"]
+  domain: ["Entity", "Property", "Context"]
+  range: ["Causes", "Influences"]
+  is_directed: true
+  is_symmetric: false
+  cardinality: "many-to-many"
+
+# Trust/Credibility Connections
+TrustsIn:
+  indigenous_term: ["trusts", "has confidence in", "relies on", "believes in"]
+  description: "An actor has trust or confidence in another entity."
+  subTypeOf: []
+  references: ["Mayer et al., 1995", "Rousseau et al., 1998"]
+  domain: ["IndividualActor", "SocialGroup"]
+  range: ["Source", "Institution", "IndividualActor"]
+  is_directed: true
+  is_symmetric: false
+  cardinality: "many-to-many"
+
+# Opposition/Conflict Connections
+OpposesTo:
+  indigenous_term: ["opposes", "conflicts with", "disagrees with", "challenges", "resists"]
+  description: "An entity is in opposition or conflict with another."
+  subTypeOf: []
+  references: ["Tajfel & Turner, 1979", "Sherif et al., 1961"]
+  domain: ["IndividualActor", "SocialGroup", "Institution"]
+  range: ["IndividualActor", "SocialGroup", "Institution", "Belief", "Norm"]
+  is_directed: true
+  is_symmetric: false
+  cardinality: "many-to-many"
+
+CompetesWith:
+  indigenous_term: ["competes with", "rivals", "vies with", "contests"]
+  description: "Entities are in competition for resources, status, or influence."
+  subTypeOf: []
+  references: ["Deutsch, 1949", "Sherif et al., 1961"]
+  domain: ["IndividualActor", "SocialGroup", "Institution"]
+  range: ["IndividualActor", "SocialGroup", "Institution"]
+  is_directed: false
+  is_symmetric: true
+  cardinality: "many-to-many"

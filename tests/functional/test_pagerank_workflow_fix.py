@@ -3,12 +3,11 @@
 
 import sys
 import os
-sys.path.append(os.path.abspath('.'))
 
 def test_pagerank_step_in_workflow():
     """Test PageRank step specifically without getting stuck on other errors."""
     try:
-        from src.tools.phase2.enhanced_vertical_slice_workflow import EnhancedVerticalSliceWorkflow
+        from src.core.tool_factory import create_unified_workflow_config, Phase, OptimizationLevel
         
         print("✅ Successfully imported EnhancedVerticalSliceWorkflow")
         

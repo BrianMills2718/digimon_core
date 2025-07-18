@@ -7,19 +7,20 @@ from pathlib import Path
 import argparse
 from typing import Optional
 
-# Add src to path
-src_dir = Path(__file__).parent / "src"
-sys.path.insert(0, str(src_dir))
-
-from tools.phase1.vertical_slice_workflow import VerticalSliceWorkflow
+from src.core.pipeline_orchestrator import PipelineOrchestrator
+from src.core.tool_factory import create_unified_workflow_config, Phase, OptimizationLevel
+from src.core.config_manager import ConfigManager
 from neo4j import GraphDatabase
 import json
 
 
 def check_neo4j():
-    """Check Neo4j connection."""
+    """Check Neo4j connection using ConfigManager."""
     try:
-        driver = GraphDatabase.driver("bolt://localhost:7687", auth=("neo4j", "password"))
+        config_manager = ConfigManager()
+        neo4j_config = config_manager.get_neo4j_config()
+        auth = None if neo4j_config['user'] is None else (neo4j_config['user'], neo4j_config['password'])
+        driver = GraphDatabase.driver(neo4j_config['uri'], auth=auth)
         with driver.session() as session:
             session.run("RETURN 1")
         driver.close()
@@ -40,51 +41,59 @@ def process_documents(document_paths: list, query: str, output_format: str = "te
             print(f"❌ Error: File not found: {doc_path}")
             return
     
-    # Initialize workflow
-    print("🔧 Initializing workflow...")
-    workflow = VerticalSliceWorkflow(workflow_storage_dir="./data/cli_workflows")
+    # Initialize pipeline orchestrator
+    print("🔧 Initializing PipelineOrchestrator...")
+    config_manager = ConfigManager()
+    config = create_unified_workflow_config(
+        phase=Phase.PHASE1,
+        optimization_level=OptimizationLevel.STANDARD,
+        workflow_storage_dir="./data/cli_workflows"
+    )
+    orchestrator = PipelineOrchestrator(config, config_manager)
     
     # Execute workflow
     print("⚙️  Processing (this may take 1-3 minutes)...")
-    result = workflow.execute_workflow(
+    result = orchestrator.execute(
         document_paths=document_paths,
-        queries=[query],
-        workflow_name=f"CLI_{Path(document_paths[0]).stem}"
+        queries=[query]
     )
     
-    # Display results
-    if result["status"] == "success":
+    # Display results - Handle new PipelineOrchestrator format
+    final_result = result.get("final_result", {})
+    entities = final_result.get("entities", [])
+    relationships = final_result.get("relationships", [])
+    query_results = final_result.get("query_results", [])
+    
+    if entities or relationships or query_results:
         print("\n✅ Processing complete!")
         
         # Summary
-        if "workflow_summary" in result:
-            summary = result["workflow_summary"]
-            print(f"\n📊 Summary:")
-            print(f"  • Chunks created: {summary.get('chunks_created', 0)}")
-            print(f"  • Entities extracted: {summary.get('entities_extracted', 0)}")
-            print(f"  • Relationships found: {summary.get('relationships_found', 0)}")
-            print(f"  • Graph entities: {summary.get('graph_entities', 0)}")
-            print(f"  • Graph edges: {summary.get('graph_edges', 0)}")
+        print(f"\n📊 Summary:")
+        print(f"  • Entities extracted: {len(entities)}")
+        print(f"  • Relationships found: {len(relationships)}")
+        print(f"  • Query results: {len(query_results)} result sets")
         
         # Query results
-        if "query_result" in result:
-            query_result = result["query_result"]
-            
+        if query_results:
             print(f"\n🎯 Query Results:")
-            if query_result.get("results"):
-                for i, answer in enumerate(query_result["results"][:5], 1):
-                    print(f"\n{i}. {answer.get('answer_entity', 'N/A')}")
-                    print(f"   Confidence: {answer.get('confidence', 0):.2f}")
-                    if "evidence" in answer:
-                        print(f"   Evidence: {answer['evidence'][:100]}...")
-            else:
-                print("   No direct answers found.")
-            
-            # Top entities
-            if query_result.get("top_entities"):
-                print(f"\n🏆 Top Entities by PageRank:")
-                for entity in query_result["top_entities"][:10]:
-                    print(f"  • {entity.get('name', 'N/A')} ({entity.get('type', 'UNK')}) - Score: {entity.get('pagerank_score', 0):.4f}")
+            for query_idx, query_result in enumerate(query_results):
+                print(f"\nQuery: {query_result.get('query', query)}")
+                if query_result.get("results"):
+                    for i, answer in enumerate(query_result["results"][:5], 1):
+                        print(f"\n{i}. {answer.get('answer_entity', 'N/A')}")
+                        print(f"   Confidence: {answer.get('confidence', 0):.2f}")
+                        if answer.get("explanation"):
+                            print(f"   Path: {answer['explanation']}")
+                else:
+                    print("   No direct answers found.")
+        
+        # Show sample entities if no query results
+        if not query_results and entities:
+            print(f"\n🏷️  Sample entities:")
+            for i, entity in enumerate(entities[:10], 1):
+                entity_name = entity.get('canonical_name') or entity.get('surface_form') or entity.get('name', 'Unknown')
+                entity_type = entity.get('entity_type', 'UNKNOWN')
+                print(f"  {i}. {entity_name} ({entity_type})")
         
         # Save results if requested
         if output_format == "json":
@@ -94,7 +103,10 @@ def process_documents(document_paths: list, query: str, output_format: str = "te
             print(f"\n💾 Results saved to: {output_file}")
     
     else:
-        print(f"\n❌ Processing failed: {result.get('error', 'Unknown error')}")
+        print(f"\n❌ Processing failed: No results found")
+        print(f"Debug info: {result.keys()}")
+        if result.get("error"):
+            print(f"Error: {result['error']}")
         if "traceback" in result:
             print("\nTraceback:")
             print(result["traceback"])
@@ -107,7 +119,10 @@ def show_graph_stats():
         print(f"❌ Neo4j not connected: {status}")
         return
     
-    driver = GraphDatabase.driver("bolt://localhost:7687", auth=("neo4j", "password"))
+    config_manager = ConfigManager()
+    neo4j_config = config_manager.get_neo4j_config()
+    auth = None if neo4j_config['user'] is None else (neo4j_config['user'], neo4j_config['password'])
+    driver = GraphDatabase.driver(neo4j_config['uri'], auth=auth)
     
     with driver.session() as session:
         # Count entities
@@ -179,7 +194,7 @@ def main():
         
         # Check imports
         try:
-            from tools.phase1.vertical_slice_workflow import VerticalSliceWorkflow
+            from src.core.pipeline_orchestrator import PipelineOrchestrator
             print("✅ Workflow: Available")
         except Exception as e:
             print(f"❌ Workflow: {e}")

@@ -1,0 +1,59 @@
+[
+  {
+    "backup_id": "backup_20250717_234023",
+    "backup_type": "full",
+    "timestamp": "2025-07-17T23:40:23.886606",
+    "status": "success",
+    "file_path": "backups/backup_20250717_234023.tar.gz",
+    "file_size": 187258,
+    "checksum": "6b9eba5208986918f4a8b3cbd7d550dc5f9e48b68e456738ed2545d26830f68e",
+    "description": "Demo full backup with sample data",
+    "duration_seconds": 0.0671086311340332,
+    "data_sources": [
+      "config",
+      "logs",
+      "results"
+    ],
+    "compression": true,
+    "encryption": false,
+    "error_message": null
+  },
+  {
+    "backup_id": "backup_20250717_234023",
+    "backup_type": "incremental",
+    "timestamp": "2025-07-17T23:40:23.955063",
+    "status": "success",
+    "file_path": "backups/backup_20250717_234023.tar.gz",
+    "file_size": 187344,
+    "checksum": "5510bb8aa0639f37ebcc232ac743e17eb3685a0257ec53b8ae4164c050eb673f",
+    "description": "Demo incremental backup",
+    "duration_seconds": 0.07559728622436523,
+    "data_sources": [
+      "config",
+      "logs",
+      "results"
+    ],
+    "compression": true,
+    "encryption": false,
+    "error_message": null
+  },
+  {
+    "backup_id": "backup_20250718_013211",
+    "backup_type": "full",
+    "timestamp": "2025-07-18T01:32:11.324353",
+    "status": "success",
+    "file_path": "backups/backup_20250718_013211.tar.gz",
+    "file_size": 1091,
+    "checksum": "1bd88bce916bc0c51296fbb157cdb100ab818be29774339a6f9b7f5b80dfd5c4",
+    "description": "Test full backup",
+    "duration_seconds": 0.016504287719726562,
+    "data_sources": [
+      "config",
+      "logs",
+      "results"
+    ],
+    "compression": true,
+    "encryption": false,
+    "error_message": null
+  }
+]

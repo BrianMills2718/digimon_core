@@ -1,0 +1,74 @@
+# Pre-commit hooks for Super-Digimon GraphRAG System
+# Prevents regression into bad practices identified by Gemini
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+      - id: check-case-conflict
+      - id: check-merge-conflict
+      - id: debug-statements
+
+  - repo: https://github.com/charliermarsh/ruff-pre-commit
+    rev: v0.1.8
+    hooks:
+      - id: ruff
+        args: [--fix, --exit-non-zero-on-fix]
+      - id: ruff-format
+
+  - repo: https://github.com/psf/black
+    rev: 23.12.1
+    hooks:
+      - id: black
+        language_version: python3
+
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.8.0
+    hooks:
+      - id: mypy
+        additional_dependencies: [types-all]
+        args: [--strict]
+
+  # Custom hooks to prevent regression into bad practices
+  - repo: local
+    hooks:
+      # Prevent sys.path manipulation hacks
+      - id: prevent-syspath-hacks
+        name: Prevent sys.path manipulation
+        entry: bash -c 'if grep -r "sys\.path\.insert\|sys\.path\.append" src/ ui/graphrag_ui.py ui/cli_tool.py tests/unit/ tests/integration/ tests/performance/; then echo "❌ sys.path manipulation detected - use proper imports"; exit 1; fi'
+        language: system
+        pass_filenames: false
+
+      # Prevent print statements in core files
+      - id: prevent-print-statements
+        name: Prevent print statements in core
+        entry: bash -c 'if grep -r --include="*.py" "print(" src/core/; then echo "❌ print() statements detected in core - use logging"; exit 1; fi'
+        language: system
+        pass_filenames: false
+
+      # Prevent hardcoded credentials
+      - id: prevent-hardcoded-secrets
+        name: Prevent hardcoded secrets
+        entry: bash -c 'if grep -r "password.*=.*['\''\"]\|neo4j.*password\|bolt://.*:.*@" --exclude-dir=.git --exclude="*.md" --exclude="*.yaml" .; then echo "❌ Hardcoded credentials detected"; exit 1; fi'
+        language: system
+        pass_filenames: false
+
+      # Ensure new tools implement Tool protocol
+      - id: check-tool-protocol
+        name: Check Tool protocol implementation
+        entry: bash -c 'for file in $(find src/tools/ -name "*.py" -newer src/core/tool_adapters.py 2>/dev/null || true); do if [ -f "$file" ] && grep -q "class.*Tool\|def.*Tool" "$file" && ! grep -q "def execute" "$file"; then echo "❌ New tool $file may not implement Tool protocol"; exit 1; fi; done'
+        language: system
+        pass_filenames: false
+
+  # Run tests to ensure changes don't break functionality
+  - repo: local
+    hooks:
+      - id: run-unit-tests
+        name: Run unit tests
+        entry: python -m pytest tests/unit/ -x --tb=short
+        language: system
+        pass_filenames: false
+        stages: [pre-push]

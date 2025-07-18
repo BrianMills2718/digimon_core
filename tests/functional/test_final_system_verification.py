@@ -11,7 +11,6 @@ import traceback
 from pathlib import Path
 
 # Add src to path
-sys.path.insert(0, str(Path(__file__).parent / "src"))
 
 def verify_phase2_integration():
     """Verify Phase 2 integration is completely fixed."""
@@ -62,7 +61,7 @@ def verify_phase3_integration():
     
     try:
         # Test 1: Basic workflow implementation
-        from src.tools.phase3.basic_multi_document_workflow import BasicMultiDocumentWorkflow
+        # Phase 3 now uses PipelineOrchestrator with Phase.PHASE3
         workflow = BasicMultiDocumentWorkflow()
         
         capabilities = workflow.get_capabilities()
@@ -79,7 +78,6 @@ def verify_phase3_integration():
         
         # Test 3: UI integration
         ui_path = Path(__file__).parent / "ui"
-        sys.path.insert(0, str(ui_path))
         from graphrag_ui import process_with_phase3
         
         print("  ✅ UI process_with_phase3 function uses Phase3Adapter")

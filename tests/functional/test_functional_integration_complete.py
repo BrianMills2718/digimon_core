@@ -12,7 +12,6 @@ This test suite implements the CLAUDE.md requirement for functional integration 
 NO FEATURE IS CONSIDERED "WORKING" WITHOUT THESE TESTS PASSING.
 """
 
-import sys
 import os
 import time
 import tempfile
@@ -28,7 +27,6 @@ import psutil
 
 # Add project root to path
 project_root = Path(__file__).parent
-sys.path.insert(0, str(project_root))
 
 @dataclass
 class FunctionalTestResult:
@@ -592,13 +590,14 @@ class ComprehensiveFunctionalTester:
             # Test data flow: PDF → Phase 1 → Graph → Visualization → Query
             
             # 1. Test Phase 1 → Neo4j integration
-            from src.tools.phase1.vertical_slice_workflow import VerticalSliceWorkflow
+            from src.core.pipeline_orchestrator import PipelineOrchestrator
             from src.core.identity_service import IdentityService
             from src.core.provenance_service import ProvenanceService
             from src.core.quality_service import QualityService
             
             # Create workflow (services are handled internally)
-            workflow = VerticalSliceWorkflow()
+            workflow_config = create_unified_workflow_config(phase=Phase.PHASE1, optimization_level=OptimizationLevel.STANDARD)
+workflow = PipelineOrchestrator(workflow_config)
             
             # Create test document as text file (PDF processing in tests handles text files)
             with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False) as f:

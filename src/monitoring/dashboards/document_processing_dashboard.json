@@ -1,0 +1,182 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "KGAS Document Processing",
+    "tags": [
+      "kgas",
+      "documents",
+      "processing"
+    ],
+    "timezone": "browser",
+    "refresh": "5s",
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "panels": [
+      {
+        "id": 1,
+        "title": "Document Processing Rate",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "sum(rate(kgas_documents_processed_total[5m])) by (phase)",
+            "legendFormat": "{{phase}}",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "unit": "reqps"
+          }
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 0
+        }
+      },
+      {
+        "id": 2,
+        "title": "Processing Duration",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, sum(rate(kgas_document_processing_duration_seconds_bucket[5m])) by (le, phase))",
+            "legendFormat": "{{phase}} 95th percentile",
+            "refId": "A"
+          },
+          {
+            "expr": "histogram_quantile(0.50, sum(rate(kgas_document_processing_duration_seconds_bucket[5m])) by (le, phase))",
+            "legendFormat": "{{phase}} 50th percentile",
+            "refId": "B"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "unit": "s"
+          }
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 0
+        }
+      },
+      {
+        "id": 3,
+        "title": "Entities Extracted",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "sum(rate(kgas_entities_extracted_total[5m])) by (entity_type)",
+            "legendFormat": "{{entity_type}}",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "unit": "reqps"
+          }
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 8
+        }
+      },
+      {
+        "id": 4,
+        "title": "Relationships Extracted",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "sum(rate(kgas_relationships_extracted_total[5m])) by (relationship_type)",
+            "legendFormat": "{{relationship_type}}",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "unit": "reqps"
+          }
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 8
+        }
+      },
+      {
+        "id": 5,
+        "title": "Processing by Document Type",
+        "type": "piechart",
+        "targets": [
+          {
+            "expr": "sum(kgas_documents_processed_total) by (document_type)",
+            "legendFormat": "{{document_type}}",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 8,
+          "x": 0,
+          "y": 16
+        }
+      },
+      {
+        "id": 6,
+        "title": "Processing by Component",
+        "type": "piechart",
+        "targets": [
+          {
+            "expr": "sum(kgas_documents_processed_total) by (component)",
+            "legendFormat": "{{component}}",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 8,
+          "x": 8,
+          "y": 16
+        }
+      },
+      {
+        "id": 7,
+        "title": "Processing by Phase",
+        "type": "piechart",
+        "targets": [
+          {
+            "expr": "sum(kgas_documents_processed_total) by (phase)",
+            "legendFormat": "{{phase}}",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 8,
+          "x": 16,
+          "y": 16
+        }
+      }
+    ]
+  }
+}

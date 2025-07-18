@@ -1,3 +1,7 @@
+"""
+Phase 1 tools load theory YAML and map MCL IDs before extraction.
+"""
+
 """Phase 1 Tools - Vertical Slice Implementation
 
 Implements the critical path for PDF → PageRank → Answer workflow:

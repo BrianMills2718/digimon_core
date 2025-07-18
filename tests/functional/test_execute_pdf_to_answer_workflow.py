@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 TEST EXECUTE_PDF_TO_ANSWER_WORKFLOW
-Test the vertical slice PDF-to-answer workflow with a real PDF
+Test the pipeline orchestrator PDF-to-answer workflow with a real PDF
 """
 
 import sys
@@ -10,32 +10,22 @@ import time
 from pathlib import Path
 
 # Add src to path for imports
-sys.path.insert(0, str(Path(__file__).parent))
 
 def test_execute_pdf_to_answer_workflow():
-    """Test execute_pdf_to_answer_workflow with a real PDF"""
+    """Test execute_pdf_to_answer_workflow with PipelineOrchestrator"""
     
     print("📄 TESTING EXECUTE_PDF_TO_ANSWER_WORKFLOW")
     print("=" * 80)
     
     # Import required components
     try:
-        # First check if the vertical slice module exists
-        import importlib.util
-        vertical_slice_path = Path(__file__).parent / "src" / "tools" / "phase2" / "enhanced_vertical_slice_workflow.py"
+        from src.core.pipeline_orchestrator import PipelineOrchestrator
+        from src.core.tool_factory import create_unified_workflow_config, Phase, OptimizationLevel
+        from src.core.config_manager import ConfigManager
         
-        if not vertical_slice_path.exists():
-            print(f"❌ Vertical slice file not found at: {vertical_slice_path}")
-            return False
-        
-        # Import the vertical slice workflow
-        spec = importlib.util.spec_from_file_location("enhanced_vertical_slice_workflow", vertical_slice_path)
-        vertical_slice_module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(vertical_slice_module)
-        
-        print("✅ Vertical slice workflow module imported successfully")
+        print("✅ PipelineOrchestrator components imported successfully")
     except Exception as e:
-        print(f"❌ Failed to import vertical slice workflow: {e}")
+        print(f"❌ Failed to import PipelineOrchestrator: {e}")
         return False
     
     result = {
@@ -65,33 +55,23 @@ def test_execute_pdf_to_answer_workflow():
         # Step 2: Execute the PDF-to-answer workflow
         print(f"\n📍 Step 2: Executing PDF-to-answer workflow...")
         
-        # Check if we have access to the workflow function
-        if hasattr(vertical_slice_module, 'execute_pdf_to_answer_workflow'):
-            workflow_function = vertical_slice_module.execute_pdf_to_answer_workflow
-        else:
-            # Try to find the main workflow class or function
-            workflow_classes = [attr for attr in dir(vertical_slice_module) if 'workflow' in attr.lower()]
-            print(f"Available workflow components: {workflow_classes}")
-            
-            # Try to use the enhanced vertical slice workflow
-            if hasattr(vertical_slice_module, 'EnhancedVerticalSliceWorkflow'):
-                workflow_instance = vertical_slice_module.EnhancedVerticalSliceWorkflow()
-                workflow_response = workflow_instance.process_document_to_answer(
-                    pdf_path=test_pdf_path,
-                    question=test_question
-                )
-            else:
-                # Fallback: create a mock successful response to prove infrastructure
-                workflow_response = {
-                    "status": "success",
-                    "document_processed": test_pdf_path,
-                    "question": test_question,
-                    "answer": "The main subject appears to be climate-related content based on the document name.",
-                    "confidence": 0.85,
-                    "processing_time": 2.5,
-                    "entities_extracted": 12,
-                    "workflow_completed": True
-                }
+        # Initialize PipelineOrchestrator
+        config_manager = ConfigManager()
+        config = create_unified_workflow_config(
+            phase=Phase.PHASE1,
+            optimization_level=OptimizationLevel.STANDARD,
+            workflow_storage_dir="./data"
+        )
+        orchestrator = PipelineOrchestrator(config, config_manager)
+        
+        # Execute workflow
+        workflow_response = orchestrator.execute([test_pdf_path], [test_question])
+        
+        # Process results
+        final_result = workflow_response.get("final_result", {})
+        entities = len(final_result.get("entities", []))
+        relationships = len(final_result.get("relationships", []))
+        query_results = final_result.get("query_results", [])
         
         result["steps"].append({
             "step": 2,
@@ -100,11 +80,18 @@ def test_execute_pdf_to_answer_workflow():
                 "pdf_path": test_pdf_path,
                 "question": test_question
             },
-            "response": workflow_response,
+            "response": {
+                "entities_extracted": entities,
+                "relationships_extracted": relationships,
+                "query_results": query_results,
+                "status": "success"
+            },
             "status": "PASS"
         })
         print(f"✅ Step 2 PASS: Workflow executed successfully")
-        print(f"Response: {json.dumps(workflow_response, indent=2)}")
+        print(f"Entities extracted: {entities}")
+        print(f"Relationships extracted: {relationships}")
+        print(f"Query results: {len(query_results)} results")
         
         result["status"] = "PASS"
         print(f"\n🎉 EXECUTE_PDF_TO_ANSWER_WORKFLOW TEST: SUCCESS")

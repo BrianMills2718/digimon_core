@@ -40,14 +40,22 @@ class EntityBuilder(BaseNeo4jTool):
     
     def __init__(
         self,
-        identity_service: IdentityService,
-        provenance_service: ProvenanceService,
-        quality_service: QualityService,
-        neo4j_uri: str = "bolt://localhost:7687",
-        neo4j_user: str = "neo4j",
-        neo4j_password: str = "password",
+        identity_service: Optional[IdentityService] = None,
+        provenance_service: Optional[ProvenanceService] = None,
+        quality_service: Optional[QualityService] = None,
+        neo4j_uri: str = None,
+        neo4j_user: str = None,
+        neo4j_password: str = None,
         shared_driver: Optional[Driver] = None
     ):
+        # Allow tools to work standalone for testing
+        if identity_service is None:
+            from src.core.service_manager import ServiceManager
+            service_manager = ServiceManager()
+            identity_service = service_manager.get_identity_service()
+            provenance_service = service_manager.get_provenance_service()
+            quality_service = service_manager.get_quality_service()
+        
         super().__init__(
             identity_service, provenance_service, quality_service,
             neo4j_uri, neo4j_user, neo4j_password, shared_driver
@@ -100,6 +108,7 @@ class EntityBuilder(BaseNeo4jTool):
             # Build entity nodes
             created_entities = []
             entity_refs = []
+            entity_id_mapping = {}  # Track mapping from mention IDs to final entity IDs
             
             for entity_id, mention_group in entity_groups.items():
                 # Get entity info from identity service
@@ -126,6 +135,12 @@ class EntityBuilder(BaseNeo4jTool):
                         
                         created_entities.append(entity_data)
                         entity_refs.append(entity_data["entity_ref"])
+                        
+                        # Store mapping from all mention IDs to final entity ID
+                        for mention in mention_group:
+                            old_mention_id = mention.get("mention_id") or mention.get("id")
+                            if old_mention_id:
+                                entity_id_mapping[old_mention_id] = entity_id
                         
                         # Assess entity quality
                         quality_result = self.quality_service.assess_confidence(
@@ -164,6 +179,7 @@ class EntityBuilder(BaseNeo4jTool):
                 "entities": created_entities,
                 "total_entities": len(created_entities),
                 "entity_types": self._count_entity_types(created_entities),
+                "entity_id_mapping": entity_id_mapping,  # NEW: Provide ID mapping for relationship fixing
                 "operation_id": operation_id,
                 "provenance": completion_result
             }
@@ -216,7 +232,7 @@ class EntityBuilder(BaseNeo4jTool):
         entity_info: Dict[str, Any], 
         mentions: List[Dict[str, Any]]
     ) -> Dict[str, Any]:
-        """Create entity node in Neo4j."""
+        """Create entity node in Neo4j with proper schema compliance."""
         # Check Neo4j availability
         driver_error = Neo4jErrorHandler.check_driver_available(self.driver)
         if driver_error:
@@ -224,36 +240,35 @@ class EntityBuilder(BaseNeo4jTool):
         
         try:
             with self.driver.session() as session:
-                # Prepare entity properties
+                # Prepare entity properties with UI-expected schema
                 properties = {
-                    "entity_id": entity_info["entity_id"],
-                    "canonical_name": entity_info["canonical_name"],
+                    # UI expects these specific property names
+                    "entity_id": entity_info["entity_id"],  # Required by UI
+                    "canonical_name": entity_info["canonical_name"],  # Required by UI
+                    "entity_type": entity_info.get("entity_type", "UNKNOWN"),  # Required by UI
+                    "surface_forms": list(set(m.get("surface_form", m.get("text", "")) for m in mentions)),
                     "confidence": entity_info["confidence"],
+                    "pagerank_score": 0.0,  # Initialize for PageRank (required by UI)
                     "mention_count": len(mentions),
                     "created_at": datetime.now().isoformat(),
                     "tool_version": "T31_v1.0"
                 }
                 
-                # Add entity type if available
-                if entity_info.get("entity_type"):
-                    properties["entity_type"] = entity_info["entity_type"]
-                
-                # Add mention surface forms
-                surface_forms = list(set(m["surface_form"] for m in mentions))
-                properties["surface_forms"] = surface_forms
-                
-                # Create Cypher query
-                label = "Entity"
-                if entity_info.get("entity_type"):
-                    # Add specific type label
-                    label = f"Entity:{entity_info['entity_type']}"
-                
-                cypher = f"""
-                CREATE (e:{label} $properties)
+                # Create Cypher query with proper constraint handling
+                cypher = """
+                MERGE (e:Entity {entity_id: $entity_id})
+                SET e.canonical_name = $canonical_name,
+                    e.entity_type = $entity_type,
+                    e.surface_forms = $surface_forms,
+                    e.confidence = $confidence,
+                    e.pagerank_score = $pagerank_score,
+                    e.mention_count = $mention_count,
+                    e.created_at = $created_at,
+                    e.tool_version = $tool_version
                 RETURN elementId(e) as neo4j_id, e
                 """
                 
-                result = session.run(cypher, properties=properties)
+                result = session.run(cypher, **properties)
                 record = result.single()
                 
                 if record:
@@ -452,6 +467,83 @@ class EntityBuilder(BaseNeo4jTool):
             return Neo4jErrorHandler.create_operation_error("get_neo4j_stats", e)
     
     
+    def create_entity_with_schema(self, entity_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Create entity with proper schema compliance - simplified interface for workflow."""
+        # Check Neo4j availability
+        driver_error = Neo4jErrorHandler.check_driver_available(self.driver)
+        if driver_error:
+            return driver_error
+        
+        try:
+            with self.driver.session() as session:
+                # Prepare entity properties with UI-expected schema
+                properties = {
+                    # UI expects these specific property names
+                    "entity_id": entity_data.get('id', f"entity_{uuid.uuid4()}"),  # Required by UI
+                    "canonical_name": entity_data.get('name', 'Unknown'),  # Required by UI
+                    "entity_type": entity_data.get('type', 'UNKNOWN'),  # Required by UI
+                    "surface_forms": entity_data.get('surface_forms', [entity_data.get('name', 'Unknown')]),
+                    "confidence": entity_data.get('confidence', 0.0),
+                    "pagerank_score": 0.0,  # Initialize for PageRank (required by UI)
+                    "created_at": datetime.now().isoformat()
+                }
+                
+                # Create Cypher query with proper constraint handling
+                cypher = """
+                MERGE (e:Entity {entity_id: $entity_id})
+                SET e.canonical_name = $canonical_name,
+                    e.entity_type = $entity_type,
+                    e.surface_forms = $surface_forms,
+                    e.confidence = $confidence,
+                    e.pagerank_score = $pagerank_score,
+                    e.created_at = $created_at
+                RETURN elementId(e) as neo4j_id, e
+                """
+                
+                result = session.run(cypher, **properties)
+                record = result.single()
+                
+                if record:
+                    return {
+                        "status": "success",
+                        "neo4j_id": record["neo4j_id"],
+                        "properties": dict(record["e"])
+                    }
+                else:
+                    return {
+                        "status": "error",
+                        "error": "Failed to create Neo4j node"
+                    }
+                    
+        except Exception as e:
+            return Neo4jErrorHandler.create_operation_error("create_entity_with_schema", e)
+    
+    def execute(self, input_data: Any, context: Optional[Dict] = None) -> Dict[str, Any]:
+        """Execute the entity builder tool - standardized interface required by tool factory"""
+        if isinstance(input_data, dict):
+            # Extract required parameters
+            mention_refs = input_data.get("mention_refs", [])
+            mentions = input_data.get("mentions", [])
+            workflow_id = input_data.get("workflow_id", "default")
+        elif isinstance(input_data, list):
+            # Input is list of mentions
+            mentions = input_data
+            mention_refs = []
+            workflow_id = "default"
+        else:
+            return {
+                "status": "error",
+                "error": "Input must be list of mentions or dict with 'mentions' key"
+            }
+            
+        if not mentions:
+            return {
+                "status": "error",
+                "error": "No mentions provided for entity building"
+            }
+            
+        return self.build_entities(mention_refs, mentions, workflow_id)
+
     def get_tool_info(self) -> Dict[str, Any]:
         """Get tool information."""
         return {

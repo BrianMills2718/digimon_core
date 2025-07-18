@@ -11,7 +11,6 @@ import traceback
 from pathlib import Path
 
 # Add src to path for imports
-sys.path.insert(0, str(Path(__file__).parent))
 
 def test_all_29_mcp_tools():
     """Test all 29 MCP tools by direct function calls"""

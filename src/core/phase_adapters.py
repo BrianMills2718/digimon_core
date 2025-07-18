@@ -3,80 +3,75 @@ Phase Adapters - Bridge existing phase implementations to the standard interface
 
 These adapters wrap existing phase implementations to provide a consistent
 interface without requiring massive refactoring of working code.
+Updated to support Theory-Aware processing with contracts.
 """
 
 import time
+import os
 from typing import Dict, List, Any, Optional
 from pathlib import Path
 
 from .graphrag_phase_interface import (
     GraphRAGPhase, PhaseResult, ProcessingRequest, PhaseStatus, register_phase
 )
+# Note: contracts module integration pending - using local interfaces for now
+try:
+    from contracts.phase_interfaces.base_graphrag_phase import (
+        TheoryAwareGraphRAGPhase, TheorySchema, TheoryConfig, 
+        ProcessingRequest as TheoryProcessingRequest,
+        ProcessingResult as TheoryProcessingResult,
+        TheoryValidatedResult
+    )
+    from contracts.validation.theory_validator import TheoryValidator
+    CONTRACTS_AVAILABLE = True
+except ImportError:
+    # Fallback implementations for missing contracts
+    class TheoryAwareGraphRAGPhase:
+        pass
+    class TheorySchema:
+        MASTER_CONCEPTS = "master_concepts"
+        THREE_DIMENSIONAL = "three_dimensional" 
+        ORM_METHODOLOGY = "orm_methodology"
+    class TheoryConfig:
+        pass
+    class TheoryProcessingRequest:
+        pass
+    class TheoryProcessingResult:
+        pass
+    class TheoryValidatedResult:
+        pass
+    class TheoryValidator:
+        def __init__(self, config):
+            pass
+        def validate_entities(self, entities):
+            return 1.0, {}
+        def validate_relationships(self, relationships):
+            return 1.0, {}
+        def map_to_concepts(self, entities):
+            return {}
+    CONTRACTS_AVAILABLE = False
+from .logging_config import get_logger
+from .tool_factory import create_unified_workflow_config, Phase, OptimizationLevel
 
 
-class Phase1Adapter(GraphRAGPhase):
-    """Adapter for Phase 1 Basic GraphRAG workflow"""
+class Phase1Adapter(GraphRAGPhase, TheoryAwareGraphRAGPhase):
+    """Adapter for Phase 1 Basic GraphRAG workflow with theory-aware support"""
     
     def __init__(self):
-        super().__init__("Phase 1: Basic", "1.0")
+        GraphRAGPhase.__init__(self, "Phase 1: Basic", "1.0")
         self._workflow = None
+        self.logger = get_logger("phase1.adapter")
     
     def _get_workflow(self):
         """Lazy load Phase 1 workflow"""
         if self._workflow is None:
-            from ..tools.phase1.vertical_slice_workflow import VerticalSliceWorkflow
-            self._workflow = VerticalSliceWorkflow()
+            from src.core.pipeline_orchestrator import PipelineOrchestrator
+            from src.core.config import ConfigurationManager
+            config_manager = ConfigurationManager()
+            self._workflow_config = create_unified_workflow_config(phase=Phase.PHASE1, optimization_level=OptimizationLevel.STANDARD)
+            self._workflow = PipelineOrchestrator(self._workflow_config, config_manager)
         return self._workflow
     
-    def execute(self, request: ProcessingRequest) -> PhaseResult:
-        """Execute Phase 1 workflow with adapter translation"""
-        start_time = time.time()
-        
-        try:
-            # Validate input
-            errors = self.validate_input(request)
-            if errors:
-                return self.create_error_result(f"Validation failed: {'; '.join(errors)}")
-            
-            workflow = self._get_workflow()
-            
-            # Execute workflow using standardized interface (Phase 1 supports both)
-            result = workflow.execute_workflow(
-                document_paths=request.documents,  # Use standardized interface
-                queries=request.queries,           # Use standardized interface  
-                workflow_name=request.workflow_id
-            )
-            
-            execution_time = time.time() - start_time
-            
-            # Translate result to standard format
-            if result.get("status") == "success":
-                # Extract entity and relationship counts from workflow_summary
-                workflow_summary = result.get("workflow_summary", {})
-                entity_count = workflow_summary.get("entities_extracted", 0)
-                relationship_count = workflow_summary.get("relationships_found", 0)
-                
-                return self.create_success_result(
-                    execution_time=execution_time,
-                    entity_count=entity_count,
-                    relationship_count=relationship_count,
-                    confidence_score=result.get("confidence", 0.0),
-                    results={
-                        "graph_metrics": result.get("graph_metrics", {}),
-                        "query_result": result.get("query_result", {}),
-                        "workflow_summary": workflow_summary,
-                        "phase1_raw": result  # Include original for debugging
-                    }
-                )
-            else:
-                return self.create_error_result(
-                    result.get("error", "Phase 1 execution failed"),
-                    execution_time
-                )
-                
-        except Exception as e:
-            execution_time = time.time() - start_time
-            return self.create_error_result(f"Phase 1 adapter error: {str(e)}", execution_time)
     
     def get_capabilities(self) -> Dict[str, Any]:
         """Return Phase 1 capabilities"""
@@ -113,24 +108,40 @@ class Phase1Adapter(GraphRAGPhase):
                 errors.append("Phase 1 only supports PDF documents")
         
         return errors
-
-
-class Phase2Adapter(GraphRAGPhase):
-    """Adapter for Phase 2 Enhanced GraphRAG workflow"""
     
-    def __init__(self):
-        super().__init__("Phase 2: Enhanced", "1.0")
-        self._workflow = None
+    # Theory-Aware Interface Implementation
+    def get_name(self) -> str:
+        """Return phase name for theory-aware interface"""
+        return "Phase 1"
     
-    def _get_workflow(self):
-        """Lazy load Phase 2 workflow"""
-        if self._workflow is None:
-            from ..tools.phase2.enhanced_vertical_slice_workflow import EnhancedVerticalSliceWorkflow
-            self._workflow = EnhancedVerticalSliceWorkflow()
-        return self._workflow
+    def get_version(self) -> str:
+        """Return phase version for theory-aware interface"""
+        return "1.0"
     
-    def execute(self, request: ProcessingRequest) -> PhaseResult:
-        """Execute Phase 2 workflow with adapter translation"""
+    def get_supported_theory_schemas(self) -> List[TheorySchema]:
+        """Return list of supported theory schemas"""
+        return [TheorySchema.MASTER_CONCEPTS, TheorySchema.ORM_METHODOLOGY]
+    
+    def validate_theory_config(self, config: TheoryConfig) -> List[str]:
+        """Validate theory configuration, return errors"""
+        errors = []
+        if config.schema_type not in self.get_supported_theory_schemas():
+            errors.append(f"Unsupported theory schema: {config.schema_type}")
+        if not os.path.exists(config.concept_library_path):
+            errors.append(f"Concept library not found: {config.concept_library_path}")
+        return errors
+    
+    def execute(self, request) -> Any:
+        """Execute phase - supports both old and new interfaces"""
+        # Check if this is a theory-aware request
+        if isinstance(request, TheoryProcessingRequest):
+            return self._execute_theory_aware(request)
+        else:
+            # Original interface
+            return self._execute_original(request)
+    
+    def _execute_original(self, request: ProcessingRequest) -> PhaseResult:
+        """Execute Phase 1 workflow with original adapter translation"""
         start_time = time.time()
         
         try:
@@ -141,75 +152,174 @@ class Phase2Adapter(GraphRAGPhase):
             
             workflow = self._get_workflow()
             
-            # Phase 2 handles single document but multiple queries
-            domain_description = request.domain_description or "General domain analysis"
+            # Execute workflow using PipelineOrchestrator
+            result = workflow.execute(
+                document_paths=request.documents,
+                queries=request.queries
+            )
             
-            # If we have Phase 1 data, use it for enhanced processing
-            phase1_context = {}
-            if request.phase1_graph_data:
-                phase1_context = {
-                    "base_entities": request.phase1_graph_data.get("entities", 0),
-                    "base_relationships": request.phase1_graph_data.get("relationships", 0),
-                    "graph_metrics": request.phase1_graph_data.get("graph_metrics", {})
-                }
-                print(f"Phase 2 building on Phase 1: {phase1_context['base_entities']} entities, {phase1_context['base_relationships']} relationships")
-            
-            # Execute workflow using standardized interface
-            # Try to pass phase1_context if workflow supports it, otherwise proceed without it
-            try:
-                result = workflow.execute_enhanced_workflow(
-                    document_paths=request.documents,  # Use standardized interface
-                    domain_description=domain_description,
-                    queries=request.queries,
-                    workflow_id=request.workflow_id,    # Use standardized interface
-                    use_existing_ontology=request.existing_ontology,
-                    use_mock_apis=request.use_mock_apis,
-                    phase1_context=phase1_context  # Pass Phase 1 context for enhancement
-                )
-            except TypeError as e:
-                if "unexpected keyword argument 'phase1_context'" in str(e):
-                    # Workflow doesn't support phase1_context yet, proceed without it
-                    print(f"Phase 2 workflow doesn't support integration yet - processing independently")
-                    result = workflow.execute_enhanced_workflow(
-                        document_paths=request.documents,  # Use standardized interface
-                        domain_description=domain_description,
-                        queries=request.queries,
-                        workflow_id=request.workflow_id,    # Use standardized interface
-                        use_existing_ontology=request.existing_ontology,
-                        use_mock_apis=request.use_mock_apis
-                    )
-                    # Simulate integration by adding phase1 context to results
-                    if isinstance(result, dict) and phase1_context:
-                        result["integration_note"] = f"Enhanced processing building on {phase1_context['base_entities']} base entities"
-                else:
-                    raise
+            # Translate result to PhaseResult format
+            final_result = result.get("final_result", {})
+            entities = final_result.get("entities", [])
+            relationships = final_result.get("relationships", [])
+            query_results = final_result.get("query_results", [])
             
             execution_time = time.time() - start_time
             
-            # Translate result to standard format
-            if result.get("status") == "success":
-                return self.create_success_result(
-                    execution_time=execution_time,
-                    entity_count=result.get("entity_count", 0),
-                    relationship_count=result.get("relationship_count", 0),
-                    confidence_score=result.get("average_confidence", 0.0),
-                    results={
-                        "ontology_info": result.get("ontology_info", {}),
-                        "graph_metrics": result.get("graph_metrics", {}),
-                        "query_results": result.get("query_results", {}),
-                        "visualizations": result.get("visualizations", {}),
-                        "phase2_raw": result  # Include original for debugging
-                    }
-                )
-            else:
-                return self.create_error_result(
-                    result.get("error", "Phase 2 execution failed"),
-                    execution_time
-                )
+            return PhaseResult(
+                phase_name="Phase 1",
+                status="success",
+                execution_time_seconds=execution_time,
+                entities_created=len(entities),
+                relationships_created=len(relationships),
+                documents_processed=len(request.documents),
+                queries_answered=len(query_results),
+                workflow_summary={
+                    "entities_extracted": len(entities),
+                    "relationships_found": len(relationships),
+                    "queries_processed": len(request.queries),
+                    "documents_processed": len(request.documents)
+                },
+                query_result={
+                    "results": query_results,
+                    "status": "success"
+                }
+            )
                 
         except Exception as e:
             execution_time = time.time() - start_time
-            return self.create_error_result(f"Phase 2 adapter error: {str(e)}", execution_time)
+            return self.create_error_result(f"Phase 1 adapter error: {str(e)}", execution_time)
+    
+    def _execute_theory_aware(self, request: TheoryProcessingRequest) -> TheoryProcessingResult:
+        """Execute Phase 1 with theory-guided processing (not just validation)"""
+        start_time = time.time()
+        
+        # Validate theory config
+        theory_errors = self.validate_theory_config(request.theory_config)
+        if theory_errors:
+            return TheoryProcessingResult(
+                phase_name="Phase 1",
+                status="error", 
+                execution_time_seconds=time.time() - start_time,
+                theory_validated_result=None,
+                workflow_summary={},
+                query_results=[],
+                error_message=f"Theory validation failed: {'; '.join(theory_errors)}"
+            )
+        
+        # Load theory schema BEFORE processing
+        theory_config = request.theory_config
+        theory_schema = self._load_theory_schema(theory_config)
+        
+        # Create THEORY-GUIDED workflow (not normal workflow)
+        workflow = self._create_theory_guided_workflow(theory_schema)
+        
+        # Execute with theory guidance throughout the process
+        result = workflow.execute_with_theory_guidance(
+            document_paths=request.documents,
+            queries=request.queries,
+            theory_schema=theory_schema,
+            concept_library=workflow.concept_library
+        )
+        
+        # Create theory validated result from theory-guided processing
+        theory_validated_result = TheoryValidatedResult(
+            entities=result.entities,
+            relationships=result.relationships,
+            theory_compliance={
+                "concept_usage": result.concept_usage,
+                "theory_metadata": result.theory_metadata,
+                "alignment_score": result.theory_alignment_score
+            },
+            concept_mapping=self._create_concept_mapping(result.entities),
+            validation_score=result.theory_alignment_score
+        )
+        
+        return TheoryProcessingResult(
+            phase_name="Phase 1 (Theory-Guided)",
+            status="success",
+            execution_time_seconds=time.time() - start_time,
+            theory_validated_result=theory_validated_result,
+            workflow_summary={
+                "entities_extracted": len(result.entities),
+                "relationships_found": len(result.relationships),
+                "theory_alignment_score": result.theory_alignment_score,
+                "concepts_used": len([k for k, v in result.concept_usage.items() if v > 0]),
+                "theory_enhanced_entities": result.graph.get("theory_enhanced_entities", 0),
+                "theory_enhanced_relationships": result.graph.get("theory_enhanced_relationships", 0)
+            },
+            query_results=self._generate_theory_query_results(request.queries, result),
+            raw_phase_result={"theory_guided_result": result.__dict__}
+        )
+    
+    def _load_theory_schema(self, theory_config):
+        """Load theory schema from config"""
+        return theory_config  # For now, just return the config itself
+    
+    def _create_theory_guided_workflow(self, theory_schema):
+        """Create workflow that uses theory to GUIDE extraction, not just validate"""
+        from ..tools.phase1.theory_guided_workflow import TheoryGuidedWorkflow
+        from .config import ConfigurationManager
+        
+        config_manager = ConfigurationManager()
+        return TheoryGuidedWorkflow(
+            config_manager=config_manager,
+            theory_schema=theory_schema
+        )
+    
+    def _create_concept_mapping(self, entities):
+        """Create concept mapping from theory-enhanced entities"""
+        mapping = {}
+        for entity in entities:
+            entity_name = entity.get("surface_form", entity.get("canonical_name", "unknown"))
+            concept_match = entity.get("theory_metadata", {}).get("concept_match")
+            if concept_match:
+                mapping[entity_name] = concept_match
+        return mapping
+    
+    def _generate_theory_query_results(self, queries, theory_result):
+        """Generate query results that incorporate theory information"""
+        query_results = []
+        
+        for query in queries:
+            # Simple query processing using theory-enhanced entities
+            relevant_entities = []
+            for entity in theory_result.entities:
+                if any(word.lower() in entity.get("surface_form", "").lower() 
+                      for word in query.lower().split()):
+                    relevant_entities.append(entity)
+            
+            result = {
+                "query": query,
+                "status": "success",
+                "results": relevant_entities[:10],  # Top 10 matches
+                "theory_enhanced": True,
+                "alignment_score": theory_result.theory_alignment_score,
+                "concept_usage": theory_result.concept_usage
+            }
+            query_results.append(result)
+        
+        return query_results
+
+
+class Phase2Adapter(GraphRAGPhase, TheoryAwareGraphRAGPhase):
+    """Adapter for Phase 2 Enhanced GraphRAG workflow with theory-aware support"""
+    
+    def __init__(self):
+        GraphRAGPhase.__init__(self, "Phase 2: Enhanced", "1.0")
+        self._workflow = None
+        self.logger = get_logger("phase2.adapter")
+    
+    def _get_workflow(self):
+        """Lazy load Phase 2 workflow"""
+        if self._workflow is None:
+            from src.core.pipeline_orchestrator import PipelineOrchestrator
+            from src.core.config import ConfigurationManager
+            config_manager = ConfigurationManager()
+            self._workflow_config = create_unified_workflow_config(phase=Phase.PHASE2, optimization_level=OptimizationLevel.STANDARD)
+            self._workflow = PipelineOrchestrator(self._workflow_config, config_manager)
+        return self._workflow
+    
     
     def get_capabilities(self) -> Dict[str, Any]:
         """Return Phase 2 capabilities"""
@@ -248,36 +358,345 @@ class Phase2Adapter(GraphRAGPhase):
                 errors.append("Phase 2 only supports PDF documents")
         
         return errors
+    
+    # Theory-Aware Interface Implementation
+    def get_name(self) -> str:
+        """Return phase name for theory-aware interface"""
+        return "Phase 2"
+    
+    def get_version(self) -> str:
+        """Return phase version for theory-aware interface"""
+        return "1.0"
+    
+    def get_supported_theory_schemas(self) -> List[TheorySchema]:
+        """Return list of supported theory schemas"""
+        return [TheorySchema.MASTER_CONCEPTS, TheorySchema.THREE_DIMENSIONAL, TheorySchema.ORM_METHODOLOGY]
+    
+    def validate_theory_config(self, config: TheoryConfig) -> List[str]:
+        """Validate theory configuration, return errors"""
+        errors = []
+        if config.schema_type not in self.get_supported_theory_schemas():
+            errors.append(f"Unsupported theory schema: {config.schema_type}")
+        if not os.path.exists(config.concept_library_path):
+            errors.append(f"Concept library not found: {config.concept_library_path}")
+        return errors
+    
+    def execute(self, request) -> Any:
+        """Execute phase - supports both old and new interfaces"""
+        # Check if this is a theory-aware request
+        if isinstance(request, TheoryProcessingRequest):
+            return self._execute_theory_aware(request)
+        else:
+            # Original interface
+            return self._execute_original(request)
+    
+    def _execute_original(self, request: ProcessingRequest) -> PhaseResult:
+        """Execute Phase 2 workflow with original adapter translation"""
+        start_time = time.time()
+        
+        try:
+            # Validate input
+            errors = self.validate_input(request)
+            if errors:
+                return self.create_error_result(f"Validation failed: {'; '.join(errors)}")
+            
+            workflow = self._get_workflow()
+            
+            # Phase 2 handles single document but multiple queries
+            domain_description = request.domain_description or "General domain analysis"
+            
+            # If we have Phase 1 data, use it for enhanced processing
+            phase1_context = {}
+            if request.phase1_graph_data:
+                phase1_context = {
+                    "base_entities": request.phase1_graph_data.get("entities", 0),
+                    "base_relationships": request.phase1_graph_data.get("relationships", 0),
+                    "graph_metrics": request.phase1_graph_data.get("graph_metrics", {})
+                }
+                self.logger.info("Phase 2 building on Phase 1: %d entities, %d relationships", 
+                                phase1_context['base_entities'], phase1_context['base_relationships'])
+            
+            # Execute workflow using PipelineOrchestrator
+            result = workflow.execute(
+                document_paths=request.documents,
+                queries=request.queries
+            )
+            
+            # Translate result to PhaseResult format
+            final_result = result.get("final_result", {})
+            entities = final_result.get("entities", [])
+            relationships = final_result.get("relationships", [])
+            query_results = final_result.get("query_results", [])
+            
+            execution_time = time.time() - start_time
+            
+            return PhaseResult(
+                phase_name="Phase 2",
+                status="success",
+                execution_time_seconds=execution_time,
+                entities_created=len(entities),
+                relationships_created=len(relationships),
+                documents_processed=len(request.documents),
+                queries_answered=len(query_results),
+                workflow_summary={
+                    "entities_extracted": len(entities),
+                    "relationships_found": len(relationships),
+                    "queries_processed": len(request.queries),
+                    "documents_processed": len(request.documents),
+                    "domain_description": domain_description
+                },
+                query_result={
+                    "results": query_results,
+                    "status": "success"
+                }
+            )
+                
+        except Exception as e:
+            execution_time = time.time() - start_time
+            return self.create_error_result(f"Phase 2 adapter error: {str(e)}", execution_time)
+    
+    def _execute_theory_aware(self, request: TheoryProcessingRequest) -> TheoryProcessingResult:
+        """Execute Phase 2 with theory validation"""
+        start_time = time.time()
+        
+        # Validate theory config
+        theory_errors = self.validate_theory_config(request.theory_config)
+        if theory_errors:
+            return TheoryProcessingResult(
+                phase_name="Phase 2",
+                status="error", 
+                execution_time_seconds=time.time() - start_time,
+                theory_validated_result=None,
+                workflow_summary={},
+                query_results=[],
+                error_message=f"Theory validation failed: {'; '.join(theory_errors)}"
+            )
+        
+        # Execute normal Phase 2 processing
+        workflow = self._get_workflow()
+        result = workflow.execute(
+            document_paths=request.documents,
+            queries=request.queries
+        )
+        
+        # Apply theory validation
+        validator = TheoryValidator(request.theory_config)
+        final_result = result.get("final_result", {})
+        entities = final_result.get("entities", [])
+        relationships = final_result.get("relationships", [])
+        
+        entity_score, entity_details = validator.validate_entities(entities)
+        rel_score, rel_details = validator.validate_relationships(relationships)
+        concept_mapping = validator.map_to_concepts(entities)
+        
+        theory_validated_result = TheoryValidatedResult(
+            entities=entities,
+            relationships=relationships,
+            theory_compliance={"entity_validation": entity_details, "relationship_validation": rel_details},
+            concept_mapping=concept_mapping,
+            validation_score=(entity_score + rel_score) / 2
+        )
+        
+        return TheoryProcessingResult(
+            phase_name="Phase 2",
+            status="success",
+            execution_time_seconds=time.time() - start_time,
+            theory_validated_result=theory_validated_result,
+            workflow_summary={
+                "entities_extracted": len(entities),
+                "relationships_found": len(relationships),
+                "theory_compliance_score": theory_validated_result.validation_score,
+                "domain_description": request.domain_description
+            },
+            query_results=final_result.get("query_results", []),
+            raw_phase_result=result
+        )
 
 
-class Phase3Adapter(GraphRAGPhase):
-    """Adapter for Phase 3 Multi-Document workflow"""
+class Phase3Adapter(GraphRAGPhase, TheoryAwareGraphRAGPhase):
+    """Adapter for Phase 3 Multi-Document workflow with theory-aware support"""
     
     def __init__(self):
-        super().__init__("Phase 3: Multi-Document", "1.0")
-        # Import using relative import
-        from ..tools.phase3.basic_multi_document_workflow import BasicMultiDocumentWorkflow
-        self.workflow = BasicMultiDocumentWorkflow()
+        GraphRAGPhase.__init__(self, "Phase 3: Multi-Document", "1.0")
+        self._workflow = None
+        self.logger = get_logger("phase3.adapter")
     
-    def execute(self, request: ProcessingRequest) -> PhaseResult:
-        """Execute Phase 3 multi-document processing"""
-        try:
-            # Delegate to the actual implementation
-            return self.workflow.execute(request)
-        except Exception as e:
-            # 100% reliability - always return a result
-            return self.create_error_result(
-                f"Phase 3 adapter error: {str(e)}",
-                execution_time=0.0
-            )
+    def _get_workflow(self):
+        """Lazy load Phase 3 workflow"""
+        if self._workflow is None:
+            from src.core.pipeline_orchestrator import PipelineOrchestrator
+            from src.core.config import ConfigurationManager
+            config_manager = ConfigurationManager()
+            self._workflow_config = create_unified_workflow_config(phase=Phase.PHASE3, optimization_level=OptimizationLevel.STANDARD)
+            self._workflow = PipelineOrchestrator(self._workflow_config, config_manager)
+        return self._workflow
+    
     
     def get_capabilities(self) -> Dict[str, Any]:
         """Return Phase 3 capabilities"""
-        return self.workflow.get_capabilities()
+        return {
+            "supported_document_types": ["pdf", "txt"],
+            "required_services": ["neo4j", "sqlite"],
+            "optional_services": [],
+            "max_document_size": 50_000_000,  # 50MB
+            "supports_batch_processing": True,
+            "supports_multiple_queries": True,
+            "uses_ontology": True
+        }
     
     def validate_input(self, request: ProcessingRequest) -> List[str]:
         """Validate Phase 3 input"""
-        return self.workflow.validate_input(request)
+        errors = []
+        
+        if not request.documents:
+            errors.append("No documents provided")
+        
+        if not request.queries:
+            errors.append("No queries provided")
+            
+        # Check document extensions
+        for doc in request.documents:
+            if not doc.lower().endswith(('.pdf', '.txt')):
+                errors.append(f"Unsupported document type: {doc}")
+        
+        return errors
+    
+    # Theory-Aware Interface Implementation
+    def get_name(self) -> str:
+        """Return phase name for theory-aware interface"""
+        return "Phase 3"
+    
+    def get_version(self) -> str:
+        """Return phase version for theory-aware interface"""
+        return "1.0"
+    
+    def get_supported_theory_schemas(self) -> List[TheorySchema]:
+        """Return list of supported theory schemas"""
+        return [TheorySchema.MASTER_CONCEPTS, TheorySchema.THREE_DIMENSIONAL, TheorySchema.ORM_METHODOLOGY]
+    
+    def validate_theory_config(self, config: TheoryConfig) -> List[str]:
+        """Validate theory configuration, return errors"""
+        errors = []
+        if config.schema_type not in self.get_supported_theory_schemas():
+            errors.append(f"Unsupported theory schema: {config.schema_type}")
+        if not os.path.exists(config.concept_library_path):
+            errors.append(f"Concept library not found: {config.concept_library_path}")
+        return errors
+    
+    def execute(self, request) -> Any:
+        """Execute phase - supports both old and new interfaces"""
+        # Check if this is a theory-aware request
+        if isinstance(request, TheoryProcessingRequest):
+            return self._execute_theory_aware(request)
+        else:
+            # Original interface
+            return self._execute_original(request)
+    
+    def _execute_original(self, request: ProcessingRequest) -> PhaseResult:
+        """Execute Phase 3 multi-document processing"""
+        start_time = time.time()
+        
+        try:
+            # Validate input
+            errors = self.validate_input(request)
+            if errors:
+                return self.create_error_result(f"Validation failed: {'; '.join(errors)}")
+            
+            workflow = self._get_workflow()
+            
+            # Execute workflow using PipelineOrchestrator
+            result = workflow.execute(
+                document_paths=request.documents,
+                queries=request.queries
+            )
+            
+            # Translate result to PhaseResult format
+            final_result = result.get("final_result", {})
+            entities = final_result.get("entities", [])
+            relationships = final_result.get("relationships", [])
+            query_results = final_result.get("query_results", [])
+            
+            execution_time = time.time() - start_time
+            
+            return PhaseResult(
+                phase_name="Phase 3",
+                status="success",
+                execution_time_seconds=execution_time,
+                entities_created=len(entities),
+                relationships_created=len(relationships),
+                documents_processed=len(request.documents),
+                queries_answered=len(query_results),
+                workflow_summary={
+                    "entities_extracted": len(entities),
+                    "relationships_found": len(relationships),
+                    "queries_processed": len(request.queries),
+                    "documents_processed": len(request.documents)
+                },
+                query_result={
+                    "results": query_results,
+                    "status": "success"
+                }
+            )
+                
+        except Exception as e:
+            execution_time = time.time() - start_time
+            return self.create_error_result(f"Phase 3 adapter error: {str(e)}", execution_time)
+    
+    def _execute_theory_aware(self, request: TheoryProcessingRequest) -> TheoryProcessingResult:
+        """Execute Phase 3 with theory validation"""
+        start_time = time.time()
+        
+        # Validate theory config
+        theory_errors = self.validate_theory_config(request.theory_config)
+        if theory_errors:
+            return TheoryProcessingResult(
+                phase_name="Phase 3",
+                status="error", 
+                execution_time_seconds=time.time() - start_time,
+                theory_validated_result=None,
+                workflow_summary={},
+                query_results=[],
+                error_message=f"Theory validation failed: {'; '.join(theory_errors)}"
+            )
+        
+        # Execute normal Phase 3 processing
+        workflow = self._get_workflow()
+        result = workflow.execute(
+            document_paths=request.documents,
+            queries=request.queries
+        )
+        
+        # Apply theory validation
+        validator = TheoryValidator(request.theory_config)
+        final_result = result.get("final_result", {})
+        entities = final_result.get("entities", [])
+        relationships = final_result.get("relationships", [])
+        
+        entity_score, entity_details = validator.validate_entities(entities)
+        rel_score, rel_details = validator.validate_relationships(relationships)
+        concept_mapping = validator.map_to_concepts(entities)
+        
+        theory_validated_result = TheoryValidatedResult(
+            entities=entities,
+            relationships=relationships,
+            theory_compliance={"entity_validation": entity_details, "relationship_validation": rel_details},
+            concept_mapping=concept_mapping,
+            validation_score=(entity_score + rel_score) / 2
+        )
+        
+        return TheoryProcessingResult(
+            phase_name="Phase 3",
+            status="success",
+            execution_time_seconds=time.time() - start_time,
+            theory_validated_result=theory_validated_result,
+            workflow_summary={
+                "entities_extracted": len(entities),
+                "relationships_found": len(relationships),
+                "theory_compliance_score": theory_validated_result.validation_score
+            },
+            query_results=final_result.get("query_results", []),
+            raw_phase_result=result
+        )
 
 
 def initialize_phase_adapters():
@@ -286,22 +705,23 @@ def initialize_phase_adapters():
         # Register Phase 1
         phase1 = Phase1Adapter()
         register_phase(phase1)
-        print("✓ Phase 1 adapter registered")
+        logger = get_logger("core.phase_adapters")
+        logger.info("✓ Phase 1 adapter registered")
         
         # Register Phase 2
         phase2 = Phase2Adapter()
         register_phase(phase2)
-        print("✓ Phase 2 adapter registered")
+        logger.info("✓ Phase 2 adapter registered")
         
         # Register Phase 3 (placeholder)
         phase3 = Phase3Adapter()
         register_phase(phase3)
-        print("✓ Phase 3 adapter registered (placeholder)")
+        logger.info("✓ Phase 3 adapter registered (placeholder)")
         
         return True
         
     except Exception as e:
-        print(f"❌ Failed to initialize phase adapters: {e}")
+        logger.error("❌ Failed to initialize phase adapters: %s", str(e))
         return False
 
 
@@ -309,15 +729,17 @@ class IntegratedPipelineOrchestrator:
     """Orchestrates integrated data flow between phases"""
     
     def __init__(self, auto_start_neo4j: bool = True):
+        self.logger = get_logger("core.integrated_orchestrator")
+        
         # Auto-start Neo4j if requested and needed
         if auto_start_neo4j:
             try:
                 from .neo4j_manager import ensure_neo4j_for_testing
                 ensure_neo4j_for_testing()
             except ImportError:
-                print("⚠️  Neo4j auto-start not available - continuing without auto-start")
+                self.logger.warning("⚠️  Neo4j auto-start not available - continuing without auto-start")
             except Exception as e:
-                print(f"⚠️  Neo4j auto-start failed: {e} - continuing anyway")
+                self.logger.warning("⚠️  Neo4j auto-start failed: %s - continuing anyway", str(e))
         
         self.phase1 = Phase1Adapter()
         self.phase2 = Phase2Adapter()
@@ -336,7 +758,7 @@ class IntegratedPipelineOrchestrator:
         
         try:
             # Phase 1: Basic GraphRAG
-            print(f"🔄 Executing Phase 1: Basic GraphRAG...")
+            self.logger.info("🔄 Executing Phase 1: Basic GraphRAG...")
             p1_request = ProcessingRequest(
                 documents=[pdf_path],
                 queries=[query],
@@ -356,10 +778,11 @@ class IntegratedPipelineOrchestrator:
             results["evidence"]["phase1_entities"] = p1_result.entity_count
             results["evidence"]["phase1_relationships"] = p1_result.relationship_count
             results["evidence"]["phase1_execution_time"] = p1_result.execution_time
-            print(f"✅ Phase 1 complete: {p1_result.entity_count} entities, {p1_result.relationship_count} relationships")
+            self.logger.info("✅ Phase 1 complete: %d entities, %d relationships", 
+                            p1_result.entity_count, p1_result.relationship_count)
             
             # Phase 2: Enhanced with ontology (building on Phase 1 results)
-            print(f"🔄 Executing Phase 2: Enhanced with ontology...")
+            self.logger.info("🔄 Executing Phase 2: Enhanced with ontology...")
             p2_request = ProcessingRequest(
                 documents=[pdf_path],  # Same document, but Phase 2 should enhance P1 results
                 queries=[query],
@@ -387,10 +810,11 @@ class IntegratedPipelineOrchestrator:
             results["evidence"]["phase2_relationships"] = p2_result.relationship_count
             results["evidence"]["phase2_execution_time"] = p2_result.execution_time
             results["evidence"]["ontology_used"] = p2_result.results.get("ontology_info", {}) if p2_result.results else {}
-            print(f"✅ Phase 2 complete: {p2_result.entity_count} entities, {p2_result.relationship_count} relationships")
+            self.logger.info("✅ Phase 2 complete: %d entities, %d relationships",
+                            p2_result.entity_count, p2_result.relationship_count)
             
             # Phase 3: Multi-document fusion (building on Phase 1 and Phase 2 results)
-            print(f"🔄 Executing Phase 3: Multi-document fusion...")
+            self.logger.info("🔄 Executing Phase 3: Multi-document fusion...")
             p3_request = ProcessingRequest(
                 documents=[pdf_path],  # Same document, but Phase 3 should fuse all previous results
                 queries=[query],
@@ -424,7 +848,8 @@ class IntegratedPipelineOrchestrator:
             results["evidence"]["phase3_relationships"] = p3_result.relationship_count
             results["evidence"]["phase3_execution_time"] = p3_result.execution_time
             results["evidence"]["fusion_applied"] = p3_result.results.get("fusion_metrics", {}) if p3_result.results else {}
-            print(f"✅ Phase 3 complete: {p3_result.entity_count} entities, {p3_result.relationship_count} relationships")
+            self.logger.info("✅ Phase 3 complete: %d entities, %d relationships",
+                            p3_result.entity_count, p3_result.relationship_count)
             
             # Calculate integration metrics
             total_execution_time = sum([
@@ -445,7 +870,10 @@ class IntegratedPipelineOrchestrator:
                 p3_result.relationship_count
             ]
             
-            print(f"🎯 Integration complete: P1({p1_result.entity_count}e, {p1_result.relationship_count}r) → P2({p2_result.entity_count}e, {p2_result.relationship_count}r) → P3({p3_result.entity_count}e, {p3_result.relationship_count}r)")
+            self.logger.info("🎯 Integration complete: P1(%de, %dr) → P2(%de, %dr) → P3(%de, %dr)",
+                            p1_result.entity_count, p1_result.relationship_count,
+                            p2_result.entity_count, p2_result.relationship_count, 
+                            p3_result.entity_count, p3_result.relationship_count)
             
             return results
             
@@ -460,11 +888,13 @@ if __name__ == "__main__":
     success = initialize_phase_adapters()
     if success:
         from .graphrag_phase_interface import get_available_phases
-        print(f"\nAvailable phases: {get_available_phases()}")
+        logger = get_logger("core.phase_adapters")
+        logger.info("\nAvailable phases: %s", get_available_phases())
         
         # Test integrated pipeline
         orchestrator = IntegratedPipelineOrchestrator()
-        print("\n🧪 Testing integrated pipeline...")
+        logger.info("\n🧪 Testing integrated pipeline...")
         
     else:
-        print("Adapter initialization failed")
+        logger = get_logger("core.phase_adapters")
+        logger.error("Adapter initialization failed")

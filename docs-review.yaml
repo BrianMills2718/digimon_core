@@ -1,0 +1,99 @@
+project_name: "Documentation Quality Review"
+project_path: "/home/brian/Digimons/docs"
+output_format: "markdown"
+output_file: "docs-quality-review.md"
+keep_repomix: true
+
+include_patterns:
+  # Focus on core documentation files first
+  - "*.md"
+  - "architecture/*.md"
+  - "planning/*.md"
+  - "getting-started/*.md"
+
+ignore_patterns:
+  - "*.pyc"
+  - "__pycache__"
+  - ".git"
+  - "*.log"
+  - ".pytest_cache"
+  - "*.Zone.Identifier"
+  - ".gemini-cache"
+  - "archive"
+  - "data"
+  - "external_tools"
+  - "test_data"
+  - "*.tar.gz"
+  - "logs"
+  - "repomix-output.*"
+  - "gemini-review*.md"
+  - "**/adrs/**"
+  - "**/concepts/**"
+  - "**/data/**"
+  - "**/specifications/**"
+  - "**/systems/**"
+  - "**/initiatives/**"
+  - "**/reports/**"
+  - "**/strategy/**"
+  - "**/phases/**"
+  - "**/analysis/**"
+  - "**/development/**"
+  - "**/operations/**"
+  - "**/api/**"
+
+custom_prompt: |
+  # DOCUMENTATION QUALITY EVALUATION
+  
+  ## REVIEW OBJECTIVE
+  Evaluate ONLY the quality, clarity, completeness, and usefulness of the documentation itself. Do NOT make code recommendations or assume code implementation status.
+  
+  ## DOCUMENTATION QUALITY CRITERIA
+  
+  ### 1. Documentation Structure and Organization
+  - Is the documentation well-organized with logical hierarchy?
+  - Are there clear navigation aids (table of contents, cross-references)?
+  - Is the folder structure intuitive and consistent?
+  - Are related documents properly grouped and linked?
+  
+  ### 2. Content Clarity and Readability
+  - Is the writing clear and accessible to the target audience?
+  - Are complex concepts explained well with appropriate detail?
+  - Is the language consistent and professional?
+  - Are there sufficient examples and use cases?
+  - Is the documentation free of jargon or is jargon properly defined?
+  
+  ### 3. Completeness and Coverage
+  - Does the documentation cover all major system components?
+  - Are there gaps in coverage for important features?
+  - Are installation, setup, and usage instructions complete?
+  - Are troubleshooting guides comprehensive?
+  - Is API documentation complete and accurate?
+  
+  ### 4. Accuracy and Currency
+  - Are technical descriptions accurate and up-to-date?
+  - Do examples and code snippets appear to be current?
+  - Are there any contradictions or inconsistencies between documents?
+  - Are version numbers and dates current?
+  - Do links and references work correctly?
+  
+  ### 5. Maintenance and Consistency
+  - Is there evidence of regular updates and maintenance?
+  - Is terminology consistent across all documents?
+  - Is formatting consistent throughout?
+  - Are there clear ownership and update processes documented?
+  
+  ## EVALUATION APPROACH
+  
+  Focus ONLY on evaluating the documentation as written. Do NOT:
+  - Make assumptions about code implementation
+  - Suggest code-level fixes
+  - Evaluate system performance or security (only how well these are documented)
+  - Assume the documentation reflects current code state
+  
+  DO evaluate:
+  - How well the documentation explains concepts
+  - Whether documentation is complete for its stated scope
+  - Clarity and usefulness of explanations
+  - Organization and navigability
+  - Internal consistency between documents
+  - Professional quality of writing 

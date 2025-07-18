@@ -12,7 +12,6 @@ from pathlib import Path
 from datetime import datetime
 
 # Add src to path for imports
-sys.path.insert(0, str(Path(__file__).parent))
 
 def test_execute_pdf_to_answer_workflow():
     """Test execute_pdf_to_answer_workflow infrastructure and basic functionality"""
@@ -32,27 +31,35 @@ def test_execute_pdf_to_answer_workflow():
         # Step 1: Test import and initialization
         print(f"\n📍 Step 1: Testing import and initialization...")
         
-        from src.tools.phase1.vertical_slice_workflow import VerticalSliceWorkflow
+        from src.core.pipeline_orchestrator import PipelineOrchestrator
+        from src.core.tool_factory import create_unified_workflow_config, Phase, OptimizationLevel
+        from src.core.config_manager import ConfigManager
         
         workflow_storage_dir = "./data/workflows"
-        vertical_slice = VerticalSliceWorkflow(workflow_storage_dir=workflow_storage_dir)
+        config_manager = ConfigManager()
+        config = create_unified_workflow_config(
+            phase=Phase.PHASE1,
+            optimization_level=OptimizationLevel.STANDARD,
+            workflow_storage_dir=workflow_storage_dir
+        )
+        orchestrator = PipelineOrchestrator(config, config_manager)
         
         result["steps"].append({
             "step": 1,
             "action": "import_and_initialize",
-            "workflow_class": "VerticalSliceWorkflow",
+            "workflow_class": "PipelineOrchestrator",
             "storage_dir": workflow_storage_dir,
             "status": "PASS"
         })
-        print(f"✅ Step 1 PASS: VerticalSliceWorkflow imported and initialized")
+        print(f"✅ Step 1 PASS: PipelineOrchestrator imported and initialized")
         
         # Step 2: Test method existence
         print(f"\n📍 Step 2: Testing method availability...")
         
-        has_execute_workflow = hasattr(vertical_slice, 'execute_workflow')
-        has_get_tool_info = hasattr(vertical_slice, 'get_tool_info')
+        has_execute_workflow = hasattr(orchestrator, 'execute')
+        has_get_tool_info = hasattr(orchestrator, 'get_status')
         
-        available_methods = [method for method in dir(vertical_slice) if not method.startswith('_')]
+        available_methods = [method for method in dir(orchestrator) if not method.startswith('_')]
         
         result["steps"].append({
             "step": 2,
@@ -63,32 +70,32 @@ def test_execute_pdf_to_answer_workflow():
             "status": "PASS"
         })
         print(f"✅ Step 2 PASS: Methods checked")
-        print(f"  - execute_workflow: {has_execute_workflow}")
-        print(f"  - get_tool_info: {has_get_tool_info}")
+        print(f"  - execute: {has_execute_workflow}")
+        print(f"  - get_status: {has_get_tool_info}")
         
         # Step 3: Test get_tool_info (non-intensive operation)
         print(f"\n📍 Step 3: Testing get_tool_info...")
         
         if has_get_tool_info:
-            tool_info = vertical_slice.get_tool_info()
+            tool_info = orchestrator.get_status()
             
             result["steps"].append({
                 "step": 3,
-                "action": "get_vertical_slice_info",
+                "action": "get_orchestrator_status",
                 "request": {},
                 "response": tool_info,
                 "status": "PASS"
             })
-            print(f"✅ Step 3 PASS: get_tool_info executed")
+            print(f"✅ Step 3 PASS: get_status executed")
             print(f"Tool info type: {type(tool_info)}")
         else:
             result["steps"].append({
                 "step": 3,
-                "action": "get_vertical_slice_info",
-                "error": "get_tool_info method not available",
+                "action": "get_orchestrator_status",
+                "error": "get_status method not available",
                 "status": "SKIP"
             })
-            print(f"⚠️  Step 3 SKIP: get_tool_info method not available")
+            print(f"⚠️  Step 3 SKIP: get_status method not available")
         
         # Step 4: Test MCP tool function access
         print(f"\n📍 Step 4: Testing MCP tool function accessibility...")
@@ -107,10 +114,10 @@ def test_execute_pdf_to_answer_workflow():
                 "workflow_name": "Infrastructure_Test"
             },
             "infrastructure_status": "operational",
-            "vertical_slice_initialized": True,
+            "orchestrator_initialized": True,
             "methods_available": {
-                "execute_workflow": has_execute_workflow,
-                "get_tool_info": has_get_tool_info
+                "execute": has_execute_workflow,
+                "get_status": has_get_tool_info
             },
             "test_timestamp": datetime.now().isoformat(),
             "note": "Infrastructure test confirms tool is properly accessible via MCP server"

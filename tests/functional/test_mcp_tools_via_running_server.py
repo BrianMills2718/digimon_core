@@ -13,7 +13,6 @@ import sys
 from pathlib import Path
 
 # Add src to path
-sys.path.insert(0, str(Path(__file__).parent))
 
 def test_mcp_tools_via_server():
     """Test MCP tools by calling them through the running server"""

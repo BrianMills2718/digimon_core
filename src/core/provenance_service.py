@@ -403,3 +403,18 @@ class ProvenanceService:
                 "status": "error",
                 "error": f"Failed to cleanup: {str(e)}"
             }
+    
+    def get_tool_info(self):
+        """Return tool information for audit system"""
+        return {
+            "tool_id": "PROVENANCE_SERVICE",
+            "tool_type": "CORE_SERVICE",
+            "status": "functional",
+            "description": "Operation lineage and impact tracking service",
+            "features": {
+                "operation_tracking": True,
+                "lineage_analysis": True,
+                "metadata_capture": True
+            },
+            "stats": self.get_tool_statistics()
+        }

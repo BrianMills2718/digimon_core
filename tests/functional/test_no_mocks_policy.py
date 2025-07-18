@@ -11,12 +11,10 @@ This test ensures:
 3. Tools fail honestly instead of pretending to work
 """
 
-import sys
 import os
 from pathlib import Path
 
 # Add src to path for imports
-sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
 from core.identity_service import IdentityService
 from core.provenance_service import ProvenanceService

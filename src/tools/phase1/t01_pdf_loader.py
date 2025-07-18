@@ -28,6 +28,8 @@ import sys
 from src.core.identity_service import IdentityService
 from src.core.provenance_service import ProvenanceService
 from src.core.quality_service import QualityService
+from src.core.advanced_data_models import Document, ObjectType, QualityTier
+from src.core.input_validator import InputValidator
 
 
 class PDFLoader:
@@ -35,25 +37,36 @@ class PDFLoader:
     
     def __init__(
         self,
-        identity_service: IdentityService,
-        provenance_service: ProvenanceService,
-        quality_service: QualityService
+        identity_service: IdentityService = None,
+        provenance_service: ProvenanceService = None,
+        quality_service: QualityService = None
     ):
-        self.identity_service = identity_service
-        self.provenance_service = provenance_service
-        self.quality_service = quality_service
+        # Initialize input validator for security
+        self.input_validator = InputValidator()
+        
+        # Allow tools to work standalone for testing
+        if identity_service is None:
+            from src.core.service_manager import ServiceManager
+            service_manager = ServiceManager()
+            self.identity_service = service_manager.get_identity_service()
+            self.provenance_service = service_manager.get_provenance_service()
+            self.quality_service = service_manager.get_quality_service()
+        else:
+            self.identity_service = identity_service
+            self.provenance_service = provenance_service
+            self.quality_service = quality_service
         self.tool_id = "T01_PDF_LOADER"
     
     def load_pdf(
         self,
         file_path: str,
-        document_id: Optional[str] = None
+        workflow_id: Optional[str] = None
     ) -> Dict[str, Any]:
         """Load and extract text from a PDF document.
         
         Args:
             file_path: Path to PDF file
-            document_id: Optional document ID (auto-generated if not provided)
+            workflow_id: Optional workflow ID (auto-generated if not provided)
             
         Returns:
             Document data with extracted text and metadata
@@ -65,36 +78,48 @@ class PDFLoader:
             inputs=[],
             parameters={
                 "file_path": file_path,
-                "document_id": document_id
+                "workflow_id": workflow_id
             }
         )
         
         try:
-            # Input validation
-            if not file_path:
+            # MANDATORY: Validate file path with security checks
+            path_validation = self.input_validator.validate_file_path(
+                file_path, 
+                allowed_extensions=['.pdf', '.txt']
+            )
+            
+            if not path_validation['is_valid']:
                 return self._complete_with_error(
                     operation_id,
-                    "file_path is required"
+                    f"Input validation failed: {path_validation['errors']}"
                 )
             
-            file_path = Path(file_path)
-            if not file_path.exists():
-                return self._complete_with_error(
-                    operation_id,
-                    f"File not found: {file_path}"
-                )
+            # Use sanitized path
+            sanitized_path = path_validation['sanitized_path']
+            file_path = Path(sanitized_path)
             
-            # Accept both PDF and text files (for testing)
-            allowed_extensions = ['.pdf', '.txt']
-            if file_path.suffix.lower() not in allowed_extensions:
-                return self._complete_with_error(
-                    operation_id,
-                    f"File type not supported: {file_path} (allowed: {allowed_extensions})"
+            # MANDATORY: Validate workflow_id if provided
+            if workflow_id:
+                id_validation = self.input_validator.validate_text_input(
+                    workflow_id, 
+                    max_length=100
                 )
+                
+                if not id_validation['is_valid']:
+                    return self._complete_with_error(
+                        operation_id,
+                        f"Workflow ID validation failed: {id_validation['errors']}"
+                    )
+                
+                workflow_id = id_validation['sanitized_text']
             
-            # Generate document ID if not provided
-            if not document_id:
-                document_id = f"doc_{uuid.uuid4().hex[:8]}"
+            # Generate workflow ID if not provided
+            if not workflow_id:
+                workflow_id = f"wf_{uuid.uuid4().hex[:8]}"
+            
+            # Create document ID based on workflow and file
+            document_id = f"{workflow_id}_{file_path.stem}"
             
             # Create document reference
             document_ref = f"storage://document/{document_id}"
@@ -168,9 +193,15 @@ class PDFLoader:
                 }
             )
             
+            # Create standardized Document object
+            standardized_document = self._create_standardized_document(
+                document_data, workflow_id
+            )
+            
             return {
                 "status": "success",
-                "document": document_data,
+                "document": document_data,  # Legacy format for compatibility
+                "standardized_document": standardized_document,  # New standardized format
                 "operation_id": operation_id,
                 "provenance": completion_result
             }
@@ -335,6 +366,30 @@ class PDFLoader:
         """Get list of supported file formats."""
         return [".pdf"]
     
+    def execute(self, input_data: Any, context: Optional[Dict] = None) -> Dict[str, Any]:
+        """Execute the PDF loader tool - standardized interface required by tool factory"""
+        if isinstance(input_data, str):
+            # Input is a file path
+            file_path = input_data
+            workflow_id = context.get("workflow_id") if context else None
+        elif isinstance(input_data, dict):
+            # Input is structured data
+            file_path = input_data.get("file_path")
+            workflow_id = input_data.get("workflow_id") or (context.get("workflow_id") if context else None)
+        else:
+            return {
+                "status": "error",
+                "error": "Input must be a file path (string) or dict with 'file_path' key"
+            }
+            
+        if not file_path:
+            return {
+                "status": "error",
+                "error": "No file_path provided"
+            }
+            
+        return self.load_pdf(file_path, workflow_id)
+
     def get_tool_info(self) -> Dict[str, Any]:
         """Get tool information."""
         return {
@@ -346,3 +401,28 @@ class PDFLoader:
             "dependencies": ["pypdf"],
             "output_type": "document"
         }
+    
+    def _create_standardized_document(self, document_data: Dict[str, Any], workflow_id: str) -> Document:
+        """Create standardized Document object using advanced data models"""
+        try:
+            return Document(
+                object_type=ObjectType.DOCUMENT,
+                content=document_data.get("text", ""),
+                original_filename=document_data.get("original_filename", "unknown"),
+                confidence=document_data.get("confidence", 0.5),
+                quality_tier=QualityTier.HIGH if document_data.get("confidence", 0.5) > 0.8 
+                            else QualityTier.MEDIUM if document_data.get("confidence", 0.5) > 0.6 
+                            else QualityTier.LOW,
+                created_by=self.tool_id,
+                workflow_id=workflow_id,
+                metadata={
+                    "file_path": document_data.get("file_path", ""),
+                    "page_count": document_data.get("page_count", 0),
+                    "file_size": document_data.get("file_size", 0),
+                    "extraction_method": "pypdf"
+                }
+            )
+        except Exception as e:
+            # Log error and return basic document
+            print(f"Warning: Could not create standardized document: {e}")
+            return None

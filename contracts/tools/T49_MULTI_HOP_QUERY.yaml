@@ -1,0 +1,30 @@
+tool_id: "T49_MULTI_HOP_QUERY"
+description: "Executes multi-hop graph queries to find relationships and patterns"
+category: "Retrieval"
+
+input_contract:
+  required_data_types:
+    - type: "WorkflowState"
+      attributes: ["query", "max_hops"]
+  required_state:
+    edges_built: true
+
+output_contract:
+  produced_data_types:
+    - type: "Entity"
+      attributes: ["entity_id", "canonical_name", "entity_type"]
+    - type: "Relationship"  
+      attributes: ["relationship_id", "source_id", "target_id", "relationship_type"]
+  produced_state:
+    query_executed: true
+
+error_codes:
+  - code: "DATABASE_CONNECTION_ERROR"
+    description: "Failed to connect to Neo4j database for query execution"
+    severity: "error"
+  - code: "INVALID_QUERY"
+    description: "Query format is invalid or contains syntax errors"
+    severity: "error"
+  - code: "NO_RESULTS_FOUND"
+    description: "Query executed successfully but returned no results"
+    severity: "info"

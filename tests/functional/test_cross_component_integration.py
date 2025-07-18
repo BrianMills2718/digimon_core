@@ -12,7 +12,6 @@ Tests that components actually work together with real data:
 This implements the CLAUDE.md requirement for functional integration testing.
 """
 
-import sys
 import os
 import time
 import tempfile
@@ -23,7 +22,6 @@ from dataclasses import dataclass
 
 # Add project root to path
 project_root = Path(__file__).parent.parent.parent  # Go up from tests/functional/
-sys.path.insert(0, str(project_root))
 
 @dataclass
 class IntegrationTestResult:

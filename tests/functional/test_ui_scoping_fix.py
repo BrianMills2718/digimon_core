@@ -7,8 +7,6 @@ import sys
 from pathlib import Path
 
 # Add project paths
-sys.path.insert(0, str(Path(__file__).parent))
-sys.path.insert(0, str(Path(__file__).parent / "ui"))
 
 def test_ui_variable_scoping():
     """Test that the UI variables are properly scoped."""

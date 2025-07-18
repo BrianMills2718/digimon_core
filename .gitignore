@@ -17,11 +17,6 @@ htmlcov/
 .mypy_cache/
 .ruff_cache/
 
-# Virtual environments
-venv/
-env/
-ENV/
-
 # IDEs
 .vscode/
 .idea/
@@ -36,7 +31,6 @@ ENV/
 .env.*.local
 
 # Data and logs
-data/
 logs/
 *.log
 *.db
@@ -54,23 +48,24 @@ models/
 .ipynb_checkpoints/
 *.ipynb_checkpoints
 
-# Docker
-*.log
-.docker/
-
 # Node (for any JS/TS components)
 node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Output files
+# Output files (but allow specific tracked files)
 output/
 results/
 exports/
-*.csv
-*.json
-*.xml
+# Allow specific JSON/CSV/XML files that should be tracked
+!config/*.json
+!config/*.xml
+!docs/**/*.json
+!docs/**/*.xml
+!*.example.json
+!*.example.xml
+!*.example.csv
 
 # Temporary files
 tmp/
@@ -89,26 +84,16 @@ Thumbs.db
 *.crt
 *.p12
 
-# Archive directory (contains experimental implementations and cached data)
-# Exclude confusing historical documentation from external assessment
+# Archive directories (historical and experimental files)
+docs/archive/
 archive/
 
 # Exclude historical planning documents that contain conflicting visions
 docs/planning/
-docs/archive/
-
-# Directories to exclude from this repository
-tools/
-test_data/
-future_work_not_for_v1/
-docker/
-docs/reference/structgpt_paper.txt
-docs/reference/agent_research/
+docs/archive/root_cleanup/
 
 # Large information files to exclude
 docs/core/mcp_llms_full_information.txt
-
-# Note: scripts/ and config/ are now tracked as they contain important utilities
 
 # Keep example files
 !.env.example

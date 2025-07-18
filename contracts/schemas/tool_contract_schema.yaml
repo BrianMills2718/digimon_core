@@ -1,0 +1,125 @@
+# Tool Contract Schema Definition
+# Defines the structure that all tool and adapter contracts must follow
+# This enables programmatic validation of tool compatibility
+
+$schema: http://json-schema.org/draft-07/schema#
+title: Tool Compatibility Contract
+description: Defines the input, output, and state requirements/productions for a system tool or adapter.
+type: object
+
+properties:
+  tool_id:
+    type: string
+    pattern: "^[A-Z0-9_]+$"
+    description: Unique identifier for the tool or adapter
+
+  description:
+    type: string
+    minLength: 10
+    description: Human-readable description of the tool/adapter's function
+
+  category:
+    type: string
+    enum: 
+      - Ingestion
+      - Processing
+      - Construction
+      - Retrieval
+      - Analysis
+      - Storage
+      - Interface
+      - CoreService
+      - Adapter
+    description: The functional category of the tool or adapter
+
+  input_contract:
+    type: object
+    description: Defines what the tool expects as input
+    properties:
+      required_data_types:
+        type: array
+        description: Data types that must be present for tool execution
+        items:
+          type: object
+          properties:
+            type: 
+              type: string
+              enum: ["Document", "Chunk", "Entity", "Relationship", "WorkflowState", "TextForLLMProcessing"]
+              description: Name of the Pydantic model
+            attributes:
+              type: array
+              items: 
+                type: string
+              description: List of required attribute names for this data type
+          required: ["type", "attributes"]
+
+      required_state:
+        type: object
+        description: Workflow states that MUST be true for tool execution
+        patternProperties:
+          "^[a-zA-Z_][a-zA-Z0-9_]*$": 
+            type: boolean
+        additionalProperties: false
+
+    required: ["required_data_types", "required_state"]
+
+  output_contract:
+    type: object
+    description: Defines what the tool produces as output
+    properties:
+      produced_data_types:
+        type: array
+        description: Data types guaranteed to be produced on successful execution
+        minItems: 1
+        items:
+          type: object
+          properties:
+            type: 
+              type: string
+              enum: ["Document", "Chunk", "Entity", "Relationship", "WorkflowState", "TextForLLMProcessing"]
+            attributes:
+              type: array
+              items: 
+                type: string
+              description: List of attributes guaranteed to be present
+          required: ["type", "attributes"]
+
+      produced_state:
+        type: object
+        description: Workflow states set by the tool after successful execution
+        patternProperties:
+          "^[a-zA-Z_][a-zA-Z0-9_]*$": 
+            type: boolean
+        additionalProperties: false
+
+    required: ["produced_data_types", "produced_state"]
+
+  error_codes:
+    type: array
+    description: Structured list of possible errors the tool might return
+    items:
+      type: object
+      properties:
+        code: 
+          type: string
+          pattern: "^[A-Z_]+$"
+          description: Unique error code
+        description: 
+          type: string
+          minLength: 10
+          description: Human-readable description of the error
+        severity:
+          type: string
+          enum: ["error", "warning", "info"]
+          description: Severity level of the error
+      required: ["code", "description", "severity"]
+
+required: 
+  - tool_id
+  - description
+  - category
+  - input_contract
+  - output_contract
+  - error_codes
+
+additionalProperties: false

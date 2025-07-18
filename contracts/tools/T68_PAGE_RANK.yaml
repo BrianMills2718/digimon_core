@@ -1,0 +1,28 @@
+tool_id: "T68_PAGE_RANK"
+description: "Calculates PageRank scores for entities in the graph database"
+category: "Analysis"
+
+input_contract:
+  required_data_types:
+    - type: "WorkflowState"
+      attributes: ["damping_factor", "max_iterations"]
+  required_state:
+    edges_built: true
+
+output_contract:
+  produced_data_types:
+    - type: "Entity"
+      attributes: ["entity_id", "canonical_name", "pagerank_score", "rank"]
+  produced_state:
+    pagerank_calculated: true
+
+error_codes:
+  - code: "DATABASE_CONNECTION_ERROR"
+    description: "Failed to connect to Neo4j database for PageRank calculation"
+    severity: "error"
+  - code: "INSUFFICIENT_DATA"
+    description: "Not enough entities or relationships for meaningful PageRank calculation"
+    severity: "error"
+  - code: "CONVERGENCE_ERROR"
+    description: "PageRank algorithm failed to converge within maximum iterations"
+    severity: "warning"

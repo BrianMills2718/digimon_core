@@ -45,14 +45,22 @@ class PageRankCalculator(BaseNeo4jTool):
     
     def __init__(
         self,
-        identity_service: IdentityService,
-        provenance_service: ProvenanceService,
-        quality_service: QualityService,
-        neo4j_uri: str = "bolt://localhost:7687",
-        neo4j_user: str = "neo4j",
-        neo4j_password: str = "password",
+        identity_service: Optional[IdentityService] = None,
+        provenance_service: Optional[ProvenanceService] = None,
+        quality_service: Optional[QualityService] = None,
+        neo4j_uri: str = None,
+        neo4j_user: str = None,
+        neo4j_password: str = None,
         shared_driver: Optional[Driver] = None
     ):
+        # Allow tools to work standalone for testing
+        if identity_service is None:
+            from src.core.service_manager import ServiceManager
+            service_manager = ServiceManager()
+            identity_service = service_manager.get_identity_service()
+            provenance_service = service_manager.get_provenance_service()
+            quality_service = service_manager.get_quality_service()
+        
         # Initialize base class with shared driver
         super().__init__(
             identity_service=identity_service,
@@ -569,6 +577,24 @@ class PageRankCalculator(BaseNeo4jTool):
         }
     
     
+    def execute(self, input_data: Any, context: Optional[Dict] = None) -> Dict[str, Any]:
+        """Execute the PageRank calculator - standardized interface required by tool factory"""
+        if isinstance(input_data, dict):
+            # Extract parameters
+            entity_filter = input_data.get("entity_filter", {})
+            workflow_id = input_data.get("workflow_id", "default")
+        elif input_data is None:
+            # Default execution
+            entity_filter = {}
+            workflow_id = "default"
+        else:
+            return {
+                "status": "error",
+                "error": "Input must be dict with optional 'entity_filter' key, or None for default execution"
+            }
+            
+        return self.calculate_pagerank(entity_filter, workflow_id)
+
     def get_tool_info(self) -> Dict[str, Any]:
         """Get tool information."""
         return {
@@ -584,3 +610,6 @@ class PageRankCalculator(BaseNeo4jTool):
             "input_type": "neo4j_graph",
             "output_type": "entity_rankings"
         }
+
+# Removed brittle alias as per CLAUDE.md CRITICAL FIX 3
+# Use proper class name PageRankCalculator directly

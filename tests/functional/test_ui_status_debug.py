@@ -3,11 +3,9 @@
 Debug the UI status check function to see why Phase 2/3 show as unavailable
 """
 
-import sys
 from pathlib import Path
 
 # Add project root to path (same as UI does)
-sys.path.insert(0, str(Path(__file__).parent))
 
 # Mock streamlit to capture what's happening
 class MockStreamlit:

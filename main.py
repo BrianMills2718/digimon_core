@@ -7,14 +7,9 @@ core services for identity, provenance, quality, and workflow management.
 """
 
 import os
-import sys
 from pathlib import Path
 
-# Add src directory to Python path for imports
-src_dir = Path(__file__).parent / "src"
-sys.path.insert(0, str(src_dir))
-
-# Import and run the MCP server
+# Import and run the MCP server (using proper package imports)
 from src.mcp_server import mcp
 
 if __name__ == "__main__":

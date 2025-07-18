@@ -1,0 +1,31 @@
+project_name: "Phase 2 Implementation Core Validation"
+project_path: "/home/brian/Digimons/src/tools/phase2"
+output_format: "markdown"
+output_file: "phase2-core-validation-results.md"
+keep_repomix: true
+
+include_patterns:
+  - "async_multi_document_processor.py"
+
+ignore_patterns:
+  - "*.pyc"
+  - "__pycache__"
+
+custom_prompt: |
+  # PHASE 2 ASYNC MULTI-DOCUMENT PROCESSOR VALIDATION
+  
+  Validate that the AsyncMultiDocumentProcessor class is fully implemented with:
+  
+  1. AsyncMultiDocumentProcessor class with proper initialization
+  2. process_documents_async() method for parallel processing
+  3. Semaphore-based resource management
+  4. Error isolation for failed documents
+  5. Performance improvement capabilities
+  
+  Verify this is a complete implementation, not a stub or placeholder.
+
+claims_of_success:
+  - "ASYNC_MULTI_DOC_PROCESSOR_IMPLEMENTED: AsyncMultiDocumentProcessor class exists with complete parallel processing implementation using asyncio and semaphores"
+
+remove_empty_lines: true
+show_line_numbers: true

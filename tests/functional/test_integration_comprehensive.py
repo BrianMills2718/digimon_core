@@ -12,7 +12,6 @@ import traceback
 from pathlib import Path
 
 # Add src to path
-sys.path.insert(0, str(Path(__file__).parent / "src"))
 
 def test_phase_transitions():
     """Test data flow between Phase 1 → Phase 2 → Phase 3."""
@@ -202,7 +201,6 @@ def test_full_pipeline_integration():
         try:
             # Check UI can import all phase functions
             ui_path = Path(__file__).parent / "ui"
-            sys.path.insert(0, str(ui_path))
             from graphrag_ui import process_with_phase1, process_with_phase2, process_with_phase3
             
             print("  ✅ All phase processing functions importable")

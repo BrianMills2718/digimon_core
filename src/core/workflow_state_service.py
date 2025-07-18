@@ -2,6 +2,7 @@
 
 Provides workflow checkpointing and recovery capabilities.
 Enables crash recovery and workflow resumption.
+Implements Meta-Schema v9 event semantics.
 
 This is a MINIMAL implementation focusing on:
 - Basic checkpoint creation and storage
@@ -88,10 +89,10 @@ class WorkflowStateService:
                     
                 except Exception as e:
                     # Log error and continue with other checkpoints
-                    print(f"Warning: Failed to load checkpoint {checkpoint_file}: {e}")
+                    logger.info(f"Warning: Failed to load checkpoint {checkpoint_file}: {e}")
                     
         except Exception as e:
-            print(f"Warning: Failed to load checkpoints directory: {e}")
+            logger.info(f"Warning: Failed to load checkpoints directory: {e}")
     
     def start_workflow(
         self,

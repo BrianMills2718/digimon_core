@@ -1,0 +1,28 @@
+tool_id: "T31_ENTITY_BUILDER"
+description: "Builds and persists entity nodes in Neo4j graph database"
+category: "Construction"
+
+input_contract:
+  required_data_types:
+    - type: "Entity"
+      attributes: ["text", "entity_type", "confidence"]
+  required_state:
+    entities_extracted: true
+
+output_contract:
+  produced_data_types:
+    - type: "Entity"
+      attributes: ["entity_id", "canonical_name", "entity_type", "neo4j_id"]
+  produced_state:
+    entities_built: true
+
+error_codes:
+  - code: "DATABASE_CONNECTION_ERROR"
+    description: "Failed to connect to Neo4j database"
+    severity: "error"
+  - code: "ENTITY_BUILD_ERROR"
+    description: "Failed to create entity node in database"
+    severity: "error"
+  - code: "VALIDATION_ERROR"
+    description: "Entity data failed validation before database insertion"
+    severity: "error"

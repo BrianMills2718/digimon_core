@@ -2,20 +2,18 @@
 """
 Phase 1 only functional integration test
 """
-import sys
 import tempfile
 from pathlib import Path
 
 # Add project root to path  
 project_root = Path(__file__).parent.parent.parent  # Go up from tests/functional/
-sys.path.insert(0, str(project_root))
 
 def test_phase1_functional():
     """Test Phase 1 end-to-end functionality"""
     print("🔍 Testing Phase 1 functional integration...")
     
     try:
-        from src.tools.phase1.vertical_slice_workflow import VerticalSliceWorkflow
+        from src.core.pipeline_orchestrator import PipelineOrchestrator
         
         # Create test document
         test_content = """
@@ -30,7 +28,8 @@ def test_phase1_functional():
             test_file = f.name
         
         # Test workflow
-        workflow = VerticalSliceWorkflow()
+        workflow_config = create_unified_workflow_config(phase=Phase.PHASE1, optimization_level=OptimizationLevel.STANDARD)
+workflow = PipelineOrchestrator(workflow_config)
         result = workflow.execute_workflow(
             pdf_path=test_file,
             query="Who conducted the research?"

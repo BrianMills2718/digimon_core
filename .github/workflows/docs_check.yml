@@ -1,0 +1,35 @@
+name: Documentation Governance
+
+on:
+  pull_request:
+    paths:
+      - 'docs/**.md'
+      - '.github/workflows/docs_check.yml'
+  push:
+    branches: [ master ]
+
+jobs:
+  docs_lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install markdownlint-cli
+        run: npm install -g markdownlint-cli
+      - name: Lint markdown
+        run: |
+          markdownlint "**/*.md" --ignore "docs/archive" --ignore "archive"
+
+  archive_guard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Ensure archive docs are immutable
+        run: |
+          set -e
+          BASE_SHA=${{ github.event.pull_request.base.sha || github.event.before }}
+          CHANGED_IN_ARCHIVE=$(git diff --name-only $BASE_SHA ${{ github.sha }} | grep '^docs/archive/' || true)
+          if [ -n "$CHANGED_IN_ARCHIVE" ]; then
+            echo "❌ Files inside docs/archive were modified:"
+            echo "$CHANGED_IN_ARCHIVE"
+            exit 1
+          fi 

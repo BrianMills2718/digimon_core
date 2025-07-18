@@ -1,0 +1,8 @@
+
+        Artificial Intelligence Research Paper
+        
+        Dr. Alice Smith is a researcher at MIT studying machine learning algorithms.
+        She collaborates with Dr. Bob Jones from Stanford University.
+        Their research focuses on neural networks and deep learning applications.
+        The research was funded by the National Science Foundation.
+        

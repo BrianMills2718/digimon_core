@@ -10,7 +10,6 @@ import time
 from pathlib import Path
 
 # Add src to path for imports
-sys.path.insert(0, str(Path(__file__).parent))
 
 def test_create_checkpoint_with_valid_workflow():
     """Test create_checkpoint with a valid workflow_id"""

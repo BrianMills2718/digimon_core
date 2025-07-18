@@ -3,7 +3,6 @@
 
 import sys
 import os
-sys.path.insert(0, '/home/brian/Digimons')
 
 def test_openai_key_loading():
     """Test that the workflow loads OpenAI API key correctly"""

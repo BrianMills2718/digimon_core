@@ -11,7 +11,6 @@ import traceback
 from pathlib import Path
 
 # Add src to path for imports
-sys.path.insert(0, str(Path(__file__).parent))
 
 def test_chain2_isolated():
     """Test only the Entity Deduplication Chain"""

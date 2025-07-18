@@ -1,0 +1,28 @@
+tool_id: "T23A_SPACY_NER"
+description: "Extracts named entities from text chunks using SpaCy NLP models"
+category: "Processing"
+
+input_contract:
+  required_data_types:
+    - type: "Chunk"
+      attributes: ["text", "chunk_id", "source_document"]
+  required_state:
+    text_chunked: true
+
+output_contract:
+  produced_data_types:
+    - type: "Entity"
+      attributes: ["text", "entity_type", "confidence", "start_position", "end_position"]
+  produced_state:
+    entities_extracted: true
+
+error_codes:
+  - code: "SPACY_MODEL_ERROR"
+    description: "SpaCy model failed to load or process text"
+    severity: "error"
+  - code: "EMPTY_CHUNK_ERROR"
+    description: "Input chunk contains no text to process"
+    severity: "error"
+  - code: "ENTITY_PROCESSING_ERROR"
+    description: "Failed to process entities from text chunk"
+    severity: "error"

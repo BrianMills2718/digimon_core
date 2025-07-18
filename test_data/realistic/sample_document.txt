@@ -1,0 +1,18 @@
+Sample PDF Document for GraphRAG Testing
+
+This is a comprehensive test document for the GraphRAG system.
+It contains various types of entities and relationships that can be extracted.
+
+Organizations: Microsoft Corporation, Apple Inc., Stanford University
+People: Dr. Sarah Chen, John Smith, Maria Garcia
+Locations: Silicon Valley, Cupertino, California, Palo Alto
+Concepts: Artificial Intelligence, Machine Learning, Innovation
+
+Relationships:
+- Dr. Sarah Chen works at Stanford University
+- Apple Inc. is located in Cupertino, California  
+- Microsoft Corporation develops artificial intelligence technology
+- Stanford University is located in Palo Alto
+
+This document provides a realistic testing scenario for entity extraction,
+relationship detection, and knowledge graph construction in GraphRAG systems.

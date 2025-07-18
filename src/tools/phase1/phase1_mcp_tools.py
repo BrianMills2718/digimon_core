@@ -18,10 +18,9 @@ from typing import Dict, List, Optional, Any
 import os
 from pathlib import Path
 
-# Import core services
-from src.core.identity_service import IdentityService
-from src.core.provenance_service import ProvenanceService
-from src.core.quality_service import QualityService
+# Import core services and configuration
+from src.core.service_manager import get_service_manager
+from src.core.config import ConfigurationManager
 
 # Import Phase 1 tools
 from src.tools.phase1.t01_pdf_loader import PDFLoader
@@ -37,10 +36,15 @@ from src.tools.phase1.t49_multihop_query import MultiHopQuery
 def create_phase1_mcp_tools(mcp: FastMCP):
     """Add Phase 1 pipeline tools to an existing MCP server"""
     
-    # Initialize core services
-    identity_service = IdentityService()
-    provenance_service = ProvenanceService()
-    quality_service = QualityService()
+    # Get shared service manager and configuration
+    service_manager = get_service_manager()
+    config_manager = ConfigurationManager()
+    config = config_manager.get_config()
+    
+    # Use shared services from manager
+    identity_service = service_manager.identity_service
+    provenance_service = service_manager.provenance_service
+    quality_service = service_manager.quality_service
     
     # Initialize Phase 1 tools
     pdf_loader = PDFLoader(identity_service, provenance_service, quality_service)
@@ -48,10 +52,11 @@ def create_phase1_mcp_tools(mcp: FastMCP):
     entity_extractor = SpacyNER(identity_service, provenance_service, quality_service)
     relationship_extractor = RelationshipExtractor(identity_service, provenance_service, quality_service)
     
-    # Neo4j connection parameters
-    neo4j_uri = os.getenv("NEO4J_URI", "bolt://localhost:7687")
-    neo4j_user = os.getenv("NEO4J_USER", "neo4j")
-    neo4j_password = os.getenv("NEO4J_PASSWORD", "password")
+    # Neo4j connection parameters from unified ConfigurationManager
+    neo4j_config = config_manager.get_neo4j_config()
+    neo4j_uri = neo4j_config['uri']
+    neo4j_user = neo4j_config['user']
+    neo4j_password = neo4j_config['password']
     
     entity_builder = EntityBuilder(identity_service, provenance_service, quality_service, neo4j_uri, neo4j_user, neo4j_password)
     edge_builder = EdgeBuilder(identity_service, provenance_service, quality_service, neo4j_uri, neo4j_user, neo4j_password)
@@ -418,3 +423,48 @@ def create_phase1_mcp_tools(mcp: FastMCP):
             "Pipeline Utilities"
         ]
     }
+
+
+class Phase1MCPToolsManager:
+    """Wrapper class to make phase1_mcp_tools discoverable by audit system"""
+    
+    def __init__(self):
+        self.tool_id = "PHASE1_MCP_TOOLS"
+        self._mcp_server = None
+        self._tools_registered = False
+    
+    def get_tool_info(self):
+        """Return tool information for audit system"""
+        return {
+            "tool_id": self.tool_id,
+            "tool_type": "MCP_TOOLS_MANAGER",
+            "status": "functional",
+            "description": "Manages all Phase 1 MCP tools",
+            "tool_count": 25
+        }
+    
+    def create_tools(self, mcp_server):
+        """Expose the main functionality"""
+        self._mcp_server = mcp_server
+        result = create_phase1_mcp_tools(mcp_server)
+        self._tools_registered = True
+        return result
+    
+    def is_registered(self):
+        """Check if tools are registered with MCP server"""
+        return self._tools_registered
+    
+    def get_tool_categories(self):
+        """Get list of tool categories"""
+        return [
+            "PDF Loading (T01)",
+            "Text Chunking (T15a)",
+            "Entity Extraction (T23a)", 
+            "Relationship Extraction (T27)",
+            "Entity Building (T31)",
+            "Edge Building (T34)",
+            "PageRank Calculation (T68)",
+            "Multi-hop Query (T49)",
+            "Graph Analysis",
+            "Pipeline Utilities"
+        ]

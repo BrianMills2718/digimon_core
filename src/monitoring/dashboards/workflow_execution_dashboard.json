@@ -1,0 +1,130 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "KGAS Workflow Execution",
+    "tags": [
+      "kgas",
+      "workflow",
+      "execution"
+    ],
+    "timezone": "browser",
+    "refresh": "5s",
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "panels": [
+      {
+        "id": 1,
+        "title": "Workflow Execution Rate",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "sum(rate(kgas_workflow_executions_total[5m])) by (workflow_type)",
+            "legendFormat": "{{workflow_type}}",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "unit": "reqps"
+          }
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 0
+        }
+      },
+      {
+        "id": 2,
+        "title": "Workflow Duration",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, sum(rate(kgas_workflow_duration_seconds_bucket[5m])) by (le, workflow_type))",
+            "legendFormat": "{{workflow_type}} 95th percentile",
+            "refId": "A"
+          },
+          {
+            "expr": "histogram_quantile(0.50, sum(rate(kgas_workflow_duration_seconds_bucket[5m])) by (le, workflow_type))",
+            "legendFormat": "{{workflow_type}} 50th percentile",
+            "refId": "B"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "unit": "s"
+          }
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 0
+        }
+      },
+      {
+        "id": 3,
+        "title": "Workflow Success Rate",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "sum(rate(kgas_workflow_executions_total{status=\"success\"}[5m])) by (workflow_type) / sum(rate(kgas_workflow_executions_total[5m])) by (workflow_type) * 100",
+            "legendFormat": "{{workflow_type}} Success Rate",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "unit": "percent",
+            "min": 0,
+            "max": 100
+          }
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 8
+        }
+      },
+      {
+        "id": 4,
+        "title": "Concurrent Operations",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "kgas_concurrent_operations",
+            "legendFormat": "{{operation_type}}",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "unit": "short"
+          }
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 8
+        }
+      }
+    ]
+  }
+}

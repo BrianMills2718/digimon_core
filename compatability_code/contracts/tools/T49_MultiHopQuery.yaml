@@ -1,0 +1,151 @@
+name: T49_MultiHopQuery
+version: "1.0"
+description: "Executes multi-hop graph queries to find relationships and patterns"
+
+input_contract:
+  type: object
+  properties:
+    query:
+      type: string
+      minLength: 1
+      description: "Natural language query to execute"
+    start_entities:
+      type: array
+      items:
+        type: string
+      description: "Optional starting entities for traversal"
+    max_hops:
+      type: integer
+      minimum: 1
+      maximum: 5
+      default: 3
+      description: "Maximum number of hops in graph traversal"
+    query_type:
+      type: string
+      enum: ["path_finding", "pattern_matching", "subgraph_extraction", "similarity_search"]
+      default: "pattern_matching"
+    include_properties:
+      type: boolean
+      default: false
+      description: "Whether to include entity/edge properties in results"
+    neo4j_config:
+      type: object
+      properties:
+        uri:
+          type: string
+          pattern: "^bolt://"
+        database:
+          type: string
+          default: "neo4j"
+      required:
+        - uri
+  required:
+    - query
+
+output_contract:
+  type: object
+  properties:
+    results:
+      type: array
+      items:
+        type: object
+        properties:
+          result_type:
+            type: string
+            enum: ["path", "pattern", "subgraph", "entity"]
+          entities:
+            type: array
+            items:
+              type: object
+              properties:
+                entity_id:
+                  type: string
+                name:
+                  type: string
+                type:
+                  type: string
+                properties:
+                  type: object
+              required:
+                - entity_id
+                - name
+                - type
+          relationships:
+            type: array
+            items:
+              type: object
+              properties:
+                edge_id:
+                  type: string
+                source_entity_id:
+                  type: string
+                target_entity_id:
+                  type: string
+                relationship_type:
+                  type: string
+                properties:
+                  type: object
+              required:
+                - edge_id
+                - source_entity_id
+                - target_entity_id
+                - relationship_type
+          path:
+            type: array
+            description: "Ordered sequence of entity IDs forming a path"
+            items:
+              type: string
+          score:
+            type: number
+            minimum: 0
+            maximum: 1
+            description: "Relevance score for this result"
+        required:
+          - result_type
+    summary:
+      type: object
+      properties:
+        total_results:
+          type: integer
+          minimum: 0
+        query_type:
+          type: string
+        max_path_length:
+          type: integer
+          minimum: 0
+        unique_entities:
+          type: integer
+          minimum: 0
+        unique_relationships:
+          type: integer
+          minimum: 0
+        execution_strategy:
+          type: string
+          description: "Query execution strategy used"
+      required:
+        - total_results
+        - query_type
+        - unique_entities
+        - unique_relationships
+    execution_metadata:
+      type: object
+      properties:
+        tool_name:
+          type: string
+          const: "T49_MultiHopQuery"
+        execution_time:
+          type: number
+          minimum: 0
+        neo4j_connected:
+          type: boolean
+        cypher_queries_executed:
+          type: integer
+          minimum: 0
+      required:
+        - tool_name
+        - execution_time
+        - neo4j_connected
+  required:
+    - results
+    - summary
+    - execution_metadata

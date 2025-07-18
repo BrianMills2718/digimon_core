@@ -10,7 +10,6 @@ import time
 from pathlib import Path
 
 # Add src to path for imports
-sys.path.insert(0, str(Path(__file__).parent))
 
 def test_all_tools_updated():
     """Test all 29 MCP tools with updated implementations"""
@@ -23,7 +22,7 @@ def test_all_tools_updated():
     from src.core.provenance_service import ProvenanceService
     from src.core.quality_service import QualityService
     from src.core.workflow_state_service import WorkflowStateService
-    from src.tools.phase1.vertical_slice_workflow import VerticalSliceWorkflow
+    from src.core.pipeline_orchestrator import PipelineOrchestrator
     
     identity_service = IdentityService()
     provenance_service = ProvenanceService()

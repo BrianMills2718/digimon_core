@@ -10,7 +10,6 @@ import traceback
 from pathlib import Path
 
 # Add src to path
-sys.path.insert(0, str(Path(__file__).parent / "src"))
 
 def test_phase2_integration_fix():
     """Test Phase 2 integration with Neo4j relationship fix."""

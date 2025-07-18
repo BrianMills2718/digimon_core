@@ -1,0 +1,38 @@
+tool_id: PHASE1_TO_PHASE2_ADAPTER
+description: Transforms Phase 1 outputs (Chunks) into Phase 2 inputs for enhanced LLM-based entity extraction
+category: Adapter
+
+input_contract:
+  required_data_types:
+    - type: Chunk
+      attributes:
+        - content
+        - document_ref
+        - id
+        - object_type
+        - confidence
+  required_state:
+    chunks_created: true
+
+output_contract:
+  produced_data_types:
+    - type: TextForLLMProcessing
+      attributes:
+        - text_content
+        - chunk_id
+        - context
+        - processing_instructions
+        - metadata
+  produced_state:
+    data_transformed_for_phase2: true
+
+error_codes:
+  - code: INVALID_CHUNK_FORMAT
+    description: Input chunk data does not conform to expected format
+    severity: error
+  - code: TRANSFORMATION_ERROR
+    description: Error during data transformation process
+    severity: error
+  - code: TEXT_TOO_LONG
+    description: Transformed text exceeds maximum length for LLM processing
+    severity: warning

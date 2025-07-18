@@ -12,7 +12,6 @@ from pathlib import Path
 from datetime import datetime
 
 # Add src to path for imports
-sys.path.insert(0, str(Path(__file__).parent))
 
 def test_execute_pdf_to_answer_workflow():
     """Test execute_pdf_to_answer_workflow through the underlying vertical slice service"""
@@ -32,7 +31,7 @@ def test_execute_pdf_to_answer_workflow():
         # Step 1: Import and initialize the vertical slice workflow
         print(f"\n📍 Step 1: Initializing vertical slice workflow...")
         
-        from src.tools.phase1.vertical_slice_workflow import VerticalSliceWorkflow
+        from src.core.pipeline_orchestrator import PipelineOrchestrator
         
         workflow_storage_dir = "./data/workflows"
         vertical_slice = VerticalSliceWorkflow(workflow_storage_dir=workflow_storage_dir)

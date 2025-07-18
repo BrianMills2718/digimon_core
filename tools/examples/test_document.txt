@@ -1,0 +1,13 @@
+Test Document for GraphRAG System
+
+Apple Inc. is a technology company based in California.
+The company was founded by Steve Jobs and Steve Wozniak.
+Microsoft Corporation is another major technology company.
+Google LLC operates from Mountain View, California.
+
+These companies have various relationships and partnerships.
+Apple and Microsoft compete in the personal computer market.
+Google and Apple both develop mobile operating systems.
+
+This document contains entities and relationships for testing.
+EOF < /dev/null

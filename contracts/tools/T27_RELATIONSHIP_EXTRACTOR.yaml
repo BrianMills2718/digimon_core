@@ -1,0 +1,30 @@
+tool_id: "T27_RELATIONSHIP_EXTRACTOR"
+description: "Extracts relationships between entities from text chunks"
+category: "Processing"
+
+input_contract:
+  required_data_types:
+    - type: "Entity"
+      attributes: ["text", "entity_type", "chunk_id"]
+    - type: "Chunk"
+      attributes: ["text", "chunk_id"]
+  required_state:
+    entities_extracted: true
+
+output_contract:
+  produced_data_types:
+    - type: "Relationship"
+      attributes: ["source", "target", "relationship_type", "confidence", "context"]
+  produced_state:
+    relationships_extracted: true
+
+error_codes:
+  - code: "RELATIONSHIP_EXTRACTION_ERROR"
+    description: "Failed to extract relationships from text"
+    severity: "error"
+  - code: "INSUFFICIENT_ENTITIES"
+    description: "Not enough entities found to extract relationships"
+    severity: "warning"
+  - code: "INVALID_ENTITY_DATA"
+    description: "Entity data is malformed or missing required attributes"
+    severity: "error"

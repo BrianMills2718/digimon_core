@@ -1,0 +1,5 @@
+# Gemini Code Review Configuration
+# This file is automatically detected by the gemini-review tool.
+
+# Enable compression to reduce token usage for large directories.
+compress_code: true 

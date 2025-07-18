@@ -42,14 +42,22 @@ class EdgeBuilder(BaseNeo4jTool):
     
     def __init__(
         self,
-        identity_service: IdentityService,
-        provenance_service: ProvenanceService,
-        quality_service: QualityService,
-        neo4j_uri: str = "bolt://localhost:7687",
-        neo4j_user: str = "neo4j",
-        neo4j_password: str = "password",
+        identity_service: Optional[IdentityService] = None,
+        provenance_service: Optional[ProvenanceService] = None,
+        quality_service: Optional[QualityService] = None,
+        neo4j_uri: str = None,
+        neo4j_user: str = None,
+        neo4j_password: str = None,
         shared_driver: Optional[Driver] = None
     ):
+        # Allow tools to work standalone for testing
+        if identity_service is None:
+            from src.core.service_manager import ServiceManager
+            service_manager = ServiceManager()
+            identity_service = service_manager.get_identity_service()
+            provenance_service = service_manager.get_provenance_service()
+            quality_service = service_manager.get_quality_service()
+        
         # Initialize base class with shared driver
         super().__init__(
             identity_service=identity_service,
@@ -72,13 +80,15 @@ class EdgeBuilder(BaseNeo4jTool):
     def build_edges(
         self,
         relationships: List[Dict[str, Any]],
-        source_refs: List[str]
+        source_refs: List[str],
+        entity_verification_required: bool = True
     ) -> Dict[str, Any]:
         """Build relationship edges in Neo4j from extracted relationships.
         
         Args:
             relationships: List of relationships from T27
             source_refs: List of source references (chunks, documents)
+            entity_verification_required: Whether to verify all entities exist before creating relationships
             
         Returns:
             List of created edges with Neo4j references
@@ -108,6 +118,15 @@ class EdgeBuilder(BaseNeo4jTool):
             driver_error = Neo4jErrorHandler.check_driver_available(self.driver)
             if driver_error:
                 return self._complete_with_neo4j_error(operation_id, driver_error)
+            
+            # Verify all required entities exist before creating any relationships
+            if entity_verification_required:
+                verification_result = self._verify_entities_exist(relationships)
+                if not verification_result["all_entities_found"]:
+                    return self._complete_with_error(
+                        operation_id,
+                        f"Cannot create relationships - missing entities: {verification_result['missing_entities']}"
+                    )
             
             # Build edges
             created_edges = []
@@ -200,9 +219,10 @@ class EdgeBuilder(BaseNeo4jTool):
                 # Calculate edge weight
                 weight = self._calculate_edge_weight(relationship)
                 
-                # Prepare relationship properties
+                # Prepare relationship properties with schema-compliant naming
                 properties = {
                     "relationship_id": relationship["relationship_id"],
+                    "relationship_type": relationship["relationship_type"],  # Schema expects this property
                     "weight": weight,
                     "confidence": relationship["confidence"],
                     "extraction_method": relationship.get("extraction_method", "unknown"),
@@ -218,13 +238,34 @@ class EdgeBuilder(BaseNeo4jTool):
                 if relationship.get("entity_distance"):
                     properties["entity_distance"] = relationship["entity_distance"]
                 
-                # Create Cypher query to link entities
+                # First, verify both entities exist
+                entity_check_cypher = """
+                MATCH (subject:Entity {entity_id: $subject_id})
+                MATCH (object:Entity {entity_id: $object_id})
+                RETURN count(subject) > 0 AND count(object) > 0 as entities_exist
+                """
+                
+                entity_check_result = session.run(
+                    entity_check_cypher,
+                    subject_id=relationship["subject_entity_id"],
+                    object_id=relationship["object_entity_id"]
+                )
+                entity_check_record = entity_check_result.single()
+                
+                if not entity_check_record or not entity_check_record["entities_exist"]:
+                    return {
+                        "status": "error",
+                        "error": f"Required entities not found: subject={relationship['subject_entity_id']}, object={relationship['object_entity_id']}"
+                    }
+                
+                # Create Cypher query to link entities with standardized relationship type
+                # Schema expects all relationships to be of type RELATED_TO with relationship_type property
                 cypher = """
                 MATCH (subject:Entity {entity_id: $subject_id})
                 MATCH (object:Entity {entity_id: $object_id})
-                CREATE (subject)-[r:%s $properties]->(object)
+                CREATE (subject)-[r:RELATED_TO $properties]->(object)
                 RETURN elementId(r) as neo4j_rel_id, r
-                """ % self._sanitize_relationship_type(relationship["relationship_type"])
+                """
                 
                 result = session.run(
                     cypher,
@@ -244,11 +285,63 @@ class EdgeBuilder(BaseNeo4jTool):
                 else:
                     return {
                         "status": "error",
-                        "error": "Failed to create Neo4j relationship - entities may not exist"
+                        "error": "Failed to create Neo4j relationship - entities exist but relationship creation failed"
                     }
                     
         except Exception as e:
             return Neo4jErrorHandler.create_operation_error("create_relationship_edge", e)
+    
+    def _verify_entities_exist(self, relationships: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """Verify all required entities exist in Neo4j before proceeding with relationships
+        
+        Args:
+            relationships: List of relationships to verify entities for
+            
+        Returns:
+            Dictionary with verification results
+        """
+        # Check Neo4j availability
+        driver_error = Neo4jErrorHandler.check_driver_available(self.driver)
+        if driver_error:
+            return {"all_entities_found": False, "reason": "Neo4j unavailable"}
+        
+        try:
+            # Collect all unique entity IDs from relationships
+            required_entities = set()
+            for rel in relationships:
+                subject_id = rel.get("subject_entity_id")
+                object_id = rel.get("object_entity_id")
+                if subject_id:
+                    required_entities.add(subject_id)
+                if object_id:
+                    required_entities.add(object_id)
+            
+            if not required_entities:
+                return {"all_entities_found": True, "missing_entities": []}
+            
+            # Check which entities exist in Neo4j
+            with self.driver.session() as session:
+                # Use parameterized query to check all entities at once
+                entity_check_cypher = """
+                UNWIND $entity_ids AS entity_id
+                MATCH (e:Entity {entity_id: entity_id})
+                RETURN entity_id
+                """
+                
+                result = session.run(entity_check_cypher, entity_ids=list(required_entities))
+                found_entities = set(record["entity_id"] for record in result)
+                
+                missing_entities = required_entities - found_entities
+                
+                return {
+                    "all_entities_found": len(missing_entities) == 0,
+                    "missing_entities": list(missing_entities),
+                    "found_count": len(found_entities),
+                    "total_count": len(required_entities)
+                }
+                
+        except Exception as e:
+            return {"all_entities_found": False, "reason": f"Verification error: {e}"}
     
     def _calculate_edge_weight(self, relationship: Dict[str, Any]) -> float:
         """Calculate edge weight from relationship confidence and other factors."""
@@ -539,6 +632,80 @@ class EdgeBuilder(BaseNeo4jTool):
         }
     
     
+    def create_relationship_with_schema(self, rel_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Create relationship with proper schema compliance - simplified interface for workflow."""
+        # Check Neo4j availability
+        driver_error = Neo4jErrorHandler.check_driver_available(self.driver)
+        if driver_error:
+            return driver_error
+        
+        try:
+            with self.driver.session() as session:
+                # Prepare relationship properties with UI-expected schema
+                properties = {
+                    "relation_type": rel_data.get('type', 'RELATED'),  # UI expects this property
+                    "weight": rel_data.get('weight', 1.0),
+                    "confidence": rel_data.get('confidence', 0.0),
+                    "created_at": datetime.now().isoformat()
+                }
+                
+                # Create Cypher query with proper schema compliance
+                cypher = """
+                MATCH (subject:Entity {entity_id: $subject_id})
+                MATCH (object:Entity {entity_id: $object_id})
+                CREATE (subject)-[r:RELATIONSHIP $properties]->(object)
+                RETURN elementId(r) as neo4j_rel_id, r
+                """
+                
+                result = session.run(
+                    cypher,
+                    subject_id=rel_data.get('source_id'),
+                    object_id=rel_data.get('target_id'),
+                    properties=properties
+                )
+                record = result.single()
+                
+                if record:
+                    return {
+                        "status": "success",
+                        "neo4j_rel_id": record["neo4j_rel_id"],
+                        "properties": dict(record["r"])
+                    }
+                else:
+                    return {
+                        "status": "error",
+                        "error": "Failed to create Neo4j relationship - entities may not exist"
+                    }
+                    
+        except Exception as e:
+            return Neo4jErrorHandler.create_operation_error("create_relationship_with_schema", e)
+
+    def execute(self, input_data: Any, context: Optional[Dict] = None) -> Dict[str, Any]:
+        """Execute the edge builder tool - standardized interface required by tool factory"""
+        if isinstance(input_data, dict):
+            # Extract required parameters
+            relationship_refs = input_data.get("relationship_refs", [])
+            relationships = input_data.get("relationships", [])
+            workflow_id = input_data.get("workflow_id", "default")
+        elif isinstance(input_data, list):
+            # Input is list of relationships
+            relationships = input_data
+            relationship_refs = []
+            workflow_id = "default"
+        else:
+            return {
+                "status": "error",
+                "error": "Input must be list of relationships or dict with 'relationships' key"
+            }
+            
+        if not relationships:
+            return {
+                "status": "error",
+                "error": "No relationships provided for edge building"
+            }
+            
+        return self.build_edges(relationship_refs, relationships, workflow_id)
+
     def get_tool_info(self) -> Dict[str, Any]:
         """Get tool information."""
         return {

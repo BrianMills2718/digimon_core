@@ -42,14 +42,22 @@ class MultiHopQueryEngine(BaseNeo4jTool):
     
     def __init__(
         self,
-        identity_service: IdentityService,
-        provenance_service: ProvenanceService,
-        quality_service: QualityService,
-        neo4j_uri: str = "bolt://localhost:7687",
-        neo4j_user: str = "neo4j",
-        neo4j_password: str = "password",
+        identity_service: Optional[IdentityService] = None,
+        provenance_service: Optional[ProvenanceService] = None,
+        quality_service: Optional[QualityService] = None,
+        neo4j_uri: str = None,
+        neo4j_user: str = None,
+        neo4j_password: str = None,
         shared_driver: Optional[Driver] = None
     ):
+        # Allow tools to work standalone for testing
+        if identity_service is None:
+            from src.core.service_manager import ServiceManager
+            service_manager = ServiceManager()
+            identity_service = service_manager.get_identity_service()
+            provenance_service = service_manager.get_provenance_service()
+            quality_service = service_manager.get_quality_service()
+        
         super().__init__(
             identity_service=identity_service,
             provenance_service=provenance_service,
@@ -75,6 +83,28 @@ class MultiHopQueryEngine(BaseNeo4jTool):
         """Execute multi-hop query."""
         return self.query_engine.query_graph(query_text, **kwargs)
     
+    def execute(self, input_data: Any, context: Optional[Dict] = None) -> Dict[str, Any]:
+        """Execute the multihop query engine - standardized interface required by tool factory"""
+        if isinstance(input_data, str):
+            # Input is a query string
+            query_text = input_data
+        elif isinstance(input_data, dict):
+            # Extract query from structured input
+            query_text = input_data.get("query", input_data.get("query_text", ""))
+        else:
+            return {
+                "status": "error",
+                "error": "Input must be a query string or dict with 'query' key"
+            }
+            
+        if not query_text:
+            return {
+                "status": "error",
+                "error": "No query text provided"
+            }
+            
+        return self.query_graph(query_text)
+
     def get_tool_info(self) -> Dict[str, Any]:
         """Get tool information."""
         return self.query_engine.get_tool_info()
@@ -84,14 +114,22 @@ class MultiHopQuery(BaseNeo4jTool):
     
     def __init__(
         self,
-        identity_service: IdentityService,
-        provenance_service: ProvenanceService,
-        quality_service: QualityService,
-        neo4j_uri: str = "bolt://localhost:7687",
-        neo4j_user: str = "neo4j",
-        neo4j_password: str = "password",
+        identity_service: Optional[IdentityService] = None,
+        provenance_service: Optional[ProvenanceService] = None,
+        quality_service: Optional[QualityService] = None,
+        neo4j_uri: str = None,
+        neo4j_user: str = None,
+        neo4j_password: str = None,
         shared_driver: Optional[Driver] = None
     ):
+        # Allow tools to work standalone for testing
+        if identity_service is None:
+            from src.core.service_manager import ServiceManager
+            service_manager = ServiceManager()
+            identity_service = service_manager.get_identity_service()
+            provenance_service = service_manager.get_provenance_service()
+            quality_service = service_manager.get_quality_service()
+        
         # Initialize base class with shared driver
         super().__init__(
             identity_service=identity_service,
@@ -605,6 +643,28 @@ class MultiHopQuery(BaseNeo4jTool):
         }
     
     
+    def execute(self, input_data: Any, context: Optional[Dict] = None) -> Dict[str, Any]:
+        """Execute the multihop query - standardized interface required by tool factory"""
+        if isinstance(input_data, str):
+            # Input is a query string
+            query_text = input_data
+        elif isinstance(input_data, dict):
+            # Extract query from structured input
+            query_text = input_data.get("query", input_data.get("query_text", ""))
+        else:
+            return {
+                "status": "error",
+                "error": "Input must be a query string or dict with 'query' key"
+            }
+            
+        if not query_text:
+            return {
+                "status": "error",
+                "error": "No query text provided"
+            }
+            
+        return self.query_graph(query_text)
+
     def get_tool_info(self) -> Dict[str, Any]:
         """Get tool information."""
         return {

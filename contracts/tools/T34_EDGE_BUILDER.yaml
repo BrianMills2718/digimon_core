@@ -1,0 +1,31 @@
+tool_id: "T34_EDGE_BUILDER"
+description: "Builds and persists relationship edges in Neo4j graph database"
+category: "Construction"
+
+input_contract:
+  required_data_types:
+    - type: "Relationship"
+      attributes: ["source", "target", "relationship_type", "confidence"]
+    - type: "Entity"
+      attributes: ["entity_id", "canonical_name"]
+  required_state:
+    entities_built: true
+    relationships_extracted: true
+
+output_contract:
+  produced_data_types:
+    - type: "Relationship"
+      attributes: ["relationship_id", "source_id", "target_id", "relationship_type", "neo4j_id"]
+  produced_state:
+    edges_built: true
+
+error_codes:
+  - code: "DATABASE_CONNECTION_ERROR"
+    description: "Failed to connect to Neo4j database"
+    severity: "error"
+  - code: "EDGE_BUILD_ERROR"
+    description: "Failed to create relationship edge in database"
+    severity: "error"
+  - code: "MISSING_ENTITY_ERROR"
+    description: "Source or target entity not found in database"
+    severity: "error"

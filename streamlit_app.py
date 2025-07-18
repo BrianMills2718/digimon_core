@@ -13,16 +13,19 @@ from dataclasses import dataclass, asdict
 import plotly.graph_objects as go
 import networkx as nx
 import os
-import sys
 
-# Add project root to path
-sys.path.insert(0, str(Path(__file__).parent))
+# Project root is now available via editable install - no sys.path manipulation needed
 
-# Import ontology components
+# Import ontology components and configuration
 try:
     from src.ontology.gemini_ontology_generator import GeminiOntologyGenerator
     from src.core.ontology_storage_service import OntologyStorageService, OntologySession
-    USE_REAL_GEMINI = bool(os.getenv("GOOGLE_API_KEY"))
+    from src.core.config import ConfigurationManager
+    
+    # Use configuration instead of direct env access
+    config_manager = ConfigurationManager()
+    config = config_manager.get_config()
+    USE_REAL_GEMINI = bool(getattr(config.api, 'google_api_key', None))
 except ImportError:
     USE_REAL_GEMINI = False
 
@@ -187,8 +190,8 @@ def domain_to_ui_ontology(domain_ont: DomainOntology) -> Ontology:
             description=rt.description,
             source_types=rt.source_types,
             target_types=rt.target_types,
-            cardinality="many-to-many",
-            properties=[]
+            examples=rt.examples,
+            properties=rt.properties
         ))
     
     return Ontology(
@@ -777,8 +780,7 @@ def process_user_input(user_input: str):
         # Add assistant response
         st.session_state.messages.append({"role": "assistant", "content": response})
     
-    # Clear input
-    st.session_state.user_input = ""
+    # Clear input - use rerun to reset form
     st.rerun()
 
 def save_to_history(ontology: Ontology):

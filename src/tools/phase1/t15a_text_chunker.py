@@ -32,13 +32,21 @@ class TextChunker:
     
     def __init__(
         self,
-        identity_service: IdentityService,
-        provenance_service: ProvenanceService,
-        quality_service: QualityService
+        identity_service: IdentityService = None,
+        provenance_service: ProvenanceService = None,
+        quality_service: QualityService = None
     ):
-        self.identity_service = identity_service
-        self.provenance_service = provenance_service
-        self.quality_service = quality_service
+        # Allow tools to work standalone for testing
+        if identity_service is None:
+            from src.core.service_manager import ServiceManager
+            service_manager = ServiceManager()
+            self.identity_service = service_manager.get_identity_service()
+            self.provenance_service = service_manager.get_provenance_service()
+            self.quality_service = service_manager.get_quality_service()
+        else:
+            self.identity_service = identity_service
+            self.provenance_service = provenance_service
+            self.quality_service = quality_service
         self.tool_id = "T15A_TEXT_CHUNKER"
         
         # Chunking parameters (minimal implementation)
@@ -324,6 +332,32 @@ class TextChunker:
             "total_text_length": sum(text_lengths)
         }
     
+    def execute(self, input_data: Any, context: Optional[Dict] = None) -> Dict[str, Any]:
+        """Execute the text chunker tool - standardized interface required by tool factory"""
+        if isinstance(input_data, dict):
+            # Extract required parameters
+            document_ref = input_data.get("document_ref")
+            text = input_data.get("text")
+            document_confidence = input_data.get("document_confidence", 0.8)
+        elif isinstance(input_data, str):
+            # Input is just text, create basic reference
+            text = input_data
+            document_ref = f"doc_{uuid.uuid4().hex[:8]}"
+            document_confidence = 0.8
+        else:
+            return {
+                "status": "error",
+                "error": "Input must be a string (text) or dict with 'text' and 'document_ref' keys"
+            }
+            
+        if not text:
+            return {
+                "status": "error",
+                "error": "No text provided for chunking"
+            }
+            
+        return self.chunk_text(document_ref, text, document_confidence)
+
     def get_tool_info(self) -> Dict[str, Any]:
         """Get tool information."""
         return {

@@ -9,10 +9,13 @@ import json
 import time
 import os
 from pathlib import Path
+from datetime import datetime
+import traceback
 
 # Add src to path for imports
-sys.path.insert(0, str(Path(__file__).parent))
-sys.path.insert(0, str(Path(__file__).parent / "src"))
+src_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../src'))
+if src_path not in sys.path:
+    sys.path.insert(0, src_path)
 
 def test_execute_pdf_to_answer_workflow():
     """Test execute_pdf_to_answer_workflow with a real PDF"""

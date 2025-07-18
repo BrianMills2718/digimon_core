@@ -19,8 +19,7 @@ from dataclasses import dataclass, asdict
 import tempfile
 import uuid
 
-# Add project root to path
-sys.path.insert(0, str(Path(__file__).parent.parent))
+# Project root is now available via editable install - no sys.path manipulation needed
 
 # Global availability flags - set properly at module level
 PHASE1_AVAILABLE = True  # Always available
@@ -155,7 +154,7 @@ def render_system_status():
         # Phase 2 - lightweight check without importing
         global PHASE2_AVAILABLE
         try:
-            from src.tools.phase2.enhanced_vertical_slice_workflow import EnhancedVerticalSliceWorkflow
+            from src.core.tool_factory import create_unified_workflow_config, Phase, OptimizationLevel
             st.markdown('✅ <span class="status-available">Phase 2: Ontology System</span>', unsafe_allow_html=True)
             PHASE2_AVAILABLE = True
         except ImportError as e:
@@ -313,8 +312,13 @@ def _get_phase1_workflow():
     global _phase1_workflow
     if _phase1_workflow is None:
         try:
-            from src.tools.phase1.vertical_slice_workflow import VerticalSliceWorkflow
-            _phase1_workflow = VerticalSliceWorkflow()
+            from src.core.pipeline_orchestrator import PipelineOrchestrator
+            from src.core.tool_factory import create_unified_workflow_config, Phase, OptimizationLevel
+            from src.core.config_manager import ConfigManager
+            
+            config_manager = ConfigManager()
+            _phase1_workflow_config = create_unified_workflow_config(phase=Phase.PHASE1, optimization_level=OptimizationLevel.STANDARD)
+            _phase1_workflow = PipelineOrchestrator(_phase1_workflow_config, config_manager)
         except ImportError as e:
             raise Exception(f"❌ Phase 1 not available: {e}")
     return _phase1_workflow
@@ -328,22 +332,21 @@ def process_with_phase1(file_path: str, filename: str) -> DocumentProcessingResu
         query = "What are the main entities and relationships in this document?"
         
         # Run the workflow
-        result = workflow.execute_workflow(file_path, query, f"UI_Test_{filename}")
+        result = workflow.execute([file_path], [query])
         
-        # Extract data from workflow steps, even if final status is "failed"
+        # Extract data from unified orchestrator results
         entities = []
         relationships = []
         
-        # The workflow steps contain the actual extracted data
-        steps = result.get("steps", {})
+        # The new orchestrator returns results in final_result section
+        final_result = result.get("final_result", {})
         
-        # Get entity extraction results
-        entity_extraction = steps.get("entity_extraction", {})
-        total_entities = entity_extraction.get("total_entities", 0)
+        # Get entity and relationship data directly from final_result
+        entities_data = final_result.get("entities", [])
+        relationships_data = final_result.get("relationships", [])
         
-        # Get relationship extraction results  
-        relationship_extraction = steps.get("relationship_extraction", {})
-        total_relationships = relationship_extraction.get("total_relationships", 0)
+        total_entities = len(entities_data)
+        total_relationships = len(relationships_data)
         
         print(f"DEBUG: Entity extraction step found {total_entities} entities")
         print(f"DEBUG: Relationship extraction step found {total_relationships} relationships")
@@ -351,52 +354,41 @@ def process_with_phase1(file_path: str, filename: str) -> DocumentProcessingResu
         if result.get("error"):
             print(f"DEBUG: Workflow error: {result.get('error')}")
         
-        # Use the counts from the extraction steps, not final aggregated results
+        # Use the counts from the orchestrator results
         entities_found = total_entities
         relationships_found = total_relationships
         
-        # If still 0, check if extraction steps actually failed
+        # If still 0, check if workflow actually failed
         if entities_found == 0 and relationships_found == 0:
-            entity_status = entity_extraction.get("status", "unknown")
-            rel_status = relationship_extraction.get("status", "unknown")
-            if entity_status == "failed" or rel_status == "failed":
-                raise Exception(f"Entity extraction ({entity_status}) or relationship extraction ({rel_status}) failed")
+            workflow_status = result.get("status", "unknown")
+            if workflow_status == "failed":
+                error_msg = result.get("error_message", "Unknown error")
+                raise Exception(f"Workflow failed: {error_msg}")
             else:
                 print("WARNING: Document may be empty or extraction found nothing (not necessarily an error)")
         
-        # Query Neo4j for the actual extracted entities and relationships
-        # The workflow stores data in Neo4j even if PageRank fails
-        try:
-            from py2neo import Graph
-            graph = Graph(uri="bolt://localhost:7687", auth=None)
-            
-            # Query for entities (limit to recent ones from this document)
-            entity_query = """
-            MATCH (e:Entity) 
-            RETURN e.id as id, e.canonical_name as name, e.entity_type as type
-            ORDER BY e.created_at DESC 
-            LIMIT $limit
-            """
-            entity_results = graph.run(entity_query, limit=entities_found*2).data()
-            entities = entity_results[:entities_found] if entity_results else []
-            
-            # Query for relationships
-            rel_query = """
-            MATCH (a:Entity)-[r:RELATIONSHIP]->(b:Entity)
-            RETURN a.id as source, b.id as target, r.relation_type as type
-            ORDER BY r.created_at DESC
-            LIMIT $limit
-            """
-            rel_results = graph.run(rel_query, limit=relationships_found*2).data()
-            relationships = rel_results[:relationships_found] if rel_results else []
-            
-            print(f"DEBUG: Retrieved {len(entities)} entities and {len(relationships)} relationships from Neo4j")
-            
-        except Exception as e:
-            print(f"DEBUG: Could not query Neo4j for actual data: {e}")
-            # If we can't query Neo4j, we'll show the counts but no visualization
-            entities = []
-            relationships = []
+        # Use the actual entity and relationship data from the orchestrator
+        # The new orchestrator returns the actual data, not just counts
+        entities = []
+        relationships = []
+        
+        # Convert entities to UI format
+        for entity in entities_data:
+            entities.append({
+                "id": entity.get("entity_id", entity.get("id", "unknown")),
+                "name": entity.get("canonical_name", entity.get("surface_form", entity.get("name", "unknown"))),
+                "type": entity.get("entity_type", entity.get("type", "UNKNOWN"))
+            })
+        
+        # Convert relationships to UI format
+        for rel in relationships_data:
+            relationships.append({
+                "source": rel.get("subject_entity_id", rel.get("source_id", "unknown")),
+                "target": rel.get("object_entity_id", rel.get("target_id", "unknown")),
+                "type": rel.get("relationship_type", rel.get("type", "RELATED"))
+            })
+        
+        print(f"DEBUG: Converted {len(entities)} entities and {len(relationships)} relationships for UI display")
         
         # Create enhanced graph data with actual entities and relationships
         enhanced_graph_data = {
@@ -429,8 +421,13 @@ def _get_phase2_workflow():
     global _phase2_workflow
     if _phase2_workflow is None:
         try:
-            from src.tools.phase2.enhanced_vertical_slice_workflow import EnhancedVerticalSliceWorkflow
-            _phase2_workflow = EnhancedVerticalSliceWorkflow()
+            from src.core.pipeline_orchestrator import PipelineOrchestrator
+            from src.core.tool_factory import create_unified_workflow_config, Phase, OptimizationLevel
+            from src.core.config_manager import ConfigManager
+            
+            config_manager = ConfigManager()
+            _phase2_workflow_config = create_unified_workflow_config(phase=Phase.PHASE2, optimization_level=OptimizationLevel.ENHANCED)
+            _phase2_workflow = PipelineOrchestrator(_phase2_workflow_config, config_manager)
         except ImportError as e:
             raise Exception(f"❌ Phase 2 not available: {e}")
     return _phase2_workflow
@@ -443,7 +440,7 @@ def process_with_phase2(file_path: str, filename: str) -> DocumentProcessingResu
         # Use ontology-aware processing
         query = "What are the main entities and relationships in this document?"
         
-        result = workflow.execute_enhanced_workflow(file_path, query, f"UI_Enhanced_{filename}")
+        result = workflow.execute([file_path], [query])
         
         entities_found = len(result.get("entities", []))
         relationships_found = len(result.get("relationships", []))
@@ -563,19 +560,127 @@ def render_query_interface():
     """Render query testing interface"""
     st.header("🔍 Query Testing")
     
-    st.error("❌ QUERY INTERFACE NOT IMPLEMENTED")
-    st.error("Real graph database querying requires:")
-    st.error("• Integration with Neo4j graph database")
-    st.error("• SQLite backend connection") 
-    st.error("• Actual query processing pipeline")
-    st.error("This tab is disabled until real implementation is complete")
+    # Check if we have processed documents
+    if not st.session_state.processing_history:
+        st.warning("⚠️ No documents processed yet. Process some documents first to enable querying.")
+        return
+    
+    # Query input
+    st.subheader("📝 Enter Your Query")
+    query = st.text_input(
+        "Query:",
+        placeholder="What entities are mentioned in the document? Who works for Tesla?",
+        help="Enter a natural language query about the processed documents"
+    )
+    
+    # Document selection
+    st.subheader("📄 Select Documents to Query")
+    available_docs = []
+    for result in st.session_state.processing_history:
+        if hasattr(result, 'filename') and result.filename:
+            available_docs.append(result.filename)
+    
+    if available_docs:
+        selected_docs = st.multiselect(
+            "Documents:",
+            available_docs,
+            default=available_docs[-1:] if available_docs else [],
+            help="Select which documents to query against"
+        )
+    else:
+        st.error("No documents available for querying")
+        return
+    
+    # Execute query button
+    if st.button("🔍 Execute Query", disabled=not query or not selected_docs):
+        execute_query(query, selected_docs)
 
-def execute_query(query: str):
+def execute_query(query: str, selected_docs: List[str]):
     """Execute a query against the processed documents"""
-    st.error("❌ QUERY FUNCTIONALITY NOT IMPLEMENTED")
-    st.error("Real graph database querying requires integration with Neo4j/SQLite backends")
-    st.error("This feature is disabled until actual query implementation is complete")
-    st.stop()
+    
+    with st.spinner("🔍 Executing query..."):
+        try:
+            # Import the workflow here to avoid circular imports
+            from src.core.pipeline_orchestrator import PipelineOrchestrator
+            from src.core.tool_factory import create_unified_workflow_config, Phase, OptimizationLevel
+            from src.core.config_manager import ConfigManager
+            
+            # Initialize workflow
+            config_manager = ConfigManager()
+            config = create_unified_workflow_config(phase=Phase.PHASE1, optimization_level=OptimizationLevel.STANDARD)
+            workflow = PipelineOrchestrator(config, config_manager)
+            
+            # Execute workflow with the query
+            result = workflow.execute(selected_docs, [query])
+            
+            # Display results
+            if result.get("status") == "success":
+                st.success("✅ Query executed successfully!")
+                
+                # Show query results
+                st.subheader("📊 Query Results")
+                
+                final_result = result.get("final_result", {})
+                query_results = final_result.get("query_results", [])
+                
+                if query_results:
+                    for i, query_result in enumerate(query_results, 1):
+                        with st.expander(f"🔍 Query {i}: {query_result.get('query', 'N/A')}", expanded=True):
+                            
+                            # Show direct answers
+                            if query_result.get("results"):
+                                st.markdown("**📋 Direct Answers:**")
+                                for j, answer in enumerate(query_result["results"][:5], 1):
+                                    st.write(f"{j}. **{answer.get('answer_entity', 'N/A')}**")
+                                    st.write(f"   Confidence: {answer.get('confidence', 0):.2f}")
+                                    if "evidence" in answer:
+                                        st.write(f"   Evidence: {answer['evidence'][:200]}...")
+                            else:
+                                st.info("No direct answers found.")
+                            
+                            # Show top entities
+                            if query_result.get("top_entities"):
+                                st.markdown("**🏆 Top Entities by PageRank:**")
+                                entity_data = []
+                                for entity in query_result["top_entities"][:10]:
+                                    entity_data.append({
+                                        "Entity": entity.get('name', 'N/A'),
+                                        "Type": entity.get('type', 'UNK'),
+                                        "PageRank Score": f"{entity.get('pagerank_score', 0):.4f}"
+                                    })
+                                
+                                if entity_data:
+                                    st.dataframe(pd.DataFrame(entity_data), use_container_width=True)
+                
+                # Show general extraction results
+                st.subheader("📈 Extraction Summary")
+                col1, col2 = st.columns(2)
+                
+                with col1:
+                    entities = final_result.get("entities", [])
+                    st.metric("Entities Found", len(entities))
+                    
+                with col2:
+                    relationships = final_result.get("relationships", [])
+                    st.metric("Relationships Found", len(relationships))
+                
+                # Store results in session state for later use
+                st.session_state.query_results.append({
+                    "query": query,
+                    "documents": selected_docs,
+                    "result": result,
+                    "timestamp": datetime.now().isoformat()
+                })
+                
+            else:
+                st.error(f"❌ Query failed: {result.get('error', 'Unknown error')}")
+                if "traceback" in result:
+                    with st.expander("🔧 Debug Information"):
+                        st.code(result["traceback"])
+                        
+        except Exception as e:
+            st.error(f"❌ Error executing query: {str(e)}")
+            st.exception(e)
 
 def render_graph_visualization():
     """Render graph visualization"""
@@ -859,9 +964,10 @@ def main():
     
     # Main content tabs - disable non-functional ones
     if st.session_state.processing_history:
-        tab1, tab2, tab3, tab4 = st.tabs([
+        tab1, tab2, tab3, tab4, tab5 = st.tabs([
             "📄 Document Processing",
             "🕸️ Graph Visualization",
+            "🔍 Query Interface",
             "⚡ Phase Comparison", 
             "📤 Export & Tools"
         ])
@@ -876,9 +982,12 @@ def main():
                 st.info("Graph visualization disabled in settings")
         
         with tab3:
-            render_phase_comparison()
+            render_query_interface()
         
         with tab4:
+            render_phase_comparison()
+        
+        with tab5:
             render_export_tools()
     else:
         # Only show document processing until something is processed

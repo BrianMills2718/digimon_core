@@ -1,0 +1,78 @@
+tool_id: T23A_SPACY_NER
+description: Extracts named entities from text chunks using SpaCy NLP models, aligning with master concept library
+category: EntityRecognition
+
+input_contract:
+  required_data_types:
+    - type: Chunk
+      attributes:
+        - content
+        - id
+        - document_ref
+  required_state:
+    chunks_created: true
+
+output_contract:
+  produced_data_types:
+    - type: Entity
+      attributes:
+        - canonical_name
+        - entity_type  # Must be valid type from master concept library (e.g., IndividualActor, Institution)
+        - surface_forms
+        - id
+        - object_type
+        - confidence
+        - quality_tier
+        - properties    # Properties from master concept library
+        - modifiers     # Modifiers from master concept library
+      validation:
+        entity_type:
+          constraint: "must_exist_in_ontology"
+          ontology_category: "Entity"
+        properties:
+          constraint: "keys_must_be_valid_properties"
+          applicable_to: "entity_type"
+        modifiers:
+          constraint: "keys_must_be_valid_modifiers"
+          applicable_to: "entity_type"
+  produced_state:
+    entities_extracted: true
+
+# Master concept library integration
+ontology_integration:
+  entity_type_mapping:
+    # SpaCy NER types to Master Concept Library entity types
+    PERSON: "IndividualActor"
+    ORG: "Institution"
+    GPE: "SocialGroup"  # Geopolitical entities as social groups
+    LOC: "Location"     # Would need to add to master library
+    DATE: "temporal_phase"  # Maps to modifier
+    EVENT: "Event"
+  
+  default_properties:
+    IndividualActor:
+      - source_credibility
+      - confidence_level
+    Institution:
+      - legitimacy
+      - power_type
+    SocialGroup:
+      - group_cohesion
+      - network_density
+  
+  default_modifiers:
+    all:
+      - certainty_level
+      - temporal_phase
+      - source_attribution
+
+error_codes:
+  - code: SPACY_MODEL_ERROR
+    description: SpaCy model failed to load or process text
+    severity: error
+  - code: UNKNOWN_ENTITY_TYPE
+    description: SpaCy produced entity type not mapped to master concept library
+    severity: warning
+  - code: INVALID_ONTOLOGY_MAPPING
+    description: Entity type or property not found in master concept library
+    severity: error

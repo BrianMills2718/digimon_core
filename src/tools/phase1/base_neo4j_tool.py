@@ -12,10 +12,12 @@ try:
     from src.core.identity_service import IdentityService
     from src.core.provenance_service import ProvenanceService
     from src.core.quality_service import QualityService
+    from src.core.config import ConfigurationManager
 except ImportError:
     from core.identity_service import IdentityService
     from core.provenance_service import ProvenanceService
     from core.quality_service import QualityService
+    from core.config import ConfigurationManager
 
 
 class BaseNeo4jTool:
@@ -23,24 +25,43 @@ class BaseNeo4jTool:
     
     def __init__(
         self,
-        identity_service: IdentityService,
-        provenance_service: ProvenanceService,
-        quality_service: QualityService,
-        neo4j_uri: str = "bolt://localhost:7687",
-        neo4j_user: str = "neo4j",
-        neo4j_password: str = "password",
-        shared_driver: Optional[Driver] = None
+        identity_service: IdentityService = None,
+        provenance_service: ProvenanceService = None,
+        quality_service: QualityService = None,
+        neo4j_uri: str = None,
+        neo4j_user: str = None,
+        neo4j_password: str = None,
+        shared_driver: Optional[Driver] = None,
+        config_manager: ConfigurationManager = None
     ):
-        self.identity_service = identity_service
-        self.provenance_service = provenance_service
-        self.quality_service = quality_service
+        # If services not provided, get them from service_manager
+        if identity_service is None or provenance_service is None or quality_service is None:
+            from src.core.service_manager import get_service_manager
+            service_manager = get_service_manager()
+            
+            self.identity_service = identity_service or service_manager.identity_service
+            self.provenance_service = provenance_service or service_manager.provenance_service
+            self.quality_service = quality_service or service_manager.quality_service
+        else:
+            self.identity_service = identity_service
+            self.provenance_service = provenance_service
+            self.quality_service = quality_service
+        
+        # Get Neo4j config from ConfigurationManager if not provided
+        if config_manager is None:
+            config_manager = ConfigurationManager()
+        neo4j_config = config_manager.get_neo4j_config()
+        
+        final_neo4j_uri = neo4j_uri or neo4j_config['uri']
+        final_neo4j_user = neo4j_user or neo4j_config['user']
+        final_neo4j_password = neo4j_password or neo4j_config['password']
         
         # Use shared driver if provided, otherwise create own
         if shared_driver:
             self.driver = shared_driver
             self._owns_driver = False
         else:
-            self._connect_neo4j(neo4j_uri, neo4j_user, neo4j_password)
+            self._connect_neo4j(final_neo4j_uri, final_neo4j_user, final_neo4j_password)
             self._owns_driver = True
     
     def _connect_neo4j(self, uri: str, user: str, password: str):

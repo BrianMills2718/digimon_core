@@ -12,7 +12,6 @@ import traceback
 from pathlib import Path
 
 # Add src to path
-sys.path.insert(0, str(Path(__file__).parent / "src"))
 
 def test_phase3_integration():
     """Test Phase 3 integration with the main pipeline."""
@@ -24,7 +23,7 @@ def test_phase3_integration():
         # Test imports
         from src.core.phase_adapters import Phase3Adapter
         from src.core.graphrag_phase_interface import ProcessingRequest
-        from src.tools.phase3.basic_multi_document_workflow import BasicMultiDocumentWorkflow
+        # Phase 3 now uses PipelineOrchestrator with Phase.PHASE3
         
         print("✅ All Phase 3 imports successful")
         
@@ -134,7 +133,6 @@ def test_phase3_integration():
         try:
             # Simulate what the UI does - add UI to path
             ui_path = Path(__file__).parent / "ui"
-            sys.path.insert(0, str(ui_path))
             from graphrag_ui import process_with_phase3, DocumentProcessingResult
             
             # Test with a single document (UI limitation)

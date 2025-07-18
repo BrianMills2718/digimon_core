@@ -11,7 +11,6 @@ Tests complete UI user journeys from start to finish:
 This implements the CLAUDE.md requirement for functional integration testing.
 """
 
-import sys
 import os
 import time
 import tempfile
@@ -26,7 +25,6 @@ import psutil
 
 # Add project root to path
 project_root = Path(__file__).parent
-sys.path.insert(0, str(project_root))
 
 @dataclass
 class UIJourneyResult:

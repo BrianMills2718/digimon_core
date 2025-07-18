@@ -9,7 +9,6 @@ import sys
 import os
 
 # Add the project root to path
-sys.path.insert(0, '/home/brian/Digimons')
 
 # Load environment variables FIRST
 from dotenv import load_dotenv
@@ -22,7 +21,7 @@ def test_execute_pdf_workflow():
     
     try:
         # Import the workflow class
-        from src.tools.phase2.enhanced_vertical_slice_workflow import EnhancedVerticalSliceWorkflow
+        from src.core.tool_factory import create_unified_workflow_config, Phase, OptimizationLevel
         print("✅ Successfully imported EnhancedVerticalSliceWorkflow")
         
         # Create workflow instance

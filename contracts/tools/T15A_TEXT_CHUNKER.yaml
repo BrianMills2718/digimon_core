@@ -1,0 +1,28 @@
+tool_id: "T15A_TEXT_CHUNKER"
+description: "Splits large text documents into manageable chunks for processing"
+category: "Processing"
+
+input_contract:
+  required_data_types:
+    - type: "Document"
+      attributes: ["text", "metadata"]
+  required_state:
+    document_loaded: true
+
+output_contract:
+  produced_data_types:
+    - type: "Chunk"
+      attributes: ["text", "chunk_id", "source_document", "position"]
+  produced_state:
+    text_chunked: true
+
+error_codes:
+  - code: "CHUNKING_ERROR"
+    description: "Failed to split text into chunks due to processing error"
+    severity: "error"
+  - code: "EMPTY_TEXT_ERROR"
+    description: "Input text is empty or contains no valid content to chunk"
+    severity: "error"
+  - code: "INVALID_CHUNK_SIZE"
+    description: "Specified chunk size parameters are invalid"
+    severity: "error"

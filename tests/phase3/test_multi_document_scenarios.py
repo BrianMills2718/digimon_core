@@ -4,9 +4,7 @@ Comprehensive tests for T301: Multi-Document Knowledge Fusion
 Tests multi-document scenarios, entity deduplication, and conflict resolution.
 """
 
-import sys
 from pathlib import Path
-sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 import pytest
 import time

@@ -8,7 +8,6 @@ import os
 from pathlib import Path
 
 # Add project root to path
-sys.path.insert(0, str(Path(__file__).parent))
 
 def test_ui_imports():
     """Test that UI imports work without torch/streamlit conflicts."""

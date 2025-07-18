@@ -1,0 +1,295 @@
+# Property Concepts from Social/Behavioral/Communication Science Theories
+# Based on Tables 3.1-3.3 from the dissertation proposal
+
+# Identity Properties
+identity_strength:
+  indigenous_term: ["identity strength", "identity salience", "identity centrality", "identity importance"]
+  description: "The degree to which an identity is important or central to an individual."
+  subTypeOf: []
+  references: ["Stryker & Serpe, 1994", "Ashmore et al., 2004", "Burke & Stets, 2009"]
+  value_type: "numeric"
+  applies_to: ["Identity", "IdentifiesWith"]
+  value_range: {"min": 0, "max": 1}
+  unit: "proportion"
+
+group_cohesion:
+  indigenous_term: ["cohesion", "cohesiveness", "solidarity", "unity", "togetherness"]
+  description: "The degree to which group members are attracted to the group and motivated to remain."
+  subTypeOf: []
+  references: ["Festinger, 1950", "Carron & Brawley, 2000", "Forsyth, 2014"]
+  value_type: "numeric"
+  applies_to: ["SocialGroup", "BelongsTo"]
+  value_range: {"min": 0, "max": 1}
+  unit: "index"
+
+# Belief/Attitude Properties
+belief_strength:
+  indigenous_term: ["belief strength", "conviction", "certainty", "confidence"]
+  description: "The degree of certainty or confidence in a belief."
+  subTypeOf: []
+  references: ["Fishbein & Ajzen, 1975", "Petty & Krosnick, 1995"]
+  value_type: "numeric"
+  applies_to: ["Belief", "HoldsBeliefAbout"]
+  value_range: {"min": 0, "max": 1}
+  unit: "proportion"
+
+attitude_valence:
+  indigenous_term: ["valence", "favorability", "positivity", "evaluation"]
+  description: "The positive or negative evaluation of an attitude object."
+  subTypeOf: []
+  references: ["Eagly & Chaiken, 1993", "Fazio, 1990"]
+  value_type: "numeric"
+  applies_to: ["Attitude", "HasAttitudeToward"]
+  value_range: {"min": -1, "max": 1}
+  unit: "scale"
+
+attitude_accessibility:
+  indigenous_term: ["accessibility", "availability", "ease of retrieval", "activation"]
+  description: "How readily an attitude comes to mind."
+  subTypeOf: []
+  references: ["Fazio, 1995", "Higgins, 1996"]
+  value_type: "numeric"
+  applies_to: ["Attitude"]
+  value_range: {"min": 0, "max": 1}
+  unit: "proportion"
+
+# Communication Properties
+message_framing:
+  indigenous_term: ["framing", "frame type", "presentation", "angle"]
+  description: "The way a message is framed (gain vs loss, episodic vs thematic, etc.)."
+  subTypeOf: []
+  references: ["Entman, 1993", "Iyengar, 1991", "Kahneman & Tversky, 1979"]
+  value_type: "categorical"
+  applies_to: ["Message", "Frames"]
+  valid_values: ["gain_frame", "loss_frame", "episodic", "thematic", "value_frame", "strategy_frame"]
+
+source_credibility:
+  indigenous_term: ["credibility", "trustworthiness", "expertise", "reliability"]
+  description: "The perceived credibility of an information source."
+  subTypeOf: []
+  references: ["Hovland & Weiss, 1951", "McCroskey & Teven, 1999", "Pornpitakpan, 2004"]
+  value_type: "numeric"
+  applies_to: ["Source", "TrustsIn"]
+  value_range: {"min": 0, "max": 1}
+  unit: "index"
+
+channel_richness:
+  indigenous_term: ["media richness", "channel capacity", "bandwidth", "cues"]
+  description: "The information carrying capacity of a communication channel."
+  subTypeOf: []
+  references: ["Daft & Lengel, 1986", "Media Richness Theory"]
+  value_type: "categorical"
+  applies_to: ["Channel"]
+  valid_values: ["low", "medium", "high", "face_to_face", "video", "audio", "text"]
+
+# Influence Properties
+influence_strength:
+  indigenous_term: ["influence strength", "impact", "effect size", "power"]
+  description: "The magnitude of influence one entity has on another."
+  subTypeOf: []
+  references: ["French & Raven, 1959", "Cialdini, 2001", "Kelman, 1958"]
+  value_type: "numeric"
+  applies_to: ["Influences", "Persuades"]
+  value_range: {"min": 0, "max": 1}
+  unit: "proportion"
+
+persuasion_route:
+  indigenous_term: ["processing route", "elaboration", "systematic vs heuristic"]
+  description: "The cognitive route through which persuasion occurs."
+  subTypeOf: []
+  references: ["Petty & Cacioppo, 1986", "Chaiken, 1980", "ELM/HSM"]
+  value_type: "categorical"
+  applies_to: ["Persuades", "Message"]
+  valid_values: ["central", "peripheral", "systematic", "heuristic", "dual_process"]
+
+# Behavioral Properties
+behavior_frequency:
+  indigenous_term: ["frequency", "rate", "occurrence", "repetition"]
+  description: "How often a behavior is performed."
+  subTypeOf: []
+  references: ["Skinner, 1953", "Bandura, 1977", "Ouellette & Wood, 1998"]
+  value_type: "numeric"
+  applies_to: ["Behavior", "PerformsBehavior"]
+  value_range: {"min": 0}
+  unit: "count_per_time"
+
+intention_strength:
+  indigenous_term: ["intention strength", "commitment", "determination", "resolve"]
+  description: "The strength of intention to perform a behavior."
+  subTypeOf: []
+  references: ["Ajzen, 1991", "Sheeran, 2002", "Webb & Sheeran, 2006"]
+  value_type: "numeric"
+  applies_to: ["Intention", "IntendsTo"]
+  value_range: {"min": 0, "max": 1}
+  unit: "proportion"
+
+self_efficacy:
+  indigenous_term: ["self-efficacy", "perceived control", "capability", "confidence"]
+  description: "Belief in one's ability to perform a behavior."
+  subTypeOf: []
+  references: ["Bandura, 1977", "Ajzen, 1991", "Schwarzer, 1992"]
+  value_type: "numeric"
+  applies_to: ["IndividualActor", "Behavior"]
+  value_range: {"min": 0, "max": 1}
+  unit: "proportion"
+
+# Normative Properties
+norm_strength:
+  indigenous_term: ["norm strength", "prescriptiveness", "social pressure", "normativeness"]
+  description: "The strength or prescriptiveness of a social norm."
+  subTypeOf: []
+  references: ["Cialdini, 2003", "Bicchieri, 2006", "Schultz et al., 2007"]
+  value_type: "numeric"
+  applies_to: ["Norm", "FollowsNorm"]
+  value_range: {"min": 0, "max": 1}
+  unit: "proportion"
+
+norm_type:
+  indigenous_term: ["norm type", "injunctive vs descriptive", "prescriptive vs proscriptive"]
+  description: "The type of social norm."
+  subTypeOf: []
+  references: ["Cialdini et al., 1990", "Reno et al., 1993"]
+  value_type: "categorical"
+  applies_to: ["Norm"]
+  valid_values: ["injunctive", "descriptive", "prescriptive", "proscriptive", "personal", "social"]
+
+# Network Properties
+centrality:
+  indigenous_term: ["centrality", "network position", "importance", "prominence"]
+  description: "The importance or prominence of a node in a network."
+  subTypeOf: []
+  references: ["Freeman, 1979", "Wasserman & Faust, 1994", "Borgatti, 2005"]
+  value_type: "numeric"
+  applies_to: ["IndividualActor", "SocialGroup", "Institution", "Network"]
+  value_range: {"min": 0, "max": 1}
+  unit: "index"
+
+network_density:
+  indigenous_term: ["density", "connectedness", "cohesion", "integration"]
+  description: "The proportion of possible connections that are actualized in a network."
+  subTypeOf: []
+  references: ["Scott, 2000", "Wasserman & Faust, 1994"]
+  value_type: "numeric"
+  applies_to: ["Network", "SocialGroup"]
+  value_range: {"min": 0, "max": 1}
+  unit: "proportion"
+
+tie_strength:
+  indigenous_term: ["tie strength", "relationship strength", "bond strength", "closeness"]
+  description: "The strength of a connection between network nodes."
+  subTypeOf: []
+  references: ["Granovetter, 1973", "Marsden & Campbell, 1984"]
+  value_type: "categorical"
+  applies_to: ["ConnectedTo", "SharesInformationWith"]
+  valid_values: ["weak", "medium", "strong", "absent"]
+
+# Temporal Properties
+duration:
+  indigenous_term: ["duration", "length", "time span", "period"]
+  description: "The length of time something persists or occurs."
+  subTypeOf: []
+  references: ["Event History Analysis", "Abbott, 2001"]
+  value_type: "numeric"
+  applies_to: ["Event", "Behavior", "Message", "Campaign"]
+  value_range: {"min": 0}
+  unit: "seconds"
+
+recency:
+  indigenous_term: ["recency", "time since", "freshness", "currency"]
+  description: "How recently something occurred."
+  subTypeOf: []
+  references: ["Zaller, 1992", "Price & Tewksbury, 1997"]
+  value_type: "numeric"
+  applies_to: ["Event", "Message", "Behavior"]
+  value_range: {"min": 0}
+  unit: "seconds"
+
+# Quality/Confidence Properties
+quality_score:
+  indigenous_term: ["quality", "accuracy", "reliability", "validity"]
+  description: "A measure of data or information quality."
+  subTypeOf: []
+  references: ["Measurement Theory", "Validity & Reliability"]
+  value_type: "numeric"
+  applies_to: ["Entity", "Connection", "Property"]
+  value_range: {"min": 0, "max": 1}
+  unit: "proportion"
+
+confidence_level:
+  indigenous_term: ["confidence", "certainty", "probability", "likelihood"]
+  description: "The confidence or certainty in an extraction or measurement."
+  subTypeOf: []
+  references: ["Statistical Inference", "Measurement Theory"]
+  value_type: "numeric"
+  applies_to: ["Entity", "Connection", "Property"]
+  value_range: {"min": 0, "max": 1}
+  unit: "proportion"
+
+# Demographic Properties
+age:
+  indigenous_term: ["age", "years old", "age group", "generation"]
+  description: "The age of an individual actor."
+  subTypeOf: []
+  references: ["Demographics", "Life Course Theory"]
+  value_type: "numeric"
+  applies_to: ["IndividualActor"]
+  value_range: {"min": 0, "max": 150}
+  unit: "years"
+
+gender:
+  indigenous_term: ["gender", "sex", "male/female", "gender identity"]
+  description: "The gender of an individual actor."
+  subTypeOf: []
+  references: ["Gender Studies", "Demographics"]
+  value_type: "categorical"
+  applies_to: ["IndividualActor"]
+  valid_values: ["male", "female", "non_binary", "other", "unknown"]
+
+education_level:
+  indigenous_term: ["education", "schooling", "educational attainment", "degree"]
+  description: "The highest level of education completed."
+  subTypeOf: []
+  references: ["Sociology of Education", "Demographics"]
+  value_type: "categorical"
+  applies_to: ["IndividualActor"]
+  valid_values: ["none", "primary", "secondary", "bachelor", "master", "doctorate", "unknown"]
+
+# Context Properties
+context_type:
+  indigenous_term: ["context", "setting", "environment", "situation"]
+  description: "The type of context in which something occurs."
+  subTypeOf: []
+  references: ["Situational Theory", "Context Effects"]
+  value_type: "categorical"
+  applies_to: ["Event", "Behavior", "Message"]
+  valid_values: ["political", "economic", "social", "cultural", "crisis", "routine"]
+
+salience:
+  indigenous_term: ["salience", "prominence", "importance", "attention"]
+  description: "How prominent or attention-grabbing something is."
+  subTypeOf: []
+  references: ["Agenda Setting", "Priming Theory", "Iyengar & Kinder, 1987"]
+  value_type: "numeric"
+  applies_to: ["Event", "Message", "Issue"]
+  value_range: {"min": 0, "max": 1}
+  unit: "index"
+
+# Power/Authority Properties
+power_type:
+  indigenous_term: ["power type", "authority type", "influence base"]
+  description: "The type or basis of power/authority."
+  subTypeOf: []
+  references: ["French & Raven, 1959", "Weber, 1947", "Lukes, 1974"]
+  value_type: "categorical"
+  applies_to: ["HasAuthorityOver", "Institution", "IndividualActor"]
+  valid_values: ["legitimate", "expert", "referent", "reward", "coercive", "informational"]
+
+legitimacy:
+  indigenous_term: ["legitimacy", "rightfulness", "acceptability", "justification"]
+  description: "The perceived legitimacy or rightfulness of authority."
+  subTypeOf: []
+  references: ["Tyler, 2006", "Weber, 1947", "Beetham, 1991"]
+  value_type: "numeric"
+  applies_to: ["Institution", "HasAuthorityOver", "Norm"]
+  value_range: {"min": 0, "max": 1}
+  unit: "proportion"

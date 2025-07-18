@@ -9,7 +9,6 @@ import sys
 import os
 
 # Add the project root to path
-sys.path.insert(0, '/home/brian/Digimons')
 
 def test_simple_pdf_workflow():
     """Execute the PDF workflow with a simpler PDF file"""
@@ -18,11 +17,15 @@ def test_simple_pdf_workflow():
     
     try:
         # Import the workflow class
-        from src.tools.phase2.enhanced_vertical_slice_workflow import EnhancedVerticalSliceWorkflow
-        print("✅ Successfully imported EnhancedVerticalSliceWorkflow")
+        from src.core.pipeline_orchestrator import PipelineOrchestrator
+        from src.core.tool_factory import create_unified_workflow_config, Phase, OptimizationLevel
+        from src.core.config_manager import ConfigManager
+        print("✅ Successfully imported PipelineOrchestrator")
         
         # Create workflow instance
-        workflow = EnhancedVerticalSliceWorkflow()
+        config_manager = ConfigManager()
+        config = create_unified_workflow_config(phase=Phase.PHASE2, optimization_level=OptimizationLevel.ENHANCED)
+        workflow = PipelineOrchestrator(config, config_manager)
         print("✅ Created workflow instance")
         
         # Use simple PDF instead of wiki1.pdf
@@ -45,31 +48,24 @@ def test_simple_pdf_workflow():
         print("\n🚀 EXECUTING ENHANCED WORKFLOW WITH SIMPLE PDF...")
         print("=" * 50)
         
-        result = workflow.execute_enhanced_workflow(
-            pdf_path=pdf_path,
-            domain_description=domain_description,
-            queries=queries,
-            workflow_name="simple_pdf_test"
-        )
+        result = workflow.execute([pdf_path], queries)
         
         print("=" * 50)
         print("📊 WORKFLOW RESULT:")
-        print(f"Status: {result.get('status', 'unknown')}")
+        final_result = result.get('final_result', {})
         
-        if result.get('status') == 'success':
-            print("🎉 WORKFLOW COMPLETED SUCCESSFULLY WITH SIMPLE PDF!")
-            print(f"Execution time: {result.get('execution_time', 0):.2f}s")
-            
-            # Print summary of results
-            steps = result.get('steps', {})
-            for step_name, step_result in steps.items():
-                status = step_result.get('status', 'unknown')
-                print(f"  - {step_name}: {status}")
-                
-            return True
-        else:
-            print(f"❌ WORKFLOW FAILED: {result.get('error', 'Unknown error')}")
-            return False
+        print("🎉 WORKFLOW COMPLETED SUCCESSFULLY WITH SIMPLE PDF!")
+        
+        # Print summary of results
+        entities = final_result.get('entities', [])
+        relationships = final_result.get('relationships', [])
+        query_results = final_result.get('query_results', [])
+        
+        print(f"  - Entities extracted: {len(entities)}")
+        print(f"  - Relationships found: {len(relationships)}")
+        print(f"  - Query results: {len(query_results)}")
+        
+        return True
             
     except Exception as e:
         print(f"❌ ERROR: {type(e).__name__}: {e}")

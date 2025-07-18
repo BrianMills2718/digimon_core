@@ -10,7 +10,6 @@ import time
 from pathlib import Path
 
 # Add src to path for imports
-sys.path.insert(0, str(Path(__file__).parent))
 
 def test_mcp_tool_chains():
     """Test chains of MCP tools working together"""

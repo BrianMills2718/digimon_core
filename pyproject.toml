@@ -1,0 +1,139 @@
+[build-system]
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "super-digimon-graphrag"
+version = "0.1.0"
+description = "Experimental GraphRAG system with Neo4j integration"
+readme = "README.md"
+requires-python = ">=3.8"
+authors = [
+    {name = "Super-Digimon Team", email = "team@digimon.dev"}
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+]
+dependencies = [
+    "neo4j>=5.0.0",
+    "spacy>=3.4.0",
+    "pandas>=1.5.0",
+    "numpy>=1.21.0",
+    "PyPDF2>=3.0.0",
+    "python-dateutil>=2.8.0",
+    "pydantic>=1.10.0",
+    "streamlit>=1.28.0",
+    "plotly>=5.0.0",
+    "networkx>=2.8.0",
+    "scikit-learn>=1.1.0",
+    "sentence-transformers>=2.2.0",
+    "openai>=1.0.0",
+    "google-generativeai>=0.3.0",
+    "pyyaml>=6.0",
+    "python-dotenv>=0.19.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "black>=22.0.0",
+    "flake8>=5.0.0",
+    "mypy>=0.991",
+    "pre-commit>=2.20.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/your-org/super-digimon-graphrag"
+Repository = "https://github.com/your-org/super-digimon-graphrag"
+Documentation = "https://github.com/your-org/super-digimon-graphrag/docs"
+"Bug Tracker" = "https://github.com/your-org/super-digimon-graphrag/issues"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["src*"]
+
+[tool.setuptools.package-dir]
+"" = "."
+"super_digimon_graphrag" = "src"
+
+[tool.setuptools.package-data]
+"src" = ["**/*.yaml", "**/*.yml", "**/*.json"]
+
+[project.scripts]
+graphrag = "src.cli:main"
+graphrag-ui = "src.ui.launch_ui:main"
+
+[tool.black]
+line-length = 100
+target-version = ['py38']
+include = '\.pyi?$'
+extend-exclude = '''
+(
+  /(
+      \.eggs
+    | \.git
+    | \.mypy_cache
+    | \.tox
+    | \.venv
+    | _build
+    | buck-out
+    | build
+    | dist
+    | archive
+  )/
+)
+'''
+
+[tool.ruff]
+line-length = 88
+select = ["E", "F", "W", "I", "N", "UP", "B", "C4", "SIM"]
+ignore = ["E501"]  # Line too long (handled by black)
+target-version = "py38"
+exclude = [
+    ".git",
+    ".mypy_cache",
+    ".ruff_cache",
+    ".venv",
+    "archive",
+    "build",
+    "dist",
+]
+
+[tool.ruff.isort]
+known-first-party = ["src"]
+force-single-line = true
+
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+strict = true
+exclude = [
+    "archive/",
+    "build/",
+    "dist/",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "--strict-markers",
+    "--strict-config",
+    "--verbose",
+]
+markers = [
+    "integration: marks tests as integration tests (may require services)",
+    "performance: marks tests as performance tests",
+    "unit: marks tests as unit tests",
+]

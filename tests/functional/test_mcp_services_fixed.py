@@ -11,7 +11,6 @@ import os
 from pathlib import Path
 
 # Add src to path
-sys.path.insert(0, str(Path(__file__).parent))
 
 def test_mcp_services_fixed():
     """Test the underlying services with correct method signatures"""
@@ -255,7 +254,7 @@ def test_workflow_service_fixed():
 def test_vertical_slice_fixed():
     """Test Vertical Slice Workflow"""
     try:
-        from src.tools.phase1.vertical_slice_workflow import VerticalSliceWorkflow
+        from src.core.pipeline_orchestrator import PipelineOrchestrator
         import tempfile
         
         with tempfile.TemporaryDirectory() as temp_dir:

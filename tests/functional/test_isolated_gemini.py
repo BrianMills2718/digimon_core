@@ -3,7 +3,6 @@
 
 import sys
 import os
-sys.path.insert(0, '/home/brian/Digimons')
 
 def test_gemini_direct():
     """Test Gemini directly with the modified prompt"""

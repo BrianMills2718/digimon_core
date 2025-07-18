@@ -26,6 +26,7 @@ from spacy.lang.en import English
 from src.core.identity_service import IdentityService
 from src.core.provenance_service import ProvenanceService
 from src.core.quality_service import QualityService
+from src.core.type_mapping_service import TypeMappingService
 
 
 class SpacyNER:
@@ -33,14 +34,25 @@ class SpacyNER:
     
     def __init__(
         self,
-        identity_service: IdentityService,
-        provenance_service: ProvenanceService,
-        quality_service: QualityService
+        identity_service: IdentityService = None,
+        provenance_service: ProvenanceService = None,
+        quality_service: QualityService = None
     ):
-        self.identity_service = identity_service
-        self.provenance_service = provenance_service
-        self.quality_service = quality_service
+        # Allow tools to work standalone for testing
+        if identity_service is None:
+            from src.core.service_manager import ServiceManager
+            service_manager = ServiceManager()
+            self.identity_service = service_manager.get_identity_service()
+            self.provenance_service = service_manager.get_provenance_service()
+            self.quality_service = service_manager.get_quality_service()
+        else:
+            self.identity_service = identity_service
+            self.provenance_service = provenance_service
+            self.quality_service = quality_service
         self.tool_id = "T23A_SPACY_NER"
+        
+        # Initialize type mapping service
+        self.type_mapper = TypeMappingService()
         
         # Lazy load spaCy model (only when needed)
         self.nlp = None
@@ -180,19 +192,26 @@ class SpacyNER:
                 )
                 
                 if mention_result["status"] == "success":
+                    # Map entity type to schema-compliant type
+                    schema_type = self.type_mapper.map_spacy_to_schema(ent.label_)
+                    ontology_type = self.type_mapper.map_spacy_to_ontology(ent.label_)
+                    
                     entity_data = {
                         "mention_id": mention_result["mention_id"],
                         "entity_id": mention_result["entity_id"],
                         "mention_ref": f"storage://mention/{mention_result['mention_id']}",
                         "surface_form": ent.text,
                         "normalized_form": mention_result["normalized_form"],
-                        "entity_type": ent.label_,
+                        "entity_type": schema_type,  # Use schema-compliant type
+                        "original_type": ent.label_,  # Keep original spaCy type
+                        "ontology_type": ontology_type,  # Add ontology mapping
                         "start_char": ent.start_char,
                         "end_char": ent.end_char,
                         "confidence": entity_confidence,
                         "source_chunk": chunk_ref,
                         "extraction_method": "spacy_ner",
-                        "created_at": datetime.now().isoformat()
+                        "created_at": datetime.now().isoformat(),
+                        "canonical_name": ent.text.strip().lower()  # Add required field
                     }
                     
                     extracted_entities.append(entity_data)
@@ -327,6 +346,14 @@ class SpacyNER:
         """Get list of supported entity types."""
         return list(self.target_entity_types)
     
+    def extract_entities_simple(self, text: str, workflow_id: str = "test") -> Dict[str, Any]:
+        """Simple interface for entity extraction - for testing and workflow compatibility"""
+        return self.extract_entities(
+            chunk_ref=f"chunk_{workflow_id}",
+            text=text,
+            chunk_confidence=0.8
+        )
+    
     def get_model_info(self) -> Dict[str, Any]:
         """Get information about the loaded spaCy model."""
         if not self.nlp:
@@ -343,6 +370,70 @@ class SpacyNER:
         except:
             return {"model": "basic", "available": True}
     
+    def extract_entities_working(self, text: str) -> List[Dict[str, Any]]:
+        """Extract entities that actually get persisted - simplified interface for workflow."""
+        # Initialize spaCy model only when needed
+        self._initialize_spacy_model()
+        
+        if not self.nlp:
+            return []
+        
+        entities = []
+        doc = self.nlp(text)
+        
+        for ent in doc.ents:
+            # Filter to target entity types
+            if ent.label_ not in self.target_entity_types:
+                continue
+                
+            # Skip very short entities (likely noise)
+            if len(ent.text.strip()) < 2:
+                continue
+            
+            entity = {
+                'id': f"entity_{uuid.uuid4()}",
+                'name': ent.text,
+                'type': ent.label_,
+                'surface_forms': [ent.text],
+                'start_offset': ent.start_char,
+                'end_offset': ent.end_char,
+                'confidence': self._calculate_entity_confidence(ent.text, ent.label_, 0.8)
+            }
+            entities.append(entity)
+        
+        return entities  # Format expected by EntityBuilder
+
+    def execute(self, input_data: Any, context: Optional[Dict] = None) -> Dict[str, Any]:
+        """Execute the spaCy NER tool - standardized interface required by tool factory"""
+        if isinstance(input_data, dict):
+            # Extract required parameters
+            chunk_refs = input_data.get("chunk_refs", [])
+            chunks = input_data.get("chunks", [])
+            workflow_id = input_data.get("workflow_id", "default")
+        elif isinstance(input_data, str):
+            # Input is just text, create basic chunk
+            chunks = [{"text": input_data, "chunk_id": f"chunk_{uuid.uuid4().hex[:8]}"}]
+            chunk_refs = []
+            workflow_id = "default"
+        elif isinstance(input_data, list):
+            # Input is list of chunks
+            chunks = input_data
+            chunk_refs = []
+            workflow_id = "default"
+        else:
+            return {
+                "status": "error",
+                "error": "Input must be text (string), list of chunks, or dict with 'chunks' key"
+            }
+            
+        if not chunks:
+            return {
+                "status": "error",
+                "error": "No chunks provided for entity extraction"
+            }
+            
+        return self.extract_entities(chunk_refs, chunks, workflow_id)
+
     def get_tool_info(self) -> Dict[str, Any]:
         """Get tool information."""
         return {

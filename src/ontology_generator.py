@@ -191,6 +191,7 @@ Format as JSON:
     
     def generate_ontology(self, domain_description: str, config: Dict[str, Any]) -> Ontology:
         """Generate a new ontology from domain description"""
+        # TODO: enforce v9 required fields
         if not self.model:
             # Return mock data if no model
             return self._generate_mock_ontology(domain_description)

@@ -12,7 +12,6 @@ from pathlib import Path
 from datetime import datetime
 
 # Add src to path for imports
-sys.path.insert(0, str(Path(__file__).parent))
 
 def test_get_vertical_slice_info():
     """Test get_vertical_slice_info with proper vertical slice initialization"""
@@ -32,7 +31,7 @@ def test_get_vertical_slice_info():
         # Step 1: Initialize the vertical slice component
         print(f"\n📍 Step 1: Initializing vertical slice component...")
         
-        from src.tools.phase1.vertical_slice_workflow import VerticalSliceWorkflow
+        from src.core.pipeline_orchestrator import PipelineOrchestrator
         
         workflow_storage_dir = "./data/workflows"
         vertical_slice = VerticalSliceWorkflow(workflow_storage_dir=workflow_storage_dir)

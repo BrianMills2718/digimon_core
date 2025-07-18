@@ -6,11 +6,9 @@ This verifies the new core component works correctly.
 
 import os
 import json
-import sys
 from pathlib import Path
 
 # Add src to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), ''))
 
 # Load environment variables FIRST
 from dotenv import load_dotenv

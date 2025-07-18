@@ -17,7 +17,7 @@ from neo4j import GraphDatabase
 
 from src.core.identity_service import Entity, Relationship
 from src.core.identity_service import IdentityService
-from src.tools.phase2.t23c_ontology_aware_extractor import OntologyAwareExtractor, ExtractionResult
+from src.tools.phase2.t23c_ontology_aware_extractor import OntologyAwareExtractor, OntologyExtractionResult
 from src.ontology_generator import DomainOntology
 from src.core.ontology_storage_service import OntologyStorageService
 
@@ -57,9 +57,11 @@ class OntologyAwareGraphBuilder:
     """
     
     def __init__(self, 
-                 neo4j_uri: str = "bolt://localhost:7687",
-                 neo4j_user: str = "neo4j", 
-                 neo4j_password: str = "password",
+                 neo4j_uri: Optional[str] = None,
+                 neo4j_user: Optional[str] = None, 
+                 neo4j_password: Optional[str] = None,
+                 identity_service: Optional[IdentityService] = None,
+                 ontology_storage: Optional[OntologyStorageService] = None,
                  confidence_threshold: float = 0.7):
         """
         Initialize the ontology-aware graph builder.
@@ -68,26 +70,36 @@ class OntologyAwareGraphBuilder:
             neo4j_uri: Neo4j database URI
             neo4j_user: Neo4j username
             neo4j_password: Neo4j password
+            identity_service: Identity service for entity resolution
+            ontology_storage: Ontology storage service
             confidence_threshold: Minimum confidence for entity/relationship creation
         """
         self.confidence_threshold = confidence_threshold
         self.warnings = []
         self.errors = []
         
-        # Initialize Neo4j connection
-        try:
-            self.driver = GraphDatabase.driver(neo4j_uri, auth=(neo4j_user, neo4j_password))
-            # Test connection
-            with self.driver.session() as session:
-                session.run("RETURN 1")
-            logger.info("✅ Neo4j connection established")
-        except Exception as e:
-            logger.error(f"❌ Neo4j connection failed: {e}")
-            raise
+        # Allow tools to work standalone for testing
+        if neo4j_uri is None:
+            from src.core.service_manager import ServiceManager
+            service_manager = ServiceManager()
+            neo4j_manager = service_manager.get_neo4j_manager()
+            self.driver = neo4j_manager.get_driver()
+        else:
+            # Use provided credentials
+            self.driver = GraphDatabase.driver(
+                neo4j_uri, 
+                auth=(neo4j_user or "neo4j", neo4j_password or "password")
+            )
         
-        # Initialize services
-        self.identity_service = IdentityService(use_embeddings=True)
-        self.ontology_storage = OntologyStorageService()
+        # Initialize services - use provided or create via ServiceManager
+        if identity_service is None or ontology_storage is None:
+            from src.core.service_manager import ServiceManager
+            service_manager = ServiceManager()
+            self.identity_service = identity_service or service_manager.get_identity_service()
+            self.ontology_storage = ontology_storage or OntologyStorageService()
+        else:
+            self.identity_service = identity_service
+            self.ontology_storage = ontology_storage
         
         # Entity resolution cache
         self.entity_cache = {}
@@ -107,7 +119,7 @@ class OntologyAwareGraphBuilder:
                    f"({len(self.valid_entity_types)} entity types, "
                    f"{len(self.valid_relationship_types)} relationship types)")
     
-    def build_graph_from_extraction(self, extraction_result: ExtractionResult,
+    def build_graph_from_extraction(self, extraction_result: OntologyExtractionResult,
                                    source_document: str) -> GraphBuildResult:
         """
         Build graph from ontology-aware extraction results.

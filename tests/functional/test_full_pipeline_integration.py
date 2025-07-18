@@ -13,13 +13,11 @@ Success Criteria (from CLAUDE.md):
 3. Proof of integration without API compatibility issues
 """
 
-import sys
 import os
 from pathlib import Path
 import time
 
 # Add src to path for imports
-sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
 from core.phase_adapters import IntegratedPipelineOrchestrator
 from core.graphrag_phase_interface import PhaseStatus

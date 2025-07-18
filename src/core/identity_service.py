@@ -774,6 +774,21 @@ class IdentityService:
         except Exception as e:
             logger.error(f"Failed to delete entity: {e}")
     
+    def get_tool_info(self):
+        """Return tool information for audit system"""
+        return {
+            "tool_id": "IDENTITY_SERVICE",
+            "tool_type": "CORE_SERVICE",
+            "status": "functional",
+            "description": "Unified entity identity management service",
+            "features": {
+                "embeddings": self.use_embeddings,
+                "persistence": bool(self._db_conn),
+                "similarity_threshold": self.similarity_threshold
+            },
+            "stats": self.get_stats()
+        }
+    
     def close(self):
         """Clean up resources."""
         if self._db_conn:

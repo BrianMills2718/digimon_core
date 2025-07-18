@@ -3,11 +3,9 @@
 Test the exact import context that Streamlit UI uses
 """
 
-import sys
 from pathlib import Path
 
 # Add project root to path (same as UI does)
-sys.path.insert(0, str(Path(__file__).parent))
 
 print("🔍 Testing UI Import Context")
 print(f"Python path: {sys.path[:3]}")
@@ -16,7 +14,7 @@ print(f"Current directory: {Path.cwd()}")
 # Test Phase 2 import exactly as UI does
 print("\n1. Testing Phase 2 import...")
 try:
-    from src.tools.phase2.enhanced_vertical_slice_workflow import EnhancedVerticalSliceWorkflow
+    from src.core.tool_factory import create_unified_workflow_config, Phase, OptimizationLevel
     print("✅ Phase 2: Available")
 except ImportError as e:
     print(f"❌ Phase 2: Not Available - {e}")

@@ -1,0 +1,109 @@
+tool_id: T27_RELATIONSHIP_EXTRACTOR
+description: Extracts relationships between entities using master concept library connection types
+category: RelationshipExtraction
+
+input_contract:
+  required_data_types:
+    - type: Entity
+      attributes:
+        - id
+        - canonical_name
+        - entity_type
+    - type: Chunk
+      attributes:
+        - content
+        - entity_refs
+  required_state:
+    entities_extracted: true
+    chunks_created: true
+
+output_contract:
+  produced_data_types:
+    - type: Relationship
+      attributes:
+        - source_id
+        - target_id
+        - relationship_type  # Must be valid type from master concept library
+        - weight
+        - id
+        - object_type
+        - confidence
+        - quality_tier
+        - properties    # Properties from master concept library
+        - modifiers     # Modifiers from master concept library
+      validation:
+        relationship_type:
+          constraint: "must_exist_in_ontology"
+          ontology_category: "Connection"
+        domain_range:
+          constraint: "must_satisfy_domain_range"
+          requires: ["source_entity_type", "target_entity_type"]
+        properties:
+          constraint: "keys_must_be_valid_properties"
+          applicable_to: "relationship_type"
+        modifiers:
+          constraint: "keys_must_be_valid_modifiers"
+          applicable_to: "relationship_type"
+  produced_state:
+    relationships_extracted: true
+
+# Master concept library integration
+ontology_integration:
+  relationship_patterns:
+    # Text patterns to master concept library connections
+    "founded": "Causes"
+    "established": "Causes"
+    "leads": "HasAuthorityOver"
+    "manages": "HasAuthorityOver"
+    "works for": "BelongsTo"
+    "member of": "BelongsTo"
+    "located in": "BelongsTo"
+    "influences": "Influences"
+    "persuades": "Persuades"
+    "communicates with": "Communicates"
+    "shares information": "SharesInformationWith"
+    "opposes": "OpposesTo"
+    "competes with": "CompetesWith"
+    "trusts": "TrustsIn"
+    "identifies with": "IdentifiesWith"
+  
+  default_properties:
+    Influences:
+      - influence_strength
+      - persuasion_route
+    HasAuthorityOver:
+      - power_type
+      - legitimacy
+    BelongsTo:
+      - tie_strength
+      - duration
+    Communicates:
+      - channel_richness
+      - message_framing
+  
+  default_modifiers:
+    all:
+      - certainty_level
+      - temporal_phase
+      - evidence_strength
+      - stability
+
+validation_rules:
+  - rule: "check_domain_range"
+    description: "Ensure source and target entity types match connection domain/range"
+    example: "IndividualActor -[BelongsTo]-> SocialGroup ✓"
+    counter_example: "SocialGroup -[BelongsTo]-> IndividualActor ✗"
+
+error_codes:
+  - code: UNKNOWN_RELATIONSHIP_TYPE
+    description: Extracted relationship type not found in master concept library
+    severity: error
+  - code: DOMAIN_RANGE_VIOLATION
+    description: Source/target entity types violate connection domain/range constraints
+    severity: error
+  - code: INVALID_PROPERTY_VALUE
+    description: Property value does not match expected type or range
+    severity: warning
+  - code: NO_RELATIONSHIPS_FOUND
+    description: No relationships could be extracted from the provided entities and text
+    severity: info

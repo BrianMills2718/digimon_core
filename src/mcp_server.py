@@ -15,30 +15,43 @@ from typing import Dict, List, Optional, Any
 import os
 from pathlib import Path
 
-# Import core services
-from src.core.identity_service import IdentityService
-from src.core.provenance_service import ProvenanceService
-from src.core.quality_service import QualityService, QualityTier
+# Import core services and configuration
+from src.core.service_manager import get_service_manager
+from src.core.config import ConfigurationManager
+from src.core.quality_service import QualityTier
 from src.core.workflow_state_service import WorkflowStateService
 
 # Import Phase 1 tools
-from src.tools.phase1.vertical_slice_workflow import VerticalSliceWorkflow
+from src.core.pipeline_orchestrator import PipelineOrchestrator
+from src.core.tool_factory import create_unified_workflow_config, Phase, OptimizationLevel
+from src.core.config import ConfigurationManager
 from src.tools.phase1.phase1_mcp_tools import create_phase1_mcp_tools
 
 # Initialize MCP server
 mcp = FastMCP("super-digimon")
 
-# Initialize core services
-identity_service = IdentityService()
-provenance_service = ProvenanceService()
-quality_service = QualityService()
+# Get shared service manager and configuration
+service_manager = get_service_manager()
+config_manager = ConfigurationManager()
+config = config_manager.get_config()
 
-# Get workflow storage directory from environment
-workflow_storage = os.getenv("WORKFLOW_STORAGE_DIR", "./data/workflows")
+# Use shared services from manager
+identity_service = service_manager.identity_service
+provenance_service = service_manager.provenance_service
+quality_service = service_manager.quality_service
+
+# Get workflow storage directory from configuration
+workflow_storage = config.workflow.storage_dir if hasattr(config, 'workflow') else "./data/workflows"
 workflow_service = WorkflowStateService(workflow_storage)
 
-# Initialize vertical slice workflow
-vertical_slice = VerticalSliceWorkflow(workflow_storage_dir=workflow_storage)
+# Initialize pipeline orchestrator
+config_manager_unified = ConfigManager()
+unified_config = create_unified_workflow_config(
+    phase=Phase.PHASE1,
+    optimization_level=OptimizationLevel.STANDARD,
+    workflow_storage_dir=workflow_storage
+)
+orchestrator = PipelineOrchestrator(unified_config, config_manager_unified)
 
 
 # =============================================================================
@@ -428,13 +441,13 @@ def execute_pdf_to_answer_workflow(
         query: Question to answer using the extracted graph
         workflow_name: Name for workflow tracking
     """
-    return vertical_slice.execute_workflow(document_paths=document_paths, queries=[query], workflow_name=workflow_name)
+    return orchestrator.execute(document_paths=document_paths, queries=[query])
 
 
 @mcp.tool()
-def get_vertical_slice_info() -> Dict[str, Any]:
-    """Get information about the vertical slice workflow."""
-    return vertical_slice.get_tool_info()
+def get_orchestrator_info() -> Dict[str, Any]:
+    """Get information about the pipeline orchestrator."""
+    return orchestrator.get_execution_stats()
 
 
 # =============================================================================
@@ -463,12 +476,12 @@ def get_system_status() -> Dict[str, Any]:
             "provenance_service": "active", 
             "quality_service": "active",
             "workflow_service": "active",
-            "vertical_slice": "active",
+            "pipeline_orchestrator": "active",
             "phase1_pipeline": "active"
         },
         "core_services_count": 4,
         "phase1_tools_count": 33,  # Updated count: 8 existing + 25 new pipeline tools
-        "vertical_slice_ready": True,
+        "orchestrator_ready": True,
         "server_name": "super-digimon"
     }
 

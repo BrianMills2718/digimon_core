@@ -1,0 +1,71 @@
+project_name: "Include Patterns Example"
+project_path: "."
+output_format: "xml"
+output_file: "gemini-review.md"
+keep_repomix: false
+
+# Repomix options (optimized for LLM review)
+remove_empty_lines: true      # Remove empty lines to save tokens (default)
+show_line_numbers: false      # Add line numbers for easier reference
+include_diffs: false          # Include git diffs for change review
+compress_code: false          # Compress code for large codebases
+token_count_encoding: "gemini-pro"  # Token encoding for Gemini models
+
+# Include patterns - only these files will be processed
+# If include_patterns is specified, only matching files are included
+include_patterns:
+  - "src/**/*.py"          # All Python files in src directory
+  - "*.py"                 # Python files in root
+  - "*.md"                 # Markdown files
+  - "*.yaml"               # YAML files
+  - "*.json"               # JSON files
+  - "requirements.txt"     # Dependencies file
+  - "README.md"            # Documentation
+
+# Ignore patterns - applied after include patterns
+# These will still be excluded even if they match include patterns
+ignore_patterns:
+  - "*.pyc"                # Compiled Python files
+  - "__pycache__"          # Python cache directories
+  - ".git"                 # Git directory
+  - "venv"                 # Virtual environment
+  - "node_modules"         # Node.js dependencies
+  - "*.log"                # Log files
+  - "gemini-review*.md"    # Previous review outputs
+
+# Documentation files to include in analysis
+documentation_files:
+  - "README.md"
+  - "docs/*.md"
+  - "ARCHITECTURE.md"
+
+# Custom prompt for focused review
+custom_prompt: |
+  Focus on code quality and maintainability:
+  - Code structure and organization
+  - Function and class design
+  - Error handling patterns
+  - Documentation quality
+  - Test coverage indicators
+
+# Example of different include strategies:
+
+# Strategy 1: Core application only
+# include_patterns:
+#   - "src/**/*.py"
+#   - "main.py"
+#   - "app.py"
+
+# Strategy 2: Configuration and docs only
+# include_patterns:
+#   - "*.yaml"
+#   - "*.json"
+#   - "*.md"
+#   - "*.txt"
+
+# Strategy 3: Specific modules only
+# include_patterns:
+#   - "src/auth/**/*.py"
+#   - "src/api/**/*.py"
+#   - "tests/test_auth.py"
+#   - "tests/test_api.py" 

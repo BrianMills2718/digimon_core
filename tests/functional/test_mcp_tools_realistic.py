@@ -13,7 +13,6 @@ import signal
 from pathlib import Path
 
 # Add src to path
-sys.path.insert(0, str(Path(__file__).parent))
 
 class MCPServerTester:
     def __init__(self):
@@ -29,7 +28,6 @@ class MCPServerTester:
             self.server_process = subprocess.Popen(
                 [sys.executable, "-c", """
 import sys
-sys.path.insert(0, '.')
 from src.mcp_server import mcp
 mcp.run(host='localhost', port=8052)
 """],

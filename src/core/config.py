@@ -9,10 +9,12 @@ Addresses Configuration Management Debt identified in TECHNICAL_DEBT_AUDIT.md
 
 import os
 import yaml
+import jsonschema
 from typing import Dict, Any, Optional, Union
 from pathlib import Path
 from dataclasses import dataclass, field
 import threading
+from .logging_config import get_logger
 
 
 @dataclass
@@ -51,6 +53,8 @@ class APIConfig:
     batch_processing_size: int = 10
     openai_model: str = "text-embedding-3-small"
     gemini_model: str = "gemini-2.0-flash-exp"
+    openai_api_key: Optional[str] = None
+    google_api_key: Optional[str] = None
 
 
 @dataclass
@@ -65,6 +69,15 @@ class Neo4jConfig:
 
 
 @dataclass
+class WorkflowConfig:
+    """Configuration for workflow management."""
+    storage_dir: str = "./data/workflows"
+    checkpoint_interval: int = 10
+    max_retries: int = 3
+    timeout_seconds: int = 300
+
+
+@dataclass
 class SystemConfig:
     """Complete system configuration."""
     entity_processing: EntityProcessingConfig = field(default_factory=EntityProcessingConfig)
@@ -72,6 +85,7 @@ class SystemConfig:
     graph_construction: GraphConstructionConfig = field(default_factory=GraphConstructionConfig)
     api: APIConfig = field(default_factory=APIConfig)
     neo4j: Neo4jConfig = field(default_factory=Neo4jConfig)
+    workflow: WorkflowConfig = field(default_factory=WorkflowConfig)
     
     # Environment settings
     environment: str = "development"
@@ -79,8 +93,17 @@ class SystemConfig:
     log_level: str = "INFO"
 
 
+class ConfigurationError(Exception):
+    """Raised when configuration is invalid"""
+    pass
+
+
 class ConfigurationManager:
-    """Centralized configuration management with singleton pattern."""
+    """Centralized configuration management with singleton pattern.
+    
+    Unified configuration manager that combines the best features of both
+    ConfigurationManager and ConfigManager for complete system coverage.
+    """
     
     _instance = None
     _lock = threading.Lock()
@@ -98,6 +121,7 @@ class ConfigurationManager:
             self._initialized = True
             self._config_path = None
             self._config = None
+            self.logger = get_logger("core.config")
     
     def load_config(self, config_path: Optional[str] = None, force_reload: bool = False) -> SystemConfig:
         """Load configuration from file or create default."""
@@ -144,8 +168,8 @@ class ConfigurationManager:
             return self._dict_to_config(config_data)
             
         except Exception as e:
-            print(f"Warning: Failed to load config from {config_path}: {e}")
-            print("Using default configuration")
+            self.logger.warning("Failed to load config from %s: %s", config_path, str(e))
+            self.logger.info("Using default configuration")
             return SystemConfig()
     
     def _dict_to_config(self, config_dict: Dict[str, Any]) -> SystemConfig:
@@ -350,6 +374,286 @@ class ConfigurationManager:
             "warnings": warnings,
             "config_path": self._config_path
         }
+    
+    def get(self, key: str, default: Any = None) -> Any:
+        """Get configuration value using dot notation (e.g., 'neo4j.uri').
+        
+        Args:
+            key: Configuration key using dot notation
+            default: Default value if key not found
+            
+        Returns:
+            Configuration value or default
+        """
+        if not self._config:
+            self.load_config()
+        
+        # Convert SystemConfig to dict for dot notation access
+        config_dict = self._config_to_dict(self._config)
+        
+        keys = key.split('.')
+        value = config_dict
+        
+        for k in keys:
+            if isinstance(value, dict) and k in value:
+                value = value[k]
+            else:
+                return default
+        
+        return value
+    
+    def get_neo4j_config(self) -> Dict[str, Any]:
+        """Get Neo4j configuration with environment variable overrides."""
+        if not self._config:
+            self.load_config()
+        
+        return {
+            'uri': os.getenv('NEO4J_URI', self._config.neo4j.uri),
+            'user': os.getenv('NEO4J_USER', self._config.neo4j.user),
+            'password': os.getenv('NEO4J_PASSWORD', self._config.neo4j.password),
+            'max_connection_pool_size': int(os.getenv('NEO4J_MAX_POOL_SIZE', self._config.neo4j.max_connection_pool_size)),
+            'connection_acquisition_timeout': float(os.getenv('NEO4J_CONNECTION_TIMEOUT', self._config.neo4j.connection_acquisition_timeout)),
+            'keep_alive': os.getenv('NEO4J_KEEP_ALIVE', str(self._config.neo4j.keep_alive)).lower() == 'true'
+        }
+    
+    def get_api_config(self) -> Dict[str, Any]:
+        """Get API configuration with environment variable overrides."""
+        if not self._config:
+            self.load_config()
+        
+        return {
+            'retry_attempts': int(os.getenv('API_RETRY_ATTEMPTS', self._config.api.retry_attempts)),
+            'timeout_seconds': int(os.getenv('API_TIMEOUT_SECONDS', self._config.api.timeout_seconds)),
+            'batch_processing_size': int(os.getenv('API_BATCH_SIZE', self._config.api.batch_processing_size)),
+            'openai_model': os.getenv('OPENAI_MODEL', self._config.api.openai_model),
+            'gemini_model': os.getenv('GEMINI_MODEL', self._config.api.gemini_model)
+        }
+    
+    def get_entity_processing_config(self) -> Dict[str, Any]:
+        """Get entity processing configuration."""
+        if not self._config:
+            self.load_config()
+        
+        return {
+            'confidence_threshold': self._config.entity_processing.confidence_threshold,
+            'chunk_overlap_size': self._config.entity_processing.chunk_overlap_size,
+            'embedding_batch_size': self._config.entity_processing.embedding_batch_size,
+            'max_entities_per_chunk': self._config.entity_processing.max_entities_per_chunk
+        }
+    
+    def get_text_processing_config(self) -> Dict[str, Any]:
+        """Get text processing configuration."""
+        if not self._config:
+            self.load_config()
+        
+        return {
+            'chunk_size': self._config.text_processing.chunk_size,
+            'semantic_similarity_threshold': self._config.text_processing.semantic_similarity_threshold,
+            'max_chunks_per_document': self._config.text_processing.max_chunks_per_document
+        }
+    
+    def get_graph_construction_config(self) -> Dict[str, Any]:
+        """Get graph construction configuration."""
+        if not self._config:
+            self.load_config()
+        
+        return {
+            'pagerank_iterations': self._config.graph_construction.pagerank_iterations,
+            'pagerank_damping_factor': self._config.graph_construction.pagerank_damping_factor,
+            'pagerank_tolerance': self._config.graph_construction.pagerank_tolerance,
+            'pagerank_min_score': self._config.graph_construction.pagerank_min_score,
+            'max_relationships_per_entity': self._config.graph_construction.max_relationships_per_entity,
+            'graph_pruning_threshold': self._config.graph_construction.graph_pruning_threshold
+        }
+    
+    def get_system_config(self) -> Dict[str, Any]:
+        """Get system configuration."""
+        if not self._config:
+            self.load_config()
+        
+        return {
+            'mode': os.getenv('GRAPHRAG_MODE', self._config.environment),
+            'environment': os.getenv('ENVIRONMENT', self._config.environment),
+            'debug': os.getenv('DEBUG', str(self._config.debug)).lower() == 'true',
+            'log_level': os.getenv('LOG_LEVEL', self._config.log_level),
+            'strict_schema_validation': self.get('system.strict_schema_validation', False)
+        }
+    
+    def get_all_config(self) -> Dict[str, Any]:
+        """Get complete configuration dictionary."""
+        if not self._config:
+            self.load_config()
+        return self._config_to_dict(self._config)
+    
+    def reload_config(self) -> None:
+        """Reload configuration from file."""
+        self._config = None
+        self.load_config()
+    
+    def validate_config_with_schema(self) -> None:
+        """Validate configuration against JSON schema for production readiness.
+        
+        Raises:
+            ConfigurationError: If configuration is invalid
+        """
+        schema = {
+            "type": "object",
+            "properties": {
+                "neo4j": {
+                    "type": "object",
+                    "properties": {
+                        "uri": {"type": "string", "pattern": "^bolt://.*"},
+                        "user": {"type": "string", "minLength": 1},
+                        "password": {"type": "string", "minLength": 1},
+                        "max_connection_pool_size": {"type": "number", "minimum": 1},
+                        "connection_acquisition_timeout": {"type": "number", "minimum": 0},
+                        "keep_alive": {"type": "boolean"}
+                    },
+                    "required": ["uri", "user", "password"],
+                    "additionalProperties": False
+                },
+                "api": {
+                    "type": "object",
+                    "properties": {
+                        "retry_attempts": {"type": "number", "minimum": 0, "maximum": 10},
+                        "timeout_seconds": {"type": "number", "minimum": 1, "maximum": 300},
+                        "batch_processing_size": {"type": "number", "minimum": 1, "maximum": 1000},
+                        "openai_model": {"type": "string", "minLength": 1},
+                        "gemini_model": {"type": "string", "minLength": 1}
+                    },
+                    "required": ["openai_model", "gemini_model"],
+                    "additionalProperties": False
+                },
+                "entity_processing": {
+                    "type": "object",
+                    "properties": {
+                        "confidence_threshold": {"type": "number", "minimum": 0, "maximum": 1},
+                        "chunk_overlap_size": {"type": "number", "minimum": 0},
+                        "embedding_batch_size": {"type": "number", "minimum": 1},
+                        "max_entities_per_chunk": {"type": "number", "minimum": 1}
+                    },
+                    "additionalProperties": False
+                },
+                "text_processing": {
+                    "type": "object",
+                    "properties": {
+                        "chunk_size": {"type": "number", "minimum": 1},
+                        "semantic_similarity_threshold": {"type": "number", "minimum": 0, "maximum": 1},
+                        "max_chunks_per_document": {"type": "number", "minimum": 1}
+                    },
+                    "additionalProperties": False
+                },
+                "graph_construction": {
+                    "type": "object",
+                    "properties": {
+                        "pagerank_iterations": {"type": "number", "minimum": 1},
+                        "pagerank_damping_factor": {"type": "number", "minimum": 0, "maximum": 1},
+                        "pagerank_tolerance": {"type": "number", "minimum": 0},
+                        "pagerank_min_score": {"type": "number", "minimum": 0},
+                        "max_relationships_per_entity": {"type": "number", "minimum": 1},
+                        "graph_pruning_threshold": {"type": "number", "minimum": 0, "maximum": 1}
+                    },
+                    "additionalProperties": False
+                }
+            },
+            "required": ["neo4j"],
+            "additionalProperties": True
+        }
+        
+        try:
+            # Construct config object for validation
+            config_for_validation = {
+                "neo4j": self.get_neo4j_config(),
+                "api": self.get_api_config(),
+                "entity_processing": self.get_entity_processing_config(),
+                "text_processing": self.get_text_processing_config(),
+                "graph_construction": self.get_graph_construction_config()
+            }
+            
+            jsonschema.validate(config_for_validation, schema)
+        except jsonschema.ValidationError as e:
+            raise ConfigurationError(f"Configuration validation failed: {e.message}")
+        except Exception as e:
+            raise ConfigurationError(f"Configuration validation error: {str(e)}")
+    
+    def is_production_ready(self) -> tuple[bool, list[str]]:
+        """Check if configuration is production ready.
+        
+        Returns:
+            Tuple of (is_ready: bool, issues: list[str])
+        """
+        issues = []
+        
+        try:
+            self.validate_config_with_schema()
+        except ConfigurationError as e:
+            issues.append(f"Schema validation failed: {e}")
+        
+        # Check for production-specific requirements
+        neo4j_config = self.get_neo4j_config()
+        if neo4j_config['uri'] == 'bolt://localhost:7687':
+            issues.append("Neo4j URI should not use localhost in production")
+        
+        if neo4j_config['user'] == 'neo4j' and neo4j_config['password'] == 'password':
+            issues.append("Neo4j credentials should not use default values in production")
+        
+        system_config = self.get_system_config()
+        if system_config['environment'] == 'development':
+            issues.append("Environment should be set to 'production'")
+        
+        if system_config['debug']:
+            issues.append("Debug mode should be disabled in production")
+        
+        # Check for required environment variables
+        required_env_vars = ['NEO4J_URI', 'NEO4J_USER', 'NEO4J_PASSWORD']
+        for env_var in required_env_vars:
+            if not os.getenv(env_var):
+                issues.append(f"Required environment variable {env_var} not set")
+        
+        return len(issues) == 0, issues
+    
+    def is_production_mode(self) -> bool:
+        """Determine if system is running in production mode."""
+        # Check environment variable first
+        env_mode = os.getenv('GRAPHRAG_MODE', '').lower()
+        if env_mode in ['production', 'prod']:
+            return True
+        
+        # Check configuration
+        system_config = self.get_system_config()
+        return system_config.get('mode', 'development').lower() in ['production', 'prod']
+    
+    def get_theory_config(self) -> Dict[str, Any]:
+        """Get theory processing configuration."""
+        return self.get('theory', {
+            'enabled': False,
+            'schema_type': 'MASTER_CONCEPTS',
+            'concept_library_path': 'src/ontology_library/master_concepts.py',
+            'validation_enabled': True,
+            'enhancement_boost': 0.1
+        })
+    
+    def is_theory_enabled(self) -> bool:
+        """Check if theory processing is enabled."""
+        return self.get_theory_config().get('enabled', False)
+    
+    def update_config(self, updates: Dict[str, Any]) -> None:
+        """Update configuration with new values."""
+        if self._config is None:
+            self.load_config()
+        
+        def update_nested_dict(d, u):
+            for k, v in u.items():
+                if isinstance(v, dict):
+                    d[k] = update_nested_dict(d.get(k, {}), v)
+                else:
+                    d[k] = v
+            return d
+        
+        # Convert current config to dict, update, then convert back
+        config_dict = self._config_to_dict(self._config)
+        updated_dict = update_nested_dict(config_dict, updates)
+        self._config = self._dict_to_config(updated_dict)
 
 
 # Global configuration instance - use a function to ensure singleton across imports
@@ -373,3 +677,8 @@ def load_config(config_path: Optional[str] = None, force_reload: bool = False) -
 def validate_config() -> Dict[str, Any]:
     """Validate current configuration."""
     return _get_global_config_manager().validate_config()
+
+
+# Aliases for backward compatibility and audit tool
+Config = ConfigurationManager
+ConfigManager = ConfigurationManager  # Alias for merged functionality

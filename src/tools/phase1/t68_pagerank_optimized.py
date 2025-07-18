@@ -24,12 +24,12 @@ class PageRankCalculatorOptimized(BaseNeo4jTool):
     
     def __init__(
         self,
-        identity_service: IdentityService,
-        provenance_service: ProvenanceService,
-        quality_service: QualityService,
-        neo4j_uri: str = "bolt://localhost:7687",
-        neo4j_user: str = "neo4j",
-        neo4j_password: str = "password",
+        identity_service: IdentityService = None,
+        provenance_service: ProvenanceService = None,
+        quality_service: QualityService = None,
+        neo4j_uri: str = None,
+        neo4j_user: str = None,
+        neo4j_password: str = None,
         shared_driver: Optional[Driver] = None,
         damping_factor: float = 0.85
     ):
@@ -250,3 +250,7 @@ class PageRankCalculatorOptimized(BaseNeo4jTool):
                 "Simplified quality assessment"
             ]
         }
+
+# Alias for backward compatibility and audit tool
+# Removed brittle alias as per CLAUDE.md CRITICAL FIX 3
+# Use proper class name PageRankCalculatorOptimized directly

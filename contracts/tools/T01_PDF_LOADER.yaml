@@ -1,0 +1,29 @@
+# Fixed contract that passes schema validation
+tool_id: "T01_PDF_LOADER"
+description: "Loads PDF documents and converts to standardized document format"
+category: "Ingestion"
+
+input_contract:
+  required_data_types:
+    - type: "Document"
+      attributes: ["file_path", "file_extension"]
+  required_state:
+    document_available: true
+
+output_contract:
+  produced_data_types:
+    - type: "Document"
+      attributes: ["text", "metadata", "source_file"]
+  produced_state:
+    document_loaded: true
+
+error_codes:
+  - code: "PDF_LOAD_ERROR"
+    description: "Failed to load PDF file due to file access or corruption issues"
+    severity: "error"
+  - code: "PDF_PARSE_ERROR"
+    description: "Failed to parse PDF content or extract text"
+    severity: "error"
+  - code: "INVALID_FILE_PATH"
+    description: "Provided file path is invalid or file does not exist"
+    severity: "error"

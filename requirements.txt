@@ -29,3 +29,14 @@ flake8>=6.1.0
 
 # Logging and Monitoring
 structlog>=23.2.0
+prometheus-client>=0.17.0
+
+# Async Processing
+aiofiles>=23.2.0
+python-docx>=0.8.11
+
+# Encryption and Security
+cryptography>=41.0.0
+
+# System Monitoring
+psutil>=5.9.0

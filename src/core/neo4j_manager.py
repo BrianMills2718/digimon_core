@@ -9,10 +9,15 @@ Prevents infrastructure blockers in testing and development.
 import subprocess
 import time
 import socket
-from typing import Optional, Dict, Any
+import threading
+import uuid
+import random
+from typing import Optional, Dict, Any, List, Tuple
 import logging
+from datetime import datetime
 
 from .config import ConfigurationManager
+from .input_validator import InputValidator
 
 logger = logging.getLogger(__name__)
 
@@ -23,6 +28,16 @@ class Neo4jDockerManager:
     def __init__(self, 
                  container_name: str = "neo4j-graphrag"):
         self.container_name = container_name
+        self._driver = None
+        
+        # Stability enhancements
+        self.max_retries = 3
+        self.retry_delay = 1.0
+        self.connection_timeout = 30
+        self._lock = threading.Lock()
+        
+        # Initialize input validator for security
+        self.input_validator = InputValidator()
         
         # Get configuration from ConfigurationManager
         config_manager = ConfigurationManager()
@@ -36,6 +51,160 @@ class Neo4jDockerManager:
         self.username = config.neo4j.user
         self.password = config.neo4j.password
         self.bolt_uri = config.neo4j.uri
+    
+    def get_driver(self):
+        """Get optimized Neo4j driver instance with connection pooling"""
+        if self._driver is None:
+            try:
+                from neo4j import GraphDatabase
+                # Optimized configuration with connection pooling
+                self._driver = GraphDatabase.driver(
+                    self.bolt_uri,
+                    auth=(self.username, self.password),
+                    # Connection pooling optimizations
+                    max_connection_lifetime=3600,  # 1 hour
+                    max_connection_pool_size=10,   # Support up to 10 concurrent connections
+                    connection_timeout=30,         # 30 second timeout
+                    connection_acquisition_timeout=60,  # 60 second acquisition timeout
+                    # Performance optimizations
+                    keep_alive=True
+                )
+                # Test connection with performance logging
+                import time
+                start_time = time.time()
+                with self._driver.session() as session:
+                    result = session.run("RETURN 1 as test")
+                    test_value = result.single()["test"]
+                    assert test_value == 1
+                connection_time = time.time() - start_time
+                logger.info(f"Neo4j connection established in {connection_time:.3f}s with optimized pooling")
+            except Exception as e:
+                raise ConnectionError(f"Neo4j connection failed: {e}")
+        return self._driver
+    
+    def get_session(self):
+        """Get session with exponential backoff and comprehensive retry logic"""
+        with self._lock:
+            for attempt in range(self.max_retries):
+                try:
+                    # Validate or recreate connection
+                    if not self._driver or not self._validate_connection():
+                        self._reconnect()
+                    
+                    # Attempt to get session
+                    session = self._driver.session()
+                    
+                    # Test session with simple query
+                    test_result = session.run("RETURN 1")
+                    if test_result.single()[0] != 1:
+                        session.close()
+                        raise RuntimeError("Session validation failed")
+                    
+                    return session
+                    
+                except Exception as e:
+                    if attempt == self.max_retries - 1:
+                        raise ConnectionError(f"Failed to establish database connection after {self.max_retries} attempts: {e}")
+                    
+                    # Exponential backoff with jitter
+                    delay = self.retry_delay * (2 ** attempt) * (1 + random.random() * 0.1)
+                    time.sleep(min(delay, 30.0))  # Cap at 30 seconds
+    
+    def _validate_connection(self) -> bool:
+        """Validate existing connection is healthy with comprehensive checks"""
+        if not self._driver:
+            logger.warning("No driver available for connection validation")
+            return False
+        
+        try:
+            with self._driver.session() as session:
+                start_time = time.time()
+                
+                # Test basic connectivity
+                try:
+                    result = session.run("RETURN 1 as test", timeout=5)
+                    test_value = result.single()["test"]
+                except Exception as e:
+                    logger.error(f"Basic connectivity test failed: {e}")
+                    return False
+                
+                connection_time = time.time() - start_time
+                
+                # Validate response correctness
+                if test_value != 1:
+                    logger.error(f"Unexpected test result: {test_value} (expected 1)")
+                    return False
+                    
+                # Validate performance
+                if connection_time > 10.0:
+                    logger.warning(f"Connection too slow: {connection_time:.2f}s > 10.0s threshold")
+                    return False
+                
+                # Test write capability
+                try:
+                    session.run("CREATE (n:HealthCheck {timestamp: $ts}) DELETE n", 
+                               ts=datetime.now().isoformat(), timeout=5)
+                except Exception as e:
+                    logger.error(f"Write capability test failed: {e}")
+                    return False
+                
+                logger.info(f"Connection validation successful in {connection_time:.3f}s")
+                return True
+                
+        except Exception as e:
+            logger.error(f"Connection validation failed with exception: {e}")
+            return False
+    
+    def _reconnect(self):
+        """Reconnect with proper cleanup and fresh driver creation"""
+        # Force cleanup of existing driver
+        if self._driver:
+            try:
+                self._driver.close()
+            except Exception as e:
+                logger.warning(f"Error closing driver during reconnect: {e}")
+            finally:
+                self._driver = None
+        
+        # Wait for cleanup to complete
+        time.sleep(0.5)
+        
+        # Create fresh driver with full configuration
+        from neo4j import GraphDatabase
+        try:
+            self._driver = GraphDatabase.driver(
+                self.bolt_uri,
+                auth=(self.username, self.password),
+                connection_timeout=self.connection_timeout,
+                max_connection_lifetime=3600,
+                max_connection_pool_size=10,
+                # Additional stability settings
+                connection_acquisition_timeout=60
+            )
+            
+            # Validate new connection immediately
+            if not self._validate_connection():
+                raise ConnectionError("New connection failed validation")
+                
+        except Exception as e:
+            self._driver = None
+            raise ConnectionError(f"Reconnection failed: {e}")
+    
+    def test_connection(self) -> bool:
+        """Test database connectivity with actual query"""
+        try:
+            with self.get_session() as session:
+                result = session.run("RETURN 1 as test")
+                return result.single()["test"] == 1
+        except Exception as e:
+            logger.error(f"Connection test failed: {e}")
+            return False
+    
+    def close(self):
+        """Close Neo4j driver"""
+        if self._driver:
+            self._driver.close()
+            self._driver = None
         
     def is_port_open(self, timeout: int = 1) -> bool:
         """Check if Neo4j port is accessible"""
@@ -145,12 +314,13 @@ class Neo4jDockerManager:
                 capture_output=True, timeout=30
             )
             return True
-        except:
+        except Exception as e:
+            logger.error(f"Failed to stop Neo4j container: {e}")
             return False
     
     def _wait_for_neo4j_ready(self, max_wait: int = 30) -> bool:
         """Wait for Neo4j to be ready to accept connections"""
-        print(f"⏳ Waiting for Neo4j to be ready on {self.bolt_uri}...")
+        logger.info(f"⏳ Waiting for Neo4j to be ready on {self.bolt_uri}...")
         
         for i in range(max_wait):
             if self.is_port_open(timeout=2):
@@ -164,16 +334,17 @@ class Neo4jDockerManager:
                     with driver.session() as session:
                         session.run("RETURN 1")
                     driver.close()
-                    print(f"✅ Neo4j ready after {i+1} seconds")
+                    logger.info(f"✅ Neo4j ready after {i+1} seconds")
                     return True
-                except:
+                except Exception as e:
+                    logger.debug(f"Neo4j connection attempt failed: {e}")
                     pass
             
             time.sleep(1)
             if i % 5 == 4:  # Every 5 seconds
-                print(f"   Still waiting... ({i+1}/{max_wait}s)")
+                logger.info(f"   Still waiting... ({i+1}/{max_wait}s)")
         
-        print(f"❌ Neo4j not ready after {max_wait} seconds")
+        logger.info(f"❌ Neo4j not ready after {max_wait} seconds")
         return False
     
     def ensure_neo4j_available(self) -> Dict[str, Any]:
@@ -187,7 +358,7 @@ class Neo4jDockerManager:
                 "action": "none"
             }
         
-        print("🔧 Neo4j not accessible - attempting auto-start...")
+        logger.info("🔧 Neo4j not accessible - attempting auto-start...")
         start_result = self.start_neo4j_container()
         
         if start_result["success"]:
@@ -203,6 +374,219 @@ class Neo4jDockerManager:
                 "message": f"Could not start Neo4j: {start_result['message']}",
                 "action": start_result["action"]
             }
+    
+    def get_health_status(self) -> Dict[str, Any]:
+        """Get health status of Neo4j database"""
+        try:
+            # Try to get a driver and execute a simple query
+            driver = self.get_driver()
+            with driver.session() as session:
+                result = session.run("RETURN 1 as test")
+                test_value = result.single()['test']
+                
+                if test_value == 1:
+                    return {
+                        'status': 'healthy',
+                        'message': 'Neo4j database is responding normally'
+                    }
+                else:
+                    return {
+                        'status': 'unhealthy',
+                        'message': 'Neo4j database returned unexpected result'
+                    }
+        except Exception as e:
+            return {
+                'status': 'unhealthy',
+                'message': f'Neo4j database connection failed: {str(e)}'
+            }
+    
+    def execute_secure_query(self, query: str, params: Dict[str, Any] = None) -> List[Dict[str, Any]]:
+        """Execute query with mandatory security validation"""
+        if params is None:
+            params = {}
+        
+        # Validate query and parameters for security
+        try:
+            validated = self.input_validator.enforce_parameterized_execution(query, params)
+            safe_query = validated['query']
+            safe_params = validated['params']
+        except ValueError as e:
+            logger.error(f"Query validation failed: {e}")
+            raise e
+        
+        # Execute with validated parameters
+        driver = self.get_driver()
+        with driver.session() as session:
+            try:
+                result = session.run(safe_query, safe_params)
+                return [dict(record) for record in result]
+            except Exception as e:
+                logger.error(f"Query execution failed: {e}")
+                raise e
+    
+    def execute_secure_write_transaction(self, query: str, params: Dict[str, Any] = None) -> Dict[str, Any]:
+        """Execute write transaction with security validation"""
+        if params is None:
+            params = {}
+        
+        # Validate query and parameters
+        try:
+            validated = self.input_validator.enforce_parameterized_execution(query, params)
+            safe_query = validated['query']
+            safe_params = validated['params']
+        except ValueError as e:
+            logger.error(f"Write transaction validation failed: {e}")
+            raise e
+        
+        driver = self.get_driver()
+        with driver.session() as session:
+            try:
+                with session.begin_transaction() as tx:
+                    result = tx.run(safe_query, safe_params)
+                    summary = result.consume()
+                    tx.commit()
+                    
+                    return {
+                        'nodes_created': summary.counters.nodes_created,
+                        'nodes_deleted': summary.counters.nodes_deleted,
+                        'relationships_created': summary.counters.relationships_created,
+                        'relationships_deleted': summary.counters.relationships_deleted,
+                        'properties_set': summary.counters.properties_set,
+                        'query_time': summary.result_available_after + summary.result_consumed_after
+                    }
+            except Exception as e:
+                logger.error(f"Write transaction failed: {e}")
+                raise e
+    
+    def execute_query(self, query: str, params: Dict[str, Any] = None) -> List[Dict[str, Any]]:
+        """Legacy method name - redirects to secure execution"""
+        logger.warning("execute_query() is deprecated. Use execute_secure_query() for explicit security validation")
+        return self.execute_secure_query(query, params)
+    
+    def execute_optimized_batch(self, queries_with_params, batch_size=1000):
+        """Execute queries in optimized batches with security validation"""
+        results = []
+        driver = self.get_driver()
+        
+        import time
+        start_time = time.time()
+        
+        # Pre-validate all queries for security
+        validated_queries = []
+        for query, params in queries_with_params:
+            try:
+                validated = self.input_validator.enforce_parameterized_execution(query, params or {})
+                validated_queries.append((validated['query'], validated['params']))
+            except ValueError as e:
+                logger.error(f"Batch query validation failed: {e}")
+                raise e
+        
+        with driver.session() as session:
+            for i in range(0, len(validated_queries), batch_size):
+                batch = validated_queries[i:i + batch_size]
+                
+                batch_start = time.time()
+                
+                # Use transaction for better performance
+                with session.begin_transaction() as tx:
+                    batch_results = []
+                    for query, params in batch:
+                        result = tx.run(query, params)
+                        batch_results.append(list(result))
+                    tx.commit()
+                    results.extend(batch_results)
+                
+                batch_time = time.time() - batch_start
+                logger.debug(f"Processed batch of {len(batch)} queries in {batch_time:.3f}s")
+        
+        total_time = time.time() - start_time
+        logger.info(f"Executed {len(queries_with_params)} queries in {total_time:.3f}s (avg: {total_time/len(queries_with_params):.4f}s per query)")
+        
+        return {
+            "results": results,
+            "total_queries": len(queries_with_params),
+            "execution_time": total_time,
+            "avg_time_per_query": total_time / len(queries_with_params),
+            "batches_processed": (len(queries_with_params) + batch_size - 1) // batch_size
+        }
+    
+    def create_optimized_indexes(self):
+        """Create optimized indexes for production scale performance"""
+        driver = self.get_driver()
+        
+        index_queries = [
+            "CREATE INDEX entity_id_index IF NOT EXISTS FOR (n:Entity) ON (n.entity_id)",
+            "CREATE INDEX entity_canonical_name_index IF NOT EXISTS FOR (n:Entity) ON (n.canonical_name)",
+            "CREATE INDEX relationship_type_index IF NOT EXISTS FOR ()-[r:RELATIONSHIP]-() ON (r.type)",
+            "CREATE INDEX relationship_confidence_index IF NOT EXISTS FOR ()-[r:RELATIONSHIP]-() ON (r.confidence)",
+            "CREATE INDEX mention_surface_form_index IF NOT EXISTS FOR (m:Mention) ON (m.surface_form)",
+            "CREATE INDEX pagerank_score_index IF NOT EXISTS FOR (n:Entity) ON (n.pagerank_score)"
+        ]
+        
+        created_indexes = []
+        start_time = time.time()
+        
+        with driver.session() as session:
+            for query in index_queries:
+                try:
+                    index_start = time.time()
+                    session.run(query)
+                    index_time = time.time() - index_start
+                    created_indexes.append({
+                        "index": query.split("FOR")[1].split("ON")[0].strip() if "FOR" in query else "unknown",
+                        "creation_time": index_time
+                    })
+                    logger.info(f"Created index in {index_time:.3f}s")
+                except Exception as e:
+                    logger.warning(f"Index creation failed or already exists: {e}")
+        
+        total_time = time.time() - start_time
+        logger.info(f"Index optimization completed in {total_time:.3f}s")
+        
+        return {
+            "indexes_created": len(created_indexes),
+            "total_time": total_time,
+            "details": created_indexes
+        }
+    
+    def get_performance_metrics(self):
+        """Get current database performance metrics"""
+        driver = self.get_driver()
+        
+        metrics = {}
+        
+        with driver.session() as session:
+            import time
+            
+            # Test basic query performance
+            start_time = time.time()
+            result = session.run("MATCH (n) RETURN count(n) as total_nodes")
+            node_count = result.single()["total_nodes"]
+            node_count_time = time.time() - start_time
+            
+            # Test relationship count performance
+            start_time = time.time()
+            result = session.run("MATCH ()-[r]->() RETURN count(r) as total_relationships")
+            rel_count = result.single()["total_relationships"]
+            rel_count_time = time.time() - start_time
+            
+            # Test index usage
+            start_time = time.time()
+            result = session.run("SHOW INDEXES")
+            indexes = list(result)
+            index_query_time = time.time() - start_time
+            
+            metrics = {
+                "node_count": node_count,
+                "relationship_count": rel_count,
+                "node_count_query_time": node_count_time,
+                "relationship_count_query_time": rel_count_time,
+                "total_indexes": len(indexes),
+                "index_query_time": index_query_time,
+                "connection_pool_status": "optimized" if self._driver else "not_initialized"
+            }
+        
+        return metrics
 
 
 def ensure_neo4j_for_testing() -> bool:
@@ -214,16 +598,19 @@ def ensure_neo4j_for_testing() -> bool:
     result = manager.ensure_neo4j_available()
     
     if result["status"] in ["available", "started"]:
-        print(f"✅ {result['message']}")
+        logger.info(f"✅ {result['message']}")
         return True
     else:
-        print(f"❌ {result['message']}")
+        logger.info(f"❌ {result['message']}")
         return False
 
 
+# Alias for backward compatibility and audit tool
+Neo4jManager = Neo4jDockerManager
+
 if __name__ == "__main__":
     # Test the manager
-    print("Testing Neo4j Docker Manager...")
+    logger.info("Testing Neo4j Docker Manager...")
     manager = Neo4jDockerManager()
     result = manager.ensure_neo4j_available()
-    print(f"Result: {result}")
+    logger.info(f"Result: {result}")

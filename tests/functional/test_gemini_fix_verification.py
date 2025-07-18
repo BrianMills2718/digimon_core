@@ -5,7 +5,6 @@ Verify that the Gemini safety filter issue is resolved
 
 import sys
 import os
-sys.path.insert(0, '/home/brian/Digimons')
 
 def test_gemini_ontology_generation():
     """Test Gemini ontology generation directly to verify safety filter fix"""
@@ -63,7 +62,7 @@ def test_enhanced_workflow_with_fix():
     print("=" * 60)
     
     try:
-        from src.tools.phase2.enhanced_vertical_slice_workflow import EnhancedVerticalSliceWorkflow
+        from src.core.tool_factory import create_unified_workflow_config, Phase, OptimizationLevel
         
         print("✅ Successfully imported EnhancedVerticalSliceWorkflow")
         

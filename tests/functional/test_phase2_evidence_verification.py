@@ -14,7 +14,6 @@ import traceback
 from datetime import datetime
 
 # Add src to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
 
 def log_evidence(message, success=None):
     """Log evidence with timestamp and success indicator"""

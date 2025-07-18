@@ -3,11 +3,9 @@
 Start the T301 MCP Server to expose fusion tools.
 """
 
-import sys
 from pathlib import Path
-sys.path.insert(0, str(Path(__file__).parent))
 
-from src.tools.phase3.t301_multi_document_fusion_tools import mcp
+from src.tools.phase3.t301_multi_document_fusion import mcp
 
 async def main():
     print("🚀 Starting T301 Multi-Document Fusion MCP Server")
