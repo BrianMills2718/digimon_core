@@ -29,7 +29,7 @@ def test_phase1_functional():
         
         # Test workflow
         workflow_config = create_unified_workflow_config(phase=Phase.PHASE1, optimization_level=OptimizationLevel.STANDARD)
-workflow = PipelineOrchestrator(workflow_config)
+        workflow = PipelineOrchestrator(workflow_config)
         result = workflow.execute_workflow(
             pdf_path=test_file,
             query="Who conducted the research?"

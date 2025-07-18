@@ -55,5 +55,24 @@
     "compression": true,
     "encryption": false,
     "error_message": null
+  },
+  {
+    "backup_id": "backup_20250718_021743",
+    "backup_type": "full",
+    "timestamp": "2025-07-18T02:17:43.520574",
+    "status": "success",
+    "file_path": "backups/backup_20250718_021743.tar.gz",
+    "file_size": 11504,
+    "checksum": "fba8b12e2588ebb399ee16b3152d5039b394f251f836a895cfa2f448917546c2",
+    "description": "Test backup",
+    "duration_seconds": 0.023233413696289062,
+    "data_sources": [
+      "config",
+      "logs",
+      "results"
+    ],
+    "compression": true,
+    "encryption": false,
+    "error_message": null
   }
 ]

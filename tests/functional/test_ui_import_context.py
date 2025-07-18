@@ -3,6 +3,7 @@
 Test the exact import context that Streamlit UI uses
 """
 
+import sys
 from pathlib import Path
 
 # Add project root to path (same as UI does)

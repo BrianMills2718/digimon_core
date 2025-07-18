@@ -99,7 +99,7 @@ class PipelineOrchestrator:
     - Maintains all existing functionality
     """
     
-    def __init__(self, config: PipelineConfig = None, config_manager: ConfigManager = None):
+    def __init__(self, config: PipelineConfig = None, config_manager: ConfigurationManager = None):
         """Initialize orchestrator with configuration
         
         Args:

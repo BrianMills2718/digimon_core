@@ -895,7 +895,8 @@ Be thorough and skeptical. Look for discrepancies between the claims and the act
               compress_code: bool = False,
               token_count_encoding: str = "gemini-pro",
               claims_of_success: Optional[str] = None,
-              documentation_files: Optional[List[str]] = None) -> str:
+              documentation_files: Optional[List[str]] = None,
+              output_file: str = "gemini-review.md") -> str:
         """Main review process."""
         print(f"\n🚀 Starting Gemini Code Review for: {project_path}\n")
         
@@ -925,7 +926,6 @@ Be thorough and skeptical. Look for discrepancies between the claims and the act
                                       project_path, ignore_patterns, include_patterns, documentation_files)
             
             # Step 4: Save results
-            output_file = config.output_file if config else "gemini-review.md"
             self.save_results(results, output_file)
             
             # Step 5: Cleanup (unless asked to keep)
@@ -1234,43 +1234,35 @@ Examples:
             cache_max_age_hours=args.cache_max_age
         )
         
-        # Run review with config or command-line args
-        if config:
-            reviewer.review(
-                project_path=config.project_path,
-                custom_prompt=config.custom_prompt,
-                output_format=config.output_format,
-                keep_repomix=config.keep_repomix,
-                ignore_patterns=config.ignore_patterns,
-                include_patterns=config.include_patterns,
-                remove_empty_lines=config.remove_empty_lines,
-                show_line_numbers=config.show_line_numbers,
-                include_diffs=config.include_diffs,
-                compress_code=config.compress_code,
-                token_count_encoding=config.token_count_encoding,
-                claims_of_success=config.claims_of_success,
-                documentation_files=config.documentation_files
-            )
+        # Load config if specified or found
+        config_path = args.config or find_config_file(args.project_path)
+        config = None
+        if config_path:
+            config = ReviewConfig.load_from_file(config_path)
         else:
-            # Validate patterns for standalone usage
-            validated_ignore = validate_patterns(args.ignore or [])
-            validated_include = validate_patterns(args.include or [])
-            
-            reviewer.review(
-                project_path=args.project_path,
-                custom_prompt=args.prompt,
-                output_format=args.format,
-                keep_repomix=args.keep_repomix,
-                ignore_patterns=validated_ignore,
-                include_patterns=validated_include,
-                remove_empty_lines=not args.no_remove_empty_lines,
-                show_line_numbers=args.line_numbers,
-                include_diffs=args.include_diffs,
-                compress_code=args.compress,
-                token_count_encoding=args.token_encoding,
-                claims_of_success=args.claims,
-                documentation_files=args.docs
-            )
+            config = create_default_config(args.project_path)
+
+        # Override config with CLI arguments if provided
+        output_file = config.output_file if config and not args.format == 'markdown' else "gemini-review.md" # Default for markdown
+        if args.format == 'markdown':
+            output_file = "gemini-review.md"
+
+        reviewer.review(
+            project_path=args.project_path,
+            custom_prompt=args.prompt or (config.custom_prompt if config else None),
+            output_format=args.format or (config.output_format if config else 'xml'),
+            keep_repomix=args.keep_repomix or (config.keep_repomix if config else False),
+            ignore_patterns=args.ignore or (config.ignore_patterns if config else None),
+            include_patterns=args.include or (config.include_patterns if config else None),
+            remove_empty_lines=not args.no_remove_empty_lines if args.no_remove_empty_lines is not None else (config.remove_empty_lines if config else True),
+            show_line_numbers=args.line_numbers or (config.show_line_numbers if config else False),
+            include_diffs=args.include_diffs or (config.include_diffs if config else False),
+            compress_code=args.compress or (config.compress_code if config else False),
+            token_count_encoding=args.token_encoding or (config.token_count_encoding if config else 'gemini-pro'),
+            claims_of_success=args.claims or (config.claims_of_success if config else None),
+            documentation_files=args.docs or (config.documentation_files if config else None),
+            output_file=output_file
+        )
         
     except (ValidationError, ConfigurationError) as e:
         print(f"\n❌ Configuration error: {str(e)}")
