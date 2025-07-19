@@ -1,853 +1,428 @@
-# KGAS Phase 2 Critical Implementation Fixes
+# KGAS Tool Factory Refactoring & Remaining Phase 5.3 Tasks
 
-**STATUS**: Critical Implementation Gaps Identified - Immediate Fixes Required
-**PRIORITY**: Eliminate all simulated functionality, implement missing features, validate all claims
+**OBJECTIVE**: Complete Phase 5.3 code quality improvements following successful tool factory refactoring, with evidence-based validation and Gemini review integration.
 
 ## 🧠 **CODING PHILOSOPHY**
 
-All implementations must adhere to these non-negotiable principles:
+### **Evidence-First Development**
+- **No lazy implementations** - All code must be fully functional, no stubs, mocks, fallbacks, or pseudo-code
+- **No simplified implementations** - Features must provide complete functionality, not reduced capability versions
+- **Fail-fast approach** - Errors must surface immediately, no error hiding or silent failures
+- **Assumption of failure** - Nothing is considered working until demonstrated with evidence
+- **Raw evidence requirement** - All claims must be backed by actual execution logs with timestamps in Evidence.md
 
-### **Zero Tolerance for Deceptive Practices**
-- **NO lazy mocking/stubs** - All functionality must be genuine and complete
-- **NO fallbacks that hide failures** - Expose all problems immediately for proper handling
-- **NO placeholders or pseudo-code** - Every implementation must be fully functional
-- **NO simplified implementations** - Features must provide full functionality as specified
-- **NO fabricated evidence** - All claims must be backed by actual execution logs with real timestamps
-- **NO success claims without verification** - Every feature must be proven to work with real data
-- **NO simulated processing** - Replace all `asyncio.sleep()` simulations with actual business logic
+### **Testing Mandate**
+- **Comprehensive testing required** - Unit, integration, and functional tests for all code
+- **Real data testing** - No validation theater, all tests use actual production-like data
+- **Evidence logging** - All test results must be logged with timestamps and raw outputs
+- **Regression prevention** - All existing functionality must continue working after changes
 
-### **Fail-Fast Architecture**
-- **Expose problems immediately** - Never hide errors behind try/catch blocks that mask failures
-- **Validate inputs rigorously** - Reject invalid data at system boundaries with clear error messages
-- **Fail on missing dependencies** - System initialization must fail if critical components unavailable
-- **Immediate error propagation** - Don't continue processing with invalid state
-- **No graceful degradation** - If core functionality fails, the system must fail completely with descriptive errors
+### **Code Quality Standards**
+- **Single responsibility** - Each module/class has one clear purpose
+- **Dependency injection** - No deep coupling, use proper dependency injection patterns
+- **Error transparency** - All errors logged with full context and stack traces
+- **Performance measurement** - All claims about performance backed by actual measurements
 
-### **Evidence-Based Development**
-- **Assumption: Nothing works until proven** - All code is broken until demonstrated otherwise with evidence
-- **Comprehensive testing required** - Every feature must have functional tests with real data execution
-- **Evidence logging mandatory** - All claims must be backed by timestamped execution logs in Evidence.md
-- **No success declarations without proof** - Claims require verifiable evidence before acceptance
-- **Test depth requirement** - Tests must verify actual functionality, not just presence of methods
-- **Real timestamps only** - All evidence must contain genuine execution timestamps, never fabricated
+## 📁 **CODEBASE STRUCTURE**
 
-## 🏗️ **CODEBASE STRUCTURE**
-
-### **Core Components**
-- **Main Application**: `main.py` - Entry point with MCP server initialization
-- **Configuration**: `src/core/config.py` - System-wide configuration management
-- **Neo4j Integration**: `src/core/neo4j_manager.py` - Database connection and operations
-- **Service Management**: `src/core/service_manager.py` - Core service orchestration
-
-### **Phase 1 Tools (Working)**
-- **PDF Loader**: `src/tools/phase1/t01_pdf_loader.py` - Document ingestion
-- **Text Chunker**: `src/tools/phase1/t15a_text_chunker.py` - Document segmentation
-- **Entity Extractor**: `src/tools/phase1/t23a_spacy_ner.py` - Named entity recognition
-- **Relationship Extractor**: `src/tools/phase1/t27_relationship_extractor.py` - Relationship extraction
-- **Entity Builder**: `src/tools/phase1/t31_entity_builder.py` - Graph node creation
-- **Edge Builder**: `src/tools/phase1/t34_edge_builder.py` - Graph edge creation
-- **Multi-hop Query**: `src/tools/phase1/t49_multihop_query.py` - Complex queries
-- **PageRank**: `src/tools/phase1/t68_pagerank.py` - Graph analysis
-
-### **Phase 2 Tools (CRITICAL FIXES NEEDED)**
-- **Async Multi-Document Processor**: `src/tools/phase2/async_multi_document_processor.py` - SIMULATED
-- **Metrics Collector**: `src/core/metrics_collector.py` - INCOMPLETE (17/41 metrics)
-- **Backup Manager**: `src/core/backup_manager.py` - MISSING FEATURES
-- **Grafana Dashboard Manager**: `src/monitoring/grafana_dashboards.py` - DISCONNECTED
-
-### **Phase 3 Tools (Working)**
-- **Multi-Document Fusion**: `src/tools/phase3/t301_multi_document_fusion.py` - Cross-document processing
-
-### **Testing and Validation**
-- **Functional Tests**: `tests/functional/` - End-to-end testing
-- **Performance Tests**: `tests/performance/` - NEEDS REAL TESTING
-- **Unit Tests**: `tests/unit/` - Component testing
-- **Evidence Documentation**: `Evidence.md` - Proof of functionality (TO BE CREATED)
-
-### **Configuration Files**
-- **Dependencies**: `requirements.txt`, `requirements_ui.txt`, `requirements_llm.txt`
-- **Docker**: `docker-compose.yml` - Container orchestration
-- **Config**: `config/default.yaml` - System configuration
+### **Core Architecture**
+```
+src/core/
+├── tool_discovery_service.py      # Tool scanning and identification (300 lines)
+├── tool_registry_service.py       # Tool registration and instantiation (200 lines)  
+├── tool_audit_service.py          # Tool validation and testing (400 lines)
+├── tool_performance_monitor.py    # Performance tracking and caching (350 lines)
+├── tool_factory_refactored.py     # Facade pattern for backward compatibility (250 lines)
+├── config_manager.py              # Unified configuration system
+├── service_manager.py             # Centralized service management
+└── pipeline_orchestrator.py       # Workflow execution coordination
+```
 
 ### **Entry Points**
-- **Start MCP Server**: `python main.py` - Main server
-- **Start UI**: `python streamlit_app.py` - User interface
-- **Run Tests**: `python -m pytest tests/` - Test execution
-- **Validate Claims**: `/gemini-validate-claims` - External validation
+- **Primary**: `src/core/tool_factory_refactored.py` - Main tool management interface
+- **Discovery**: `src/core/tool_discovery_service.py` - Tool scanning and validation
+- **Testing**: `test_refactored_tool_factory.py` - Comprehensive service validation
+- **Configuration**: `src/core/config_manager.py` - System configuration management
 
-## 🚨 **CRITICAL IMPLEMENTATION FIXES REQUIRED**
-
-### **Task 1: Fix AsyncMultiDocumentProcessor - CRITICAL**
-
-**Location**: `src/tools/phase2/async_multi_document_processor.py`
-
-**Problem**: Entire document processing pipeline is simulated with `asyncio.sleep()` calls and fake data generation.
-
-#### **1.1: Replace Simulated Document Loading**
-
-**Current Problematic Code**:
-```python
-# REMOVE THIS SIMULATION:
-async def _load_document_async(self, document_path: str) -> str:
-    await asyncio.sleep(0.1)  # Simulate loading time
-    return f"PDF content from {document_path}"
+### **Testing Framework**
+```
+tests/
+├── integration/test_real_academic_pipeline.py  # End-to-end academic workflow validation
+├── performance/test_async_performance.py       # Performance measurement and validation
+└── conftest.py                                 # Shared test configuration and fixtures
 ```
 
-**Required Implementation**:
-```python
-async def _load_document_async(self, document_path: str) -> str:
-    """Load and parse document content with real parsing."""
-    path = Path(document_path)
-    
-    if not path.exists():
-        raise FileNotFoundError(f"Document not found: {document_path}")
-    
-    try:
-        if path.suffix.lower() == '.pdf':
-            # Use existing PDF loader from phase1
-            from src.tools.phase1.t01_pdf_loader import PDFLoader
-            loader = PDFLoader()
-            return await loader.load_pdf_async(document_path)
-        
-        elif path.suffix.lower() in ['.txt', '.md']:
-            async with aiofiles.open(path, 'r', encoding='utf-8') as file:
-                return await file.read()
-        
-        elif path.suffix.lower() == '.docx':
-            import docx
-            doc = docx.Document(path)
-            content = []
-            for paragraph in doc.paragraphs:
-                content.append(paragraph.text)
-            return '\n'.join(content)
-        
-        else:
-            raise ValueError(f"Unsupported document type: {path.suffix}")
-            
-    except Exception as e:
-        self.logger.error(f"Failed to load document {document_path}: {e}")
-        raise DocumentProcessingError(f"Document loading failed: {e}")
+## 🎯 **CURRENT STATUS & EVIDENCE**
+
+### **Completed (Phase 5.3.1) - Tool Factory Refactoring**
+**Status**: ✅ COMPLETED with evidence validation
+**Evidence File**: `Evidence.md` (sections: tool-factory-refactoring-*)
+
+**Verified Achievements**:
+- ✅ Monolithic ToolFactory (741 lines) split into 4 focused services
+- ✅ All services tested and functional (3 tools discovered, 0.028s performance)
+- ✅ Backward compatibility maintained through facade pattern
+- ✅ Single responsibility principle implemented across all services
+- ✅ Service separation validated: 3/3 services operational
+
+## 🔧 **REMAINING TASKS - PHASE 5.3**
+
+### **CRITICAL TASK 1: Import Dependency Cleanup**
+
+**Problem**: Deep relative imports creating tight coupling and maintenance burden
+**Reference**: `docs/planning/phases/task-5.3.2-import-dependency-cleanup.md`
+
+**Files Requiring Fixes**:
+```bash
+# Find all problematic relative imports
+grep -r "from \.\." src/ --include="*.py" | grep -v __pycache__
 ```
 
-#### **1.2: Replace Simulated Entity Extraction**
+**Implementation Requirements**:
 
-**Current Problematic Code**:
+1. **Convert ALL relative imports to absolute imports**:
 ```python
-# REMOVE THIS SIMULATION:
-async def _extract_entities_for_query_async(self, content: str, query: str) -> Dict[str, Any]:
-    await asyncio.sleep(0.1)  # Simulate processing time
-    entities = max(1, len(content) // 100)  # Arbitrary calculation
-    return {"entities": entities, "relationships": entities // 2}
+# BEFORE (problematic):
+from ..tools.phase1.t01_pdf_loader import PDFLoader as _PDFLoader
+from ..tools.phase1.t15a_text_chunker import TextChunker as _TextChunker
+
+# AFTER (required):
+from src.tools.phase1.t01_pdf_loader import PDFLoader
+from src.tools.phase1.t15a_text_chunker import TextChunker
 ```
 
-**Required Implementation**:
+2. **Implement dependency injection patterns**:
 ```python
-async def _extract_entities_for_query_async(self, content: str, query: str) -> Dict[str, Any]:
-    """Extract entities using real NLP processing."""
-    try:
-        # Use existing spaCy NER from phase1
-        from src.tools.phase1.t23a_spacy_ner import SpacyNER
-        ner = SpacyNER()
+# BEFORE (tight coupling):
+class ToolAdapter:
+    def __init__(self):
+        self.pdf_loader = PDFLoader()  # Direct instantiation
         
-        # Extract entities
-        entities = await ner.extract_entities_async(content)
-        
-        # Use existing relationship extractor from phase1
-        from src.tools.phase1.t27_relationship_extractor import RelationshipExtractor
-        rel_extractor = RelationshipExtractor()
-        
-        # Extract relationships
-        relationships = await rel_extractor.extract_relationships_async(content, entities)
-        
-        return {
-            "entities": entities,
-            "relationships": relationships,
-            "entities_count": len(entities),
-            "relationships_count": len(relationships),
-            "processing_method": "spacy_nlp_real",
-            "content_length": len(content)
-        }
-        
-    except Exception as e:
-        self.logger.error(f"Entity extraction failed: {e}")
-        raise EntityExtractionError(f"Failed to extract entities: {e}")
+# AFTER (dependency injection):
+@dataclass
+class ToolAdapterConfig:
+    tool_registry: ToolRegistry
+    config_manager: ConfigManager
+
+class ToolAdapter:
+    def __init__(self, config: ToolAdapterConfig):
+        self.registry = config.tool_registry
+        self.config = config.config_manager
 ```
 
-#### **1.3: Implement Real Performance Measurement**
+3. **Remove circular dependencies**:
+```bash
+# Detect circular dependencies
+python -c "
+import ast, os
+from collections import defaultdict
 
-**Current Problematic Code**:
-```python
-# REMOVE THIS SIMULATION:
-async def measure_performance_improvement(self, documents: List[DocumentInput]) -> Dict[str, Any]:
-    # Fake timing based on simulated sleep
-    return {"improvement_percent": 45.2}  # Fabricated number
-```
-
-**Required Implementation**:
-```python
-async def measure_performance_improvement(self, documents: List[DocumentInput]) -> Dict[str, Any]:
-    """Measure actual performance improvement with real processing."""
-    
-    # Sequential processing baseline
-    sequential_start = time.time()
-    sequential_results = []
-    
-    for document in documents:
-        start_time = time.time()
+def find_imports(file_path):
+    with open(file_path, 'r') as f:
         try:
-            result = await self._process_single_document_sequential(document)
-            sequential_results.append(result)
-        except Exception as e:
-            self.logger.error(f"Sequential processing failed for {document.path}: {e}")
-            sequential_results.append(DocumentProcessingResult(
-                document_id=document.document_id,
-                success=False,
-                error=str(e),
-                processing_time=time.time() - start_time
-            ))
-    
-    sequential_time = time.time() - sequential_start
-    
-    # Parallel processing with real semaphore limits
-    parallel_start = time.time()
-    parallel_results = await self.process_documents_async(documents)
-    parallel_time = time.time() - parallel_start
-    
-    # Calculate real improvement
-    if sequential_time > 0:
-        improvement_percent = ((sequential_time - parallel_time) / sequential_time) * 100
-    else:
-        improvement_percent = 0
-    
-    # Log evidence to Evidence.md
-    evidence = {
-        "test": "real_performance_measurement",
-        "timestamp": datetime.now().isoformat(),
-        "sequential_time": sequential_time,
-        "parallel_time": parallel_time,
-        "improvement_percent": improvement_percent,
-        "documents_processed": len(documents),
-        "sequential_success_count": sum(1 for r in sequential_results if r.success),
-        "parallel_success_count": sum(1 for r in parallel_results if r.success)
-    }
-    
-    self._log_evidence_to_file(evidence)
-    
-    return evidence
+            tree = ast.parse(f.read())
+            imports = []
+            for node in ast.walk(tree):
+                if isinstance(node, ast.ImportFrom) and node.module:
+                    imports.append(node.module)
+            return imports
+        except:
+            return []
 
-def _log_evidence_to_file(self, evidence: dict):
-    """Log evidence to Evidence.md file."""
-    with open('Evidence.md', 'a') as f:
-        f.write(f"\n## Performance Measurement Evidence\n")
-        f.write(f"**Timestamp**: {evidence['timestamp']}\n")
-        f.write(f"**Test**: {evidence['test']}\n")
-        f.write(f"**Sequential Time**: {evidence['sequential_time']:.3f}s\n")
-        f.write(f"**Parallel Time**: {evidence['parallel_time']:.3f}s\n")
-        f.write(f"**Improvement**: {evidence['improvement_percent']:.1f}%\n")
-        f.write(f"**Documents**: {evidence['documents_processed']}\n")
-        f.write(f"**Success Rate**: {evidence['parallel_success_count']}/{evidence['documents_processed']}\n")
-        f.write(f"```json\n{json.dumps(evidence, indent=2)}\n```\n\n")
+graph = defaultdict(list)
+for root, dirs, files in os.walk('src/'):
+    for file in files:
+        if file.endswith('.py'):
+            path = os.path.join(root, file)
+            module = path.replace('/', '.').replace('.py', '')
+            imports = find_imports(path)
+            for imp in imports:
+                if imp.startswith('src.'):
+                    graph[module].append(imp)
+
+print('Dependency analysis complete')
+"
 ```
 
-#### **1.4: Add Required Dependencies**
+**Success Criteria**:
+- [ ] Zero relative imports with `../../` patterns
+- [ ] All imports use absolute paths from `src/` root
+- [ ] No circular dependencies detected
+- [ ] All services instantiate without import errors
+- [ ] Full test suite passes after changes
 
-Update `requirements.txt`:
-```
-aiofiles>=23.2.0
-python-docx>=0.8.11
-```
+**Evidence Required**:
+- Before/after import count comparison
+- Circular dependency detection results
+- Service instantiation success logs
+- Complete test suite execution logs
 
-### **Task 2: Fix MetricsCollector - HIGH PRIORITY**
+### **CRITICAL TASK 2: Unit Testing Expansion**
 
-**Location**: `src/core/metrics_collector.py`
+**Problem**: Core modules lack focused unit test coverage for development confidence
+**Reference**: `docs/planning/phases/task-5.3.3-unit-testing-expansion.md`
 
-**Problem**: Claims 41 metrics but only implements 17. Missing 24 metrics.
+**Target Modules for Unit Testing**:
+1. `src/core/security_manager.py` - Input validation and security checks
+2. `src/core/async_api_client.py` - Connection pooling and performance metrics  
+3. `src/core/production_validator.py` - Stability testing and validation logic
+4. `src/tools/phase2/async_multi_document_processor.py` - Memory optimization and processing
 
-#### **2.1: Implement All 41 Metrics**
+**Implementation Requirements**:
 
-Replace the incomplete `_initialize_metrics` method:
-
+1. **Create comprehensive unit tests**:
 ```python
-def _initialize_metrics(self):
-    """Initialize all 41 KGAS-specific metrics."""
+# tests/unit/test_security_manager.py
+import pytest
+from src.core.security_manager import SecurityManager
+
+class TestSecurityManager:
+    def test_validate_input_sql_injection_detection(self):
+        security = SecurityManager()
+        malicious_input = {'query': 'SELECT * FROM users; DROP TABLE users;'}
+        result = security.validate_input(malicious_input)
+        assert result['valid'] == False
+        assert 'sql_injection' in str(result['security_issues'])
     
-    # Document Processing Metrics (7 metrics)
-    self.documents_processed = Counter('kgas_documents_processed_total', 'Total documents processed', ['document_type', 'status'])
-    self.document_processing_time = Histogram('kgas_document_processing_duration_seconds', 'Document processing time', ['document_type'])
-    self.entities_extracted = Counter('kgas_entities_extracted_total', 'Total entities extracted', ['entity_type'])
-    self.relationships_extracted = Counter('kgas_relationships_extracted_total', 'Total relationships extracted', ['relationship_type'])
-    self.documents_failed = Counter('kgas_documents_failed_total', 'Total failed documents', ['failure_reason'])
-    self.document_size_histogram = Histogram('kgas_document_size_bytes', 'Document size distribution', buckets=[1024, 10240, 102400, 1048576, 10485760])
-    self.processing_queue_size = Gauge('kgas_processing_queue_size', 'Current processing queue size')
-    
-    # API Call Metrics (8 metrics)
-    self.api_calls_total = Counter('kgas_api_calls_total', 'Total API calls', ['provider', 'endpoint', 'status'])
-    self.api_call_duration = Histogram('kgas_api_call_duration_seconds', 'API call duration', ['provider', 'endpoint'])
-    self.api_errors = Counter('kgas_api_errors_total', 'Total API errors', ['provider', 'error_type'])
-    self.api_rate_limits = Counter('kgas_api_rate_limits_total', 'Total API rate limit hits', ['provider'])
-    self.api_retries = Counter('kgas_api_retries_total', 'Total API retries', ['provider', 'reason'])
-    self.api_response_size = Histogram('kgas_api_response_size_bytes', 'API response size', ['provider'])
-    self.active_api_connections = Gauge('kgas_active_api_connections', 'Current active API connections', ['provider'])
-    self.api_quota_remaining = Gauge('kgas_api_quota_remaining', 'Remaining API quota', ['provider'])
-    
-    # Database Operations Metrics (8 metrics)
-    self.database_operations = Counter('kgas_database_operations_total', 'Total database operations', ['operation', 'database'])
-    self.database_query_duration = Histogram('kgas_database_query_duration_seconds', 'Database query duration', ['operation', 'database'])
-    self.neo4j_nodes_total = Gauge('kgas_neo4j_nodes_total', 'Total Neo4j nodes', ['label'])
-    self.neo4j_relationships_total = Gauge('kgas_neo4j_relationships_total', 'Total Neo4j relationships', ['type'])
-    self.database_connections = Gauge('kgas_database_connections_active', 'Active database connections', ['database'])
-    self.database_errors = Counter('kgas_database_errors_total', 'Database errors', ['database', 'error_type'])
-    self.database_transaction_duration = Histogram('kgas_database_transaction_duration_seconds', 'Database transaction duration')
-    self.database_pool_size = Gauge('kgas_database_pool_size', 'Database connection pool size', ['database'])
-    
-    # System Resource Metrics (6 metrics)
-    self.cpu_usage = Gauge('kgas_cpu_usage_percent', 'CPU usage percentage')
-    self.memory_usage = Gauge('kgas_memory_usage_bytes', 'Memory usage in bytes', ['type'])
-    self.disk_usage = Gauge('kgas_disk_usage_bytes', 'Disk usage in bytes', ['mount_point', 'type'])
-    self.network_io = Counter('kgas_network_io_bytes_total', 'Network I/O bytes', ['direction'])
-    self.file_descriptors = Gauge('kgas_file_descriptors_open', 'Open file descriptors')
-    self.system_load = Gauge('kgas_system_load_average', 'System load average', ['period'])
-    
-    # Workflow and Processing Metrics (6 metrics)
-    self.concurrent_operations = Gauge('kgas_concurrent_operations', 'Current concurrent operations', ['operation_type'])
-    self.queue_size = Gauge('kgas_queue_size', 'Queue size', ['queue_name'])
-    self.errors_total = Counter('kgas_errors_total', 'Total errors', ['component', 'error_type'])
-    self.component_health = Gauge('kgas_component_health', 'Component health status', ['component'])
-    self.workflow_executions = Counter('kgas_workflow_executions_total', 'Total workflow executions', ['workflow_type', 'status'])
-    self.workflow_duration = Histogram('kgas_workflow_duration_seconds', 'Workflow execution duration', ['workflow_type'])
-    
-    # Performance and Optimization Metrics (6 metrics)
-    self.cache_operations = Counter('kgas_cache_operations_total', 'Cache operations', ['operation', 'cache_name', 'result'])
-    self.cache_hit_ratio = Gauge('kgas_cache_hit_ratio', 'Cache hit ratio', ['cache_name'])
-    self.backup_operations = Counter('kgas_backup_operations_total', 'Backup operations', ['operation', 'status'])
-    self.backup_size = Gauge('kgas_backup_size_bytes', 'Backup size in bytes', ['backup_type'])
-    self.trace_spans = Counter('kgas_trace_spans_total', 'Total trace spans created', ['service', 'operation'])
-    self.performance_improvement = Gauge('kgas_performance_improvement_percent', 'Performance improvement percentage', ['component'])
-    
-    # Verify metric count
-    metric_attributes = [attr for attr in dir(self) if not attr.startswith('_') and hasattr(getattr(self, attr), '_name')]
-    metric_count = len(metric_attributes)
-    
-    self.logger.info(f"Initialized {metric_count} KGAS metrics")
-    
-    if metric_count != 41:
-        raise ConfigurationError(f"Expected 41 metrics, initialized {metric_count}. Metrics: {metric_attributes}")
+    def test_validate_file_path_traversal_detection(self):
+        security = SecurityManager()
+        malicious_path = '../../../etc/passwd'
+        result = security.validate_file_path(malicious_path)
+        assert result['valid'] == False
+        assert 'Path traversal detected' in result['errors']
 ```
 
-#### **2.2: Add Metric Verification Method**
+2. **Ensure 80%+ test coverage**:
+```bash
+# Run with coverage measurement
+python -m pytest tests/unit/ --cov=src/core/security_manager --cov=src/core/async_api_client --cov=src/core/production_validator --cov=src/tools/phase2/async_multi_document_processor --cov-report=html --cov-report=term-missing
 
+# Target: 80%+ coverage for each module
+```
+
+3. **Mock external dependencies properly**:
 ```python
-def verify_metric_count(self) -> Dict[str, Any]:
-    """Verify that exactly 41 metrics are implemented."""
-    
-    metric_objects = []
-    for attr_name in dir(self):
-        if not attr_name.startswith('_'):
-            attr = getattr(self, attr_name)
-            if hasattr(attr, '_name') and hasattr(attr, '_type'):
-                metric_objects.append({
-                    'name': attr._name,
-                    'type': attr._type,
-                    'documentation': getattr(attr, '_documentation', ''),
-                    'labelnames': getattr(attr, '_labelnames', [])
-                })
-    
-    verification_result = {
-        'total_metrics': len(metric_objects),
-        'expected_metrics': 41,
-        'verification_passed': len(metric_objects) == 41,
-        'metric_details': metric_objects,
-        'verification_timestamp': datetime.now().isoformat()
-    }
-    
-    # Log evidence to Evidence.md
-    with open('Evidence.md', 'a') as f:
-        f.write(f"\n## Metrics Verification Evidence\n")
-        f.write(f"**Timestamp**: {verification_result['verification_timestamp']}\n")
-        f.write(f"**Total Metrics**: {verification_result['total_metrics']}\n")
-        f.write(f"**Expected**: {verification_result['expected_metrics']}\n")
-        f.write(f"**Verification Passed**: {verification_result['verification_passed']}\n")
-        f.write(f"```json\n{json.dumps(verification_result, indent=2)}\n```\n\n")
-    
-    return verification_result
+# No lazy mocking - comprehensive mocks with realistic behavior
+@pytest.fixture
+def mock_neo4j_driver():
+    driver = Mock()
+    session = Mock()
+    driver.session.return_value = session
+    # Configure all expected behaviors
+    return driver
 ```
 
-### **Task 3: Fix BackupManager - CRITICAL**
+**Success Criteria**:
+- [ ] 80%+ unit test coverage for target modules
+- [ ] All tests pass in isolated execution
+- [ ] Tests complete in <10 seconds total
+- [ ] Zero external dependencies in unit tests (proper mocking)
+- [ ] All edge cases and error scenarios tested
 
-**Location**: `src/core/backup_manager.py`
+**Evidence Required**:
+- Coverage reports for each target module
+- Test execution time measurements  
+- Test isolation verification (no external calls)
+- Edge case and error scenario test results
 
-**Problem**: Claims incremental backup, encryption, and remote storage but implements none.
+### **CRITICAL TASK 3: Academic Pipeline Validation**
 
-#### **3.1: Implement Real Incremental Backup**
+**Problem**: Need to validate complete academic research workflow with real data
+**Status**: Foundation proven, comprehensive validation needed
 
-**Current Problematic Code**:
+**Implementation Requirements**:
+
+1. **Test complete PDF→Graph→Export workflow**:
 ```python
-# REMOVE THIS - all backups are full regardless of type
-def _backup_data_source(self, source_type: str, backup_metadata: BackupMetadata) -> Path:
-    # Always does full backup regardless of backup_type
-    return self._copy_directory(source_path, backup_path)
+# tests/integration/test_real_academic_pipeline.py
+class RealAcademicPipelineValidator:
+    async def test_complete_pipeline(self, pdf_path: str, ontology_path: str):
+        # 1. PDF Processing
+        pdf_result = await self.tool_registry.get_tool_instance('t01_pdf_loader').execute({
+            'file_path': pdf_path
+        })
+        assert pdf_result['status'] == 'success'
+        
+        # 2. Entity Extraction Comparison
+        spacy_result = await self.tool_registry.get_tool_instance('t23a_spacy_ner').execute({
+            'text': pdf_result['results']['text']
+        })
+        
+        llm_result = await self.tool_registry.get_tool_instance('t23c_ontology_aware_extractor').execute({
+            'text': pdf_result['results']['text'],
+            'ontology': ontology_path
+        })
+        
+        # 3. Validate LLM shows improvement over SpaCy
+        assert len(llm_result['results']['entities']) >= len(spacy_result['results']['entities'])
+        
+        # 4. Generate publication-ready outputs
+        export_result = await self.tool_registry.get_tool_instance('multi_format_exporter').execute({
+            'graph_data': llm_result['results'],
+            'formats': ['latex', 'bibtex']
+        })
+        
+        assert export_result['status'] == 'success'
+        assert 'latex_table' in export_result['results']
+        assert 'bibtex_citations' in export_result['results']
 ```
 
-**Required Implementation**:
+2. **Use real academic papers for testing**:
+```bash
+# Download real research papers for testing
+mkdir -p test_data/academic_papers
+wget -O test_data/academic_papers/transformer_paper.pdf "https://arxiv.org/pdf/1706.03762.pdf"
+wget -O test_data/academic_papers/bert_paper.pdf "https://arxiv.org/pdf/1810.04805.pdf"
+```
+
+3. **Measure and validate performance**:
 ```python
-def _backup_data_source(self, source_type: str, backup_metadata: BackupMetadata) -> Path:
-    """Backup data source with proper incremental logic."""
+# Performance benchmarking with real data
+async def test_performance_with_real_data():
+    start_time = time.time()
+    result = await complete_academic_pipeline('test_data/academic_papers/transformer_paper.pdf')
+    processing_time = time.time() - start_time
     
-    if backup_metadata.backup_type == BackupType.FULL:
-        return self._perform_full_backup(source_type, backup_metadata)
-    
-    elif backup_metadata.backup_type == BackupType.INCREMENTAL:
-        return self._perform_incremental_backup(source_type, backup_metadata)
-    
-    elif backup_metadata.backup_type == BackupType.DIFFERENTIAL:
-        return self._perform_differential_backup(source_type, backup_metadata)
-    
-    else:
-        raise ValueError(f"Unsupported backup type: {backup_metadata.backup_type}")
-
-def _perform_incremental_backup(self, source_type: str, backup_metadata: BackupMetadata) -> Path:
-    """Perform incremental backup - only changed files since last backup."""
-    
-    # Find last successful backup
-    last_backup = self._get_last_successful_backup(source_type)
-    if not last_backup:
-        self.logger.info("No previous backup found, performing full backup")
-        return self._perform_full_backup(source_type, backup_metadata)
-    
-    last_backup_time = datetime.fromisoformat(last_backup.timestamp)
-    source_path = Path(self.config.get_data_path(source_type))
-    backup_path = self.backup_path / backup_metadata.backup_id / source_type
-    backup_path.mkdir(parents=True, exist_ok=True)
-    
-    incremental_files = []
-    total_size = 0
-    
-    # Find files modified since last backup
-    for file_path in source_path.rglob('*'):
-        if file_path.is_file():
-            file_mtime = datetime.fromtimestamp(file_path.stat().st_mtime)
-            if file_mtime > last_backup_time:
-                # File was modified since last backup
-                relative_path = file_path.relative_to(source_path)
-                target_path = backup_path / relative_path
-                target_path.parent.mkdir(parents=True, exist_ok=True)
-                
-                # Copy with encryption if enabled
-                if self.encrypt_backups:
-                    self._encrypt_backup_file(file_path, target_path)
-                else:
-                    shutil.copy2(file_path, target_path)
-                
-                incremental_files.append(str(relative_path))
-                total_size += file_path.stat().st_size
-    
-    # Create incremental manifest
-    manifest = {
-        'backup_type': 'incremental',
-        'base_backup_id': last_backup.backup_id,
-        'files_included': incremental_files,
-        'total_files': len(incremental_files),
-        'total_size': total_size,
-        'timestamp': backup_metadata.timestamp
-    }
-    
-    manifest_path = backup_path / 'incremental_manifest.json'
-    with open(manifest_path, 'w') as f:
-        json.dump(manifest, f, indent=2)
-    
-    # Log evidence
-    evidence = {
-        'backup_type': 'incremental',
-        'source_type': source_type,
-        'files_backed_up': len(incremental_files),
-        'total_size_bytes': total_size,
-        'base_backup_id': last_backup.backup_id,
-        'timestamp': backup_metadata.timestamp
-    }
-    
-    with open('Evidence.md', 'a') as f:
-        f.write(f"\n## Incremental Backup Evidence\n")
-        f.write(f"**Timestamp**: {evidence['timestamp']}\n")
-        f.write(f"**Source**: {evidence['source_type']}\n")
-        f.write(f"**Files Backed Up**: {evidence['files_backed_up']}\n")
-        f.write(f"**Total Size**: {evidence['total_size_bytes']} bytes\n")
-        f.write(f"**Base Backup**: {evidence['base_backup_id']}\n")
-        f.write(f"```json\n{json.dumps(evidence, indent=2)}\n```\n\n")
-    
-    self.logger.info(f"Incremental backup completed: {len(incremental_files)} files backed up")
-    return backup_path
+    # Document actual performance
+    assert processing_time < 300  # Must complete in under 5 minutes
+    assert result['entities_extracted'] > 50  # Must extract meaningful entities
+    assert result['publication_quality'] == True  # Outputs must meet academic standards
 ```
 
-#### **3.2: Implement Real Encryption**
+**Success Criteria**:
+- [ ] Complete PDF→Graph→Export workflow functional with real papers
+- [ ] LLM extraction demonstrates measurable improvement over SpaCy
+- [ ] LaTeX/BibTeX outputs meet academic publication standards
+- [ ] Processing completes within acceptable time limits (< 5 minutes per paper)
+- [ ] Full provenance tracking maintained throughout pipeline
 
-**Current Problematic Code**:
-```python
-# REMOVE THIS - encryption flag exists but no encryption happens
-if self.encrypt_backups:
-    # Does nothing - just copies files normally
-    pass
-```
+**Evidence Required**:
+- End-to-end pipeline execution logs with real academic papers
+- Performance measurements with actual processing times
+- Quality comparison metrics (LLM vs SpaCy entity extraction)
+- Generated LaTeX/BibTeX output samples meeting academic standards
 
-**Required Implementation**:
-```python
-from cryptography.fernet import Fernet
-from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
-import base64
+## 📋 **EVIDENCE-BASED VALIDATION WORKFLOW**
 
-def _get_encryption_key(self) -> bytes:
-    """Generate or retrieve encryption key for backups."""
-    
-    key_file = self.backup_path / '.encryption_key'
-    
-    if key_file.exists():
-        try:
-            with open(key_file, 'rb') as f:
-                key_data = f.read()
-                return key_data[16:]  # Skip salt
-        except Exception as e:
-            self.logger.warning(f"Failed to load encryption key: {e}")
-    
-    # Generate new key
-    password = os.environ.get('BACKUP_ENCRYPTION_PASSWORD')
-    if not password:
-        raise ConfigurationError("BACKUP_ENCRYPTION_PASSWORD environment variable required for encryption")
-    
-    # Derive key from password
-    salt = os.urandom(16)
-    kdf = PBKDF2HMAC(
-        algorithm=hashes.SHA256(),
-        length=32,
-        salt=salt,
-        iterations=100000,
-    )
-    key = base64.urlsafe_b64encode(kdf.derive(password.encode()))
-    
-    # Save key securely
-    key_file.parent.mkdir(parents=True, exist_ok=True)
-    with open(key_file, 'wb') as f:
-        f.write(salt + key)
-    
-    os.chmod(key_file, 0o600)
-    
-    # Log evidence
-    evidence = {
-        'encryption_key_generated': True,
-        'key_file_path': str(key_file),
-        'key_derivation_iterations': 100000,
-        'timestamp': datetime.now().isoformat()
-    }
-    
-    with open('Evidence.md', 'a') as f:
-        f.write(f"\n## Encryption Key Generation Evidence\n")
-        f.write(f"**Timestamp**: {evidence['timestamp']}\n")
-        f.write(f"**Key Generated**: {evidence['encryption_key_generated']}\n")
-        f.write(f"**Iterations**: {evidence['key_derivation_iterations']}\n")
-        f.write(f"```json\n{json.dumps(evidence, indent=2)}\n```\n\n")
-    
-    return key
+### **Step 1: Implement & Test**
+For each task above:
+1. Implement the required changes with full functionality
+2. Run comprehensive tests with real data
+3. Log all results with timestamps to `Evidence.md`
+4. Verify all success criteria met with measurable evidence
 
-def _encrypt_backup_file(self, source_path: Path, target_path: Path) -> None:
-    """Encrypt a file during backup."""
-    
-    try:
-        # Get encryption key
-        encryption_key = self._get_encryption_key()
-        cipher_suite = Fernet(encryption_key)
-        
-        # Read and encrypt file
-        with open(source_path, 'rb') as source_file:
-            file_data = source_file.read()
-        
-        encrypted_data = cipher_suite.encrypt(file_data)
-        
-        # Write encrypted file
-        encrypted_target = target_path.with_suffix(target_path.suffix + '.enc')
-        with open(encrypted_target, 'wb') as target_file:
-            target_file.write(encrypted_data)
-        
-        # Store metadata
-        metadata = {
-            'original_name': target_path.name,
-            'original_size': len(file_data),
-            'encrypted_size': len(encrypted_data),
-            'encryption_algorithm': 'Fernet'
-        }
-        
-        metadata_file = encrypted_target.with_suffix('.metadata')
-        with open(metadata_file, 'w') as f:
-            json.dump(metadata, f)
-        
-    except Exception as e:
-        self.logger.error(f"Encryption failed for {source_path}: {e}")
-        raise BackupError(f"File encryption failed: {e}")
-```
-
-#### **3.3: Add Required Dependencies**
-
-Update `requirements.txt`:
-```
-cryptography>=41.0.0
-```
-
-### **Task 4: Create Real Performance Testing - HIGH PRIORITY**
-
-**Location**: Create `tests/performance/test_real_performance.py`
-
-**Problem**: No real performance testing exists. All claims are based on simulated data.
-
-**Required Implementation**:
-```python
-"""
-Real Performance Testing Framework
-
-Tests actual performance improvements with real document processing.
-"""
-
-import asyncio
-import unittest
-import time
-import tempfile
-import json
-from pathlib import Path
-from typing import List
-
-from src.tools.phase2.async_multi_document_processor import AsyncMultiDocumentProcessor, DocumentInput
-from src.core.config import ConfigurationManager
-
-class RealPerformanceTest(unittest.TestCase):
-    """Test real performance improvements with actual document processing."""
-    
-    def setUp(self):
-        """Set up test environment with real documents."""
-        self.config = ConfigurationManager()
-        self.processor = AsyncMultiDocumentProcessor(self.config)
-        
-        # Create test documents with real content
-        self.test_dir = Path(tempfile.mkdtemp())
-        self.test_documents = self._create_test_documents()
-    
-    def _create_test_documents(self) -> List[DocumentInput]:
-        """Create real test documents for performance testing."""
-        
-        documents = []
-        
-        # Create text documents with substantial content
-        for i in range(10):
-            doc_path = self.test_dir / f"document_{i}.txt"
-            content = self._generate_realistic_content(1000)  # 1000 words
-            
-            with open(doc_path, 'w') as f:
-                f.write(content)
-            
-            documents.append(DocumentInput(
-                document_id=f"doc_{i}",
-                path=str(doc_path),
-                query="Extract all entities and relationships"
-            ))
-        
-        return documents
-    
-    def _generate_realistic_content(self, word_count: int) -> str:
-        """Generate realistic document content for testing."""
-        
-        entities = [
-            "John Smith", "Mary Johnson", "Acme Corporation", "New York",
-            "artificial intelligence", "machine learning", "data processing",
-            "Q1 2024", "revenue growth", "market analysis"
-        ]
-        
-        content_parts = []
-        for i in range(word_count // 20):
-            sentence_entities = entities[i % len(entities)]
-            sentence = f"This document discusses {sentence_entities} and its impact on business operations. "
-            content_parts.append(sentence)
-        
-        return ' '.join(content_parts)
-    
-    def test_real_parallel_vs_sequential_performance(self):
-        """Test actual parallel vs sequential performance with real documents."""
-        
-        async def run_test():
-            # Sequential processing baseline
-            sequential_start = time.time()
-            sequential_results = []
-            
-            for document in self.test_documents:
-                result = await self.processor._process_single_document_sequential(document)
-                sequential_results.append(result)
-            
-            sequential_time = time.time() - sequential_start
-            
-            # Parallel processing
-            parallel_start = time.time()
-            parallel_results = await self.processor.process_documents_async(self.test_documents)
-            parallel_time = time.time() - parallel_start
-            
-            # Calculate improvement
-            improvement_percent = ((sequential_time - parallel_time) / sequential_time) * 100
-            
-            # Log results to Evidence.md
-            evidence = {
-                'test': 'real_parallel_vs_sequential_performance',
-                'timestamp': time.time(),
-                'documents_processed': len(self.test_documents),
-                'sequential_time': sequential_time,
-                'parallel_time': parallel_time,
-                'improvement_percent': improvement_percent,
-                'sequential_success_count': len([r for r in sequential_results if r.success]),
-                'parallel_success_count': len([r for r in parallel_results if r.success])
-            }
-            
-            self._log_evidence(evidence)
-            
-            # Assertions
-            self.assertGreater(improvement_percent, 0, "Parallel processing should be faster than sequential")
-            self.assertGreater(improvement_percent, 20, "Performance improvement should be at least 20%")
-            
-            return evidence
-        
-        return asyncio.run(run_test())
-    
-    def _log_evidence(self, evidence: dict):
-        """Log performance evidence to Evidence.md file."""
-        
-        timestamp = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
-        
-        with open('Evidence.md', 'a') as f:
-            f.write(f"\n## Real Performance Test Evidence\n")
-            f.write(f"**Timestamp**: {timestamp}\n")
-            f.write(f"**Test**: {evidence['test']}\n")
-            f.write(f"**Documents Processed**: {evidence['documents_processed']}\n")
-            f.write(f"**Sequential Time**: {evidence['sequential_time']:.3f} seconds\n")
-            f.write(f"**Parallel Time**: {evidence['parallel_time']:.3f} seconds\n")
-            f.write(f"**Performance Improvement**: {evidence['improvement_percent']:.1f}%\n")
-            f.write(f"**Success Rates**: {evidence['parallel_success_count']}/{evidence['documents_processed']}\n")
-            f.write(f"```json\n{json.dumps(evidence, indent=2)}\n```\n\n")
-
-if __name__ == '__main__':
-    unittest.main()
-```
-
-### **Task 5: Create Evidence.md Template**
-
-**Location**: `Evidence.md` (to be created)
-
-**Required Implementation**:
+### **Step 2: Evidence Documentation**
 ```markdown
-# KGAS Phase 2 Implementation Evidence
+# Evidence.md
 
-This file contains timestamped evidence of all fixed functionality and performance claims.
+## Task 5.3.2: Import Dependency Cleanup
+**Timestamp**: 2025-07-19T[TIME]
+**Status**: COMPLETED
 
-## Evidence Standards
-
-All evidence entries must contain:
-- Real execution timestamps (never fabricated)
-- Actual performance measurements (no simulations)
-- Complete test results (no partial implementations)
-- Verification of functionality with real data
-
-## Implementation Status
-
-### AsyncMultiDocumentProcessor
-- [ ] Real document loading implemented
-- [ ] Real entity extraction implemented
-- [ ] Real performance measurement implemented
-- [ ] Evidence logged with timestamps
-
-### MetricsCollector
-- [ ] All 41 metrics implemented
-- [ ] Metric count verified
-- [ ] Evidence logged with timestamps
-
-### BackupManager
-- [ ] Real incremental backup implemented
-- [ ] Real encryption implemented
-- [ ] Evidence logged with timestamps
-
-### Performance Testing
-- [ ] Real performance tests created
-- [ ] Actual measurements taken
-- [ ] Evidence logged with timestamps
-
----
-
-*Evidence entries will be appended below by the implementation code*
-```
-
-## 📋 **IMPLEMENTATION SEQUENCE**
-
-### **Phase 1: Core Functionality Fixes (Days 1-2)**
-1. **Fix AsyncMultiDocumentProcessor** - Replace all simulated processing with real implementation
-2. **Fix MetricsCollector** - Implement all 41 metrics and verification
-3. **Fix BackupManager** - Implement incremental backup and encryption
-4. **Create Performance Testing** - Real performance measurement framework
-
-### **Phase 2: Integration and Evidence (Day 3)**
-1. **Integration Testing** - Ensure all components work together
-2. **Evidence Generation** - Run all tests and log evidence to Evidence.md
-3. **Metric Verification** - Confirm all 41 metrics are functional
-4. **Performance Validation** - Measure real performance improvements
-
-### **Phase 3: Final Validation (Day 4)**
-1. **Run Complete Test Suite** - Execute all functional and performance tests
-2. **Generate Final Evidence** - Complete all Evidence.md entries
-3. **External Validation** - Run `/gemini-validate-claims` command
-4. **Verification Report** - Confirm all critical issues resolved
-
-## 🔍 **VALIDATION REQUIREMENTS**
-
-### **Evidence Standards**
-All claims must be backed by evidence in `Evidence.md` with:
-- Real execution timestamps (never fabricated)
-- Actual performance measurements (no simulations)
-- Complete test results (no partial implementations)
-- Verification of all 41 metrics being functional
-- Proof of incremental backup and encryption working
-
-### **Success Criteria**
-- AsyncMultiDocumentProcessor processes real documents with actual NLP
-- Performance improvements measured with real workloads (no simulations)
-- MetricsCollector exposes exactly 41 functional metrics
-- BackupManager performs real incremental backups with encryption
-- All Evidence.md entries have genuine timestamps and verifiable results
-
-### **Final Validation Command**
-
-After completing all implementations and generating evidence:
-
+### Before State
 ```bash
-/gemini-validate-claims
+$ grep -r "from \.\." src/ --include="*.py" | wc -l
+15
 ```
 
-This command will:
-1. Verify all fixes are implemented
-2. Validate evidence authenticity
-3. Confirm performance claims are based on real measurements
-4. Generate final validation report
-
-**Only declare success when external validation reports ZERO critical issues and all evidence is verified as genuine.**
-
-## 🚀 **TESTING COMMANDS**
-
-### **Run Performance Tests**
+### After State  
 ```bash
-python -m pytest tests/performance/test_real_performance.py -v
+$ grep -r "from \.\." src/ --include="*.py" | wc -l
+0
 ```
 
-### **Verify Metrics**
+### Service Instantiation Test
 ```bash
-python -c "from src.core.metrics_collector import MetricsCollector; mc = MetricsCollector(); print(mc.verify_metric_count())"
+$ python -c "from src.core.service_manager import ServiceManager; sm = ServiceManager(); print('✅ All services instantiate successfully')"
+✅ All services instantiate successfully
 ```
 
-### **Test Backup Features**
+### Test Suite Validation
 ```bash
-python -c "from src.core.backup_manager import BackupManager; bm = BackupManager(); bm.create_backup(['neo4j'], backup_type='incremental', encrypt=True)"
+$ python -m pytest tests/ -v
+========================= 47 passed, 0 failed =========================
+```
 ```
 
-### **Run Complete Test Suite**
+### **Step 3: Gemini Review Validation**
+
+After each task completion and evidence generation:
+
+1. **Update verification configuration**:
+```yaml
+# gemini-review-tool/verification-review.yaml
+claims_of_success:
+  - "Tool factory successfully refactored from 741-line monolith into 4 focused services (ToolDiscoveryService: 300 lines, ToolRegistryService: 200 lines, ToolAuditService: 400 lines, ToolPerformanceMonitor: 350 lines)"
+  - "All relative imports converted to absolute imports with zero remaining ../../ patterns"
+  - "Unit test coverage achieved 80%+ for core modules (security_manager, async_api_client, production_validator, async_multi_document_processor)"
+  - "Complete academic pipeline validated with real research papers, demonstrating PDF→Graph→Export workflow with LLM extraction improvement over SpaCy"
+  - "All services demonstrate single responsibility principle with clear interfaces and dependency injection"
+
+files_to_review:
+  - "src/core/tool_discovery_service.py"
+  - "src/core/tool_registry_service.py" 
+  - "src/core/tool_audit_service.py"
+  - "src/core/tool_performance_monitor.py"
+  - "src/core/tool_factory_refactored.py"
+  - "tests/unit/test_security_manager.py"
+  - "tests/unit/test_async_api_client.py"
+  - "tests/unit/test_production_validator.py"
+  - "tests/integration/test_real_academic_pipeline.py"
+  - "Evidence.md"
+
+validation_focus:
+  - "Service separation and single responsibility implementation"
+  - "Import dependency cleanup and absolute import usage"
+  - "Unit test coverage and quality for core modules"
+  - "Academic pipeline functionality with real data validation"
+  - "Evidence-based claims validation with timestamps and logs"
+```
+
+2. **Run Gemini validation**:
 ```bash
-python -m pytest tests/ -v --tb=short
+python gemini-review-tool/gemini_review.py --config gemini-review-tool/verification-review.yaml
 ```
 
-**CRITICAL**: No success declarations allowed until all evidence is generated and `/gemini-validate-claims` reports zero critical issues.
+3. **Address any issues identified by Gemini**:
+   - Update implementation based on Gemini feedback
+   - Re-run tests and update evidence
+   - Repeat Gemini validation until no issues remain
+
+### **Step 4: Iterative Improvement**
+Continue the cycle until Gemini review reveals zero issues:
+1. Fix identified issues
+2. Update Evidence.md with new results  
+3. Update claims in verification-review.yaml
+4. Re-run Gemini validation
+5. Repeat until clean validation achieved
+
+## 🎯 **IMMEDIATE NEXT ACTIONS**
+
+### **Priority 1: Import Dependency Cleanup (HIGH)**
+1. Run import analysis to identify all problematic patterns
+2. Convert all relative imports to absolute imports systematically
+3. Implement dependency injection for tightly coupled components
+4. Test service instantiation and full test suite
+5. Document evidence in Evidence.md with before/after measurements
+
+### **Priority 2: Unit Testing Expansion (HIGH)**  
+1. Create unit tests for security_manager.py with comprehensive coverage
+2. Create unit tests for async_api_client.py focusing on connection pooling
+3. Create unit tests for production_validator.py testing validation logic
+4. Create unit tests for async_multi_document_processor.py testing memory optimization
+5. Achieve 80%+ coverage for all target modules with evidence documentation
+
+### **Priority 3: Academic Pipeline Validation (CRITICAL)**
+1. Set up real academic paper test data (Transformer, BERT papers)
+2. Implement comprehensive pipeline validation with real data
+3. Measure and compare LLM vs SpaCy extraction quality
+4. Validate LaTeX/BibTeX output quality meets academic standards
+5. Document complete workflow evidence with performance measurements
+
+### **Priority 4: Gemini Review Integration (ONGOING)**
+1. After each task completion, update verification-review.yaml with specific claims
+2. Run Gemini validation to identify any issues or gaps
+3. Address all Gemini feedback with additional implementation or evidence
+4. Iterate until Gemini review shows zero issues for all completed tasks
+
+**SUCCESS CRITERIA**: All tasks completed with comprehensive evidence, full test coverage, and clean Gemini validation confirming all claims of success.
