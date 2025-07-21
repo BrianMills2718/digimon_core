@@ -4,6 +4,8 @@
 **Date**: 2025-07-21  
 **Purpose**: Document KGAS Model Context Protocol (MCP) integration for external tool access
 
+> **📋 Related Documentation**: For comprehensive MCP limitations, ecosystem analysis, and implementation guidance, see [MCP Architecture Documentation](../mcp/README.md)
+
 ---
 
 ## Overview

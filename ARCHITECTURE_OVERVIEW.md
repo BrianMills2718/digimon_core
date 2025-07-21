@@ -116,6 +116,21 @@ KGAS enables fluid movement between Graph, Relational, and Vector representation
 
 ---
 
-## 6. Known Limitations
+## 6. MCP Integration Architecture
+
+KGAS exposes all system capabilities through the Model Context Protocol (MCP) for comprehensive external tool access:
+
+-   **Complete Tool Access**: All 121+ KGAS tools accessible via standardized MCP interface
+-   **Multiple Client Support**: Works with Claude Desktop, custom Streamlit UI, and other MCP clients  
+-   **Security Framework**: Comprehensive security measures addressing MCP protocol vulnerabilities
+-   **Performance Optimization**: Mitigation strategies for MCP limitations (40-tool barrier, context scaling)
+
+-   [View MCP Architecture Details](./docs/architecture/systems/mcp-integration-architecture.md)
+-   [View MCP Limitations & Solutions](./docs/architecture/mcp/limitations.md)
+-   [View Complete MCP Documentation](./docs/architecture/mcp/README.md)
+
+---
+
+## 7. Known Limitations
 This system is **NOT** production-ready. 
 -   [View Full System Limitations](./LIMITATIONS.md) 
