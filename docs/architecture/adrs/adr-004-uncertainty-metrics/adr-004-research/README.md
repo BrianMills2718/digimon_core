@@ -1,7 +1,7 @@
-# KGAS Uncertainty Framework Planning
+# ADR-004 Research: Uncertainty Framework
 
-**Status**: Research and Planning Documentation  
-**Purpose**: Document research and planning for uncertainty metrics implementation in KGAS  
+**Status**: Research Documentation for ADR-004  
+**Purpose**: Research and analysis supporting uncertainty metrics architectural decision  
 **Date Range**: July 2025  
 
 ---
@@ -77,4 +77,8 @@ Multi-step analytical workflows require:
 
 ---
 
-This documentation supports the development of robust uncertainty metrics that maintain academic research integrity while leveraging advanced LLM capabilities for discourse analysis.
+## Relationship to ADR-004
+
+This research documentation will inform the formal ADR-004 decision document that will define how KGAS handles uncertainty and confidence assessment throughout the system, ensuring academic research integrity while leveraging advanced LLM capabilities for discourse analysis.
+
+When research is complete, findings will be synthesized into the architectural decision record at the parent directory level.
