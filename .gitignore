@@ -100,3 +100,4 @@ docs/core/mcp_llms_full_information.txt
 !*.example.*
 # Gemini Review Tool outputs
  gemini-review-tool/outputs/lit_review/
+lit_review/
