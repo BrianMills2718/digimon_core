@@ -16,6 +16,8 @@ import logging.config
 from typing import Dict, Any, Optional
 from pathlib import Path
 import os
+from src.core.config_manager import get_config
+
 
 
 def setup_logging(

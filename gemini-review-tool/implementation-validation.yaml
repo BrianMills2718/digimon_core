@@ -1,0 +1,84 @@
+project_name: "KGAS Architecture & Roadmap Implementation Validation"
+
+include_patterns:
+  - "docs/architecture/architecture_overview.md"
+  - "docs/architecture/concurrency-strategy.md"
+  - "docs/architecture/agent-interface.md"
+  - "docs/architecture/llm-ontology-integration.md"
+  - "docs/architecture/cross-modal-analysis.md"
+  - "docs/planning/roadmap_overview.md"
+  - "src/core/tool_registry.py"
+  - "validate_tool_inventory.py"
+  - "resolve_tool_conflicts.py"
+  - "Evidence.md"
+
+ignore_patterns:
+  - "archive/**"
+  - "archived/**" 
+  - "backups/**"
+  - "logs/**"
+  - "*.pyc"
+  - "__pycache__/**"
+  - ".gemini-cache/**"
+  - "*.json"
+
+claims_of_success: |
+  1. Architecture documentation is comprehensive and separated from implementation status
+  2. AnyIO concurrency strategy is fully documented with implementation patterns
+  3. Multi-layer agent interface architecture is documented (3 layers implemented)
+  4. LLM-ontology integration architecture is documented with theory-driven validation
+  5. Cross-modal analysis architecture is documented with format conversion capabilities
+  6. All MVRT tools are functionally validated with real data testing
+  7. Tool version conflicts are resolved with clear archival strategy
+  8. Tool registry accurately reflects current vs archived tool status
+  9. Roadmap reflects evidence-based status assessment not inflated claims
+  10. MVRT completion status is honest: 0/12 tools functional, conflicts identified
+  11. Post-MVRT planning is preserved from historical roadmaps
+  12. Evidence.md contains real validation logs with authentic timestamps
+  13. All documentation follows fail-fast principles and evidence-based claims
+  14. Tool conflict resolution strategy is implemented with archival approach
+  15. Missing tool implementation templates are ready for development
+
+custom_prompt: |
+  Validate the KGAS architecture and roadmap implementation against the provided evidence. Focus on:
+  
+  ## Architecture Documentation Quality
+  1. Is the architecture documentation complete and separated from implementation status?
+  2. Are the concurrency, agent interface, and LLM-ontology architectures properly documented?
+  3. Does the cross-modal analysis architecture provide clear implementation guidance?
+  4. Are all architectural components clearly defined with implementation patterns?
+  
+  ## Tool Validation and Inventory Management
+  1. Is the tool validation comprehensive with real functional testing evidence?
+  2. Are the tool validation results honest and evidence-based (0% functional)?
+  3. Does the tool registry accurately reflect validation results?
+  4. Is the version conflict resolution strategy clear and implementable?
+  
+  ## Roadmap and Status Assessment
+  1. Are the roadmap status claims backed by actual evidence rather than inflated?
+  2. Is the MVRT completion assessment honest (0.0% complete with 5 conflicts)?
+  3. Does the roadmap clearly separate current reality from future planning?
+  4. Are the immediate action items specific and actionable?
+  
+  ## Evidence and Validation Quality
+  1. Does Evidence.md contain real timestamps and functional validation results?
+  2. Are all validation failures properly documented with specific error details?
+  3. Is the validation methodology sound and reproducible?
+  4. Are the recommendations actionable and prioritized correctly?
+  
+  ## Implementation Readiness
+  1. Is the tool conflict resolution strategy ready for execution?
+  2. Are missing tool templates properly structured for implementation?
+  3. Do the architectural documents provide sufficient guidance for development?
+  4. Is the overall approach consistent with fail-fast and evidence-based principles?
+  
+  Be especially critical of:
+  - Any status claims not backed by concrete validation evidence
+  - Architectural documentation that lacks implementation detail
+  - Roadmap claims that don't match validation results
+  - Any evidence that appears fabricated or lacks authentic timestamps
+  - Tool inventory claims that don't match functional testing results
+  
+  Provide specific feedback on areas that need improvement and validate that the implementation follows the zero-tolerance for deceptive practices outlined in CLAUDE.md.
+
+output_format: "markdown"

@@ -25,14 +25,24 @@ import json
 
 @dataclass
 class Operation:
-    """A single tool execution record."""
+    """A single tool execution record, aligned with W3C PROV concepts."""
     id: str
-    tool_id: str  # Tool that performed the operation
     operation_type: str  # Type of operation (create, update, delete, query)
-    inputs: List[str]  # References to input objects
-    outputs: List[str]  # References to output objects  
-    parameters: Dict[str, Any]  # Tool parameters used
-    started_at: datetime
+    
+    # W3C PROV:Agent - The tool/service that performed the operation
+    agent: Dict[str, Any] = field(default_factory=dict) 
+    
+    # W3C PROV:used - Detailed dictionary of specific inputs used
+    used: Dict[str, Any] = field(default_factory=dict)
+    
+    # W3C PROV:generated - List of output object references
+    generated: List[str] = field(default_factory=list)
+    
+    # Required fields without defaults
+    parameters: Dict[str, Any] = field(default_factory=dict)  # Tool parameters used
+    started_at: datetime = field(default_factory=lambda: datetime.now())
+    
+    # Optional fields with defaults
     completed_at: Optional[datetime] = None
     status: str = "running"  # running, completed, failed
     error_message: Optional[str] = None
@@ -62,15 +72,17 @@ class ProvenanceService:
         self,
         tool_id: str,
         operation_type: str,
-        inputs: List[str],
+        used: Dict[str, Any],
+        agent_details: Dict[str, Any] = None,
         parameters: Dict[str, Any] = None
     ) -> str:
         """Start tracking a new operation.
         
         Args:
-            tool_id: Identifier of the tool performing operation
+            tool_id: DEPRECATED - now part of agent_details. Kept for compatibility.
             operation_type: Type of operation (create, update, delete, query)
-            inputs: List of input object references
+            used: Dictionary of input object references and their roles.
+            agent_details: Dictionary with agent (tool) information (e.g., name, version).
             parameters: Tool parameters
             
         Returns:
@@ -78,67 +90,52 @@ class ProvenanceService:
         """
         try:
             # Input validation
-            if not tool_id or not operation_type:
-                raise ValueError("tool_id and operation_type are required")
+            if not operation_type:
+                raise ValueError("operation_type is required")
             
-            if not isinstance(inputs, list):
-                inputs = []
-                
-            if parameters is None:
-                parameters = {}
+            if not isinstance(used, dict):
+                raise ValueError("'used' must be a dictionary of inputs")
+            
+            agent = agent_details or {"tool_id": tool_id}
             
             # Create operation record
             operation_id = f"op_{uuid.uuid4().hex[:8]}"
             operation = Operation(
                 id=operation_id,
-                tool_id=tool_id,
+                agent=agent,
                 operation_type=operation_type,
-                inputs=inputs,
-                outputs=[],  # Will be populated when operation completes
-                parameters=parameters.copy(),
+                used=used,
+                parameters=parameters.copy() if parameters else {},
                 started_at=datetime.now()
             )
             
             self.operations[operation_id] = operation
             
             # Update tool statistics
-            if tool_id not in self.tool_stats:
-                self.tool_stats[tool_id] = {"calls": 0, "successes": 0, "failures": 0}
-            self.tool_stats[tool_id]["calls"] += 1
+            agent_id = agent.get("tool_id", "unknown_agent")
+            if agent_id not in self.tool_stats:
+                self.tool_stats[agent_id] = {"calls": 0, "successes": 0, "failures": 0}
+            self.tool_stats[agent_id]["calls"] += 1
             
             # Link inputs to this operation
-            for input_ref in inputs:
-                if input_ref not in self.object_to_operations:
-                    self.object_to_operations[input_ref] = set()
-                self.object_to_operations[input_ref].add(operation_id)
+            for input_ref in used.values():
+                if isinstance(input_ref, str): # Handle simple and complex input specs
+                    if input_ref not in self.object_to_operations:
+                        self.object_to_operations[input_ref] = set()
+                    self.object_to_operations[input_ref].add(operation_id)
             
             return operation_id
             
         except Exception as e:
-            # Return a failed operation ID for error tracking
-            error_op_id = f"op_error_{uuid.uuid4().hex[:8]}"
-            error_operation = Operation(
-                id=error_op_id,
-                tool_id=tool_id,
-                operation_type=operation_type,
-                inputs=inputs,
-                outputs=[],
-                parameters=parameters or {},
-                started_at=datetime.now(),
-                completed_at=datetime.now(),
-                status="failed",
-                error_message=f"Failed to start operation: {str(e)}"
-            )
-            self.operations[error_op_id] = error_operation
-            return error_op_id
+            return "" # Return empty string on failure
     
     def complete_operation(
         self,
         operation_id: str,
         outputs: List[str],
-        success: bool = True,
+        success: bool,
         error_message: Optional[str] = None,
-        metadata: Dict[str, Any] = None
+        metadata: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
         """Complete an operation and record outputs.
         
@@ -162,21 +159,21 @@ class ProvenanceService:
             operation = self.operations[operation_id]
             
             # Update operation
-            operation.outputs = outputs if outputs else []
+            operation.generated = outputs if outputs else []
             operation.completed_at = datetime.now()
             operation.status = "completed" if success else "failed"
             operation.error_message = error_message
             operation.metadata = metadata if metadata else {}
             
             # Update tool statistics
-            tool_id = operation.tool_id
+            agent_id = operation.agent.get("tool_id", "unknown_agent")
             if success:
-                self.tool_stats[tool_id]["successes"] += 1
+                self.tool_stats[agent_id]["successes"] += 1
             else:
-                self.tool_stats[tool_id]["failures"] += 1
+                self.tool_stats[agent_id]["failures"] += 1
             
             # Link outputs to this operation
-            for output_ref in operation.outputs:
+            for output_ref in operation.generated:
                 if output_ref not in self.object_to_operations:
                     self.object_to_operations[output_ref] = set()
                 self.object_to_operations[output_ref].add(operation_id)
@@ -190,7 +187,7 @@ class ProvenanceService:
                 "duration_seconds": (
                     operation.completed_at - operation.started_at
                 ).total_seconds(),
-                "outputs_count": len(operation.outputs)
+                "outputs_count": len(operation.generated)
             }
             
         except Exception as e:
@@ -206,8 +203,8 @@ class ProvenanceService:
             
             # Find the longest input chain
             input_chains = []
-            for input_ref in operation.inputs:
-                if input_ref in self.operation_chains:
+            for input_ref in operation.used.values():
+                if isinstance(input_ref, str) and input_ref in self.operation_chains:
                     input_chains.append(self.operation_chains[input_ref])
             
             # Create new chain
@@ -265,13 +262,13 @@ class ProvenanceService:
                 if operation:
                     lineage.append({
                         "operation_id": operation.id,
-                        "tool_id": operation.tool_id,
+                        "agent": operation.agent,
                         "operation_type": operation.operation_type,
                         "started_at": operation.started_at.isoformat(),
                         "completed_at": operation.completed_at.isoformat() if operation.completed_at else None,
                         "status": operation.status,
-                        "inputs": operation.inputs,
-                        "outputs": operation.outputs
+                        "used": operation.used,
+                        "generated": operation.generated
                     })
             
             return {
@@ -301,10 +298,10 @@ class ProvenanceService:
             
             return {
                 "operation_id": operation.id,
-                "tool_id": operation.tool_id,
+                "agent": operation.agent,
                 "operation_type": operation.operation_type,
-                "inputs": operation.inputs,
-                "outputs": operation.outputs,
+                "used": operation.used,
+                "generated": operation.generated,
                 "parameters": operation.parameters,
                 "started_at": operation.started_at.isoformat(),
                 "completed_at": operation.completed_at.isoformat() if operation.completed_at else None,
@@ -382,11 +379,12 @@ class ProvenanceService:
                 operation = self.operations[op_id]
                 
                 # Remove from object-to-operations mapping
-                for obj_ref in operation.inputs + operation.outputs:
-                    if obj_ref in self.object_to_operations:
-                        self.object_to_operations[obj_ref].discard(op_id)
-                        if not self.object_to_operations[obj_ref]:
-                            del self.object_to_operations[obj_ref]
+                for obj_ref in operation.used.values():
+                    if isinstance(obj_ref, str):
+                        if obj_ref in self.object_to_operations:
+                            self.object_to_operations[obj_ref].discard(op_id)
+                            if not self.object_to_operations[obj_ref]:
+                                del self.object_to_operations[obj_ref]
                 
                 # Remove operation
                 del self.operations[op_id]

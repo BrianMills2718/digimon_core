@@ -25,7 +25,7 @@ import os
 from .logging_config import get_logger
 from .contract_validator import ContractValidator
 from .ontology_validator import OntologyValidator
-from .config import ConfigurationManager
+from src.core.config_manager import ConfigurationManager, get_config
 from .pipeline_validation import PipelineValidator
 from .tool_protocol import Tool
 
@@ -110,7 +110,7 @@ class PipelineOrchestrator:
         self.logger = get_logger("core.orchestrator")
         
         # Initialize ConfigManager for centralized configuration
-        self.config_manager = config_manager or ConfigManager()
+        self.config_manager = config_manager or get_config()
         
         # Use shared services (following existing architecture)
         from src.core.service_manager import get_service_manager
@@ -480,8 +480,8 @@ class PipelineOrchestrator:
             
             # Step 4: Build graph components
             # Get Neo4j config from ConfigManager
-            from src.core.config import ConfigurationManager
-            config_manager = ConfigurationManager()
+            from src.core.config_manager import ConfigurationManager
+            config_manager = get_config()
             neo4j_config = config_manager.get_neo4j_config()
             neo4j_uri = neo4j_config['uri']
             neo4j_user = neo4j_config['user']
@@ -590,6 +590,8 @@ class PipelineOrchestrator:
         """Execute Cypher query against the graph"""
         try:
             from src.core.service_manager import get_service_manager
+            from src.core.config_manager import get_config
+
             service_manager = get_service_manager()
             driver = service_manager.get_neo4j_driver()
             

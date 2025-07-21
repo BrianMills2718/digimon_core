@@ -1,0 +1,59 @@
+version: '3.8'
+services:
+  kgas-api:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - NEO4J_URI=bolt://neo4j:7687
+      - REDIS_URL=redis://redis:6379
+      - PROMETHEUS_METRICS_PORT=9090
+    depends_on:
+      - neo4j
+      - redis
+    restart: unless-stopped
+    
+  neo4j:
+    image: neo4j:5.11
+    environment:
+      - NEO4J_AUTH=neo4j/production_password
+      - NEO4J_dbms_security_procedures_unrestricted=gds.*
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    volumes:
+      - neo4j_data:/data
+    restart: unless-stopped
+    
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    restart: unless-stopped
+    
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=production_password
+    volumes:
+      - grafana_data:/var/lib/grafana
+    restart: unless-stopped
+
+volumes:
+  neo4j_data:
+  redis_data:
+  prometheus_data:
+  grafana_data:

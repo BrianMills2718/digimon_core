@@ -6,8 +6,8 @@ conform to the master concept definitions.
 
 from typing import List, Dict, Any, Optional, Union
 from datetime import datetime
-from ..ontology_library.ontology_service import OntologyService
-from ..ontology_library.dolce_ontology import dolce_ontology
+from src.ontology_library.ontology_service import OntologyService
+from src.ontology_library.dolce_ontology import dolce_ontology
 from .data_models import Entity, Relationship, BaseObject, QualityTier
 from .logging_config import get_logger
 

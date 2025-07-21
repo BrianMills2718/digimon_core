@@ -194,12 +194,6 @@ Each model has a detailed model card including:
 - **Access Control**: Strict access controls on model data
 - **Audit Logging**: All model access logged
 
-### Regulatory Compliance
-- **GDPR**: Right to explanation for model decisions
-- **CCPA**: Data deletion and portability
-- **FERPA**: Educational data protection
-- **HIPAA**: Health data protection (if applicable)
-
 ---
 
 **Note**: This model documentation provides comprehensive information about all models used in KGAS. Regular updates are required as models are updated or new models are added. -e 

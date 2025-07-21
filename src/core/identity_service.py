@@ -18,9 +18,12 @@ import json
 import sqlite3
 from pathlib import Path
 import numpy as np
-from .config import get_config
+from .config_manager import get_config
 from concurrent.futures import ThreadPoolExecutor
 import logging
+import os
+from src.core.config_manager import get_config
+from src.core.pii_service import PiiService
 
 logger = logging.getLogger(__name__)
 
@@ -38,6 +41,7 @@ class Mention:
     entity_type: Optional[str] = None
     context: str = ""
     created_at: datetime = field(default_factory=datetime.now)
+    is_pii_redacted: bool = False # Added for PII redacting
 
 
 @dataclass  
@@ -109,6 +113,15 @@ class IdentityService:
         self.exact_match_threshold = exact_match_threshold
         self.related_threshold = related_threshold
         
+        # PII Service
+        self._pii_service = None
+        pii_password = os.getenv("KGAS_PII_PASSWORD")
+        pii_salt = os.getenv("KGAS_PII_SALT")
+        if pii_password and pii_salt:
+            self._pii_service = PiiService(password=pii_password, salt=pii_salt.encode())
+        else:
+            logger.warning("PII service not initialized. Missing KGAS_PII_PASSWORD or KGAS_PII_SALT.")
+
         # Optional features
         self._openai_client = None
         self._embedding_cache: Dict[str, List[float]] = {}
@@ -154,10 +167,21 @@ class IdentityService:
                     context TEXT,
                     created_at TEXT,
                     entity_id TEXT,
+                    is_pii_redacted BOOLEAN DEFAULT FALSE,
                     FOREIGN KEY (entity_id) REFERENCES entities(id)
                 )
             """)
             
+            # PII Vault Table
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS pii_vault (
+                    pii_id TEXT PRIMARY KEY,
+                    ciphertext_b64 TEXT NOT NULL,
+                    nonce_b64 TEXT NOT NULL,
+                    created_at TEXT
+                )
+            """)
+
             # Create indices
             cursor.execute("CREATE INDEX IF NOT EXISTS idx_normalized_form ON mentions(normalized_form)")
             cursor.execute("CREATE INDEX IF NOT EXISTS idx_entity_canonical ON entities(canonical_name)")
@@ -204,7 +228,8 @@ class IdentityService:
                     confidence=row[6] or 0.8,
                     entity_type=row[7],
                     context=row[8] or "",
-                    created_at=datetime.fromisoformat(row[9]) if row[9] else datetime.now()
+                    created_at=datetime.fromisoformat(row[9]) if row[9] else datetime.now(),
+                    is_pii_redacted=bool(row[10]) # Load PII redacted status
                 )
                 self.mentions[mention.id] = mention
                 
@@ -229,6 +254,7 @@ class IdentityService:
             try:
                 import openai
                 import os
+
                 self._openai_client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
             except Exception as e:
                 logger.error(f"Failed to initialize OpenAI client: {e}")
@@ -695,6 +721,81 @@ class IdentityService:
         # when creating mentions. This method exists for backward compatibility.
         pass
     
+    def anoint_pii(self, mention_id: str) -> Optional[str]:
+        """
+        Redacts a mention's surface form, stores the PII in the vault,
+        and returns the pii_id.
+        """
+        if not self._pii_service:
+            logger.error("Cannot anoint PII: PiiService is not initialized.")
+            return None
+            
+        if mention_id not in self.mentions:
+            logger.error(f"Cannot anoint PII: Mention with id {mention_id} not found.")
+            return None
+
+        mention = self.mentions[mention_id]
+        original_surface_form = mention.surface_form
+
+        # Encrypt the PII
+        encrypted_payload = self._pii_service.encrypt(original_surface_form)
+        pii_id = encrypted_payload["pii_id"]
+
+        # Store in the vault
+        try:
+            cursor = self._db_conn.cursor()
+            cursor.execute(
+                """
+                INSERT INTO pii_vault (pii_id, ciphertext_b64, nonce_b64, created_at)
+                VALUES (?, ?, ?, ?)
+                """,
+                (
+                    pii_id,
+                    encrypted_payload["ciphertext_b64"],
+                    encrypted_payload["nonce_b64"],
+                    datetime.now().isoformat(),
+                ),
+            )
+            
+            # Redact the mention in-memory and mark for persistence
+            mention.surface_form = f"PII_REDACTED_{pii_id}"
+            mention.is_pii_redacted = True # Assumes this attribute is added to the Mention model
+            
+            # Persist the change to the mention
+            self.add_mention(mention, update_if_exists=True)
+            
+            self._db_conn.commit()
+            logger.info(f"Successfully redacted and vaulted PII for mention {mention_id} with pii_id {pii_id}.")
+            return pii_id
+        except Exception as e:
+            logger.error(f"Failed to store PII in vault: {e}")
+            self._db_conn.rollback()
+            return None
+
+    def reveal_pii(self, pii_id: str) -> Optional[str]:
+        """
+        Retrieves the original PII from the vault using its pii_id.
+        """
+        if not self._pii_service:
+            logger.error("Cannot reveal PII: PiiService is not initialized.")
+            return None
+            
+        try:
+            cursor = self._db_conn.cursor()
+            cursor.execute("SELECT ciphertext_b64, nonce_b64 FROM pii_vault WHERE pii_id = ?", (pii_id,))
+            result = cursor.fetchone()
+            
+            if not result:
+                logger.warning(f"PII with id {pii_id} not found in vault.")
+                return None
+                
+            ciphertext_b64, nonce_b64 = result
+            return self._pii_service.decrypt(ciphertext_b64, nonce_b64)
+            
+        except Exception as e:
+            logger.error(f"Failed to retrieve PII from vault: {e}")
+            return None
+    
     # Persistence methods
     def _persist_entity(self, entity: Entity):
         """Save entity to database."""
@@ -738,8 +839,8 @@ class IdentityService:
             cursor.execute("""
                 INSERT OR REPLACE INTO mentions 
                 (id, surface_form, normalized_form, start_pos, end_pos, source_ref, 
-                 confidence, entity_type, context, created_at, entity_id)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                 confidence, entity_type, context, created_at, entity_id, is_pii_redacted)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (
                 mention.id,
                 mention.surface_form,
@@ -751,7 +852,8 @@ class IdentityService:
                 mention.entity_type,
                 mention.context,
                 mention.created_at.isoformat(),
-                entity_id
+                entity_id,
+                mention.is_pii_redacted
             ))
             
             self._db_conn.commit()

@@ -200,7 +200,7 @@ class Entity(BaseObject):
     def validate_against_ontology(self):
         """Validate entity type and properties against master concept library"""
         try:
-            from ..ontology_library.ontology_service import OntologyService
+            from src.ontology_library.ontology_service import OntologyService
             ontology = OntologyService()
             
             # Validate entity type
@@ -269,7 +269,7 @@ class Relationship(BaseObject):
     def validate_against_ontology(self):
         """Validate relationship type against master concept library"""
         try:
-            from ..ontology_library.ontology_service import OntologyService
+            from src.ontology_library.ontology_service import OntologyService
             ontology = OntologyService()
             
             # Validate relationship type

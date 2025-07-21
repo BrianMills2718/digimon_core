@@ -16,7 +16,7 @@ import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 
 from core.async_api_client import AsyncEnhancedAPIClient
-from core.config import ConfigurationManager
+from src.core.config_manager import ConfigurationManager
 
 
 async def simulate_sync_processing(texts: List[str]) -> float:

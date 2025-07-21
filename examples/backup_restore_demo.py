@@ -18,7 +18,7 @@ import time
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 
 from core.backup_manager import BackupManager, BackupType, initialize_backup_system
-from core.config import ConfigurationManager
+from src.core.config_manager import ConfigurationManager
 
 
 def create_sample_data():

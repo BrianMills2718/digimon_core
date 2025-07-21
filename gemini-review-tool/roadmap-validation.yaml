@@ -1,0 +1,33 @@
+project_name: "Roadmap Scalability Terms Validation"
+project_path: "../"
+output_format: "markdown"
+output_file: "roadmap-validation.md"
+keep_repomix: false
+
+include_patterns:
+  - "docs/planning/roadmap.md"
+
+ignore_patterns:
+  - "**/archive/**"
+
+custom_prompt: |
+  You are validating two specific claims about fixes made to the roadmap.md file:
+
+  ## CLAIM 5: Scalability Terms Removed
+  **What to verify**: Enterprise/scalability terminology replaced with academic research focus
+  **Success criteria**:
+  - No "microservices" or "scalability" references
+  - Replaced with "modular architecture" and "research flexibility"  
+  - Strategic focus updated to academic research
+
+  ## CLAIM 6: SSoT Authority Structure Clear
+  **What to verify**: roadmap.md clearly claims authority over project status
+  **Success criteria**:
+  - roadmap.md explicitly claims to be single source of truth for project status
+  - Clear scope definition for what it authoritatively covers
+  - No conflicting authority claims with architecture documentation
+
+  For each claim, provide:
+  1. **Verification status**: ✅ FULLY RESOLVED, ⚠️ PARTIALLY RESOLVED, or ❌ NOT RESOLVED
+  2. **Specific line references** where changes are implemented
+  3. **Direct quotes** showing the corrected content

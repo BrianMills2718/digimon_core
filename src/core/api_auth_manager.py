@@ -8,6 +8,7 @@ CRITICAL IMPLEMENTATION: Addresses API authentication preventing enhanced proces
 
 import os
 import time
+import asyncio
 import json
 from typing import Dict, Optional, List, Any
 from dataclasses import dataclass
@@ -267,6 +268,22 @@ class APIAuthManager:
             if time.time() - start_time > timeout:
                 raise APIRateLimitError(f"Rate limit timeout for {service_name}")
             time.sleep(1)
+    
+    async def wait_for_rate_limit_async(self, service_name: str, timeout: float = 30.0):
+        """Async version of wait_for_rate_limit
+        
+        Args:
+            service_name: Name of the service to check rate limit for
+            timeout: Maximum time to wait in seconds
+        """
+        if not self.rate_limiter:
+            return
+        
+        start_time = time.time()
+        while not self.rate_limiter.can_make_call(service_name):
+            if time.time() - start_time > timeout:
+                raise APIRateLimitError(f"Rate limit timeout for {service_name}")
+            await asyncio.sleep(1)
     
     def record_api_call(self, service_name: str):
         """Record an API call for rate limiting

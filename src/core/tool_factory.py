@@ -4,6 +4,7 @@ import os
 import sys
 import gc
 import time
+import asyncio
 import uuid
 import threading
 import random
@@ -11,6 +12,119 @@ import logging
 from typing import Dict, Any, List, Type
 from pathlib import Path
 from datetime import datetime
+from enum import Enum
+
+# Phase and OptimizationLevel enums for workflow configuration
+class Phase(Enum):
+    PHASE1 = "phase1"
+    PHASE2 = "phase2"
+    PHASE3 = "phase3"
+
+class OptimizationLevel(Enum):
+    MINIMAL = "minimal"
+    STANDARD = "standard"
+    PERFORMANCE = "performance"
+    COMPREHENSIVE = "comprehensive"
+
+def create_unified_workflow_config(phase: Phase = Phase.PHASE1, 
+                                  optimization_level: OptimizationLevel = OptimizationLevel.STANDARD) -> Dict[str, Any]:
+    """Create a unified workflow configuration for the specified phase and optimization level."""
+    base_config = {
+        "phase": phase.value,
+        "optimization_level": optimization_level.value,
+        "created_at": datetime.now().isoformat(),
+        "tools": [],
+        "services": {
+            "neo4j": True,
+            "identity_service": True,
+            "quality_service": True,
+            "provenance_service": True
+        }
+    }
+    
+    # Phase-specific configuration
+    if phase == Phase.PHASE1:
+        base_config.update({
+            "description": "Phase 1: Basic entity extraction and graph construction",
+            "tools": [
+                "t01_pdf_loader",
+                "t15a_text_chunker",
+                "t23a_spacy_ner",
+                "t27_relationship_extractor",
+                "t31_entity_builder",
+                "t34_edge_builder",
+                "t49_multihop_query",
+                "t68_pagerank"
+            ],
+            "capabilities": {
+                "document_processing": True,
+                "entity_extraction": True,
+                "relationship_extraction": True,
+                "graph_construction": True,
+                "basic_queries": True
+            }
+        })
+    elif phase == Phase.PHASE2:
+        base_config.update({
+            "description": "Phase 2: Enhanced processing with ontology awareness",
+            "tools": [
+                "t23c_ontology_aware_extractor",
+                "t31_ontology_graph_builder",
+                "async_multi_document_processor"
+            ],
+            "capabilities": {
+                "ontology_aware_extraction": True,
+                "enhanced_graph_building": True,
+                "multi_document_processing": True,
+                "async_processing": True
+            }
+        })
+    elif phase == Phase.PHASE3:
+        base_config.update({
+            "description": "Phase 3: Advanced multi-document fusion",
+            "tools": [
+                "t301_multi_document_fusion",
+                "basic_multi_document_workflow"
+            ],
+            "capabilities": {
+                "multi_document_fusion": True,
+                "cross_document_entity_resolution": True,
+                "conflict_resolution": True,
+                "advanced_workflows": True
+            }
+        })
+    
+    # Optimization level adjustments
+    if optimization_level == OptimizationLevel.MINIMAL:
+        base_config["performance"] = {
+            "batch_size": 5,
+            "concurrency": 1,
+            "timeout": 30,
+            "memory_limit": "1GB"
+        }
+    elif optimization_level == OptimizationLevel.STANDARD:
+        base_config["performance"] = {
+            "batch_size": 10,
+            "concurrency": 2,
+            "timeout": 60,
+            "memory_limit": "2GB"
+        }
+    elif optimization_level == OptimizationLevel.PERFORMANCE:
+        base_config["performance"] = {
+            "batch_size": 20,
+            "concurrency": 4,
+            "timeout": 120,
+            "memory_limit": "4GB"
+        }
+    elif optimization_level == OptimizationLevel.COMPREHENSIVE:
+        base_config["performance"] = {
+            "batch_size": 50,
+            "concurrency": 8,
+            "timeout": 300,
+            "memory_limit": "8GB"
+        }
+    
+    return base_config
 
 class ToolFactory:
     def __init__(self, tools_directory: str = "src/tools"):
@@ -67,6 +181,7 @@ class ToolFactory:
         self.discovered_tools = tools
         return tools
         
+    
     def audit_all_tools(self) -> Dict[str, Any]:
         """Audit all tools with environment consistency tracking"""
         start_time = datetime.now()
@@ -132,6 +247,203 @@ class ToolFactory:
         # Calculate consistency metrics
         audit_results["consistency_metrics"] = self._calculate_consistency_metrics(audit_results)
         
+        return audit_results
+    
+    async def audit_all_tools_async(self) -> Dict[str, Any]:
+        """Real async audit using asyncio.gather for concurrent tool testing"""
+        start_time = datetime.now()
+        
+        # Capture initial environment
+        initial_environment = self._capture_test_environment()
+        
+        # Force garbage collection before testing
+        collected = gc.collect()
+        
+        # Discover tools in deterministic order
+        tools = self.discover_all_tools()
+        self.discovered_tools = tools
+        
+        audit_results = {
+            "timestamp": start_time.isoformat(),
+            "audit_id": str(uuid.uuid4()),
+            "initial_environment": initial_environment,
+            "garbage_collected": collected,
+            "total_tools": len(tools),
+            "working_tools": 0,
+            "broken_tools": 0,
+            "tool_results": {},
+            "consistency_metrics": {},
+            "final_environment": None,
+            "async_version": True,
+            "concurrent_execution": True
+        }
+        
+        # Create concurrent audit tasks for all tools
+        tool_items = list(tools.items())
+        audit_tasks = [
+            self._test_tool_isolated_async(tool_name, tool_info) 
+            for tool_name, tool_info in tool_items
+        ]
+        
+        # Execute all audits concurrently using asyncio.gather
+        logger.info(f"Starting concurrent audit of {len(audit_tasks)} tools using asyncio.gather")
+        audit_start = datetime.now()
+        
+        try:
+            # Real concurrent execution - NOT sequential
+            audit_task_results = await asyncio.gather(*audit_tasks, return_exceptions=True)
+            
+            concurrent_duration = (datetime.now() - audit_start).total_seconds()
+            logger.info(f"Concurrent audit completed in {concurrent_duration:.2f}s")
+            
+            # Process results from concurrent execution
+            for i, result in enumerate(audit_task_results):
+                tool_name = tool_items[i][0]
+                
+                if isinstance(result, Exception):
+                    # Handle exceptions from concurrent execution
+                    audit_results["tool_results"][tool_name] = {
+                        "status": "broken",
+                        "error": str(result),
+                        "error_type": type(result).__name__,
+                        "concurrent_execution": True
+                    }
+                    audit_results["broken_tools"] += 1
+                else:
+                    # Successful result from concurrent execution
+                    audit_results["tool_results"][tool_name] = {
+                        **result,
+                        "concurrent_execution": True
+                    }
+                    if result.get("status") == "working":
+                        audit_results["working_tools"] += 1
+                    else:
+                        audit_results["broken_tools"] += 1
+            
+            # Add performance metrics for concurrent execution
+            audit_results["concurrent_performance"] = {
+                "total_duration": concurrent_duration,
+                "average_per_tool": concurrent_duration / len(audit_tasks) if audit_tasks else 0,
+                "concurrency_achieved": True
+            }
+            
+        except Exception as e:
+            logger.error(f"Concurrent audit failed: {e}")
+            audit_results["concurrent_execution_error"] = str(e)
+            # Fallback to sequential execution
+            return await self._audit_sequential_fallback(tools, audit_results)
+        
+        # Capture final environment
+        audit_results["final_environment"] = self._capture_test_environment()
+        
+        # Calculate consistency metrics
+        audit_results["consistency_metrics"] = self._calculate_consistency_metrics(audit_results)
+        
+        return audit_results
+    
+    async def _test_tool_isolated_async(self, tool_name: str, tool_info: Dict[str, Any]) -> Dict[str, Any]:
+        """Async version of tool testing for concurrent execution"""
+        try:
+            if "error" in tool_info:
+                return {
+                    "status": "broken",
+                    "error": tool_info["error"],
+                    "discovery_phase": True
+                }
+            
+            # Get tool class and test in async context
+            tool_class = tool_info.get("class")
+            if not tool_class:
+                return {
+                    "status": "broken",
+                    "error": "No tool class found",
+                    "discovery_phase": True
+                }
+            
+            # Test tool instantiation
+            try:
+                # Run instantiation in thread pool to avoid blocking
+                loop = asyncio.get_event_loop()
+                tool_instance = await loop.run_in_executor(None, tool_class)
+            except Exception as e:
+                return {
+                    "status": "broken",
+                    "error": f"Instantiation failed: {e}",
+                    "error_type": type(e).__name__
+                }
+            
+            # Validate execute method exists
+            if not hasattr(tool_instance, 'execute'):
+                return {
+                    "status": "broken",
+                    "error": "Tool missing execute method"
+                }
+            
+            # Test execution with validation mode
+            try:
+                # Run execution in thread pool for safety
+                validation_input = {'validation_mode': True}
+                result = await loop.run_in_executor(
+                    None, 
+                    tool_instance.execute, 
+                    validation_input
+                )
+                
+                # Validate result structure
+                if not isinstance(result, dict):
+                    return {
+                        "status": "broken",
+                        "error": f"Execute returned {type(result)}, expected dict"
+                    }
+                
+                if 'status' not in result:
+                    return {
+                        "status": "broken",
+                        "error": "Execute result missing 'status' field"
+                    }
+                
+                return {
+                    "status": "working",
+                    "validation_result": result,
+                    "execute_method": True,
+                    "async_tested": True
+                }
+                
+            except Exception as e:
+                return {
+                    "status": "broken",
+                    "error": f"Execution failed: {e}",
+                    "error_type": type(e).__name__
+                }
+                
+        except Exception as e:
+            return {
+                "status": "broken",
+                "error": f"Async testing failed: {e}",
+                "error_type": type(e).__name__
+            }
+    
+    async def _audit_sequential_fallback(self, tools: Dict, audit_results: Dict) -> Dict[str, Any]:
+        """Fallback to sequential execution if concurrent fails"""
+        logger.warning("Falling back to sequential audit execution")
+        
+        for tool_name, tool_info in tools.items():
+            test_result = await self._test_tool_isolated_async(tool_name, tool_info)
+            
+            audit_results["tool_results"][tool_name] = {
+                **test_result,
+                "fallback_execution": True
+            }
+            
+            if test_result.get("status") == "working":
+                audit_results["working_tools"] += 1
+            else:
+                audit_results["broken_tools"] += 1
+            
+            # Small async delay between tools
+            await asyncio.sleep(0.05)
+        
+        audit_results["fallback_used"] = True
         return audit_results
 
     def _test_tool_isolated(self, tool_name: str, tool_info: Dict[str, Any]) -> Dict[str, Any]:

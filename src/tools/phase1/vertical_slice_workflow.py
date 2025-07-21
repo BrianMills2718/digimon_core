@@ -9,9 +9,11 @@ import warnings
 from typing import Dict, List, Optional, Any
 from pathlib import Path
 
-from ...core.pipeline_orchestrator import PipelineOrchestrator, OptimizationLevel, Phase
-from ...core.tool_factory import create_unified_workflow_config
-from ...core.config import ConfigurationManager
+from src.core.pipeline_orchestrator import PipelineOrchestrator, OptimizationLevel, Phase
+from src.core.tool_factory import create_unified_workflow_config
+from src.core.config_manager import ConfigurationManager
+from src.core.config_manager import get_config
+
 
 
 class VerticalSliceWorkflow:
@@ -35,7 +37,7 @@ class VerticalSliceWorkflow:
         )
         
         # Initialize with PipelineOrchestrator
-        self.config_manager = ConfigManager()
+        self.config_manager = get_config()
         self.config = create_unified_workflow_config(
             phase=Phase.PHASE1,
             optimization_level=OptimizationLevel.STANDARD,

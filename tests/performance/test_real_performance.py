@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import List
 
 from src.tools.phase2.async_multi_document_processor import AsyncMultiDocumentProcessor, DocumentInput
-from src.core.config import ConfigurationManager
+from src.core.config_manager import ConfigurationManager
 
 class RealPerformanceTest(unittest.TestCase):
     """Test real performance improvements with actual document processing."""

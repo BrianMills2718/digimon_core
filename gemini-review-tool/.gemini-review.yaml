@@ -1,0 +1,23 @@
+# Gemini Review Tool – Docs Review Configuration
+project_name: "Super-Digimon GraphRAG"
+project_path: "./docs"
+output_format: "markdown"
+output_file: "gemini-docs-review.md"
+compress_code: true
+remove_empty_lines: true
+# Limit to Markdown files only
+include_patterns:
+  - "*.md"
+# Exclude common binary / large formats explicitly
+ignore_patterns:
+  - "docs/archive"
+  - "*.png"
+  - "*.jpg"
+  - "*.jpeg"
+  - "*.svg"
+  - "*.gif"
+  - "*.pdf"
+  - "*.csv"
+  - "*.xls*"
+custom_prompt: |
+  Review the active documentation set (excluding archived docs). Focus on clarity, consistency, completeness, spot outdated or conflicting information, and provide structural recommendations. 

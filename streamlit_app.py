@@ -20,7 +20,7 @@ import os
 try:
     from src.ontology.gemini_ontology_generator import GeminiOntologyGenerator
     from src.core.ontology_storage_service import OntologyStorageService, OntologySession
-    from src.core.config import ConfigurationManager
+    from src.core.config_manager import ConfigurationManager
     
     # Use configuration instead of direct env access
     config_manager = ConfigurationManager()

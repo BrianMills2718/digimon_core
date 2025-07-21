@@ -1,0 +1,222 @@
+# Social Identity Theory Schema
+# Demonstrates MCL-DOLCE integration in practice
+
+theory_meta_schema_version: "1.0.0"
+mcl_version: "1.0.0"
+created_date: "2025-07-21"
+
+theory_identification:
+  theory_id: "social_identity_theory"
+  canonical_name: "Social Identity Theory"
+  alternative_names: ["SIT", "Intergroup Relations Theory"]
+  
+seminal_works:
+  - citation: "Tajfel, H., & Turner, J. C. (1979). An integrative theory of inter-group conflict. In W. G. Austin & S. Worchel (Eds.), The social psychology of inter-group relations (pp. 33-47). Brooks/Cole."
+    doi: "10.1002/9780470693421.ch9"
+  - citation: "Tajfel, H., & Turner, J. C. (1986). The Social Identity Theory of Intergroup Behavior. In S. Worchel & W. G. Austin (Eds.), Psychology of Intergroup Relations (pp. 7-24). Nelson-Hall."
+  
+theoretical_classification:
+  three_dimensional_framework:
+    level: "Meso"  # Individual psychology + Group dynamics
+    component: "Whom"  # Focus on social relationships and group membership
+    causality: "Agentic"  # Motivated behavior to enhance self-esteem
+
+core_proposition: "An individual's self-concept is derived from their perceived membership in social groups, motivating them to achieve positive distinctiveness for their ingroup through social comparison."
+
+# ===== ONTOLOGICAL SPECIFICATION =====
+ontology:
+  entities:
+    - name: "SocialIdentityActor"
+      mcl_concept: "SocialActor"  # References MCL concept
+      dolce_validation: "dolce:SocialObject"  # Inherited from MCL
+      theory_specific_properties:
+        - personal_identity_component
+        - social_identity_component
+        - self_esteem_motivation
+      description: "A social actor capable of group identification and motivated by self-esteem"
+      
+    - name: "IdentityGroup"  
+      mcl_concept: "SocialGroup"  # References MCL concept
+      dolce_validation: "dolce:SocialObject"  # Inherited from MCL
+      theory_specific_properties:
+        - group_distinctiveness
+        - status_hierarchy_position
+        - permeability_level
+      description: "A social group that provides identity basis for its members"
+      sub_types: ["Ingroup", "Outgroup"]
+      
+    - name: "SocialComparison"
+      mcl_concept: "SocialProcess"  # References MCL concept  
+      dolce_validation: "dolce:Perdurant"  # Inherited from MCL
+      theory_specific_properties:
+        - comparison_dimensions
+        - outcome_favorability
+        - distinctiveness_achieved
+      description: "Process of evaluating ingroup relative to outgroup"
+
+  relationships:
+    - name: "group_identification"
+      mcl_concept: "IdentifiesWith"  # References MCL concept
+      dolce_validation: "dolce:dependsOn"  # Inherited from MCL
+      domain: "SocialIdentityActor"
+      range: "IdentityGroup" 
+      theory_constraints:
+        - strength_variable: true
+        - affects_self_concept: true
+        - motivates_positive_distinctiveness: true
+      description: "Psychological attachment creating shared identity"
+      
+    - name: "intergroup_comparison"
+      mcl_concept: "ParticipatesIn"  # References MCL concept
+      dolce_validation: "dolce:participatesIn"  # Inherited from MCL
+      domain: "SocialIdentityActor"
+      range: "SocialComparison"
+      theory_constraints:
+        - driven_by_self_esteem: true
+        - seeks_positive_distinctiveness: true
+      description: "Actor engages in group comparison process"
+
+  properties:
+    - name: "group_identification_strength"
+      mcl_concept: "ConfidenceLevel"  # References MCL concept
+      dolce_validation: "dolce:Quality"  # Inherited from MCL
+      applies_to: ["SocialIdentityActor"]
+      measurement_scale: "low, moderate, high"
+      theory_significance: "Stronger identification leads to greater bias"
+      
+    - name: "ingroup_bias_tendency"
+      mcl_concept: "InfluencePower"  # References MCL concept
+      dolce_validation: "dolce:SocialQuality"  # Inherited from MCL
+      applies_to: ["SocialIdentityActor"]
+      measurement_scale: "minimal, moderate, strong"
+      theory_significance: "Core outcome of social identity process"
+
+# ===== THEORETICAL MECHANISMS =====
+causal_mechanisms:
+  - mechanism_name: "social_categorization"
+    description: "Cognitive process of dividing social world into us/them"
+    trigger: "Exposure to group membership information"
+    process: "Automatic cognitive classification"
+    outcome: "Enhanced within-group similarity, between-group differences"
+    mcl_concepts_involved: ["SocialActor", "SocialGroup"]
+    
+  - mechanism_name: "positive_distinctiveness_seeking"
+    description: "Motivated behavior to make ingroup superior to outgroup"
+    trigger: "Threat to social identity or self-esteem"
+    process: "Strategic comparison on favorable dimensions"
+    outcome: "Ingroup favoritism, outgroup derogation"
+    mcl_concepts_involved: ["SocialIdentityActor", "SocialComparison", "InfluencePower"]
+
+# ===== EMPIRICAL PREDICTIONS =====
+testable_hypotheses:
+  - hypothesis_id: "H1"
+    statement: "Individuals with stronger group identification will show greater ingroup favoritism"
+    variables:
+      independent: "group_identification_strength"
+      dependent: "ingroup_bias_tendency"
+      predicted_relationship: "positive_correlation"
+    mcl_validation: "Both variables mapped to MCL concepts with DOLCE grounding"
+    
+  - hypothesis_id: "H2"  
+    statement: "Threats to group status will increase intergroup bias"
+    variables:
+      independent: "group_status_threat"
+      dependent: "ingroup_bias_tendency" 
+      predicted_relationship: "positive_causal"
+    mcl_validation: "Threat affects SocialGroup properties, bias measured via InfluencePower"
+
+# ===== BOUNDARY CONDITIONS =====
+scope_conditions:
+  - condition: "group_membership_salience"
+    description: "Group identity must be psychologically salient"
+    mcl_mapping: "Affects strength of IdentifiesWith relationship"
+    
+  - condition: "comparison_group_relevance"
+    description: "Outgroup must be relevant comparison target"
+    mcl_mapping: "Constrains valid targets for SocialComparison process"
+    
+  - condition: "cultural_individualism_collectivism"
+    description: "Effects may be stronger in collectivist cultures"
+    mcl_mapping: "SocialContext modifier affects all processes"
+
+# ===== OPERATIONALIZATION GUIDE =====
+measurement_framework:
+  core_constructs:
+    - construct: "Social Identity Strength"
+      mcl_concept: "group_identification_strength"
+      measurement_approach: 
+        - "Multi-item scales (e.g., Doosje et al. 1995)"
+        - "Implicit Association Tests for automatic identification"
+        - "Behavioral indicators (time spent with group members)"
+      extraction_patterns:
+        - "I strongly identify with [GROUP]"
+        - "Being a [GROUP MEMBER] is important to me" 
+        - "I am proud to be a [GROUP MEMBER]"
+        
+    - construct: "Ingroup Favoritism"
+      mcl_concept: "ingroup_bias_tendency"
+      measurement_approach:
+        - "Resource allocation tasks (minimal group paradigm)"
+        - "Trait attribution differentials"
+        - "Positive/negative evaluation ratios"
+      extraction_patterns:
+        - "Our group is better at [TRAIT] than their group"
+        - "We are more [POSITIVE_TRAIT] than they are"
+        - "[INGROUP] members are generally [POSITIVE_EVALUATION]"
+
+# ===== VALIDATION FRAMEWORK =====
+dolce_validation_checks:
+  entity_consistency:
+    - check: "SocialIdentityActor is valid dolce:SocialObject"
+      status: "PASS - inherits from MCL SocialActor"
+    - check: "IdentityGroup is valid dolce:SocialObject"  
+      status: "PASS - inherits from MCL SocialGroup"
+    - check: "SocialComparison is valid dolce:Perdurant"
+      status: "PASS - inherits from MCL SocialProcess"
+      
+  relationship_consistency:
+    - check: "group_identification maps to valid dolce relationship"
+      status: "PASS - uses MCL IdentifiesWith (dolce:dependsOn)"
+    - check: "intergroup_comparison maps to valid dolce relationship"
+      status: "PASS - uses MCL ParticipatesIn (dolce:participatesIn)"
+      
+  property_consistency:
+    - check: "All properties have valid dolce:Quality grounding"
+      status: "PASS - all inherit from MCL PropertyConcepts"
+
+mcl_integration_validation:
+  concept_coverage:
+    - mcl_concepts_used: ["SocialActor", "SocialGroup", "SocialProcess", "ConfidenceLevel", "InfluencePower"]
+    - mcl_concepts_extended: ["group_identification_strength", "ingroup_bias_tendency"]
+    - theoretical_specificity: "Added theory-specific constraints while maintaining MCL compatibility"
+    
+  cross_theory_compatibility:
+    - compatible_theories: ["Conformity Theory", "American Voter Model"]
+    - shared_concepts: ["SocialActor", "SocialGroup", "InfluencePower"] 
+    - potential_conflicts: "None identified"
+
+# ===== IMPLEMENTATION NOTES =====
+extraction_implementation:
+  text_analysis_targets:
+    - "Group membership language (we, us, them, they)"
+    - "Identity expressions (I am a [GROUP], as a [GROUP] member)"
+    - "Comparative language (better than, superior to, different from)"
+    - "Evaluative language about groups (positive/negative descriptors)"
+    
+  nlp_requirements:
+    - named_entity_recognition: "Social groups, organizations, identity categories"
+    - sentiment_analysis: "Group-directed positive/negative sentiment"
+    - coreference_resolution: "Group reference chains (we/us/them/they)"
+    - relationship_extraction: "membership, comparison, evaluation relationships"
+
+cross_modal_analysis_potential:
+  graph_mode: "Network analysis of group membership and intergroup relationships"
+  table_mode: "Statistical analysis of identification strength and bias measures"
+  vector_mode: "Semantic similarity of group descriptions and identity expressions"
+
+research_applications:
+  suitable_datasets:
+    - "Political social media data (party identification and bias)"
+    - "Organizational communication (team identity and competition)"
+    - "Intergroup conflict coverage (us/them framing in news)"
+    - "Sports fandom expressions (team identity and rival derogation)"

@@ -27,7 +27,7 @@ from src.core.pipeline_orchestrator import PipelineOrchestrator
 from src.core.tool_factory import create_unified_workflow_config, Phase, OptimizationLevel
 # Phase 3 now uses PipelineOrchestrator with Phase.PHASE3
 from src.core.service_manager import get_service_manager
-from src.core.config import get_config
+from src.core.config_manager import get_config
 from src.core.pipeline_orchestrator import PipelineOrchestrator, Phase, OptimizationLevel
 from src.core.tool_factory import create_unified_workflow_config
 from src.core.graphrag_phase_interface import ProcessingRequest

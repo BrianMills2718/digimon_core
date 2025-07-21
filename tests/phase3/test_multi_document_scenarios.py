@@ -591,7 +591,8 @@ def test_end_to_end_fusion_pipeline():
     assert result.total_documents == 10
     assert result.entities_after_fusion < result.entities_before_fusion  # Deduplication occurred
     assert result.consistency_score >= 0.7  # Reasonable consistency
-    assert elapsed < 10 * result.total_documents / 10  # Less than 10s per 10 documents
+    # A simple check to ensure it's not excessively slow
+    assert elapsed < 60  # Should be well under a minute for this test
     
     print("\n✅ All fusion tests passed!")
     

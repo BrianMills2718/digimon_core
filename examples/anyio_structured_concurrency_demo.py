@@ -25,7 +25,7 @@ except ImportError:
     import anyio
 
 from core.anyio_orchestrator import AnyIOOrchestrator, get_anyio_orchestrator
-from core.config import ConfigurationManager
+from src.core.config_manager import ConfigurationManager
 
 
 # Sample async tasks for demonstration

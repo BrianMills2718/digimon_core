@@ -19,7 +19,7 @@ from pathlib import Path
 
 # Add src to path for imports
 
-from core.config import (
+from src.core.config_manager import (
     ConfigurationManager, SystemConfig, get_config, load_config, validate_config,
     EntityProcessingConfig, TextProcessingConfig, GraphConstructionConfig,
     APIConfig, Neo4jConfig

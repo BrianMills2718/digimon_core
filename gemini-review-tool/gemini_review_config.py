@@ -9,14 +9,15 @@ import json
 import yaml
 from pathlib import Path
 from typing import Dict, Any, Optional, List
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, InitVar
 
 @dataclass
 class ReviewConfig:
     """Configuration for code review"""
     # Project info
     project_name: str = "Unknown Project"
-    project_path: str = "."
+    # New: support for multiple project paths. `project_path` is legacy.
+    project_paths: List[str] = field(default_factory=lambda: ["."])
     
     # Review settings
     output_format: str = "xml"  # xml or markdown
@@ -69,6 +70,18 @@ class ReviewConfig:
         }
     })
     
+    # This is a bit of a workaround for dataclasses not having an easy way
+    # to handle deprecated fields during __init__ from a dict.
+    # We accept `project_path` but don't store it as a main field.
+    project_path: InitVar[Optional[str]] = None
+
+    def __post_init__(self, project_path: Optional[str]):
+        """Handle backward compatibility for project_path."""
+        if project_path:
+            # If project_paths is at its default value, use the legacy project_path
+            if self.project_paths == ["."]:
+                self.project_paths = [project_path]
+    
     @classmethod
     def load_from_file(cls, config_path: str) -> 'ReviewConfig':
         """Load configuration from JSON or YAML file"""
@@ -98,7 +111,7 @@ class ReviewConfig:
         path = Path(config_path)
         data = {
             'project_name': self.project_name,
-            'project_path': self.project_path,
+            'project_paths': self.project_paths,
             'output_format': self.output_format,
             'output_file': self.output_file,
             'keep_repomix': self.keep_repomix,
@@ -132,7 +145,7 @@ def create_default_config(project_path: str = ".") -> ReviewConfig:
     
     config = ReviewConfig(
         project_name=project_name,
-        project_path=project_path
+        project_paths=[project_path]
     )
     
     # Auto-detect common documentation patterns
@@ -168,7 +181,14 @@ def find_config_file(start_path: str = ".") -> Optional[str]:
             if config_path.exists():
                 return str(config_path)
         current = current.parent
-        
+
+    # Fallback: check the directory where this module lives (e.g. gemini-review-tool)
+    tool_dir = Path(__file__).resolve().parent
+    for name in search_names:
+        tool_config = tool_dir / name
+        if tool_config.exists():
+            return str(tool_config)
+ 
     return None
 
 

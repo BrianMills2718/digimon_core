@@ -9,35 +9,35 @@ governance: doc-governance
 This repository implements the Knowledge Graph Analysis System (KGAS) described in the dissertation 'Theoretical Foundations for LLM-Generated Ontologies and Analysis of Fringe Discourse.'
 
 ## Navigation
-- [KGAS Evergreen Documentation](docs/architecture/KGAS_EVERGREEN_DOCUMENTATION.md)
+- [KGAS Evergreen Documentation](docs/architecture/concepts/kgas-evergreen-documentation.md)
 - [Roadmap](docs/planning/roadmap.md)
-- [Architecture](docs/architecture/ARCHITECTURE.md)
-- [Compatibility Matrix](docs/architecture/COMPATIBILITY_MATRIX.md)
+- [Architecture](docs/architecture/KGAS_ARCHITECTURE_V3.md)
+- [Compatibility Matrix](docs/architecture/specifications/compatibility-matrix.md)
 
 ## Overview
 
 This is an experimental GraphRAG (Graph-based Retrieval-Augmented Generation) system for research and development purposes. It demonstrates entity extraction, relationship mapping, and graph-based query processing using Neo4j.
 
-## 🎯 Production Readiness Status
+## 🎯 Academic Research Tool Status
 
-**This system is 85-90% production ready and functionally complete.**
+**This system is designed for local, single-node academic research and experimental GraphRAG concepts.**
 
 ### Current Status:
-- ✅ **Production-Functional**: 85-90% production readiness criteria met
-- ✅ **Comprehensive Testing**: 14 tests covering edge cases, validation, persistence, and security
-- ✅ **Real Functionality**: No mocks in production code, actual external service integration
-- ✅ **Evidence-Based**: Detailed execution logs with genuine timestamps
-- 🔄 **Final 5-10%**: Documentation consistency and final validation refinements
+- ✅ **Academic Research Capable**: Suitable for local research and experimentation
+- ✅ **Development Testing**: 14 tests covering core research functionality validation
+- ✅ **Research Functionality**: Genuine research capabilities without production mocks
+- ✅ **Academic Evidence**: Research execution logs and academic validation
+- 🔄 **Research Enhancement**: Ongoing development of advanced research capabilities
 
-### Production Capabilities:
-- Real document processing with PDF loading and text chunking
-- Vector storage with Qdrant persistence
-- Entity extraction using SpaCy NER
-- Relationship extraction and graph building
-- Multi-hop querying capabilities
-- PageRank analysis
-- Comprehensive error handling and validation
-- Detailed evidence logging and monitoring
+### Research Capabilities:
+- Academic document processing with PDF loading and text chunking
+- Experimental knowledge graph construction and analysis
+- Research-grade entity extraction using SpaCy NER
+- Academic relationship extraction and graph building
+- Research multi-hop querying capabilities
+- Experimental PageRank analysis for academic validation
+- Development-grade error handling for research reliability
+- Research logging and academic validation monitoring
 
 ### What This System Does:
 - Extracts entities from text documents
@@ -46,12 +46,12 @@ This is an experimental GraphRAG (Graph-based Retrieval-Augmented Generation) sy
 - Provides basic query interface
 - Demonstrates GraphRAG concepts
 
-### Known Issues:
-- Package installation requires manual fixes
-- Neo4j shows property warnings
-- Limited error handling
-- Manual configuration needed
-- No production monitoring
+### Known Research Limitations:
+- Package installation requires manual fixes for development setup
+- Neo4j shows property warnings during research validation
+- Development-grade error handling suitable for academic research
+- Manual configuration needed for research environment setup
+- No production monitoring (not needed for academic research tool)
 
 ## Quick Start
 
@@ -99,13 +99,13 @@ python examples/minimal_working_example.py
 - 🚧 Documentation clarity
 - 🚧 Testing coverage
 
-### Not Implemented:
-- ❌ Production error handling
-- ❌ Performance optimization
-- ❌ Security hardening
-- ❌ Scalability features
-- ❌ Production monitoring
-- ❌ Enterprise authentication
+### Not Applicable for Academic Research Tool:
+- ❌ Production error handling (academic tool uses development-grade handling)
+- ❌ Enterprise performance optimization (single-node academic research focus)
+- ❌ Security hardening (research environment security adequate)
+- ❌ Production scalability features (single-node academic research design)
+- ❌ Enterprise monitoring (academic validation monitoring sufficient)
+- ❌ Enterprise authentication (research environment authentication adequate)
 
 ## Contributing
 
@@ -117,7 +117,7 @@ This is a research project. Contributions welcome for:
 
 ### Development Workflow
 - All changes must pass CI checks (unit, integration, doc-governance)
-- Update ROADMAP_v2.1.md progress bars for feature changes
+- Update roadmap.md progress status for feature changes
 - Follow the PR template in `.github/pull_request_template.md`
 - Ensure documentation claims are verified
 
@@ -133,8 +133,8 @@ This is a research project. Contributions welcome for:
 ## Support
 
 This is experimental software. For issues:
-1. Check INSTALLATION_GUIDE.md
-2. Review SYSTEM_STATUS.md
+1. Check the Quick Start section above for setup guidance
+2. Review docs/operations/OPERATIONS.md for system status
 3. Submit issues for bugs/improvements
 
 **Remember**: This is NOT production software. Use at your own risk for research/learning purposes only.

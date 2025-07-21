@@ -66,8 +66,8 @@ class Phase1Adapter(GraphRAGPhase, TheoryAwareGraphRAGPhase):
         """Lazy load Phase 1 workflow"""
         if self._workflow is None:
             from src.core.pipeline_orchestrator import PipelineOrchestrator
-            from src.core.config import ConfigurationManager
-            config_manager = ConfigurationManager()
+            from src.core.config_manager import ConfigurationManager
+            config_manager = get_config()
             self._workflow_config = create_unified_workflow_config(phase=Phase.PHASE1, optimization_level=OptimizationLevel.STANDARD)
             self._workflow = PipelineOrchestrator(self._workflow_config, config_manager)
         return self._workflow
@@ -258,10 +258,10 @@ class Phase1Adapter(GraphRAGPhase, TheoryAwareGraphRAGPhase):
     
     def _create_theory_guided_workflow(self, theory_schema):
         """Create workflow that uses theory to GUIDE extraction, not just validate"""
-        from ..tools.phase1.theory_guided_workflow import TheoryGuidedWorkflow
-        from .config import ConfigurationManager
+        from src.tools.phase1.theory_guided_workflow import TheoryGuidedWorkflow
+        from src.core.config_manager import ConfigurationManager
         
-        config_manager = ConfigurationManager()
+        config_manager = get_config()
         return TheoryGuidedWorkflow(
             config_manager=config_manager,
             theory_schema=theory_schema
@@ -314,8 +314,8 @@ class Phase2Adapter(GraphRAGPhase, TheoryAwareGraphRAGPhase):
         """Lazy load Phase 2 workflow"""
         if self._workflow is None:
             from src.core.pipeline_orchestrator import PipelineOrchestrator
-            from src.core.config import ConfigurationManager
-            config_manager = ConfigurationManager()
+            from src.core.config_manager import ConfigurationManager
+            config_manager = get_config()
             self._workflow_config = create_unified_workflow_config(phase=Phase.PHASE2, optimization_level=OptimizationLevel.STANDARD)
             self._workflow = PipelineOrchestrator(self._workflow_config, config_manager)
         return self._workflow
@@ -525,8 +525,8 @@ class Phase3Adapter(GraphRAGPhase, TheoryAwareGraphRAGPhase):
         """Lazy load Phase 3 workflow"""
         if self._workflow is None:
             from src.core.pipeline_orchestrator import PipelineOrchestrator
-            from src.core.config import ConfigurationManager
-            config_manager = ConfigurationManager()
+            from src.core.config_manager import ConfigurationManager
+            config_manager = get_config()
             self._workflow_config = create_unified_workflow_config(phase=Phase.PHASE3, optimization_level=OptimizationLevel.STANDARD)
             self._workflow = PipelineOrchestrator(self._workflow_config, config_manager)
         return self._workflow
@@ -888,6 +888,8 @@ if __name__ == "__main__":
     success = initialize_phase_adapters()
     if success:
         from .graphrag_phase_interface import get_available_phases
+from src.core.config_manager import get_config
+
         logger = get_logger("core.phase_adapters")
         logger.info("\nAvailable phases: %s", get_available_phases())
         

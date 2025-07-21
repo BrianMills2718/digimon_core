@@ -1,0 +1,25 @@
+{
+  "output": {
+    "style": "xml",
+    "showLineNumbers": true,
+    "removeEmptyLines": true
+  },
+  "include": [
+    "tests/unit/test_async_api_client.py",
+    "tests/unit/test_async_api_client_step3.py", 
+    "tests/unit/test_async_api_client_step4.py",
+    "src/core/async_api_client.py"
+  ],
+  "ignore": {
+    "customPatterns": [
+      "**/*.pyc",
+      "**/__pycache__/**",
+      "**/.git/**",
+      "**/*.log",
+      "**/.pytest_cache/**",
+      "**/*.cache",
+      "**/Evidence.md",
+      "**/CLAUDE.md"
+    ]
+  }
+}

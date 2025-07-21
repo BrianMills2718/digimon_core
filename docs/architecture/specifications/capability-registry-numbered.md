@@ -552,24 +552,21 @@
 417. `GraphRAGPhaseInterface._export_interface_data()` - Export data
 
 ### Enhanced Storage (418-433)
-**File**: `src/core/enhanced_identity_service_faiss.py`
+**File**: `src/core/enhanced_identity_service_db.py`
 
-418. `FAISSIdentityService.__init__()` - Initialize FAISS service
-419. `FAISSIdentityService.build_faiss_index()` - Build FAISS index
-420. `FAISSIdentityService.search_similar_entities()` - Search similar
-421. `FAISSIdentityService.add_entity_to_index()` - Add to index
-422. `FAISSIdentityService.remove_entity_from_index()` - Remove from index
-423. `FAISSIdentityService.update_entity_in_index()` - Update in index
-424. `FAISSIdentityService.get_index_statistics()` - Get statistics
-425. `FAISSIdentityService._create_faiss_index()` - Create index
-426. `FAISSIdentityService._train_faiss_index()` - Train index
-427. `FAISSIdentityService._optimize_faiss_search()` - Optimize search
-428. `FAISSIdentityService._validate_faiss_index()` - Validate index
-429. `FAISSIdentityService._backup_faiss_index()` - Backup index
-430. `FAISSIdentityService._restore_faiss_index()` - Restore index
-431. `FAISSIdentityService._monitor_faiss_performance()` - Monitor performance
-432. `FAISSIdentityService._handle_faiss_errors()` - Handle errors
-433. `FAISSIdentityService._calculate_faiss_metrics()` - Calculate metrics
+418. `EnhancedIdentityServiceDB.__init__()` - Initialize DB service
+419. `EnhancedIdentityServiceDB.create_entity_id()` - Create entity ID
+420. `EnhancedIdentityServiceDB.find_similar_entities()` - Find similar
+421. `EnhancedIdentityServiceDB.merge_entities()` - Merge entities
+422. `EnhancedIdentityServiceDB.get_entity_mentions()` - Get mentions
+423. `EnhancedIdentityServiceDB.add_entity_mention()` - Add mention
+424. `EnhancedIdentityServiceDB.update_entity()` - Update entity
+425. `EnhancedIdentityServiceDB.delete_entity()` - Delete entity
+426. `EnhancedIdentityServiceDB.get_entity_statistics()` - Get stats
+427. `EnhancedIdentityServiceDB._calculate_similarity_score()` - Calculate similarity
+428. `EnhancedIdentityServiceDB._validate_entity_data()` - Validate data
+429. `EnhancedIdentityServiceDB._handle_duplicate_detection()` - Handle duplicates
+430. `EnhancedIdentityServiceDB._normalize_entity_names()` - Normalize names
 
 ### Testing Framework (434-448)
 **File**: `src/testing/integration_test_framework.py`

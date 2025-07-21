@@ -1,0 +1,29 @@
+project_name: "Phase 4 Direct Validation"
+project_path: "."
+output_format: "markdown"
+output_file: "phase4-direct-results.md"
+keep_repomix: true
+
+include_patterns:
+  - "main.py"
+  - ".env.example"  
+  - "validate_phase4.py"
+  - "src/core/error_handler.py"
+  - "docker/Dockerfile"
+
+ignore_patterns:
+  - "**/*.pyc"
+  - "**/__pycache__/**"
+  - "**/node_modules/**"
+
+custom_prompt: |
+  Validate these Phase 4 implementation files:
+  
+  1. main.py - FastAPI app with /health, /ready, /metrics endpoints
+  2. .env.example - Production environment variables
+  3. validate_phase4.py - Comprehensive validation script  
+  4. src/core/error_handler.py - ProductionErrorHandler class
+  5. docker/Dockerfile - Production Docker configuration
+  
+  For each file, verify it exists and contains proper implementation.
+  Reference specific line numbers and code snippets as evidence.

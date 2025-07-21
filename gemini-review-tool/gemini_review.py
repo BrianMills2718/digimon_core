@@ -28,7 +28,8 @@ from pathlib import Path
 from typing import Optional, Dict, Any, List, Callable
 from collections import deque
 from threading import Lock
-from datetime import datetime
+from datetime import datetime, timedelta
+import shutil
 import google.generativeai as genai
 from dotenv import load_dotenv
 
@@ -48,8 +49,10 @@ except ImportError as e:
     print(f"⚠️  Cache module not available: {e}")
     CACHE_AVAILABLE = False
 
-# Load environment variables
-load_dotenv()
+# Load environment variables from the tool directory
+script_dir = Path(__file__).parent
+env_file = script_dir / '.env'
+load_dotenv(env_file)
 
 # Custom Exception Classes
 class ReviewError(Exception):
@@ -634,10 +637,11 @@ class GeminiCodeReviewer:
         
         # Determine output file extension
         ext = "xml" if output_format == "xml" else "md"
-        output_file = Path(f"repomix-output.{ext}")
+        output_file = Path(__file__).parent / f"repomix-output.{ext}"
         
         # Build repomix command
         cmd = ["npx", "repomix@latest", "--style", output_format]
+        cmd.append("--quiet")
         
         # Add repomix options
         if remove_empty_lines:
@@ -672,13 +676,14 @@ class GeminiCodeReviewer:
             cmd.extend(["--ignore", ignore_pattern])
             print(f"🚫 Ignoring patterns: {ignore_pattern}")
         
-        # Add path if not current directory
-        if project_path != ".":
-            cmd.append(project_path)
+        # Always use "." since we're running from the project directory
         
         try:
             # Run repomix with timeout
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
+            print(f"🔍 Current working directory: {os.getcwd()}")
+            print(f"🔍 Running command: {' '.join(cmd)}")
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=300,
+                                    cwd=project_path)
             
             if result.returncode != 0:
                 raise FileSystemError(f"Repomix failed with code {result.returncode}: {result.stderr}")
@@ -857,33 +862,60 @@ Be thorough and skeptical. Look for discrepancies between the claims and the act
                 raise api_error
             
     def save_results(self, results: str, output_path: str = "gemini-review.md"):
-        """Save the analysis results to a file."""
-        # Ensure validation reports are saved in the validation-reports subdirectory
+        """Save analysis results in an organised run-specific directory."""
         output_path = Path(output_path)
-        
-        # If the output file is a validation report, save it in the validation-reports directory
-        if "validation" in output_path.name.lower() or "verify" in output_path.name.lower():
-            validation_reports_dir = Path("validation-reports")
-            validation_reports_dir.mkdir(exist_ok=True)
-            output_path = validation_reports_dir / output_path.name
-        
-        print(f"💾 Saving results to {output_path}...")
-        
-        with open(output_path, 'w', encoding='utf-8') as f:
-            f.write(f"# Gemini Code Review\n")
-            f.write(f"Generated on: {time.strftime('%Y-%m-%d %H:%M:%S')}\n\n")
+
+        # ------------------------------------------------------------------
+        # Create run-specific directory: gemini-review-tool/outputs/<timestamp>
+        # ------------------------------------------------------------------
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        run_root = Path(__file__).parent / "outputs" / timestamp
+
+        # Decide sub-folder based on filename semantics
+        name_lower = output_path.name.lower()
+        if any(key in name_lower for key in ["validation", "verify"]):
+            subdir = run_root / "validations"
+        elif "review" in name_lower:
+            subdir = run_root / "reviews"
+        elif "analysis" in name_lower:
+            subdir = run_root / "analysis"
+        else:
+            subdir = run_root / "misc"
+
+        subdir.mkdir(parents=True, exist_ok=True)
+        final_path = subdir / output_path.name
+
+        print(f"💾 Saving results to {final_path} ...")
+
+        with open(final_path, "w", encoding="utf-8") as f:
+            f.write(f"# {output_path.stem}\n")
+            f.write(f"Generated: {datetime.now().isoformat()}\n")
+            f.write("Tool: Gemini Review Tool v1.0.0\n\n")
             f.write("---\n\n")
             f.write(results)
-            
-        print(f"✅ Results saved to {output_path}")
-        
+
+        # Update per-run index
+        self._update_review_index(run_root, final_path)
+
+        print(f"✅ Results saved to {final_path}")
+
+    def _update_review_index(self, run_root: Path, new_file: Path):
+        """Maintain an index.md inside each run directory for quick browsing."""
+        index_path = run_root / "index.md"
+        rel_path = new_file.relative_to(run_root)
+        line = f"- [{rel_path}]({rel_path}) ‒ {datetime.now().strftime('%Y-%m-%d %H:%M')}\n"
+
+        # Append (or create) index file
+        with open(index_path, "a", encoding="utf-8") as idx:
+            idx.write(line)
+
     def cleanup(self, repomix_file: Path):
         """Clean up temporary files."""
         if repomix_file.exists():
             repomix_file.unlink()
             print("🧹 Cleaned up temporary files")
             
-    def review(self, project_path: str = ".", 
+    def review(self, project_paths: List[str], 
               custom_prompt: Optional[str] = None,
               output_format: str = "xml",
               keep_repomix: bool = False,
@@ -897,17 +929,36 @@ Be thorough and skeptical. Look for discrepancies between the claims and the act
               claims_of_success: Optional[str] = None,
               documentation_files: Optional[List[str]] = None,
               output_file: str = "gemini-review.md") -> str:
-        """Main review process."""
-        print(f"\n🚀 Starting Gemini Code Review for: {project_path}\n")
+        """Perform a comprehensive code review on the given project paths."""
         
-        repomix_file = None
+        all_repomix_outputs = []
+        repomix_files_to_cleanup = []
+
+        print(f"🚀 Starting Gemini Code Review for: {', '.join(project_paths)}")
+
         try:
-            # Step 1: Run repomix
-            repomix_file = self.run_repomix(project_path, output_format, ignore_patterns, include_patterns,
-                                          remove_empty_lines, show_line_numbers, include_diffs, compress_code, token_count_encoding)
+            for path in project_paths:
+                validated_path = validate_project_path(path)
+                print(f"\nProcessing path: {validated_path}")
+
+                repomix_file = self.run_repomix(
+                    project_path=str(validated_path),
+                    output_format=output_format,
+                    ignore_patterns=ignore_patterns,
+                    include_patterns=include_patterns,
+                    remove_empty_lines=remove_empty_lines,
+                    show_line_numbers=show_line_numbers,
+                    include_diffs=include_diffs,
+                    compress_code=compress_code,
+                    token_count_encoding=token_count_encoding
+                )
+                repomix_files_to_cleanup.append(repomix_file)
+                
+                content = self.read_repomix_output(repomix_file)
+                all_repomix_outputs.append(content)
             
-            # Step 2: Read the output
-            codebase_content = self.read_repomix_output(repomix_file)
+            # Combine all repomix outputs into a single context
+            combined_context = "\n\n---\n\n".join(all_repomix_outputs)
             
             # Step 3: Read documentation if provided
             documentation = ""
@@ -922,26 +973,38 @@ Be thorough and skeptical. Look for discrepancies between the claims and the act
                         print(f"⚠️  Warning: Could not read {doc_file}: {e}")
             
             # Step 4: Analyze with Gemini
-            results = self.analyze_code(codebase_content, custom_prompt, claims_of_success, documentation, 
-                                      project_path, ignore_patterns, include_patterns, documentation_files)
+            analysis_result = self.analyze_code(
+                codebase_content=combined_context,
+                custom_prompt=custom_prompt,
+                claims_of_success=claims_of_success,
+                documentation=documentation,
+                project_path=project_paths[0], # Use the first path for cache/index
+                ignore_patterns=ignore_patterns,
+                include_patterns=include_patterns,
+                documentation_files=documentation_files
+            )
             
             # Step 4: Save results
-            self.save_results(results, output_file)
+            self.save_results(analysis_result, output_file)
             
             # Step 5: Cleanup (unless asked to keep)
-            if not keep_repomix and repomix_file:
-                self.cleanup(repomix_file)
+            if not keep_repomix:
+                for f in repomix_files_to_cleanup:
+                    if f and f.exists():
+                        self.cleanup(f)
                 
             print("\n✨ Code review complete!")
-            return results
+            return analysis_result
             
         except Exception as e:
             print(f"\n❌ Error during review: {str(e)}")
             raise
         finally:
             # Ensure cleanup even on error
-            if not keep_repomix and repomix_file and repomix_file.exists():
-                self.cleanup(repomix_file)
+            if not keep_repomix:
+                for f in repomix_files_to_cleanup:
+                    if f and f.exists():
+                        self.cleanup(f)
 
 
 def main():
@@ -984,10 +1047,10 @@ Examples:
     )
     
     parser.add_argument(
-        'project_path',
-        nargs='?',
-        default='.',
-        help='Path to the project to review (default: current directory)'
+        'project_paths', # Changed from project_path
+        nargs='+',      # Accept one or more arguments
+        default=['.'],  # Default to current directory if no paths given
+        help='One or more paths to the projects/directories to review.'
     )
     
     parser.add_argument(
@@ -1129,7 +1192,7 @@ Examples:
     # Handle --init flag
     if args.init:
         if CONFIG_AVAILABLE:
-            config = create_default_config(args.project_path or ".")
+            config = create_default_config(args.project_paths or ".")
             config_path = ".gemini-review.yaml"
             config.save_to_file(config_path)
             print(f"✅ Created configuration file: {config_path}")
@@ -1161,7 +1224,7 @@ Examples:
             cache = ReviewCache(args.cache_dir, args.cache_max_age)
             cache.clear_cache()
             print("✅ Cache cleared")
-            if not args.project_path:
+            if not args.project_paths: # Changed from args.project_path
                 sys.exit(0)
         else:
             print("❌ Cache module not available")
@@ -1176,17 +1239,17 @@ Examples:
                 config = ReviewConfig.load_from_file(args.config)
             else:
                 # Search for config file
-                config_path = find_config_file(args.project_path or ".")
+                config_path = find_config_file(args.project_paths) # Changed from args.project_path
                 if config_path:
                     print(f"📋 Using config file: {config_path}")
                     config = ReviewConfig.load_from_file(config_path)
         
         # Apply command-line overrides to config
         if config:
-            if args.project_path:
+            if args.project_paths: # Changed from args.project_path
                 # Validate project path
-                validated_path = validate_project_path(args.project_path)
-                config.project_path = str(validated_path)
+                validated_paths = [validate_project_path(p) for p in args.project_paths]
+                config.project_path = [str(p) for p in validated_paths]
             if args.format:
                 config.output_format = args.format
             if args.keep_repomix is not None:
@@ -1225,7 +1288,7 @@ Examples:
         
         # Initialize reviewer with logging
         enable_cache = not args.no_cache
-        log_level = "DEBUG" if args.project_path and "debug" in args.project_path.lower() else "INFO"
+        log_level = "DEBUG" if args.project_paths and "debug" in args.project_paths[0].lower() else "INFO" # Changed from args.project_path
         reviewer = GeminiCodeReviewer(
             api_key=args.api_key, 
             fallback_model=args.fallback_model,
@@ -1235,20 +1298,28 @@ Examples:
         )
         
         # Load config if specified or found
-        config_path = args.config or find_config_file(args.project_path)
+        config_path = args.config or find_config_file(args.project_paths) # Changed from args.project_path
         config = None
-        if config_path:
+        if config_path and CONFIG_AVAILABLE:
             config = ReviewConfig.load_from_file(config_path)
         else:
-            config = create_default_config(args.project_path)
+            config = create_default_config(args.project_paths) # Pass the list
 
         # Override config with CLI arguments if provided
         output_file = config.output_file if config and not args.format == 'markdown' else "gemini-review.md" # Default for markdown
         if args.format == 'markdown':
             output_file = "gemini-review.md"
 
+        review_project_paths = config.project_path if config else args.project_paths # Changed from args.project_path
+        
+        # Ensure project_paths is always a list
+        if isinstance(review_project_paths, str):
+            review_project_paths = [review_project_paths]
+        elif not isinstance(review_project_paths, list):
+            review_project_paths = list(review_project_paths) if review_project_paths else ["."]
+        
         reviewer.review(
-            project_path=args.project_path,
+            project_paths=review_project_paths,
             custom_prompt=args.prompt or (config.custom_prompt if config else None),
             output_format=args.format or (config.output_format if config else 'xml'),
             keep_repomix=args.keep_repomix or (config.keep_repomix if config else False),

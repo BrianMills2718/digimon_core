@@ -1,5 +1,6 @@
 import logging
 import time
+import asyncio
 import uuid
 from typing import Dict, Any, List
 from datetime import datetime
@@ -11,7 +12,7 @@ class ProductionValidator:
         # CRITICAL: Ensure neo4j_manager is properly initialized
         self.neo4j_manager = None
         
-    def validate_production_readiness(self) -> Dict[str, Any]:
+    async def validate_production_readiness(self) -> Dict[str, Any]:
         """Validate production readiness with mandatory stability gating"""
         validation_results = {
             "timestamp": datetime.now().isoformat(),
@@ -36,7 +37,7 @@ class ProductionValidator:
             return validation_results
         
         # MANDATORY: Run stability tests with enforcement
-        stability_results = self._run_stability_tests()
+        stability_results = await self._run_stability_tests()
         validation_results["stability_tests"] = stability_results
         
         # ENFORCE 80% stability threshold
@@ -77,12 +78,12 @@ class ProductionValidator:
         
         return validation_results
 
-    def _run_stability_tests(self) -> Dict[str, Any]:
+    async def _run_stability_tests(self) -> Dict[str, Any]:
         """Test system stability over multiple iterations"""
         stability_results = {
-            "database_stability": self._test_database_stability(),
-            "tool_consistency": self._test_tool_consistency(),
-            "memory_stability": self._test_memory_stability(),
+            "database_stability": await self._test_database_stability(),
+            "tool_consistency": await self._test_tool_consistency(),
+            "memory_stability": await self._test_memory_stability(),
             "overall_stability": 0.0
         }
         
@@ -92,7 +93,7 @@ class ProductionValidator:
         
         return stability_results
 
-    def _test_database_stability(self) -> Dict[str, Any]:
+    async def _test_database_stability(self) -> Dict[str, Any]:
         """Test database connection stability with comprehensive validation"""
         stability_tests = 50  # Increased from 20 for better reliability
         successful_connections = 0
@@ -162,7 +163,7 @@ class ProductionValidator:
                 self.logger.warning(f"Database stability test {attempt + 1} failed: {e}")
             
             # Brief delay between attempts for realistic testing
-            time.sleep(0.1)
+            await asyncio.sleep(0.1)
         
         # Calculate comprehensive stability metrics
         stability_score = successful_connections / stability_tests
@@ -206,8 +207,101 @@ class ProductionValidator:
         
         self.logger.info(f"Database stability test completed: {stability_score:.1%} success rate ({stability_class})")
         return stability_results
+    
+    async def _test_database_stability_async(self) -> Dict[str, Any]:
+        """Async version of database stability test with non-blocking delays"""
+        stability_tests = 50  # Increased from 20 for better reliability
+        successful_connections = 0
+        connection_times = []
+        error_patterns = {}
+        performance_metrics = []
+        
+        self.logger.info(f"Starting async database stability test with {stability_tests} iterations")
+        
+        for attempt in range(stability_tests):
+            start_time = time.time()
+            try:
+                # Test database operations (keeping sync for database calls)
+                session = self.neo4j_manager.get_session()
+                connection_acquired_time = time.time() - start_time
+                
+                # Test 1: Simple connectivity
+                query_start = time.time()
+                result = session.run("RETURN 1 as test")
+                test_value = result.single()["test"]
+                if test_value != 1:
+                    raise RuntimeError("Basic connectivity test failed")
+                query_time = time.time() - query_start
+                
+                # Test 2-5: Additional tests (same as sync version)
+                write_start = time.time()
+                test_id = str(uuid.uuid4())
+                session.run("CREATE (n:StabilityTest {id: $id, timestamp: datetime()})", id=test_id)
+                
+                found_record = session.run("MATCH (n:StabilityTest {id: $id}) RETURN n.id as found_id", id=test_id).single()
+                if found_record["found_id"] != test_id:
+                    raise ValueError(f"Write verification failed: {found_record['found_id']} != {test_id}")
+                
+                session.run("MATCH (n:StabilityTest {id: $id}) DELETE n", id=test_id)
+                write_time = time.time() - write_start
+            
+                total_time = time.time() - start_time
+                connection_times.append(total_time)
+                
+                performance_metrics.append({
+                    "attempt": attempt + 1,
+                    "connection_time": connection_acquired_time,
+                    "query_time": query_time,
+                    "write_time": write_time,
+                    "total_time": total_time
+                })
+                
+                successful_connections += 1
+                
+            except Exception as e:
+                error_type = type(e).__name__
+                error_patterns[error_type] = error_patterns.get(error_type, 0) + 1
+                self.logger.warning(f"Async database stability test {attempt + 1} failed: {e}")
+            
+            # Brief delay between attempts for realistic testing - NON-BLOCKING
+            await asyncio.sleep(0.1)  # ✅ NON-BLOCKING
+        
+        # Calculate stability metrics (same as sync version)
+        stability_score = successful_connections / stability_tests
+        avg_connection_time = sum(connection_times) / len(connection_times) if connection_times else float('inf')
+        max_connection_time = max(connection_times) if connection_times else float('inf')
+        min_connection_time = min(connection_times) if connection_times else float('inf')
+        connection_variance = self._calculate_variance(connection_times) if connection_times else float('inf')
+        
+        # Return same result structure as sync version
+        stability_class = "excellent" if stability_score >= 0.95 else "good" if stability_score >= 0.80 else "poor"
+        
+        stability_results = {
+            "test_type": "database_stability_async",
+            "stability_score": stability_score,
+            "stability_class": stability_class,
+            "successful_connections": successful_connections,
+            "total_attempts": stability_tests,
+            "performance": {
+                "avg_connection_time": avg_connection_time,
+                "max_connection_time": max_connection_time,
+                "min_connection_time": min_connection_time,
+                "connection_variance": connection_variance
+            },
+            "error_analysis": {
+                "error_patterns": error_patterns,
+                "total_errors": stability_tests - successful_connections,
+                "error_rate": (stability_tests - successful_connections) / stability_tests
+            },
+            "detailed_performance": performance_metrics,
+            "meets_threshold": stability_score >= 0.80,
+            "meets_production_threshold": stability_score >= 0.95
+        }
+        
+        self.logger.info(f"Async database stability test completed: {stability_score:.1%} success rate ({stability_class})")
+        return stability_results
 
-    def _test_tool_consistency(self) -> Dict[str, Any]:
+    async def _test_tool_consistency(self) -> Dict[str, Any]:
         """Test tool auditing consistency over multiple runs"""
         consistency_runs = 5
         run_results = []
@@ -238,7 +332,7 @@ class ProductionValidator:
                     "timestamp": datetime.now().isoformat()
                 })
             
-            time.sleep(1.0)  # Delay between runs
+            await asyncio.sleep(1.0)  # Delay between runs
         
         # Calculate consistency metrics
         success_rates = [r.get("success_rate", 0) for r in run_results if "error" not in r]
@@ -266,8 +360,70 @@ class ProductionValidator:
             "is_consistent": is_consistent,
             "stability_score": 0.8 if is_consistent else 0.0
         }
+    
+    async def _test_tool_consistency_async(self) -> Dict[str, Any]:
+        """Async version of tool auditing consistency test with non-blocking delays"""
+        consistency_runs = 5
+        run_results = []
+        
+        for run in range(consistency_runs):
+            try:
+                from src.core.tool_factory import ToolFactory
+                factory = ToolFactory()
+                
+                # Run audit with environment capture
+                audit_result = factory.audit_all_tools()
+                
+                run_results.append({
+                    "run_number": run + 1,
+                    "total_tools": audit_result.get("total_tools", 0),
+                    "working_tools": audit_result.get("working_tools", 0),
+                    "success_rate": (audit_result.get("working_tools", 0) / 
+                                   max(audit_result.get("total_tools", 1), 1)) * 100,
+                    "environment_stable": audit_result.get("consistency_metrics", {}).get("environment_stability", False),
+                    "timestamp": datetime.now().isoformat()
+                })
+                
+            except Exception as e:
+                run_results.append({
+                    "run_number": run + 1,
+                    "error": str(e),
+                    "success_rate": 0,
+                    "timestamp": datetime.now().isoformat()
+                })
+            
+            # Non-blocking delay between runs
+            await asyncio.sleep(1.0)  # ✅ NON-BLOCKING
+        
+        # Calculate consistency metrics (same as sync version)
+        success_rates = [r.get("success_rate", 0) for r in run_results if "error" not in r]
+        
+        if success_rates:
+            avg_success_rate = sum(success_rates) / len(success_rates)
+            success_variance = self._calculate_variance(success_rates)
+            max_deviation = max(abs(rate - avg_success_rate) for rate in success_rates)
+            
+            # Consistency criteria: variance < 5% and max deviation < 10%
+            is_consistent = success_variance < 25 and max_deviation < 10
+        else:
+            avg_success_rate = 0
+            success_variance = float('inf')
+            max_deviation = float('inf')
+            is_consistent = False
+        
+        return {
+            "test_type": "tool_consistency_async",
+            "runs_completed": len([r for r in run_results if "error" not in r]),
+            "total_runs": consistency_runs,
+            "run_results": run_results,
+            "average_success_rate": avg_success_rate,
+            "success_rate_variance": success_variance,
+            "max_deviation": max_deviation,
+            "is_consistent": is_consistent,
+            "stability_score": 0.8 if is_consistent else 0.0
+        }
 
-    def _test_memory_stability(self) -> Dict[str, Any]:
+    async def _test_memory_stability(self) -> Dict[str, Any]:
         """Monitor memory usage during operations"""
         import psutil
         import gc
@@ -315,7 +471,7 @@ class ProductionValidator:
                     "timestamp": time.time()
                 })
             
-            time.sleep(0.5)
+            await asyncio.sleep(0.5)
         
         # Final memory measurement
         gc.collect()
@@ -339,6 +495,88 @@ class ProductionValidator:
             stability_score = 0.0
         
         return {
+            "initial_memory": {
+                "system_percent": initial_memory.percent,
+                "system_available": initial_memory.available,
+                "process_rss": initial_process_memory.rss,
+                "process_vms": initial_process_memory.vms
+            },
+            "final_memory": {
+                "system_percent": final_memory.percent,
+                "system_available": final_memory.available,
+                "process_rss": final_process_memory.rss,
+                "process_vms": final_process_memory.vms
+            },
+            "memory_samples": memory_samples,
+            "memory_growth_mb": memory_growth,
+            "max_memory_usage_mb": max_memory_usage,
+            "is_stable": is_stable,
+            "stability_score": min(stability_score, 1.0)
+        }
+    
+    async def _test_memory_stability_async(self) -> Dict[str, Any]:
+        """Async version of memory usage monitoring with non-blocking delays"""
+        import psutil
+        import gc
+        
+        # Baseline memory measurement
+        gc.collect()
+        initial_memory = psutil.virtual_memory()
+        process = psutil.Process()
+        initial_process_memory = process.memory_info()
+        
+        memory_samples = []
+        operations = 10
+        
+        for i in range(operations):
+            # Perform memory-intensive operations
+            try:
+                # Tool auditing
+                from src.core.tool_factory import ToolFactory
+                factory = ToolFactory()
+                audit = factory.audit_all_tools()
+                
+                # Memory measurement
+                current_memory = psutil.virtual_memory()
+                current_process = process.memory_info()
+                
+                memory_samples.append({
+                    "operation": i + 1,
+                    "system_percent": current_memory.percent,
+                    "system_available": current_memory.available,
+                    "process_rss": current_process.rss,
+                    "process_vms": current_process.vms,
+                    "timestamp": time.time()
+                })
+                
+                # Force garbage collection
+                gc.collect()
+                
+            except Exception as e:
+                memory_samples.append({
+                    "operation": i + 1,
+                    "error": str(e),
+                    "timestamp": time.time()
+                })
+            
+            # Non-blocking delay between operations
+            await asyncio.sleep(0.5)  # ✅ NON-BLOCKING
+        
+        # Final memory measurement
+        gc.collect()
+        final_memory = psutil.virtual_memory()
+        final_process_memory = process.memory_info()
+        
+        # Calculate memory metrics
+        memory_growth = (final_process_memory.rss - initial_process_memory.rss) / (1024 * 1024)  # MB
+        max_memory_usage = max(s.get("process_rss", 0) for s in memory_samples if "error" not in s) / (1024 * 1024) if memory_samples else 0
+        
+        # Memory stability assessment
+        is_stable = memory_growth < 50  # Less than 50MB growth is stable
+        stability_score = max(0.0, 1.0 - (memory_growth / 100))  # Scale score based on growth
+        
+        return {
+            "test_type": "memory_stability_async",
             "initial_memory": {
                 "system_percent": initial_memory.percent,
                 "system_available": initial_memory.available,
@@ -666,17 +904,19 @@ class ProductionValidator:
         try:
             if self.config_manager is not None:
                 return True
-            from src.core.config import ConfigurationManager
-            manager = ConfigurationManager()
+            from src.core.config_manager import ConfigurationManager
+            manager = get_config()
             return hasattr(manager, 'get_config')
         except Exception:
             return False
 
-    def _test_database_connectivity_with_stability(self) -> Dict[str, Any]:
+    async def _test_database_connectivity_with_stability(self) -> Dict[str, Any]:
         """Test database connectivity with proper error handling"""
         try:
             if self.neo4j_manager is None:
                 from src.core.neo4j_manager import Neo4jDockerManager
+                from src.core.config_manager import get_config
+
                 self.neo4j_manager = Neo4jDockerManager()
             
             # Test connection multiple times for stability
@@ -692,7 +932,7 @@ class ProductionValidator:
                 except Exception:
                     pass
                 
-                time.sleep(0.1)
+                await asyncio.sleep(0.1)
             
             stability_score = successful_tests / total_tests
             

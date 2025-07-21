@@ -29,7 +29,7 @@ import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'src'))
 
 from src.core.service_manager import get_service_manager
-from src.core.config import get_config
+from src.core.config_manager import get_config
 from src.core.neo4j_manager import ensure_neo4j_for_testing
 
 # Set up logging

@@ -17,22 +17,24 @@ from pathlib import Path
 
 # Import core services and configuration
 from src.core.service_manager import get_service_manager
-from src.core.config import ConfigurationManager
+from src.core.config_manager import ConfigurationManager
 from src.core.quality_service import QualityTier
 from src.core.workflow_state_service import WorkflowStateService
 
 # Import Phase 1 tools
 from src.core.pipeline_orchestrator import PipelineOrchestrator
 from src.core.tool_factory import create_unified_workflow_config, Phase, OptimizationLevel
-from src.core.config import ConfigurationManager
+from src.core.config_manager import ConfigurationManager
 from src.tools.phase1.phase1_mcp_tools import create_phase1_mcp_tools
+from src.core.config_manager import get_config
+
 
 # Initialize MCP server
 mcp = FastMCP("super-digimon")
 
 # Get shared service manager and configuration
 service_manager = get_service_manager()
-config_manager = ConfigurationManager()
+config_manager = get_config()
 config = config_manager.get_config()
 
 # Use shared services from manager
@@ -45,7 +47,7 @@ workflow_storage = config.workflow.storage_dir if hasattr(config, 'workflow') el
 workflow_service = WorkflowStateService(workflow_storage)
 
 # Initialize pipeline orchestrator
-config_manager_unified = ConfigManager()
+config_manager_unified = get_config()
 unified_config = create_unified_workflow_config(
     phase=Phase.PHASE1,
     optimization_level=OptimizationLevel.STANDARD,

@@ -1,0 +1,75 @@
+project_name: "Task 4 Async API Client Enhancement Validation"
+
+include_patterns:
+  - "src/core/async_api_client.py"
+  - "test_async_performance.py"
+  - "test_real_async_client.py"
+
+ignore_patterns:
+  - "Evidence.md"
+  - "logs/**"
+  - "*.pyc"
+  - "__pycache__/**"
+  - ".gemini-cache/**"
+  - "*.json"
+
+claims_of_success: |
+  TASK 4: ASYNC API CLIENT ENHANCEMENT CLAIMS
+  
+  CLAIM 1: Enhanced Connection Pooling Implementation
+  - File: src/core/async_api_client.py
+  - Expected: aiohttp.TCPConnector with limit=100, limit_per_host=30, DNS cache, keep-alive
+  - Lines: Around 296-303 in initialize_clients method
+  
+  CLAIM 2: Increased Concurrency Limits  
+  - File: src/core/async_api_client.py
+  - Expected: OpenAI semaphore increased from 10 to 25, Gemini from 5 to 15
+  - Lines: Around 261-264 in __init__ method
+  
+  CLAIM 3: Response Caching System
+  - File: src/core/async_api_client.py  
+  - Expected: TTL cache (300s), size limit (1000), automatic cleanup, cache hit tracking
+  - Lines: Cache methods around 397-421, cache_ttl=300, response_cache dict
+  
+  CLAIM 4: Batch Processing Optimization
+  - File: src/core/async_api_client.py
+  - Expected: Background batch processor, async queue, optimal batch sizes (50 OpenAI, 20 Gemini)
+  - Lines: Batch methods around 331-372, process_batch_queue, _create_embeddings_batch with batch_size=50
+  
+  CLAIM 5: Performance Monitoring
+  - File: src/core/async_api_client.py
+  - Expected: Performance metrics tracking, get_performance_metrics method, benchmark_performance method
+  - Lines: performance_metrics dict around 275-283, get_performance_metrics around 599-611
+  
+  CLAIM 6: Performance Test Implementation
+  - File: test_async_performance.py
+  - Expected: Test that demonstrates >50% improvement, shows 98.1% improvement achieved
+  - Evidence: Mock test with proper performance comparison
+  
+  CLAIM 7: Integration Test Success
+  - File: test_real_async_client.py
+  - Expected: Tests that verify all 7 optimization features, 4/4 tests pass
+  - Evidence: Real async client testing with feature verification
+
+custom_prompt: |
+  Validate the Task 4 Async API Client Enhancement implementation claims by examining the provided code files.
+  
+  For each claim, verify:
+  1. IMPLEMENTATION PRESENT: Does the claimed feature exist in the specified file/lines?
+  2. FUNCTIONALITY COMPLETE: Is it fully implemented (not a stub or placeholder)?
+  3. REQUIREMENTS MET: Does it satisfy the specific technical requirements mentioned?
+  
+  Pay special attention to:
+  - Actual code implementation vs. comments or placeholders
+  - Specific parameter values mentioned in claims (e.g., limit=100, batch_size=50)
+  - Method existence and functionality (e.g., get_performance_metrics, benchmark_performance)
+  - Test completeness and evidence of performance improvements
+  
+  For each of the 7 claims, provide a verdict:
+  - ✅ FULLY RESOLVED: Implementation present, complete, and meets requirements
+  - ⚠️ PARTIALLY RESOLVED: Implementation present but incomplete or doesn't fully meet requirements  
+  - ❌ NOT RESOLVED: Implementation missing, broken, or doesn't meet requirements
+  
+  Reference specific line numbers and code examples from the files when making your assessment.
+
+output_format: "markdown"

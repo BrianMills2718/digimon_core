@@ -62,7 +62,7 @@ except ImportError:
     def start_http_server(port, addr='', registry=None):
         pass
 
-from .config import ConfigurationManager
+from src.core.config_manager import ConfigurationManager
 from .logging_config import get_logger
 
 
@@ -81,7 +81,7 @@ class MetricsCollector:
     """Centralized metrics collection system for KGAS"""
     
     def __init__(self, config_manager: ConfigurationManager = None):
-        self.config_manager = config_manager or ConfigurationManager()
+        self.config_manager = config_manager or get_config()
         self.logger = get_logger("metrics.collector")
         
         # Get metrics configuration
@@ -174,7 +174,9 @@ class MetricsCollector:
         self.logger.info(f"Initialized {metric_count} KGAS metrics")
         
         if metric_count != 41:
-            from .config import ConfigurationError
+            from .config_manager import ConfigurationError
+from src.core.config_manager import get_config
+
             raise ConfigurationError(f"Expected 41 metrics, initialized {metric_count}. Metrics: {metric_attributes}")
     
     def start_metrics_server(self):

@@ -1,0 +1,1 @@
+- [misc/architecture-critique.md](misc/architecture-critique.md) ‒ 2025-07-18 18:14

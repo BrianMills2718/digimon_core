@@ -1,0 +1,109 @@
+project_name: "CLAUDE.md Architecture & Roadmap Implementation Claims Validation"
+
+include_patterns:
+  # Architecture Documentation Files (Task 1)
+  - "docs/architecture/architecture_overview.md"
+  - "docs/architecture/concurrency-strategy.md"
+  - "docs/architecture/agent-interface.md"
+  - "docs/architecture/llm-ontology-integration.md"
+  - "docs/architecture/cross-modal-analysis.md"
+  
+  # Roadmap and Planning Files (Task 3)
+  - "docs/planning/roadmap_overview.md"
+  
+  # Tool Registry and Validation Files (Tasks 2 & 4)
+  - "src/core/tool_registry.py"
+  - "validate_tool_inventory.py"
+  - "resolve_tool_conflicts.py"
+
+ignore_patterns:
+  - "Evidence.md"
+  - "logs/**"
+  - "*.log"
+  - ".gemini-cache/**"
+  - "archived/**"
+  - "*.json"
+
+claims_of_success: |
+  CLAIM 1: Architecture documentation is comprehensive and separated from implementation status
+  - LOCATION: docs/architecture/architecture_overview.md
+  - EXPECTED: Document describes target architecture without claiming current implementation
+  - VALIDATION: Check for clear "*Status: Target Architecture*" indicators and separation of design from status
+  
+  CLAIM 2: AnyIO concurrency strategy is fully documented with implementation patterns  
+  - LOCATION: docs/architecture/concurrency-strategy.md
+  - EXPECTED: Complete AnyIO patterns with code examples for structured concurrency
+  - VALIDATION: Verify async/await patterns, task groups, resource management examples
+  
+  CLAIM 3: Multi-layer agent interface architecture is documented (3 layers)
+  - LOCATION: docs/architecture/agent-interface.md  
+  - EXPECTED: Layer 1 (Agent-Controlled), Layer 2 (Agent-Assisted), Layer 3 (Manual Control) fully described
+  - VALIDATION: Check for complete architectural descriptions of all 3 layers with implementation details
+  
+  CLAIM 4: LLM-ontology integration architecture is documented with theory-driven validation
+  - LOCATION: docs/architecture/llm-ontology-integration.md
+  - EXPECTED: Theory-aware extraction, ontological validation, confidence scoring architecture
+  - VALIDATION: Verify comprehensive integration patterns with domain ontology generation
+  
+  CLAIM 5: Cross-modal analysis architecture is documented with format conversion capabilities  
+  - LOCATION: docs/architecture/cross-modal-analysis.md
+  - EXPECTED: Graph/Table/Vector representation modes with conversion architecture
+  - VALIDATION: Check for detailed cross-modal conversion patterns and provenance tracking
+  
+  CLAIM 6: Tool inventory validation is comprehensive with real functional testing
+  - LOCATION: validate_tool_inventory.py
+  - EXPECTED: Real import attempts, class instantiation, execution testing with error capture
+  - VALIDATION: Verify functional testing methods, not mocks or stubs
+  
+  CLAIM 7: Tool registry accurately reflects validation results with conflict tracking
+  - LOCATION: src/core/tool_registry.py  
+  - EXPECTED: Registry contains actual validation status, version conflicts, missing tools
+  - VALIDATION: Check ToolRegistry class with comprehensive conflict and status tracking
+  
+  CLAIM 8: Tool conflict resolution strategy is implemented with archival approach
+  - LOCATION: resolve_tool_conflicts.py
+  - EXPECTED: Version conflict resolution with safe archival (no deletion)
+  - VALIDATION: Verify ToolConflictResolver class with archival strategy implementation
+  
+  CLAIM 9: Roadmap reflects evidence-based status assessment (0.0% MVRT completion)
+  - LOCATION: docs/planning/roadmap_overview.md
+  - EXPECTED: Honest assessment showing 0% completion with evidence backing
+  - VALIDATION: Check for realistic completion percentages and evidence-based claims
+  
+  CLAIM 10: All documentation follows fail-fast principles and evidence-based claims
+  - LOCATION: All architecture and roadmap files
+  - EXPECTED: No inflated claims, problems exposed immediately, evidence backing
+  - VALIDATION: Verify realistic assessments and evidence-based documentation throughout
+
+custom_prompt: |
+  Validate the CLAUDE.md implementation claims by examining the specific files included. For each claim:
+  
+  **VALIDATION CRITERIA:**
+  1. **Implementation Present**: Does the claimed feature/documentation exist in the specified file?
+  2. **Functionality Complete**: Is it fully implemented (not a stub, template, or placeholder)?
+  3. **Requirements Met**: Does it satisfy the specific requirements mentioned in the claim?
+  4. **Evidence Quality**: Are status claims backed by actual evidence rather than assumptions?
+  
+  **FOR EACH CLAIM, PROVIDE:**
+  - **Status**: ✅ FULLY RESOLVED / ⚠️ PARTIALLY RESOLVED / ❌ NOT RESOLVED
+  - **Evidence**: Specific file paths and line numbers where implementation is found
+  - **Assessment**: What was implemented vs what was claimed
+  - **Issues**: Any gaps between claims and actual implementation
+  
+  **FOCUS ON:**
+  - Architecture documentation completeness and implementation guidance quality
+  - Tool validation methodology (real testing vs mocks/stubs)
+  - Tool registry accuracy and conflict resolution implementation
+  - Roadmap honesty (evidence-based vs inflated claims)
+  - Overall adherence to fail-fast principles
+  
+  **BE ESPECIALLY CRITICAL OF:**
+  - Any documentation that lacks implementation detail
+  - Tool validation that uses mocks instead of real testing
+  - Status claims not backed by concrete evidence
+  - Roadmap percentages that don't match validation results
+  - Any evidence of deceptive practices or inflated capabilities
+  
+  Provide a line-by-line analysis where possible, referencing specific implementations found in the included files.
+
+output_format: "markdown"

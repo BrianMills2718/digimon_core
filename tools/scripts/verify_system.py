@@ -86,7 +86,7 @@ def verify_basic_imports():
         # Test core system imports
         from src.core.pipeline_orchestrator import PipelineOrchestrator
         from src.core.service_manager import ServiceManager
-        from src.core.config import Config
+        from src.core.config_manager import Config
         
         return True, "Basic imports successful"
     except ImportError as e:

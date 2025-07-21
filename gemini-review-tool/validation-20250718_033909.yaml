@@ -1,0 +1,87 @@
+project_name: "CLAUDE.md Phase 2 Performance & Reliability Validation"
+project_path: ".."
+output_format: "markdown"
+output_file: "gemini-review.md"
+keep_repomix: false
+remove_empty_lines: true
+show_line_numbers: true
+include_diffs: false
+compress_code: false
+token_count_encoding: "gemini-pro"
+
+include_patterns:
+  - "src/tools/phase2/async_multi_document_processor.py"
+  - "src/core/prometheus_metrics.py"
+  - "src/monitoring/grafana_dashboards.py"
+  - "src/core/anyio_orchestrator.py"
+  - "src/core/distributed_tracing.py"
+  - "validate_phase2.py"
+  - "phase2_validation_results.json"
+
+ignore_patterns:
+  - "*.pyc"
+  - "__pycache__"
+  - ".git"
+  - ".venv"
+  - "venv"
+  - "node_modules"
+  - "*.log"
+  - ".pytest_cache"
+  - "*.egg-info"
+  - "build"
+  - "dist"
+  - "gemini-review*.md"
+  - "repomix-output.*"
+  - "Evidence.md"
+  - "logs"
+
+documentation_files: []
+
+claims_of_success: |
+  CLAIM_1_ASYNC_PROCESSOR: Real async multi-document processor with 60-70% performance improvement in src/tools/phase2/async_multi_document_processor.py
+  CLAIM_2_PROMETHEUS_METRICS: Comprehensive Prometheus metrics collection with 15+ metrics in src/core/prometheus_metrics.py
+  CLAIM_3_GRAFANA_DASHBOARDS: Grafana dashboard integration with 6 dashboards and 25+ panels in src/monitoring/grafana_dashboards.py
+  CLAIM_4_ANYIO_ORCHESTRATOR: AnyIO structured concurrency migration in src/core/anyio_orchestrator.py
+  CLAIM_5_DISTRIBUTED_TRACING: OpenTelemetry distributed tracing with graceful degradation in src/core/distributed_tracing.py
+
+custom_prompt: |
+  You are validating 5 specific Phase 2 implementation claims from CLAUDE.md.
+  
+  Analyze ONLY the included files and verify each claim individually:
+  
+  **CLAIM_1_ASYNC_PROCESSOR**: Real async multi-document processor with 60-70% performance improvement
+  - File: src/tools/phase2/async_multi_document_processor.py
+  - Must have: AsyncMultiDocumentProcessor class, process_documents_async method, ProcessingResult dataclass
+  - Must use: Real asyncio.gather(), aiofiles, semaphore-based concurrency control
+  - Must include: Performance benchmarking with benchmark_against_sequential method
+  
+  **CLAIM_2_PROMETHEUS_METRICS**: Comprehensive Prometheus metrics collection with 15+ metrics
+  - File: src/core/prometheus_metrics.py  
+  - Must have: PrometheusMetrics class with 15+ distinct metrics
+  - Must include: Counter, Histogram, Gauge, Info metric types
+  - Must have: System metrics (CPU, memory, disk), API metrics, database metrics
+  
+  **CLAIM_3_GRAFANA_DASHBOARDS**: Grafana dashboard integration with 6 dashboards and 25+ panels
+  - File: src/monitoring/grafana_dashboards.py
+  - Must have: GrafanaDashboardManager class
+  - Must implement: 6 distinct dashboard methods (system_overview, performance, database, api_monitoring, entity_processing, error_tracking)
+  - Must total: 25+ panels across all dashboards
+  
+  **CLAIM_4_ANYIO_ORCHESTRATOR**: AnyIO structured concurrency migration
+  - File: src/core/anyio_orchestrator.py
+  - Must have: AnyIOOrchestrator class using anyio.create_task_group()
+  - Must implement: Structured concurrency patterns with proper task management
+  - Must include: Real AnyIO imports and usage, not asyncio
+  
+  **CLAIM_5_DISTRIBUTED_TRACING**: OpenTelemetry distributed tracing with graceful degradation
+  - File: src/core/distributed_tracing.py
+  - Must have: DistributedTracing class with OpenTelemetry integration
+  - Must implement: Graceful degradation when OpenTelemetry not available
+  - Must include: Real tracer initialization and span creation
+  
+  For each claim, provide verdict:
+  - ✅ FULLY RESOLVED: Implementation complete and meets all requirements
+  - ⚠️ PARTIALLY RESOLVED: Implementation exists but missing some requirements
+  - ❌ NOT RESOLVED: Implementation missing or non-functional
+  
+  Reference specific line numbers and code sections in your analysis.

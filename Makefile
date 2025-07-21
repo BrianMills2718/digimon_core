@@ -31,17 +31,20 @@ clean:
 	rm -rf htmlcov/
 
 install:
-	@echo "📦 Installing dependencies..."
-	pip install -r requirements.txt
-	pip install -r requirements_llm.txt
-	pip install -r requirements_ui.txt
+	@echo "📦 Installing base dependencies..."
+	pip install -r requirements/base.txt
+
+install-llm:
+	@echo "📦 Installing LLM dependencies..."
+	pip install -r requirements/llm.txt
+
+install-ui:
+	@echo "📦 Installing UI dependencies..."
+	pip install -r requirements/ui.txt
 
 install-dev:
 	@echo "📦 Installing development dependencies..."
-	pip install -r requirements.txt
-	pip install -r requirements_llm.txt
-	pip install -r requirements_ui.txt
-	pip install pytest pytest-cov black flake8 mypy
+	pip install -r requirements/dev.txt
 
 format:
 	@echo "🎨 Formatting code..."
@@ -73,9 +76,9 @@ neo4j-stop:
 	docker-compose down
 
 ui-start:
-	@echo "🖥️ Starting UI..."
-	streamlit run streamlit_app.py
+	@echo "��️ Starting UI..."
+	python -m src.cli ui
 
 mcp-start:
 	@echo "🔌 Starting MCP server..."
-	python start_t301_mcp_server.py 
+	python -m src.cli mcp 

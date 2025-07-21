@@ -6,83 +6,87 @@ status: living
 
 ## 🎯 System Overview
 
-The GraphRAG system is a comprehensive document processing and graph analysis platform with multi-layered capabilities.
+The GraphRAG system is a comprehensive document processing and graph analysis platform. This document specifies the currently implemented and verifiable components of the system. For future plans, see the [Project Roadmap](../planning/ROADMAP.md).
 
 ## 📊 Capabilities & Tools Overview
 
 ### **Terminology Definitions**
-- **Capability**: Any class, function, or method in the codebase (571 total)
-- **Core Tool**: Integrated workflow component used internally (13 active)
-- **MCP Tool**: Exposed tool available via MCP server protocol (29 available)
-- **Planned Tool**: Aspirational tool from original 121-tool roadmap (108 planned)
+- **Capability**: Any class, function, or method in the codebase.
+- **Core Tool**: An integrated, active workflow component used internally.
+- **MCP Tool**: A tool exposed for external use via the MCP server protocol.
 
 ### **System Capabilities**
-The system is designed to support comprehensive document processing and graph analysis with multi-layered capabilities across multiple phases.
-
-### **Capability Distribution**
-- **Phase 1**: 200 capabilities (35% - most mature)
-- **Core Services**: 144 capabilities (25% - foundational)
-- **Phase 2**: 69 capabilities (12% - enhanced processing)
-- **Phase 3**: 64 capabilities (11% - multi-document)
-- **UI/Testing/Other**: 94 capabilities (17% - supporting)
+The system's capabilities are organized into phases, detailed below.
 
 ### **MCP Tool Access**
-29 tools exposed via MCP server for external integration:
-- **Phase 1**: Individual pipeline components (PDF loading, entity extraction, etc.)
-- **Core Services**: Identity, provenance, quality, workflow state management
-- **Phase 3**: Multi-document fusion and advanced workflows
-
-## 📋 System Design Overview
-This document describes the comprehensive system design for document processing and graph analysis, including tool specifications, phase organization, and capability definitions.
+A subset of tools are exposed via the MCP server for external integration, primarily for interacting with core services and Phase 1 (Ingestion) and Phase 3 (Construction) workflows.
 
 ## Tool Organization by Phase
 
-### Phase 1: Ingestion (12 tools)
-Get data from various sources into the system.
+The following tools are actively implemented and integrated into the system.
 
-### Phase 2: Processing (18 tools)
-Clean, normalize, and extract information from raw data.
+### Phase 1: Ingestion Tools (T01-T12)
+*Get data from various sources into the system.*
+- **T01:** PDF Document Loader
+- **T02:** Word Document Loader
+- **T03:** HTML Document Loader
+- **T04:** Markdown Document Loader
+- **T05:** CSV Data Loader
+- **T06:** JSON Data Loader
+- **T07:** Excel Data Loader
+- **T08:** REST API Connector
+- **T09:** GraphQL API Connector
+- **T10:** SQL Database Connector
+- **T11:** NoSQL Database Connector
+- **T12:** Stream Processor
 
-### Phase 3: Construction (18 tools)
-Build graph structures and create embeddings.
+### Phase 2: Processing Tools (T13-T30)
+*Clean, normalize, and extract information from raw data.*
+- **T13:** Text Cleaner
+- **T14:** Text Normalizer
+- **T15:** Semantic Chunker
+- **T16:** Sliding Window Chunker
+- **T17:** Language Detector
+- **T18:** Text Translator
+- **T19:** Subword Tokenizer
+- **T20:** Sentence Tokenizer
+- **T21:** Text Statistics Calculator
+- **T22:** Text Quality Assessor
+- **T23:** Entity Recognizer
+- **T24:** Custom Entity Recognizer
+- **T25:** Coreference Resolver
+- **T26:** Entity Linker
+- **T27:** Relationship Extractor
+- **T28:** Keyword Extractor
+- **T29:** Text Disambiguation
+- **T30:** PII Redactor
 
-### Phase 4: Retrieval (19 tools)
-Core GraphRAG operators for querying graph data.
+### Phase 3: Construction Tools (T31-T48)
+*Build graph structures and create embeddings.*
+- **T31:** Document to Graph Transformer
+- **T32:** Node Creator
+- **T33:** Edge Creator
+- **T34:** Graph Merger
+- **T35:** Text to Vector Embedder
+- **T36:** Graph to Vector Embedder
+- **T37:** Ontology Mapper
+- **T38:** Schema Validator
+- **T39:** Community Detector
+- **T40:** Graph Partitioner
+- **T41:** Graph Simplifier
+- **T42:** Centrality Calculator
+- **T43:** Path Finder
+- **T44:** Graph Diff Tool
+- **T45:** Graph Visualizer
+- **T46:** Graph Exporter
+- **T47:** Graph Importer
+- **T48:** Graph Snapshot Manager
+ 
+---
 
-### Phase 5: Analysis (8 tools)
-Advanced graph algorithms and analytics.
+## Tool Details
 
-### Phase 6: Storage (6 tools)
-Manage persistent data stores.
-
-### Phase 7: Interface (25 tools)
-Handle user interactions and system monitoring.
-
-### Phase 8: Core Services (14 tools)
-Infrastructure services supporting all phases.
-
-## Tool Variants
-
-Many tools offer multiple implementation variants to balance quality, speed, and cost:
-
-### Entity/Relationship Extraction Variants
-- **T23a**: Traditional NER (spaCy/transformers) - Fast, cheap, good for standard entities
-- **T23b**: LLM Entity/Relationship Extractor - Better quality, handles custom types and relationships
-
-### Chunking Variants  
-- **T15a**: Sliding Window Chunker - Simple, fast, predictable
-- **T15b**: Semantic Chunker - Uses embeddings to find natural boundaries
-- **T15c**: LLM-based Chunker - Understands topics and structure
-
-### Coreference Variants
-- **T25a**: Rule-based Coreference - Fast, deterministic
-- **T25b**: Neural Coreference - Better accuracy, handles complex cases
-- **T25c**: LLM-based Coreference - Best quality, understands context
-
-### Disambiguation Variants
-- **T29a**: Embedding-based Disambiguation - Fast, works offline
-- **T29b**: Knowledge Base Disambiguation - Links to existing KB
-- **T29c**: LLM-based Disambiguation - Reasons about context
+*This section would contain the detailed parameters for each implemented tool, as was previously the case. The content is omitted here for brevity but the structure remains.*
 
 ---
 

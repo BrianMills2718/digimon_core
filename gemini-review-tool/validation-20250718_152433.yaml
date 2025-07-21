@@ -1,0 +1,100 @@
+project_name: "Documentation Consistency Fixes Validation"
+project_path: "../"
+output_format: "markdown"
+output_file: "documentation-consistency-validation.md"
+keep_repomix: false
+
+include_patterns:
+  # PRIMARY DOCUMENTS FIXED
+  - "CLAUDE.md"                              # Fixed Phase 4 contradictions, academic focus
+  - "README.md"                              # Fixed production claims, broken references
+  - "docs/planning/roadmap.md"               # Fixed scalability terms, SSoT authority
+  - "docs/architecture/KGAS_ARCHITECTURE_V3.md"  # Fixed date placeholder, SSoT authority
+  - "docs/planning/phases/phase-1-implementation-plan.md"  # Fixed status consistency
+
+ignore_patterns:
+  - "**/archive/**"
+  - "**/*.log"
+  - "**/Evidence.md"
+  - "**/test_results/**"
+  - "**/verification/**"
+
+# CLAIMS TO VALIDATE:
+# claim_1_academic_focus: "KGAS consistently established as academic research tool across all documentation"
+# claim_2_phase4_uncertainty: "Phase 4 status marked as uncertain where conflicts existed, with proper SSoT references"
+# claim_3_production_claims_removed: "All contradictory production-ready claims removed and replaced with academic terminology"
+# claim_4_broken_references_fixed: "All broken cross-document references and navigation links corrected"
+# claim_5_scalability_terms_removed: "All enterprise/scalability terminology replaced with academic research focus"
+# claim_6_sot_authority_clear: "Clear SSoT authority structure with no conflicts between roadmap.md and KGAS_ARCHITECTURE_V3.md"
+
+custom_prompt: |
+  You are validating specific documentation consistency fixes implemented in the KGAS project. The goal is to verify that critical inconsistencies have been properly resolved.
+
+  ## VALIDATION OBJECTIVES
+
+  ### CLAIM 1: Academic Research Tool Focus Established
+  **What to verify**: All documents consistently present KGAS as "academic research tool for local, single-node research"
+  **Check in**: CLAUDE.md, README.md, roadmap.md, KGAS_ARCHITECTURE_V3.md
+  **Success criteria**: 
+  - No "production-ready" or "enterprise" claims remain
+  - Consistent use of "academic", "research", "experimental" terminology
+  - System purpose clearly stated as academic research
+
+  ### CLAIM 2: Phase 4 Status Uncertainty Resolved
+  **What to verify**: Phase 4 status conflicts resolved by marking as uncertain with proper SSoT references
+  **Check in**: CLAUDE.md (should show "UNCERTAIN" with reference to roadmap.md)
+  **Success criteria**:
+  - CLAUDE.md shows Phase 4 as "❓ UNCERTAIN"
+  - Clear reference to roadmap.md as authoritative source
+  - No internal contradictions about Phase 4 completion
+
+  ### CLAIM 3: Production Claims Removed
+  **What to verify**: All contradictory production readiness claims eliminated
+  **Check in**: README.md, CLAUDE.md
+  **Success criteria**:
+  - README.md: No "85-90% production ready" claim
+  - CLAUDE.md: No "Phase 4 COMPLETE" or "production-ready" claims
+  - Replaced with academic research capability terminology
+
+  ### CLAIM 4: Broken References Fixed
+  **What to verify**: Navigation links and cross-references corrected
+  **Check in**: README.md
+  **Success criteria**:
+  - Navigation links point to existing files with correct paths
+  - No references to "ROADMAP_v2.1.md" or non-existent files
+  - Support section references valid documentation
+
+  ### CLAIM 5: Scalability Terms Removed
+  **What to verify**: Enterprise/scalability terminology replaced with academic focus
+  **Check in**: roadmap.md
+  **Success criteria**:
+  - No "microservices" or "scalability" references
+  - Replaced with "modular architecture" and "research flexibility"
+  - Strategic focus updated to academic research
+
+  ### CLAIM 6: SSoT Authority Structure Clear
+  **What to verify**: Clear, non-conflicting authority claims between documents
+  **Check in**: roadmap.md, KGAS_ARCHITECTURE_V3.md
+  **Success criteria**:
+  - roadmap.md clearly claims authority over project status
+  - KGAS_ARCHITECTURE_V3.md clearly claims authority over architecture
+  - No overlapping or conflicting authority claims
+  - Both documents reference appropriate scope
+
+  ## VALIDATION REQUIREMENTS
+
+  For each claim, provide:
+  1. **Specific file and line references** where the fix is implemented
+  2. **Direct quotes** showing the corrected content
+  3. **Verification status**: ✅ FULLY RESOLVED, ⚠️ PARTIALLY RESOLVED, or ❌ NOT RESOLVED
+  4. **Evidence analysis**: Why the fix is complete or what remains to be done
+
+  ## SUCCESS CRITERIA FOR VALIDATION
+
+  Each claim is FULLY RESOLVED if:
+  - The specific change is implemented in the identified files
+  - The terminology is consistent across all relevant documents
+  - No contradictory information remains
+  - References and navigation work correctly
+
+  Be extremely specific about file locations and quote the exact corrected content to prove each fix was properly implemented.

@@ -1,11 +1,11 @@
-02:11:58 |     INFO | gemini_review | Initializing Gemini Code Reviewer
-02:11:58 |     INFO | gemini_review | Using API key from environment variable
-02:11:58 |     INFO | gemini_review | API key obtained successfully
-02:11:58 |     INFO | gemini_review | Using model: gemini-2.5-flash
+02:41:59 |     INFO | gemini_review | Initializing Gemini Code Reviewer
+02:41:59 |     INFO | gemini_review | Using API key from environment variable
+02:41:59 |     INFO | gemini_review | API key obtained successfully
+02:41:59 |     INFO | gemini_review | Using model: gemini-2.5-flash
 🤖 Using model: gemini-2.5-flash
 🔄 Fallback model: gemini-2.5-flash
-02:11:58 |     INFO | gemini_review | Rate limiter initialized
-02:11:58 |     INFO | gemini_review | Cache disabled
+02:41:59 |     INFO | gemini_review | Rate limiter initialized
+02:41:59 |     INFO | gemini_review | Cache disabled
 🚫 Cache disabled
 
 🚀 Starting Gemini Code Review for: /home/brian/Digimons/docs/architecture

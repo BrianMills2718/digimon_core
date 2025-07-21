@@ -10,11 +10,11 @@ import logging
 
 try:
     from src.core.service_manager import get_service_manager
-    from src.core.config import get_config
+    from src.core.config_manager import get_config
     from src.core.pipeline_orchestrator import PipelineOrchestrator
 except ImportError:
     from core.service_manager import get_service_manager
-    from core.config import get_config
+    from src.core.config_manager import get_config
     from core.pipeline_orchestrator import PipelineOrchestrator
 
 logger = logging.getLogger(__name__)
@@ -523,6 +523,8 @@ class GraphRAGUI:
         except Exception as e:
             # Log to evidence file
             from src.core.evidence_logger import EvidenceLogger
+from src.core.config_manager import get_config
+
             logger_evidence = EvidenceLogger()
             logger_evidence.log_test_execution(
                 "GRAPH_BUILDING_ERROR",

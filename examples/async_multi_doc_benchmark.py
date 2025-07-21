@@ -17,7 +17,7 @@ import sys
 # Add the src directory to the path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 
-from src.core.config import ConfigurationManager
+from src.core.config_manager import ConfigurationManager
 from src.core.logging_config import get_logger
 
 

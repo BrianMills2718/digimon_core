@@ -12,7 +12,7 @@ from enum import Enum
 from datetime import datetime
 import json
 
-from ..core.logging_config import get_logger
+from src.core.logging_config import get_logger
 
 
 class DOLCECategory(Enum):

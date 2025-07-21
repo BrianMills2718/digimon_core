@@ -12,7 +12,7 @@ from neo4j import GraphDatabase
 from .identity_service import IdentityService
 from .provenance_service import ProvenanceService
 from .quality_service import QualityService
-from .config import get_config
+from .config_manager import get_config
 from .logging_config import get_logger
 
 
@@ -150,6 +150,8 @@ class ServiceManager:
     def get_neo4j_manager(self):
         """Get Neo4j manager instance for compatibility."""
         from .neo4j_manager import Neo4jManager
+        from src.core.config_manager import get_config
+
         return Neo4jManager()
     
     def get_service_stats(self) -> Dict[str, Any]:

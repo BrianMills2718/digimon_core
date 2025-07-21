@@ -29,7 +29,7 @@ from typing import List, Dict, Any
 from src.core.pipeline_orchestrator import PipelineOrchestrator
 from src.core.tool_factory import create_unified_workflow_config, Phase, OptimizationLevel
 from src.core.service_manager import get_service_manager
-from src.core.config import get_config
+from src.core.config_manager import get_config
 from src.core.logging_config import setup_logging
 from src.core.graphrag_phase_interface import ProcessingRequest
 

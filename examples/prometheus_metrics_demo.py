@@ -17,7 +17,7 @@ from typing import List
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 
 from core.metrics_collector import MetricsCollector, initialize_metrics
-from core.config import ConfigurationManager
+from src.core.config_manager import ConfigurationManager
 
 
 class MetricsDemo:

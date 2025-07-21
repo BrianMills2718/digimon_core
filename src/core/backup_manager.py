@@ -33,7 +33,7 @@ from enum import Enum
 import schedule
 import base64
 
-from .config import ConfigurationManager
+from src.core.config_manager import ConfigurationManager
 from .logging_config import get_logger
 
 
@@ -74,7 +74,7 @@ class BackupManager:
     """Automated backup and restore system for KGAS"""
     
     def __init__(self, config_manager: ConfigurationManager = None):
-        self.config_manager = config_manager or ConfigurationManager()
+        self.config_manager = config_manager or get_config()
         self.logger = get_logger("backup.manager")
         
         # Configuration
@@ -705,7 +705,7 @@ class BackupManager:
         # Generate new key
         password = os.environ.get('BACKUP_ENCRYPTION_PASSWORD')
         if not password:
-            from .config import ConfigurationError
+            from .config_manager import ConfigurationError
             raise ConfigurationError("BACKUP_ENCRYPTION_PASSWORD environment variable required for encryption")
         
         # Derive key from password
@@ -787,7 +787,9 @@ class BackupManager:
             raise ImportError("cryptography library not installed. Install with: pip install cryptography")
         except Exception as e:
             self.logger.error(f"Encryption failed for {source_path}: {e}")
-            from .config import ConfigurationError
+            from .config_manager import ConfigurationError
+from src.core.config_manager import get_config
+
             raise ConfigurationError(f"File encryption failed: {e}")
 
 

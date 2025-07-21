@@ -1,7 +1,7 @@
 
 # ADR-003: Vector Store Consolidation
 
-**Date**: 2025-07-18  
+**Date**: 2025-01-18  
 **Status**: Accepted  
 **Deciders**: Development Team, advised by external architectural review.
 

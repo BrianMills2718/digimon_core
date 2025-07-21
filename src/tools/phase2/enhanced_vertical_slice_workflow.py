@@ -22,9 +22,9 @@ This demonstrates the unified orchestrator with Phase 2 enhanced capabilities.
 from typing import Dict, List, Optional, Any
 from pathlib import Path
 
-from ...core.pipeline_orchestrator import PipelineOrchestrator, OptimizationLevel, Phase
-from ...core.tool_factory import create_unified_workflow_config
-from ...core.logging_config import get_logger
+from src.core.pipeline_orchestrator import PipelineOrchestrator, OptimizationLevel, Phase
+from src.core.tool_factory import create_unified_workflow_config
+from src.core.logging_config import get_logger
 
 
 class EnhancedVerticalSliceWorkflow:

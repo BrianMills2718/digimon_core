@@ -1,0 +1,844 @@
+"""Async API Client for Enhanced Performance
+
+This module provides async versions of API clients for improved performance
+with concurrent requests. Implements Phase 5.1 Task 4 async optimization to achieve
+50-60% performance gains through full async processing, connection pooling,
+and optimized batch operations.
+"""
+
+import asyncio
+import aiohttp
+import time
+from typing import Dict, Any, Optional, List, Union, Callable
+from dataclasses import dataclass
+from enum import Enum
+from datetime import datetime
+import json
+import os
+import ssl
+from concurrent.futures import ThreadPoolExecutor
+
+from .api_auth_manager import APIAuthManager, APIServiceType, APIAuthError
+from .logging_config import get_logger
+from src.core.config_manager import ConfigurationManager
+
+# Optional import for OpenAI async client
+try:
+    import openai
+    OPENAI_AVAILABLE = True
+except ImportError:
+    OPENAI_AVAILABLE = False
+
+# Optional import for Google Generative AI
+try:
+    import google.generativeai as genai
+    GOOGLE_AVAILABLE = True
+except ImportError:
+    GOOGLE_AVAILABLE = False
+
+from src.core.config_manager import get_config
+
+
+class AsyncAPIRequestType(Enum):
+    """Types of async API requests"""
+    TEXT_GENERATION = "text_generation"
+    EMBEDDING = "embedding"
+    CLASSIFICATION = "classification"
+    COMPLETION = "completion"
+    CHAT = "chat"
+
+
+@dataclass
+class AsyncAPIRequest:
+    """Async API request configuration"""
+    service_type: str
+    request_type: AsyncAPIRequestType
+    prompt: str
+    max_tokens: Optional[int] = None
+    temperature: Optional[float] = None
+    model: Optional[str] = None
+    additional_params: Optional[Dict[str, Any]] = None
+
+
+@dataclass
+class AsyncAPIResponse:
+    """Async API response wrapper"""
+    success: bool
+    service_used: str
+    request_type: AsyncAPIRequestType
+    response_data: Any
+    response_time: float
+    tokens_used: Optional[int] = None
+    error: Optional[str] = None
+    fallback_used: bool = False
+
+
+class AsyncOpenAIClient:
+    """Async OpenAI client for embeddings and completions"""
+    
+    def __init__(self, api_key: str = None, config_manager: ConfigurationManager = None):
+        self.config_manager = config_manager or get_config()
+        self.logger = get_logger("core.async_openai_client")
+        
+        # Get API key from config or environment
+        self.api_key = api_key or os.getenv("OPENAI_API_KEY")
+        if not self.api_key:
+            raise ValueError("OpenAI API key is required")
+            
+        # Get API configuration
+        self.api_config = self.config_manager.get_api_config()
+        self.model = self.api_config.get("openai_model", "text-embedding-3-small")
+        
+        # Initialize async client if available
+        if OPENAI_AVAILABLE:
+            self.client = openai.AsyncOpenAI(api_key=self.api_key)
+        else:
+            self.client = None
+            self.logger.warning("OpenAI async client not available")
+            
+        self.logger.info("Async OpenAI client initialized")
+    
+    async def create_embeddings(self, texts: List[str], model: str = None) -> List[List[float]]:
+        """Create embeddings for multiple texts asynchronously"""
+        if not self.client:
+            raise RuntimeError("OpenAI async client not available")
+            
+        model = model or self.model
+        
+        try:
+            # Create embeddings in parallel for better performance
+            start_time = time.time()
+            
+            # Split into batches to avoid rate limits
+            batch_size = 100
+            all_embeddings = []
+            
+            for i in range(0, len(texts), batch_size):
+                batch = texts[i:i + batch_size]
+                
+                response = await self.client.embeddings.create(
+                    model=model,
+                    input=batch
+                )
+                
+                # Extract embeddings from response
+                batch_embeddings = [item.embedding for item in response.data]
+                all_embeddings.extend(batch_embeddings)
+                
+                # Small delay between batches to respect rate limits
+                if i + batch_size < len(texts):
+                    await asyncio.sleep(0.1)
+            
+            response_time = time.time() - start_time
+            self.logger.info(f"Created {len(all_embeddings)} embeddings in {response_time:.2f}s")
+            
+            return all_embeddings
+            
+        except Exception as e:
+            self.logger.error(f"Error creating embeddings: {e}")
+            raise
+    
+    async def create_single_embedding(self, text: str, model: str = None) -> List[float]:
+        """Create embedding for a single text"""
+        embeddings = await self.create_embeddings([text], model)
+        return embeddings[0]
+    
+    async def create_completion(self, prompt: str, model: str = "gpt-3.5-turbo", 
+                               max_tokens: int = 150, temperature: float = 0.7) -> str:
+        """Create a completion using OpenAI API"""
+        if not self.client:
+            raise RuntimeError("OpenAI async client not available")
+        
+        try:
+            response = await self.client.chat.completions.create(
+                model=model,
+                messages=[{"role": "user", "content": prompt}],
+                max_tokens=max_tokens,
+                temperature=temperature
+            )
+            
+            return response.choices[0].message.content
+            
+        except Exception as e:
+            self.logger.error(f"Error creating completion: {e}")
+            raise
+    
+    async def close(self):
+        """Close the async client"""
+        if self.client:
+            await self.client.close()
+
+
+class AsyncGeminiClient:
+    """Async Gemini client for text generation"""
+    
+    def __init__(self, api_key: str = None, config_manager: ConfigurationManager = None):
+        self.config_manager = config_manager or get_config()
+        self.logger = get_logger("core.async_gemini_client")
+        
+        # Get API key from config or environment
+        self.api_key = api_key or os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")
+        if not self.api_key:
+            raise ValueError("Google/Gemini API key is required")
+            
+        # Get API configuration
+        self.api_config = self.config_manager.get_api_config()
+        self.model_name = self.api_config.get("gemini_model", "gemini-2.0-flash-exp")
+        
+        # Initialize Gemini client if available
+        if GOOGLE_AVAILABLE:
+            genai.configure(api_key=self.api_key)
+            self.model = genai.GenerativeModel(self.model_name)
+        else:
+            self.model = None
+            self.logger.warning("Google Generative AI not available")
+            
+        self.logger.info("Async Gemini client initialized")
+    
+    async def generate_content(self, prompt: str, max_tokens: int = None, 
+                              temperature: float = None) -> str:
+        """Generate content using Gemini API"""
+        if not self.model:
+            raise RuntimeError("Gemini model not available")
+        
+        try:
+            # Note: The Google Generative AI library doesn't have native async support
+            # We'll use asyncio.to_thread to run the synchronous call in a thread
+            start_time = time.time()
+            
+            response = await asyncio.to_thread(
+                self.model.generate_content,
+                prompt
+            )
+            
+            response_time = time.time() - start_time
+            self.logger.info(f"Generated content in {response_time:.2f}s")
+            
+            return response.text
+            
+        except Exception as e:
+            self.logger.error(f"Error generating content: {e}")
+            raise
+    
+    async def generate_multiple_content(self, prompts: List[str]) -> List[str]:
+        """Generate content for multiple prompts concurrently"""
+        if not self.model:
+            raise RuntimeError("Gemini model not available")
+        
+        try:
+            # Use asyncio.gather to run multiple requests concurrently
+            tasks = [self.generate_content(prompt) for prompt in prompts]
+            results = await asyncio.gather(*tasks, return_exceptions=True)
+            
+            # Handle any exceptions that occurred
+            processed_results = []
+            for result in results:
+                if isinstance(result, Exception):
+                    self.logger.error(f"Error in concurrent generation: {result}")
+                    processed_results.append("")
+                else:
+                    processed_results.append(result)
+            
+            return processed_results
+            
+        except Exception as e:
+            self.logger.error(f"Error in concurrent generation: {e}")
+            raise
+
+
+class AsyncEnhancedAPIClient:
+    """Enhanced async API client with multiple service support and 50-60% performance optimization"""
+    
+    def __init__(self, config_manager: ConfigurationManager = None):
+        self.config_manager = config_manager or get_config()
+        self.logger = get_logger("core.async_enhanced_api_client")
+        
+        # Initialize clients
+        self.openai_client = None
+        self.gemini_client = None
+        
+        # Enhanced rate limiting with higher concurrency
+        self.rate_limits = {
+            "openai": asyncio.Semaphore(25),   # Increased from 10 to 25
+            "gemini": asyncio.Semaphore(15)    # Increased from 5 to 15
+        }
+        
+        # Connection pooling for HTTP requests
+        self.http_session = None
+        self.session_initialized = False
+        
+        # Batch processing optimization
+        self.batch_processor = None
+        self.request_queue = asyncio.Queue()
+        self.processing_active = False
+        
+        # Performance tracking
+        self.performance_metrics = {
+            "total_requests": 0,
+            "concurrent_requests": 0,
+            "batch_requests": 0,
+            "cache_hits": 0,
+            "average_response_time": 0.0,
+            "total_response_time": 0.0
+        }
+        
+        # Response caching for identical requests
+        self.response_cache = {}
+        self.cache_ttl = 300  # 5 minutes
+        
+        self.logger.info("Async Enhanced API client initialized with performance optimizations")
+    
+    async def initialize_clients(self):
+        """Initialize API clients asynchronously with optimized connection pooling"""
+        try:
+            # Initialize optimized HTTP session with connection pooling
+            if not self.session_initialized:
+                connector = aiohttp.TCPConnector(
+                    limit=100,        # Total connection pool size
+                    limit_per_host=30,  # Connections per host
+                    ttl_dns_cache=300,  # DNS cache TTL
+                    use_dns_cache=True,
+                    keepalive_timeout=30,
+                    enable_cleanup_closed=True
+                )
+                
+                timeout = aiohttp.ClientTimeout(total=60, connect=10)
+                
+                self.http_session = aiohttp.ClientSession(
+                    connector=connector,
+                    timeout=timeout
+                )
+                self.session_initialized = True
+                self.logger.info("Optimized HTTP session initialized with connection pooling")
+            
+            # Initialize OpenAI client
+            if os.getenv("OPENAI_API_KEY"):
+                self.openai_client = AsyncOpenAIClient(config_manager=self.config_manager)
+                self.logger.info("OpenAI async client initialized")
+            
+            # Initialize Gemini client
+            if os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY"):
+                self.gemini_client = AsyncGeminiClient(config_manager=self.config_manager)
+                self.logger.info("Gemini async client initialized")
+            
+            # Start batch processor
+            await self._start_batch_processor()
+                
+        except Exception as e:
+            self.logger.error(f"Error initializing clients: {e}")
+            raise
+    
+    async def _start_batch_processor(self):
+        """Start the batch processing background task"""
+        if not self.processing_active:
+            self.processing_active = True
+            self.batch_processor = asyncio.create_task(self._process_batch_queue())
+            self.logger.info("Batch processor started")
+
+    async def _process_batch_queue(self):
+        """Background task to process batched requests"""
+        while self.processing_active:
+            try:
+                # Wait for requests to batch
+                await asyncio.sleep(0.1)  # Small delay to allow batching
+                
+                if not self.request_queue.empty():
+                    # Collect pending requests
+                    batch_requests = []
+                    while not self.request_queue.empty() and len(batch_requests) < 10:
+                        try:
+                            batch_requests.append(self.request_queue.get_nowait())
+                        except asyncio.QueueEmpty:
+                            break
+                    
+                    if batch_requests:
+                        # Process batch
+                        await self._process_request_batch(batch_requests)
+                        
+            except Exception as e:
+                self.logger.error(f"Error in batch processor: {e}")
+                await asyncio.sleep(1)  # Wait before retrying
+
+    async def _process_request_batch(self, batch_requests: List):
+        """Process a batch of requests concurrently"""
+        self.performance_metrics["batch_requests"] += len(batch_requests)
+        
+        # Process requests concurrently
+        tasks = []
+        for request_data in batch_requests:
+            task = asyncio.create_task(self._execute_single_request(request_data))
+            tasks.append(task)
+        
+        await asyncio.gather(*tasks, return_exceptions=True)
+
+    async def _execute_single_request(self, request_data):
+        """Execute a single request from the batch"""
+        try:
+            request, future = request_data
+            result = await self._process_request_with_cache(request)
+            if not future.cancelled():
+                future.set_result(result)
+        except Exception as e:
+            if not future.cancelled():
+                future.set_exception(e)
+
+    def _get_cache_key(self, request: AsyncAPIRequest) -> str:
+        """Generate cache key for request"""
+        key_data = {
+            "service": request.service_type,
+            "type": request.request_type.value,
+            "prompt": request.prompt[:100],  # First 100 chars
+            "model": request.model,
+            "max_tokens": request.max_tokens,
+            "temperature": request.temperature
+        }
+        return hash(str(sorted(key_data.items())))
+
+    async def _check_cache(self, cache_key: str) -> Optional[AsyncAPIResponse]:
+        """Check if response is cached and valid"""
+        if cache_key in self.response_cache:
+            cached_data, timestamp = self.response_cache[cache_key]
+            if time.time() - timestamp < self.cache_ttl:
+                self.performance_metrics["cache_hits"] += 1
+                return cached_data
+            else:
+                # Remove expired cache entry
+                del self.response_cache[cache_key]
+        return None
+
+    async def _cache_response(self, cache_key: str, response: AsyncAPIResponse):
+        """Cache the response"""
+        self.response_cache[cache_key] = (response, time.time())
+        
+        # Clean up old cache entries if cache gets too large
+        if len(self.response_cache) > 1000:
+            current_time = time.time()
+            expired_keys = [
+                key for key, (_, timestamp) in self.response_cache.items()
+                if current_time - timestamp > self.cache_ttl
+            ]
+            for key in expired_keys:
+                del self.response_cache[key]
+
+    async def _process_request_with_cache(self, request: AsyncAPIRequest) -> AsyncAPIResponse:
+        """Process request with caching optimization"""
+        # Check cache first
+        cache_key = self._get_cache_key(request)
+        cached_response = await self._check_cache(cache_key)
+        if cached_response:
+            return cached_response
+        
+        # Process request
+        response = await self._make_actual_request(request)
+        
+        # Cache successful responses
+        if response.success:
+            await self._cache_response(cache_key, response)
+        
+        return response
+
+    async def _make_actual_request(self, request: AsyncAPIRequest) -> AsyncAPIResponse:
+        """Make the actual API request with performance tracking"""
+        start_time = time.time()
+        self.performance_metrics["total_requests"] += 1
+        self.performance_metrics["concurrent_requests"] += 1
+        
+        try:
+            if request.service_type == "openai" and self.openai_client:
+                async with self.rate_limits["openai"]:
+                    if request.request_type == AsyncAPIRequestType.EMBEDDING:
+                        result = await self.openai_client.create_single_embedding(request.prompt)
+                        response_data = {"embedding": result}
+                    elif request.request_type == AsyncAPIRequestType.COMPLETION:
+                        result = await self.openai_client.create_completion(
+                            request.prompt,
+                            max_tokens=request.max_tokens,
+                            temperature=request.temperature
+                        )
+                        response_data = {"text": result}
+                    else:
+                        raise ValueError(f"Unsupported request type: {request.request_type}")
+                    
+                    response_time = time.time() - start_time
+                    
+                    return AsyncAPIResponse(
+                        success=True,
+                        service_used="openai",
+                        request_type=request.request_type,
+                        response_data=response_data,
+                        response_time=response_time
+                    )
+            elif request.service_type == "gemini" and self.gemini_client:
+                async with self.rate_limits["gemini"]:
+                    result = await self.gemini_client.generate_content(request.prompt)
+                    response_data = {"text": result}
+                    response_time = time.time() - start_time
+                    
+                    return AsyncAPIResponse(
+                        success=True,
+                        service_used="gemini",
+                        request_type=request.request_type,
+                        response_data=response_data,
+                        response_time=response_time
+                    )
+            else:
+                raise ValueError(f"Service {request.service_type} not available")
+                
+        except Exception as e:
+            response_time = time.time() - start_time
+            return AsyncAPIResponse(
+                success=False,
+                service_used=request.service_type,
+                request_type=request.request_type,
+                response_data=None,
+                response_time=response_time,
+                error=str(e)
+            )
+        finally:
+            self.performance_metrics["concurrent_requests"] -= 1
+            response_time = time.time() - start_time
+            self.performance_metrics["total_response_time"] += response_time
+            if self.performance_metrics["total_requests"] > 0:
+                self.performance_metrics["average_response_time"] = (
+                    self.performance_metrics["total_response_time"] / 
+                    self.performance_metrics["total_requests"]
+                )
+
+    async def create_embeddings(self, texts: List[str], service: str = "openai") -> List[List[float]]:
+        """Create embeddings using specified service with optimization"""
+        if service == "openai" and self.openai_client:
+            # Use optimized batch processing for multiple texts
+            if len(texts) > 1:
+                return await self._create_embeddings_batch(texts, service)
+            else:
+                async with self.rate_limits["openai"]:
+                    return await self.openai_client.create_embeddings(texts)
+        else:
+            raise ValueError(f"Service {service} not available for embeddings")
+
+    async def _create_embeddings_batch(self, texts: List[str], service: str) -> List[List[float]]:
+        """Create embeddings for multiple texts using optimized batch processing"""
+        start_time = time.time()
+        
+        # Split into optimal batch sizes for the service
+        batch_size = 50 if service == "openai" else 20
+        batches = [texts[i:i + batch_size] for i in range(0, len(texts), batch_size)]
+        
+        # Process batches concurrently
+        tasks = []
+        for batch in batches:
+            task = asyncio.create_task(self.openai_client.create_embeddings(batch))
+            tasks.append(task)
+        
+        batch_results = await asyncio.gather(*tasks)
+        
+        # Flatten results
+        all_embeddings = []
+        for batch_result in batch_results:
+            all_embeddings.extend(batch_result)
+        
+        duration = time.time() - start_time
+        self.logger.info(f"Created {len(all_embeddings)} embeddings in {duration:.2f}s using optimized batching")
+        
+        return all_embeddings
+    
+    async def generate_content(self, prompt: str, service: str = "gemini") -> str:
+        """Generate content using specified service with optimization"""
+        request = AsyncAPIRequest(
+            service_type=service,
+            request_type=AsyncAPIRequestType.TEXT_GENERATION,
+            prompt=prompt
+        )
+        
+        response = await self._process_request_with_cache(request)
+        
+        if response.success:
+            if service == "gemini":
+                return response.response_data.get("text", "")
+            elif service == "openai":
+                return response.response_data.get("text", "")
+        else:
+            raise ValueError(f"Content generation failed: {response.error}")
+
+    async def process_concurrent_requests(self, requests: List[AsyncAPIRequest]) -> List[AsyncAPIResponse]:
+        """Process multiple requests concurrently with optimized performance"""
+        start_time = time.time()
+        
+        # Process requests using optimized batching and caching
+        tasks = []
+        for request in requests:
+            task = asyncio.create_task(self._process_request_with_cache(request))
+            tasks.append(task)
+        
+        responses = await asyncio.gather(*tasks, return_exceptions=True)
+        
+        # Convert exceptions to error responses
+        processed_responses = []
+        for i, response in enumerate(responses):
+            if isinstance(response, Exception):
+                error_response = AsyncAPIResponse(
+                    success=False,
+                    service_used=requests[i].service_type,
+                    request_type=requests[i].request_type,
+                    response_data=None,
+                    response_time=0.0,
+                    error=str(response)
+                )
+                processed_responses.append(error_response)
+            else:
+                processed_responses.append(response)
+        
+        duration = time.time() - start_time
+        successful_requests = sum(1 for r in processed_responses if r.success)
+        
+        self.logger.info(f"Processed {len(requests)} concurrent requests in {duration:.2f}s "
+                        f"({successful_requests}/{len(requests)} successful)")
+        
+        return processed_responses
+
+    def get_performance_metrics(self) -> Dict[str, Any]:
+        """Get detailed performance metrics"""
+        cache_hit_rate = (
+            self.performance_metrics["cache_hits"] / max(self.performance_metrics["total_requests"], 1)
+        ) * 100
+        
+        return {
+            **self.performance_metrics,
+            "cache_hit_rate_percent": cache_hit_rate,
+            "cache_size": len(self.response_cache),
+            "processing_active": self.processing_active,
+            "session_initialized": self.session_initialized
+        }
+
+    async def benchmark_performance(self, num_requests: int = 20) -> Dict[str, Any]:
+        """Benchmark async client performance for validation"""
+        self.logger.info(f"Starting performance benchmark with {num_requests} requests")
+        
+        # Reset metrics
+        self.performance_metrics = {
+            "total_requests": 0,
+            "concurrent_requests": 0,
+            "batch_requests": 0,
+            "cache_hits": 0,
+            "average_response_time": 0.0,
+            "total_response_time": 0.0
+        }
+        
+        # Create test requests
+        test_requests = []
+        for i in range(num_requests):
+            if i % 2 == 0:  # Mix of OpenAI and Gemini requests
+                request = AsyncAPIRequest(
+                    service_type="openai",
+                    request_type=AsyncAPIRequestType.COMPLETION,
+                    prompt=f"Test prompt {i}",
+                    max_tokens=10
+                )
+            else:
+                request = AsyncAPIRequest(
+                    service_type="gemini",
+                    request_type=AsyncAPIRequestType.TEXT_GENERATION,
+                    prompt=f"Test prompt {i}",
+                    max_tokens=10
+                )
+            test_requests.append(request)
+        
+        # Benchmark sequential processing
+        sequential_start = time.time()
+        sequential_responses = []
+        for request in test_requests[:5]:  # Limit to 5 for sequential test
+            response = await self._make_actual_request(request)
+            sequential_responses.append(response)
+        sequential_time = time.time() - sequential_start
+        
+        # Reset metrics for concurrent test
+        self.performance_metrics["total_requests"] = 0
+        self.performance_metrics["total_response_time"] = 0.0
+        
+        # Benchmark concurrent processing
+        concurrent_start = time.time()
+        concurrent_responses = await self.process_concurrent_requests(test_requests[:5])
+        concurrent_time = time.time() - concurrent_start
+        
+        # Calculate performance improvement
+        performance_improvement = ((sequential_time - concurrent_time) / sequential_time) * 100
+        
+        sequential_successful = sum(1 for r in sequential_responses if r.success)
+        concurrent_successful = sum(1 for r in concurrent_responses if r.success)
+        
+        return {
+            "sequential_time": sequential_time,
+            "concurrent_time": concurrent_time,
+            "performance_improvement_percent": performance_improvement,
+            "sequential_successful": sequential_successful,
+            "concurrent_successful": concurrent_successful,
+            "target_improvement": "50-60%",
+            "achieved_target": performance_improvement >= 50.0,
+            "metrics": self.get_performance_metrics()
+        }
+    
+    async def process_batch(self, requests: List[AsyncAPIRequest]) -> List[AsyncAPIResponse]:
+        """Process multiple API requests concurrently"""
+        start_time = time.time()
+        
+        # Group requests by service type
+        openai_requests = [r for r in requests if r.service_type == "openai"]
+        gemini_requests = [r for r in requests if r.service_type == "gemini"]
+        
+        # Create tasks for each service
+        tasks = []
+        
+        # Process OpenAI requests
+        if openai_requests:
+            tasks.append(self._process_openai_batch(openai_requests))
+        
+        # Process Gemini requests
+        if gemini_requests:
+            tasks.append(self._process_gemini_batch(gemini_requests))
+        
+        # Wait for all tasks to complete
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+        
+        # Flatten results
+        all_responses = []
+        for result in results:
+            if isinstance(result, Exception):
+                self.logger.error(f"Batch processing error: {result}")
+            else:
+                all_responses.extend(result)
+        
+        total_time = time.time() - start_time
+        self.logger.info(f"Processed {len(requests)} requests in {total_time:.2f}s")
+        
+        return all_responses
+    
+    async def _process_openai_batch(self, requests: List[AsyncAPIRequest]) -> List[AsyncAPIResponse]:
+        """Process OpenAI requests in batch"""
+        if not self.openai_client:
+            return []
+        
+        responses = []
+        for request in requests:
+            try:
+                start_time = time.time()
+                
+                if request.request_type == AsyncAPIRequestType.EMBEDDING:
+                    result = await self.openai_client.create_single_embedding(request.prompt)
+                    response_data = {"embedding": result}
+                elif request.request_type == AsyncAPIRequestType.COMPLETION:
+                    result = await self.openai_client.create_completion(
+                        request.prompt,
+                        max_tokens=request.max_tokens,
+                        temperature=request.temperature
+                    )
+                    response_data = {"text": result}
+                else:
+                    raise ValueError(f"Unsupported request type: {request.request_type}")
+                
+                response_time = time.time() - start_time
+                
+                responses.append(AsyncAPIResponse(
+                    success=True,
+                    service_used="openai",
+                    request_type=request.request_type,
+                    response_data=response_data,
+                    response_time=response_time
+                ))
+                
+            except Exception as e:
+                responses.append(AsyncAPIResponse(
+                    success=False,
+                    service_used="openai",
+                    request_type=request.request_type,
+                    response_data=None,
+                    response_time=0.0,
+                    error=str(e)
+                ))
+        
+        return responses
+    
+    async def _process_gemini_batch(self, requests: List[AsyncAPIRequest]) -> List[AsyncAPIResponse]:
+        """Process Gemini requests in batch"""
+        if not self.gemini_client:
+            return []
+        
+        responses = []
+        for request in requests:
+            try:
+                start_time = time.time()
+                
+                if request.request_type == AsyncAPIRequestType.TEXT_GENERATION:
+                    result = await self.gemini_client.generate_content(request.prompt)
+                    response_data = {"text": result}
+                else:
+                    raise ValueError(f"Unsupported request type: {request.request_type}")
+                
+                response_time = time.time() - start_time
+                
+                responses.append(AsyncAPIResponse(
+                    success=True,
+                    service_used="gemini",
+                    request_type=request.request_type,
+                    response_data=response_data,
+                    response_time=response_time
+                ))
+                
+            except Exception as e:
+                responses.append(AsyncAPIResponse(
+                    success=False,
+                    service_used="gemini",
+                    request_type=request.request_type,
+                    response_data=None,
+                    response_time=0.0,
+                    error=str(e)
+                ))
+        
+        return responses
+    
+    async def close(self):
+        """Close all async clients and cleanup resources"""
+        self.logger.info("Shutting down async API clients...")
+        
+        # Stop batch processor
+        if self.processing_active:
+            self.processing_active = False
+            if self.batch_processor and not self.batch_processor.done():
+                self.batch_processor.cancel()
+                try:
+                    await self.batch_processor
+                except asyncio.CancelledError:
+                    pass
+        
+        # Close HTTP session
+        if self.http_session and not self.http_session.closed:
+            await self.http_session.close()
+        
+        # Close individual clients
+        if self.openai_client:
+            await self.openai_client.close()
+        
+        # Clear cache
+        self.response_cache.clear()
+        
+        self.logger.info("Async API clients closed and resources cleaned up")
+
+
+# Global async client instance
+_async_client = None
+
+
+async def get_async_api_client() -> AsyncEnhancedAPIClient:
+    """Get the global async API client instance"""
+    global _async_client
+    if _async_client is None:
+        _async_client = AsyncEnhancedAPIClient()
+        await _async_client.initialize_clients()
+    return _async_client
+
+
+async def close_async_api_client():
+    """Close the global async API client"""
+    global _async_client
+    if _async_client is not None:
+        await _async_client.close()
+        _async_client = None

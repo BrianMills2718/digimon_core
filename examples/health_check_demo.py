@@ -15,7 +15,7 @@ from datetime import datetime
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 
 from core.health_checker import HealthChecker
-from core.config import ConfigurationManager
+from src.core.config_manager import ConfigurationManager
 
 
 def print_health_check_result(name: str, result: dict):

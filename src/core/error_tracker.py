@@ -1,6 +1,7 @@
 import uuid
 import traceback
 import time
+import asyncio
 from typing import Dict, Any, List
 from datetime import datetime
 from collections import defaultdict
@@ -290,6 +291,17 @@ class ErrorTracker:
             
         except Exception as e:
             logger.error(f"Generic recovery failed: {e}")
+            return False
+    
+    async def _attempt_generic_recovery_async(self, error_entry: Dict[str, Any], strategy: Dict[str, Any]) -> bool:
+        """Async version of generic recovery with non-blocking delays"""
+        try:
+            # Generic recovery: wait and retry - NON-BLOCKING
+            await asyncio.sleep(strategy.get("delay", 1.0))  # ✅ NON-BLOCKING
+            return True
+            
+        except Exception as e:
+            logger.error(f"Async generic recovery failed: {e}")
             return False
     
     def clear_old_errors(self, max_age_hours: int = 24):

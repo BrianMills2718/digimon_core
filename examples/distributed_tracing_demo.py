@@ -17,7 +17,7 @@ from typing import Dict, Any
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 
 from core.distributed_tracing import DistributedTracing, initialize_distributed_tracing, trace_function, trace_operation
-from core.config import ConfigurationManager
+from src.core.config_manager import ConfigurationManager
 
 
 class TracingDemo:

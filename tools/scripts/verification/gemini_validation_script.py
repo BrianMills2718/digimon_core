@@ -92,7 +92,7 @@ class ClaimValidator:
             # Check 4: Key files properly import without sys.path
             try:
                 from src.core.service_manager import get_service_manager
-                from src.core.config import ConfigurationManager
+                from src.core.config_manager import ConfigurationManager
                 evidence["imports_work_without_syspath"] = True
             except ImportError as e:
                 evidence["imports_work_without_syspath"] = False
@@ -302,7 +302,7 @@ class ClaimValidator:
             
             # Check 3: Configuration manager works
             try:
-                from src.core.config import ConfigurationManager
+                from src.core.config_manager import ConfigurationManager
                 config = ConfigurationManager().get_config()
                 evidence["config_manager_functional"] = True
                 evidence["config_has_neo4j"] = hasattr(config, 'neo4j')
@@ -375,7 +375,7 @@ class ClaimValidator:
             evidence["thread_safety_enhanced"] = has_init_lock
             
             # Check 4: Configuration completeness
-            from src.core.config import ConfigurationManager, WorkflowConfig, APIConfig
+            from src.core.config_manager import ConfigurationManager, WorkflowConfig, APIConfig
             config = ConfigurationManager().get_config()
             evidence["config_completeness"] = {
                 "has_workflow_config": hasattr(config, 'workflow'),

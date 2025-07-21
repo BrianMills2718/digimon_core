@@ -14,6 +14,7 @@ KGAS uses a programmatic contract system to ensure all tools, data models, and w
 
 - **YAML/JSON Contracts**: Define required/produced data types, attributes, and workflow states for each tool.
 - **Schema Enforcement**: All contracts are validated using Pydantic models.
+- **Confidence Score Ontology**: All confidence/uncertainty fields **MUST** conform to the [ADR-004 Normative Confidence Score Ontology](../adrs/ADR-004-Normative-Confidence-Score-Ontology.md).
 - **CI/CD Integration**: Automated tests ensure no code that breaks a contract can be merged.
 
 ## Contract Validator Flow

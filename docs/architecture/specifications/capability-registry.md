@@ -109,9 +109,6 @@ This system contains **571 distinct capabilities** across **3 main phases** of d
 - **phase_adapters.py** (18): Standardized phase interfaces
 - **graphrag_phase_interface.py** (21): Common phase interface definitions
 
-#### Enhanced Storage (11 capabilities)
-- **enhanced_identity_service_faiss.py** (11): FAISS-based similarity search
-
 #### Testing Framework (18 capabilities)
 - **integration_test_framework.py** (18): Comprehensive integration testing
 
@@ -237,7 +234,7 @@ result = workflow.execute_workflow("document.pdf", "What are the main entities?"
 - **OpenAI API**: Embeddings and enhanced identity
 - **Gemini API**: Ontology generation and enhanced extraction
 - **spaCy**: Named entity recognition and NLP
-- **FAISS**: Vector similarity search
+- **Neo4j Vector Index**: Vector similarity search
 - **FastMCP**: Tool server and external access
 
 ### Data Flow

@@ -12,11 +12,12 @@ import socket
 import threading
 import uuid
 import random
+import asyncio
 from typing import Optional, Dict, Any, List, Tuple
 import logging
 from datetime import datetime
 
-from .config import ConfigurationManager
+from src.core.config_manager import ConfigurationManager, get_config
 from .input_validator import InputValidator
 
 logger = logging.getLogger(__name__)
@@ -29,6 +30,7 @@ class Neo4jDockerManager:
                  container_name: str = "neo4j-graphrag"):
         self.container_name = container_name
         self._driver = None
+        self._async_driver = None
         
         # Stability enhancements
         self.max_retries = 3
@@ -40,23 +42,23 @@ class Neo4jDockerManager:
         self.input_validator = InputValidator()
         
         # Get configuration from ConfigurationManager
-        config_manager = ConfigurationManager()
-        config = config_manager.get_config()
+        config_manager = get_config()
+        neo4j_config = config_manager.get_neo4j_config()
         
         # Extract host and port from URI
-        uri_parts = config.neo4j.uri.replace("bolt://", "").split(":")
+        uri_parts = neo4j_config['uri'].replace("bolt://", "").split(":")
         self.host = uri_parts[0]
         self.port = int(uri_parts[1]) if len(uri_parts) > 1 else 7687
         
-        self.username = config.neo4j.user
-        self.password = config.neo4j.password
-        self.bolt_uri = config.neo4j.uri
+        self.username = neo4j_config['user']
+        self.password = neo4j_config['password']
+        self.bolt_uri = neo4j_config['uri']
     
     def get_driver(self):
         """Get optimized Neo4j driver instance with connection pooling"""
         if self._driver is None:
             try:
-                from neo4j import GraphDatabase
+                from neo4j import GraphDatabase, AsyncGraphDatabase
                 # Optimized configuration with connection pooling
                 self._driver = GraphDatabase.driver(
                     self.bolt_uri,
@@ -67,6 +69,18 @@ class Neo4jDockerManager:
                     connection_timeout=30,         # 30 second timeout
                     connection_acquisition_timeout=60,  # 60 second acquisition timeout
                     # Performance optimizations
+                    keep_alive=True
+                )
+                
+                # Create async driver for real async operations
+                self._async_driver = AsyncGraphDatabase.driver(
+                    self.bolt_uri,
+                    auth=(self.username, self.password),
+                    # Same optimized configuration for async driver
+                    max_connection_lifetime=3600,
+                    max_connection_pool_size=10,
+                    connection_timeout=30,
+                    connection_acquisition_timeout=60,
                     keep_alive=True
                 )
                 # Test connection with performance logging
@@ -109,6 +123,66 @@ class Neo4jDockerManager:
                     # Exponential backoff with jitter
                     delay = self.retry_delay * (2 ** attempt) * (1 + random.random() * 0.1)
                     time.sleep(min(delay, 30.0))  # Cap at 30 seconds
+    
+    async def get_session_async(self):
+        """Real async session with AsyncGraphDatabase for non-blocking Neo4j operations"""
+        # Ensure async driver is available
+        if self._async_driver is None:
+            await self._ensure_async_driver()
+        
+        for attempt in range(self.max_retries):
+            try:
+                # Get async session from async driver
+                session = self._async_driver.session()
+                
+                # Test session with real async query
+                result = await session.run("RETURN 1 as test")
+                record = await result.single()
+                if record["test"] != 1:
+                    await session.close()
+                    raise RuntimeError("Async session validation failed")
+                
+                logger.info("Async Neo4j session created successfully")
+                return session
+                
+            except Exception as e:
+                if attempt == self.max_retries - 1:
+                    raise ConnectionError(f"Failed to establish async database connection after {self.max_retries} attempts: {e}")
+                
+                # Real async exponential backoff - NON-BLOCKING
+                delay = self.retry_delay * (2 ** attempt) * (1 + random.random() * 0.1)
+                await asyncio.sleep(min(delay, 30.0))
+                logger.warning(f"Async connection attempt {attempt + 1} failed, retrying in {delay:.2f}s: {e}")
+    
+    async def _ensure_async_driver(self):
+        """Ensure async driver is initialized and connected"""
+        if self._async_driver is None:
+            try:
+                from neo4j import AsyncGraphDatabase
+                
+                # Create real async driver
+                self._async_driver = AsyncGraphDatabase.driver(
+                    self.bolt_uri,
+                    auth=(self.username, self.password),
+                    max_connection_lifetime=3600,
+                    max_connection_pool_size=10,
+                    connection_timeout=30,
+                    connection_acquisition_timeout=60,
+                    keep_alive=True
+                )
+                
+                # Verify async connection with real async query
+                async with self._async_driver.session() as session:
+                    result = await session.run("RETURN 1 as test")
+                    record = await result.single()
+                    assert record["test"] == 1
+                
+                logger.info("Async Neo4j driver initialized and verified")
+                
+            except Exception as e:
+                logger.error(f"Failed to initialize async Neo4j driver: {e}")
+                self._async_driver = None
+                raise ConnectionError(f"Async Neo4j driver initialization failed: {e}")
     
     def _validate_connection(self) -> bool:
         """Validate existing connection is healthy with comprehensive checks"""
@@ -157,14 +231,26 @@ class Neo4jDockerManager:
     
     def _reconnect(self):
         """Reconnect with proper cleanup and fresh driver creation"""
-        # Force cleanup of existing driver
+        # Force cleanup of existing drivers
         if self._driver:
             try:
                 self._driver.close()
             except Exception as e:
-                logger.warning(f"Error closing driver during reconnect: {e}")
+                logger.warning(f"Error closing sync driver during reconnect: {e}")
             finally:
                 self._driver = None
+        
+        # Also cleanup async driver - will be recreated when needed
+        if self._async_driver:
+            try:
+                # Note: async driver cleanup would need to be done in async context
+                # For now, just reset the reference
+                self._async_driver = None
+                logger.info("Async driver reference cleared for reconnection")
+            except Exception as e:
+                logger.warning(f"Error clearing async driver during reconnect: {e}")
+            finally:
+                self._async_driver = None
         
         # Wait for cleanup to complete
         time.sleep(0.5)
@@ -189,6 +275,53 @@ class Neo4jDockerManager:
         except Exception as e:
             self._driver = None
             raise ConnectionError(f"Reconnection failed: {e}")
+    
+    async def _reconnect_async(self):
+        """Async reconnect with proper cleanup and fresh async driver creation"""
+        # Force cleanup of existing async driver
+        if self._async_driver:
+            try:
+                await self._async_driver.close()
+            except Exception as e:
+                logger.warning(f"Error closing async driver during reconnect: {e}")
+            finally:
+                self._async_driver = None
+        
+        # Also cleanup sync driver if exists
+        if self._driver:
+            try:
+                self._driver.close()
+            except Exception as e:
+                logger.warning(f"Error closing sync driver during async reconnect: {e}")
+            finally:
+                self._driver = None
+        
+        # Wait for cleanup to complete - NON-BLOCKING
+        await asyncio.sleep(0.5)
+        
+        # Create fresh async driver with proper configuration
+        from neo4j import AsyncGraphDatabase
+        try:
+            self._async_driver = AsyncGraphDatabase.driver(
+                self.bolt_uri,
+                auth=(self.username, self.password),
+                connection_timeout=self.connection_timeout,
+                max_connection_lifetime=3600,  # Use default values since attributes may not exist
+                max_connection_pool_size=10,
+                connection_acquisition_timeout=60,
+                keep_alive=True
+            )
+            
+            # Test the new async connection
+            async with self._async_driver.session() as session:
+                await session.run("RETURN 1 as test")
+            
+            logger.info("Successfully created and tested fresh async Neo4j driver")
+            
+        except Exception as e:
+            logger.error(f"Failed to create fresh async Neo4j driver during reconnect: {e}")
+            self._async_driver = None
+            raise ConnectionError(f"Async reconnection failed: {e}")
     
     def test_connection(self) -> bool:
         """Test database connectivity with actual query"""
@@ -317,6 +450,34 @@ class Neo4jDockerManager:
         except Exception as e:
             logger.error(f"Failed to stop Neo4j container: {e}")
             return False
+    
+    async def _wait_for_neo4j_ready_async(self, max_wait: int = 30) -> bool:
+        """Async version of waiting for Neo4j to be ready"""
+        logger.info(f"⏳ Async waiting for Neo4j to be ready on {self.bolt_uri}...")
+        
+        for i in range(max_wait):
+            if self.is_port_open(timeout=2):
+                try:
+                    from neo4j import AsyncGraphDatabase
+                    async_driver = AsyncGraphDatabase.driver(
+                        self.bolt_uri, 
+                        auth=(self.username, self.password)
+                    )
+                    async with async_driver.session() as session:
+                        await session.run("RETURN 1")
+                    await async_driver.close()
+                    logger.info(f"✅ Neo4j ready after {i+1} seconds (async)")
+                    return True
+                except Exception as e:
+                    logger.debug(f"Neo4j async connection attempt failed: {e}")
+                    pass
+            
+            await asyncio.sleep(1)  # ✅ NON-BLOCKING
+            if i % 5 == 4:
+                logger.info(f"   Still waiting... ({i+1}/{max_wait}s) (async)")
+        
+        logger.info(f"❌ Neo4j not ready after {max_wait} seconds (async)")
+        return False
     
     def _wait_for_neo4j_ready(self, max_wait: int = 30) -> bool:
         """Wait for Neo4j to be ready to accept connections"""

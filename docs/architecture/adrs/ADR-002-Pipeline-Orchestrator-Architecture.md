@@ -3,7 +3,7 @@
 # ADR-002: PipelineOrchestrator Architecture
 
 ## Status
-**ACCEPTED** - Implemented 2025-07-15
+**ACCEPTED** - Implemented 2025-01-15
 
 ## Context
 The GraphRAG system suffered from massive code duplication across workflow implementations. Each phase (Phase 1, Phase 2, Phase 3) had separate workflow files with 70-95% duplicate execution logic, making maintenance impossible and introducing bugs.

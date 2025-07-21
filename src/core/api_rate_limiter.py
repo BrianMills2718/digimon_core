@@ -7,6 +7,7 @@ CRITICAL IMPLEMENTATION: Addresses API rate limiting preventing service failures
 """
 
 import time
+import asyncio
 from typing import Dict, List, Optional
 from collections import defaultdict, deque
 from datetime import datetime, timedelta
@@ -148,6 +149,44 @@ class APIRateLimiter:
             sleep_time = min(wait_time, 1.0)  # Sleep at most 1 second at a time
             
             time.sleep(sleep_time)
+    
+    async def wait_for_availability_async_compat(self, service_name: str, timeout: int = 60):
+        """Additional async compatibility method for sync callers
+        
+        Args:
+            service_name: Name of the service
+            timeout: Maximum time to wait in seconds
+        """
+        start_time = time.time()
+        
+        while not self.can_make_call(service_name):
+            if time.time() - start_time > timeout:
+                raise TimeoutError(f"Rate limit timeout for {service_name}")
+            
+            # Calculate time to wait until next token is available
+            wait_time = self._calculate_wait_time(service_name)
+            sleep_time = min(wait_time, 1.0)  # Sleep at most 1 second at a time
+            
+            await asyncio.sleep(sleep_time)
+    
+    async def wait_for_availability_async(self, service_name: str, timeout: int = 60):
+        """Async wait until API call can be made
+        
+        Args:
+            service_name: Name of the service
+            timeout: Maximum time to wait in seconds
+        """
+        start_time = time.time()
+        
+        while not self.can_make_call(service_name):
+            if time.time() - start_time > timeout:
+                raise TimeoutError(f"Rate limit timeout for {service_name}")
+            
+            # Calculate time to wait until next token is available
+            wait_time = self._calculate_wait_time(service_name)
+            sleep_time = min(wait_time, 1.0)  # Sleep at most 1 second at a time
+            
+            await asyncio.sleep(sleep_time)  # ✅ NON-BLOCKING
     
     def _calculate_wait_time(self, service_name: str) -> float:
         """Calculate time to wait until next token is available
@@ -378,6 +417,86 @@ class APIRateLimiter:
         except Exception as e:
             self.logger.error(f"Rate limiting test failed for {service}: {str(e)}")
             raise RuntimeError(f"Rate limiting functionality test failed for {service}: {e}")
+    
+    async def test_rate_limiting_async(self, service: str = "test_service"):
+        """Async test rate limiting functionality for a service
+        
+        Args:
+            service: Name of the service to test
+            
+        Returns:
+            Dictionary with test results
+            
+        Raises:
+            RuntimeError: If rate limiting test fails
+        """
+        if service not in self.rate_limits:
+            raise ValueError(f"Service {service} not configured for rate limiting")
+        
+        test_start_time = time.time()
+        
+        try:
+            # Reset service limits for clean test
+            self.reset_service_limits(service)
+            
+            # Test rate limiting by making calls up to the limit
+            rate_limit = self.rate_limits[service]
+            calls_made = 0
+            
+            # Make calls up to the limit
+            for i in range(rate_limit + 5):  # Try to exceed limit
+                if self.can_make_call(service):
+                    self.record_call(service)
+                    calls_made += 1
+                    # Small delay to simulate real API call timing
+                    await asyncio.sleep(0.01)
+                else:
+                    break
+            
+            # Verify rate limiting actually worked
+            rate_limiting_enforced = calls_made <= rate_limit
+            
+            # Test rate limiting recovery by waiting
+            if rate_limiting_enforced:
+                # Calculate time needed for at least 1 token to refill
+                refill_rate = self.token_buckets[service]['refill_rate']
+                wait_time = max(1.0 / refill_rate + 0.1, 1.1)  # Add 0.1s buffer, minimum 1.1s
+                
+                await asyncio.sleep(wait_time)
+                
+                # Try to make another call
+                can_call_after_wait = self.can_make_call(service)
+            else:
+                can_call_after_wait = False
+            
+            test_duration = time.time() - test_start_time
+            
+            # Success criteria
+            success_criteria = {
+                "rate_limit_enforced": rate_limiting_enforced,
+                "calls_limited": calls_made <= rate_limit,
+                "recovery_working": can_call_after_wait if rate_limiting_enforced else True
+            }
+            
+            all_passed = all(success_criteria.values())
+            
+            if not all_passed:
+                raise RuntimeError(f"Async rate limiting test failed for {service}: {success_criteria}")
+            
+            return {
+                "status": "success",
+                "service_tested": service,
+                "rate_limit": rate_limit,
+                "calls_made_before_limit": calls_made,
+                "test_duration_seconds": test_duration,
+                "success_criteria": success_criteria,
+                "timestamp": datetime.now().isoformat(),
+                "async_version": True
+            }
+            
+        except Exception as e:
+            self.logger.error(f"Async rate limiting test failed for {service}: {str(e)}")
+            raise RuntimeError(f"Async rate limiting functionality test failed for {service}: {e}")
     
     def test_all_services_rate_limiting(self) -> Dict[str, Dict[str, any]]:
         """Test rate limiting functionality for all configured services

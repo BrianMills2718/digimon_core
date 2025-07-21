@@ -14,20 +14,20 @@ from typing import Any, Dict, List, Optional
 import uuid
 from .logging_config import get_logger
 from .tool_adapter_bridge import ToolAdapterBridge
-from .config import ConfigurationManager
+from src.core.config_manager import ConfigurationManager
 from .schema_enforcer import SchemaEnforcer
 from .entity_schema import StandardEntity, StandardRelationship
 from .theory_integration import theory_aware_tool
 from .tool_protocol import Tool, ToolExecutionError, ToolValidationError, ToolValidationResult
-from ..tools.phase1.t01_pdf_loader import PDFLoader as _PDFLoader
-from ..tools.phase1.t15a_text_chunker import TextChunker as _TextChunker
-from ..tools.phase1.t23a_spacy_ner import SpacyNER as _SpacyNER
-from ..tools.phase1.t27_relationship_extractor import RelationshipExtractor as _RelationshipExtractor
-from ..tools.phase1.t31_entity_builder import EntityBuilder as _EntityBuilder
-from ..tools.phase1.t34_edge_builder import EdgeBuilder as _EdgeBuilder
-from ..tools.phase1.t68_pagerank import PageRankCalculator as _PageRankCalculator
-from ..tools.phase1.t49_multihop_query import MultiHopQuery as _MultiHopQuery
-from ..tools.phase1.t15b_vector_embedder import VectorEmbedder as _VectorEmbedder
+from src.tools.phase1.t01_pdf_loader import PDFLoader as _PDFLoader
+from src.tools.phase1.t15a_text_chunker import TextChunker as _TextChunker
+from src.tools.phase1.t23a_spacy_ner import SpacyNER as _SpacyNER
+from src.tools.phase1.t27_relationship_extractor import RelationshipExtractor as _RelationshipExtractor
+from src.tools.phase1.t31_entity_builder import EntityBuilder as _EntityBuilder
+from src.tools.phase1.t34_edge_builder import EdgeBuilder as _EdgeBuilder
+from src.tools.phase1.t68_pagerank_optimized import T68PageRankOptimized as _PageRankCalculator
+from src.tools.phase1.t49_multihop_query import MultiHopQuery as _MultiHopQuery
+from src.tools.phase1.t15b_vector_embedder import VectorEmbedder as _VectorEmbedder
 
 logger = get_logger("core.tool_adapters")
 
@@ -40,7 +40,7 @@ class SimplifiedToolAdapter(Tool):
         self.tool_method = tool_method
         self.input_key = input_key
         self.output_key = output_key
-        self.config_manager = config_manager or ConfigurationManager()
+        self.config_manager = config_manager or get_config()
         self.logger = get_logger(f"core.{tool_class.__name__}")
         
         # Create services
@@ -159,7 +159,7 @@ class BaseToolAdapter(Tool):
     """
     
     def __init__(self, config_manager: ConfigurationManager = None):
-        self.config_manager = config_manager or ConfigurationManager()
+        self.config_manager = config_manager or get_config()
         self.logger = get_logger(f"core.{self.__class__.__name__}")
         
         # Get configuration for this adapter (lazy loading)
@@ -335,7 +335,7 @@ class OptimizedToolAdapterRegistry:
     
     def __init__(self):
         self.logger = get_logger("core.tool_adapters_registry")
-        self.config_manager = ConfigurationManager()
+        self.config_manager = get_config()
         self.adapters = {}
         
         try:
@@ -360,8 +360,8 @@ class OptimizedToolAdapterRegistry:
             (_EntityBuilder, "build_entities", "entities", "entity_results"),
             (_EdgeBuilder, "build_edges", "relationships", "edge_results"),
             (_PageRankCalculator, "calculate_pagerank", "graph_data", "pagerank_results"),
-            (_MultiHopQuery, "execute_query", "query_data", "query_results"),
-            (_VectorEmbedder, "embed_vectors", "text_data", "embeddings")
+            (_MultiHopQuery, "execute_query", "query_data", "query_results")
+            # VectorEmbedder removed - implements Tool protocol directly, no adapter needed
         ]
         
         # Create and register simplified adapters
@@ -1472,7 +1472,7 @@ class OntologyAwareExtractorAdapter(BaseToolAdapter):
         super().__init__(config_manager)
         
         # Import the actual Phase 2 tool
-        from ..tools.phase2.t23c_ontology_aware_extractor import OntologyAwareExtractor
+        from src.tools.phase2.t23c_ontology_aware_extractor import OntologyAwareExtractor
         
         # Initialize with services created by BaseToolAdapter
         self._tool = OntologyAwareExtractor(
@@ -1606,7 +1606,7 @@ class OntologyGraphBuilderAdapter(BaseToolAdapter):
     def __init__(self, config_manager: ConfigurationManager = None):
         super().__init__(config_manager)
         
-        from ..tools.phase2.t31_ontology_graph_builder import OntologyAwareGraphBuilder
+        from src.tools.phase2.t31_ontology_graph_builder import OntologyAwareGraphBuilder
         
         # Get Neo4j config from ConfigManager
         neo4j_config = self.config_manager.get_neo4j_config()
@@ -1706,7 +1706,7 @@ class InteractiveGraphVisualizerAdapter(BaseToolAdapter):
     def __init__(self, config_manager: ConfigurationManager = None):
         super().__init__(config_manager)
         
-        from ..tools.phase2.interactive_graph_visualizer import InteractiveGraphVisualizer
+        from src.tools.phase2.interactive_graph_visualizer import InteractiveGraphVisualizer
         
         neo4j_config = self.config_manager.get_neo4j_config()
         
@@ -1792,7 +1792,9 @@ class MultiDocumentFusionAdapter(BaseToolAdapter):
     def __init__(self, config_manager: ConfigurationManager = None):
         super().__init__(config_manager)
         
-        from ..tools.phase3.t301_multi_document_fusion import MultiDocumentFusion
+        from src.tools.phase3.t301_multi_document_fusion import MultiDocumentFusion
+from src.core.config_manager import get_config
+
         
         # Get Neo4j config from ConfigManager
         neo4j_config = self.config_manager.get_neo4j_config()
@@ -1887,66 +1889,6 @@ class MultiDocumentFusionAdapter(BaseToolAdapter):
             security_validation={"valid": True, "errors": []},
             performance_validation={"valid": True, "errors": []}
         )
-class VectorEmbedderAdapter(BaseToolAdapter):
-    """Adapter for VectorEmbedder to implement Tool protocol
-    
-    Generates embeddings for text chunks and stores them in persistent vector database.
-    """
-    
-    def __init__(self, config_manager: ConfigurationManager = None):
-        super().__init__(config_manager)
-        self._tool = _VectorEmbedder(config_manager)
-        self.tool_name = "VectorEmbedderAdapter"
-    
-    def execute(self, input_data: Any, context: Optional[Dict] = None) -> Dict[str, Any]:
-        """Convert Tool protocol to VectorEmbedder interface
-        
-        Args:
-            input_data: Expected format: {"chunks": List[Dict], ...}
-            context: Optional execution context
-            
-        Returns:
-            {"embeddings_stored": int, "vector_ids": List[str], ...}
-        """
-        if not self.validate_input(input_data):
-            raise ToolValidationError("VectorEmbedderAdapter", ["Input data validation failed"])
-        
-        try:
-            return self._tool.execute(input_data, context)
-        except Exception as e:
-            raise ToolExecutionError("VectorEmbedderAdapter", str(e), e)
-    
-    def get_tool_info(self) -> Dict[str, Any]:
-        """Get VectorEmbedder tool information"""
-        return {
-            "name": "Vector Embedder",
-            "version": "1.0",
-            "description": "Generates embeddings for text chunks and stores them in persistent vector database",
-            "contract_id": "T15B_VectorEmbedder",
-            "capabilities": ["text_embedding", "vector_storage", "similarity_search", "persistent_storage"]
-        }
-    
-    def validate_input(self, input_data: Any) -> ToolValidationResult:
-        """Validate input data"""
-        validation_errors = []
-        
-        if not isinstance(input_data, dict):
-            validation_errors.append("Input data must be a dictionary")
-        
-        return ToolValidationResult(
-            is_valid=len(validation_errors) == 0,
-            validation_errors=validation_errors,
-            method_signatures={"execute": "Dict[str, Any]", "validate_input": "ToolValidationResult"},
-            execution_test_results={"basic_validation": "passed" if len(validation_errors) == 0 else "failed"},
-            input_schema_validation={"valid": True, "errors": []},
-            security_validation={"valid": True, "errors": []},
-            performance_validation={"valid": True, "errors": []}
-        )
-    def search_similar_chunks(self, query_text: str, k: int = 10, 
-                             filter_criteria: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
-        """Search for similar chunks using vector similarity"""
-        return self._tool.search_similar_chunks(query_text, k, filter_criteria)
-    
-    def get_vector_store_info(self) -> Dict[str, Any]:
-        """Get information about the vector store"""
-        return self._tool.get_vector_store_info()
+# VectorEmbedderAdapter removed - ARCHIVED as redundant
+# The VectorEmbedder tool already implements Tool protocol directly
+# Use VectorEmbedder from src.tools.phase1.t15b_vector_embedder directly

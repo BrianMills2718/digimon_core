@@ -12,12 +12,12 @@ try:
     from src.core.identity_service import IdentityService
     from src.core.provenance_service import ProvenanceService
     from src.core.quality_service import QualityService
-    from src.core.config import ConfigurationManager
+    from src.core.config_manager import ConfigurationManager, get_config
 except ImportError:
     from core.identity_service import IdentityService
     from core.provenance_service import ProvenanceService
     from core.quality_service import QualityService
-    from core.config import ConfigurationManager
+    from src.core.config_manager import ConfigurationManager, get_config
 
 
 class BaseNeo4jTool:
@@ -49,7 +49,7 @@ class BaseNeo4jTool:
         
         # Get Neo4j config from ConfigurationManager if not provided
         if config_manager is None:
-            config_manager = ConfigurationManager()
+            config_manager = get_config()
         neo4j_config = config_manager.get_neo4j_config()
         
         final_neo4j_uri = neo4j_uri or neo4j_config['uri']

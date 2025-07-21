@@ -1,1 +1,0 @@
-implement all tasks in the CLAUDE.md and carefully verify that every task is successful before moving on or declaring success. Continue until all tasks are complete without stopping.

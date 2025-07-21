@@ -253,7 +253,7 @@ class TestComprehensiveErrorCoverage:
     
     def test_configuration_validation_errors(self):
         """Test configuration validation with invalid settings"""
-        from src.core.config import get_config
+        from src.core.config_manager import get_config
         
         # Test with invalid configuration
         original_config = os.environ.get('NEO4J_URI')

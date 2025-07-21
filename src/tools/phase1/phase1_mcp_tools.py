@@ -20,7 +20,7 @@ from pathlib import Path
 
 # Import core services and configuration
 from src.core.service_manager import get_service_manager
-from src.core.config import ConfigurationManager
+from src.core.config_manager import ConfigurationManager
 
 # Import Phase 1 tools
 from src.tools.phase1.t01_pdf_loader import PDFLoader
@@ -31,6 +31,8 @@ from src.tools.phase1.t31_entity_builder import EntityBuilder
 from src.tools.phase1.t34_edge_builder import EdgeBuilder
 from src.tools.phase1.t68_pagerank import PageRankCalculator
 from src.tools.phase1.t49_multihop_query import MultiHopQuery
+from src.core.config_manager import get_config
+
 
 
 def create_phase1_mcp_tools(mcp: FastMCP):
@@ -38,7 +40,7 @@ def create_phase1_mcp_tools(mcp: FastMCP):
     
     # Get shared service manager and configuration
     service_manager = get_service_manager()
-    config_manager = ConfigurationManager()
+    config_manager = get_config()
     config = config_manager.get_config()
     
     # Use shared services from manager

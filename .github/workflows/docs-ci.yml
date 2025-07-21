@@ -1,0 +1,31 @@
+name: Docs Quality Checks
+
+on:
+  pull_request:
+    paths:
+      - 'docs/**'
+      - '.github/workflows/docs-ci.yml'
+      - 'scripts/md_link_check.sh'
+      - 'scripts/validate_doc_filenames.py'
+
+jobs:
+  docs_checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+      - name: Install link checker
+        run: |
+          pip install lychee-link-checker==0.13.0
+      - name: Run Markdown link check
+        run: |
+          bash scripts/md_link_check.sh
+      - name: Validate doc filenames
+        run: |
+          python scripts/validate_doc_filenames.py
+      - name: Validate doc structure
+        run: |
+          python scripts/validate_doc_structure.py 
