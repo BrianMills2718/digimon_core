@@ -89,7 +89,6 @@ docs/archive/
 archive/
 
 # Exclude historical planning documents that contain conflicting visions
-docs/planning/
 docs/archive/root_cleanup/
 
 # Large information files to exclude
