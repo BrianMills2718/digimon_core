@@ -2,7 +2,7 @@
 
 *Status: Target Architecture Documentation*
 
-**This document defines the target system architecture for KGAS (Knowledge Graph Analysis System). It describes the intended design and component relationships that guide implementation. For current implementation status, see the [Roadmap Overview](../planning/roadmap_overview.md).**
+**This document defines the target system architecture for KGAS (Knowledge Graph Analysis System). It describes the intended design and component relationships that guide implementation. For current implementation status, see the [Roadmap Overview](./ROADMAP_OVERVIEW.md).**
 
 ---
 
