@@ -1,5 +1,17 @@
 # [Component Name] Architecture
 
+**Status**: [✅ IMPLEMENTED | 🔄 PARTIALLY IMPLEMENTED | 📋 PLANNED]  
+**Implementation**: `path/to/implementation.py`  
+**Tests**: `path/to/tests.py`  
+**Last Verified**: YYYY-MM-DD
+
+*For partially implemented components, add:*  
+**Missing Features**: [list specific missing features]
+
+*For planned components, add:*  
+**Target Implementation**: `path/to/planned/implementation.py`  
+**Dependencies**: [list dependencies needed first]
+
 ---
 **Document Type**: Architecture  
 **Purpose**: Define the target/final architecture for [component/system]  
