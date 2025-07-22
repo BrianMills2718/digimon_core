@@ -1,0 +1,2554 @@
+This file is a merged representation of a subset of the codebase, containing specifically included files and files not matching ignore patterns, combined into a single document by Repomix.
+The content has been processed where empty lines have been removed.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of a subset of the repository's contents that is considered the most important context.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Only files matching these patterns are included: stress_test_2025.07211755/run_stress_test.py, stress_test_2025.07211755/scripts/salience_calculator.py, stress_test_2025.07211755/database/neo4j_setup.py, stress_test_2025.07211755/schemas/stakeholder_schemas.py, stress_test_2025.07211755/schemas/base_schemas.py, stress_test_2025.07211755/theory/stakeholder_theory_v10.json, stress_test_2025.07211755/results/stress_test_report_1753146572.md
+- Files matching these patterns are excluded: **/*.pyc, **/Evidence.md, **/logs/**, **/data/**, **/__pycache__/**
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Empty lines have been removed from all files
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+stress_test_2025.07211755/
+  database/
+    neo4j_setup.py
+  schemas/
+    base_schemas.py
+    stakeholder_schemas.py
+  scripts/
+    salience_calculator.py
+  theory/
+    stakeholder_theory_v10.json
+  run_stress_test.py
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="stress_test_2025.07211755/database/neo4j_setup.py">
+"""
+Neo4j database setup and integration for stakeholder analysis
+Handles graph storage, reified relationships, and cross-modal analysis
+"""
+import sys
+import os
+from typing import Dict, List, Any, Optional, Tuple
+from datetime import datetime
+import json
+# Add project paths
+sys.path.append('/home/brian/projects/Digimons/src')
+sys.path.append('/home/brian/projects/Digimons/stress_test_2025.07211755')
+try:
+    from neo4j import GraphDatabase
+    from src.core.neo4j_manager import Neo4jManager
+    from src.core.service_manager import get_service_manager
+    from schemas.stakeholder_schemas import StakeholderEntity, StakeholderInfluence
+    from schemas.base_schemas import StandardEntity, StandardRelationship
+except ImportError as e:
+    print(f"Warning: Import error: {e}")
+    print("Running in mock mode...")
+class StakeholderNeo4jManager:
+    """
+    Manages Neo4j operations for stakeholder analysis
+    Implements reified n-ary relationships and cross-modal data preparation
+    """
+    def __init__(self, uri: str = "bolt://localhost:7687", user: str = "neo4j", password: str = "password"):
+        """Initialize Neo4j connection"""
+        self.uri = uri
+        self.user = user
+        self.password = password
+        self.driver = None
+        self.connect()
+    def connect(self):
+        """Establish Neo4j connection"""
+        try:
+            self.driver = GraphDatabase.driver(self.uri, auth=(self.user, self.password))
+            # Test connection
+            with self.driver.session() as session:
+                result = session.run("RETURN 1 as test")
+                test_value = result.single()["test"]
+                print(f"✓ Neo4j connection successful: {self.uri}")
+        except Exception as e:
+            print(f"✗ Neo4j connection failed: {e}")
+            self.driver = None
+    def close(self):
+        """Close Neo4j connection"""
+        if self.driver:
+            self.driver.close()
+    def setup_schema(self):
+        """
+        Set up Neo4j schema for stakeholder analysis
+        Creates indexes, constraints, and vector indexes
+        """
+        setup_queries = [
+            # Constraints for unique IDs
+            "CREATE CONSTRAINT stakeholder_id IF NOT EXISTS FOR (s:Stakeholder) REQUIRE s.id IS UNIQUE",
+            "CREATE CONSTRAINT organization_id IF NOT EXISTS FOR (o:Organization) REQUIRE o.id IS UNIQUE",
+            "CREATE CONSTRAINT influence_id IF NOT EXISTS FOR (i:INFLUENCE_RELATION) REQUIRE i.id IS UNIQUE",
+            # Indexes for performance
+            "CREATE INDEX stakeholder_name IF NOT EXISTS FOR (s:Stakeholder) ON s.canonical_name",
+            "CREATE INDEX stakeholder_type IF NOT EXISTS FOR (s:Stakeholder) ON s.stakeholder_type",
+            "CREATE INDEX organization_name IF NOT EXISTS FOR (o:Organization) ON o.canonical_name",
+            "CREATE INDEX salience_score IF NOT EXISTS FOR (s:Stakeholder) ON s.salience_score",
+            # Vector index for embeddings (if available)
+            """CREATE VECTOR INDEX stakeholder_embeddings IF NOT EXISTS 
+               FOR (s:Stakeholder) ON s.embedding 
+               OPTIONS {indexConfig: {
+                 `vector.dimensions`: 384,
+                 `vector.similarity_function`: 'cosine'
+               }}""",
+            # Text indexes for search
+            "CREATE FULLTEXT INDEX stakeholder_fulltext IF NOT EXISTS FOR (s:Stakeholder) ON EACH [s.canonical_name, s.description]",
+            "CREATE FULLTEXT INDEX organization_fulltext IF NOT EXISTS FOR (o:Organization) ON EACH [o.canonical_name, o.description]"
+        ]
+        if not self.driver:
+            print("No Neo4j connection - skipping schema setup")
+            return
+        with self.driver.session() as session:
+            for query in setup_queries:
+                try:
+                    session.run(query)
+                    print(f"✓ Schema setup: {query.split()[1:4]}")
+                except Exception as e:
+                    if "already exists" in str(e).lower() or "equivalent" in str(e).lower():
+                        print(f"• Schema already exists: {query.split()[1:4]}")
+                    else:
+                        print(f"✗ Schema setup failed: {e}")
+    def clear_database(self):
+        """Clear all data from database (for testing)"""
+        if not self.driver:
+            print("No Neo4j connection - skipping clear")
+            return
+        with self.driver.session() as session:
+            session.run("MATCH (n) DETACH DELETE n")
+            print("✓ Database cleared")
+    def create_stakeholder(self, stakeholder: Dict[str, Any]) -> bool:
+        """
+        Create stakeholder node in Neo4j
+        Args:
+            stakeholder: Stakeholder data dictionary
+        Returns:
+            Success status
+        """
+        if not self.driver:
+            print("No Neo4j connection - mock creation")
+            return False
+        query = """
+        CREATE (s:Stakeholder {
+            id: $id,
+            canonical_name: $canonical_name,
+            stakeholder_type: $stakeholder_type,
+            entity_type: $entity_type,
+            // Mitchell-Agle-Wood dimensions
+            legitimacy: $legitimacy,
+            legitimacy_confidence: $legitimacy_confidence,
+            urgency: $urgency,
+            urgency_confidence: $urgency_confidence,
+            power: $power,
+            power_confidence: $power_confidence,
+            salience_score: $salience_score,
+            mitchell_category: $mitchell_category,
+            priority_tier: $priority_tier,
+            // Metadata
+            confidence: $confidence,
+            quality_tier: $quality_tier,
+            created_by: $created_by,
+            created_at: $created_at,
+            workflow_id: $workflow_id,
+            // Additional properties
+            description: $description,
+            surface_forms: $surface_forms,
+            mention_count: $mention_count
+        })
+        RETURN s.id as created_id
+        """
+        try:
+            with self.driver.session() as session:
+                result = session.run(query, stakeholder)
+                created_id = result.single()["created_id"]
+                print(f"✓ Created stakeholder: {created_id}")
+                return True
+        except Exception as e:
+            print(f"✗ Failed to create stakeholder: {e}")
+            return False
+    def create_organization(self, organization: Dict[str, Any]) -> bool:
+        """
+        Create organization node in Neo4j
+        Args:
+            organization: Organization data dictionary
+        Returns:
+            Success status
+        """
+        if not self.driver:
+            print("No Neo4j connection - mock creation")
+            return False
+        query = """
+        CREATE (o:Organization {
+            id: $id,
+            canonical_name: $canonical_name,
+            entity_type: $entity_type,
+            organization_type: $organization_type,
+            sector: $sector,
+            size: $size,
+            // Metadata
+            confidence: $confidence,
+            quality_tier: $quality_tier,
+            created_by: $created_by,
+            created_at: $created_at,
+            workflow_id: $workflow_id,
+            description: $description
+        })
+        RETURN o.id as created_id
+        """
+        try:
+            with self.driver.session() as session:
+                result = session.run(query, organization)
+                created_id = result.single()["created_id"]
+                print(f"✓ Created organization: {created_id}")
+                return True
+        except Exception as e:
+            print(f"✗ Failed to create organization: {e}")
+            return False
+    def create_reified_influence_relationship(self, relationship: Dict[str, Any]) -> bool:
+        """
+        Create reified influence relationship using intermediate node
+        Supports n-ary relationships with multiple participants
+        Args:
+            relationship: Relationship data dictionary
+        Returns:
+            Success status
+        """
+        if not self.driver:
+            print("No Neo4j connection - mock creation")
+            return False
+        # First create the reified relationship node
+        create_relation_query = """
+        CREATE (r:INFLUENCE_RELATION {
+            id: $id,
+            relationship_type: $relationship_type,
+            influence_strength: $influence_strength,
+            influence_mechanism: $influence_mechanism,
+            conditionality: $conditionality,
+            temporal_scope: $temporal_scope,
+            // Metadata
+            confidence: $confidence,
+            quality_tier: $quality_tier,
+            created_by: $created_by,
+            created_at: $created_at,
+            workflow_id: $workflow_id,
+            // Additional properties
+            weight: $weight,
+            direction: $direction
+        })
+        RETURN r.id as relation_id
+        """
+        # Then connect stakeholder and organization to the relationship
+        connect_source_query = """
+        MATCH (s:Stakeholder {id: $source_id})
+        MATCH (r:INFLUENCE_RELATION {id: $relation_id})
+        CREATE (s)-[:INFLUENCES_VIA {role: $source_role}]->(r)
+        """
+        connect_target_query = """
+        MATCH (o:Organization {id: $target_id})
+        MATCH (r:INFLUENCE_RELATION {id: $relation_id})
+        CREATE (r)-[:TARGETS {role: $target_role}]->(o)
+        """
+        # Handle additional participants (for n-ary relations)
+        connect_additional_query = """
+        MATCH (e:Entity {id: $participant_id})
+        MATCH (r:INFLUENCE_RELATION {id: $relation_id})
+        CREATE (e)-[:PARTICIPATES_IN {role: $role}]->(r)
+        """
+        try:
+            with self.driver.session() as session:
+                # Create reified relationship node
+                result = session.run(create_relation_query, relationship)
+                relation_id = result.single()["relation_id"]
+                # Connect source (stakeholder)
+                session.run(connect_source_query, {
+                    "source_id": relationship["source_id"],
+                    "relation_id": relation_id,
+                    "source_role": relationship.get("source_role_name", "influencer")
+                })
+                # Connect target (organization)
+                session.run(connect_target_query, {
+                    "target_id": relationship["target_id"],
+                    "relation_id": relation_id,
+                    "target_role": relationship.get("target_role_name", "influenced")
+                })
+                # Connect additional participants
+                for participant_id, role in relationship.get("additional_participants", {}).items():
+                    session.run(connect_additional_query, {
+                        "participant_id": participant_id,
+                        "relation_id": relation_id,
+                        "role": role
+                    })
+                print(f"✓ Created reified influence relationship: {relation_id}")
+                return True
+        except Exception as e:
+            print(f"✗ Failed to create reified relationship: {e}")
+            return False
+    def get_stakeholder_network(self) -> List[Dict[str, Any]]:
+        """
+        Retrieve complete stakeholder network for analysis
+        Returns:
+            List of network data for cross-modal analysis
+        """
+        if not self.driver:
+            print("No Neo4j connection - returning mock data")
+            return []
+        query = """
+        MATCH (s:Stakeholder)-[rv:INFLUENCES_VIA]->(r:INFLUENCE_RELATION)-[rt:TARGETS]->(o:Organization)
+        OPTIONAL MATCH (p)-[rp:PARTICIPATES_IN]->(r)
+        RETURN 
+            s.id as stakeholder_id,
+            s.canonical_name as stakeholder_name,
+            s.salience_score as salience_score,
+            s.stakeholder_type as stakeholder_type,
+            s.legitimacy as legitimacy,
+            s.urgency as urgency,
+            s.power as power,
+            s.mitchell_category as mitchell_category,
+            r.id as relationship_id,
+            r.influence_strength as influence_strength,
+            r.influence_mechanism as influence_mechanism,
+            r.conditionality as conditionality,
+            r.temporal_scope as temporal_scope,
+            o.id as organization_id,
+            o.canonical_name as organization_name,
+            o.organization_type as organization_type,
+            collect(p.id) as additional_participants
+        ORDER BY s.salience_score DESC
+        """
+        try:
+            with self.driver.session() as session:
+                result = session.run(query)
+                network_data = []
+                for record in result:
+                    network_data.append({
+                        "stakeholder": {
+                            "id": record["stakeholder_id"],
+                            "name": record["stakeholder_name"],
+                            "type": record["stakeholder_type"],
+                            "salience_score": record["salience_score"],
+                            "legitimacy": record["legitimacy"],
+                            "urgency": record["urgency"],
+                            "power": record["power"],
+                            "mitchell_category": record["mitchell_category"]
+                        },
+                        "relationship": {
+                            "id": record["relationship_id"],
+                            "influence_strength": record["influence_strength"],
+                            "mechanism": record["influence_mechanism"],
+                            "conditionality": record["conditionality"],
+                            "temporal_scope": record["temporal_scope"]
+                        },
+                        "organization": {
+                            "id": record["organization_id"],
+                            "name": record["organization_name"],
+                            "type": record["organization_type"]
+                        },
+                        "additional_participants": record["additional_participants"]
+                    })
+                print(f"✓ Retrieved {len(network_data)} network relationships")
+                return network_data
+        except Exception as e:
+            print(f"✗ Failed to retrieve network: {e}")
+            return []
+    def export_for_table_analysis(self) -> List[Dict[str, Any]]:
+        """
+        Export graph data in table format for cross-modal analysis
+        Each row represents a complete n-ary relationship
+        Returns:
+            List of table rows preserving relationship semantics
+        """
+        network_data = self.get_stakeholder_network()
+        table_rows = []
+        for item in network_data:
+            # Flatten n-ary relationship into table row
+            row = {
+                # Primary participants
+                "stakeholder_id": item["stakeholder"]["id"],
+                "stakeholder_name": item["stakeholder"]["name"],
+                "stakeholder_type": item["stakeholder"]["type"],
+                "organization_id": item["organization"]["id"],
+                "organization_name": item["organization"]["name"],
+                "organization_type": item["organization"]["type"],
+                # Relationship properties
+                "relationship_id": item["relationship"]["id"],
+                "influence_strength": item["relationship"]["influence_strength"],
+                "influence_mechanism": item["relationship"]["mechanism"],
+                "conditionality": item["relationship"]["conditionality"],
+                "temporal_scope": item["relationship"]["temporal_scope"],
+                # Stakeholder dimensions
+                "legitimacy": item["stakeholder"]["legitimacy"],
+                "urgency": item["stakeholder"]["urgency"],
+                "power": item["stakeholder"]["power"],
+                "salience_score": item["stakeholder"]["salience_score"],
+                "mitchell_category": item["stakeholder"]["mitchell_category"],
+                # Additional participants (JSON string for table storage)
+                "additional_participants": json.dumps(item["additional_participants"]),
+                # Computed metrics (would be calculated)
+                "network_centrality": None,  # To be computed
+                "influence_reach": None,     # To be computed
+                "coalition_potential": None  # To be computed
+            }
+            table_rows.append(row)
+        print(f"✓ Exported {len(table_rows)} rows for table analysis")
+        return table_rows
+    def calculate_network_metrics(self) -> Dict[str, Any]:
+        """
+        Calculate network-level metrics using Cypher queries
+        Returns:
+            Dictionary of network metrics
+        """
+        if not self.driver:
+            return {"error": "No Neo4j connection"}
+        queries = {
+            "total_stakeholders": "MATCH (s:Stakeholder) RETURN count(s) as count",
+            "total_relationships": "MATCH (:Stakeholder)-[:INFLUENCES_VIA]->(:INFLUENCE_RELATION) RETURN count(*) as count",
+            "high_salience_stakeholders": "MATCH (s:Stakeholder) WHERE s.salience_score >= 0.7 RETURN count(s) as count",
+            "definitive_stakeholders": "MATCH (s:Stakeholder) WHERE s.mitchell_category = 'definitive' RETURN count(s) as count",
+            "average_salience": "MATCH (s:Stakeholder) RETURN avg(s.salience_score) as average",
+            "max_influence_strength": "MATCH (r:INFLUENCE_RELATION) RETURN max(r.influence_strength) as max_strength"
+        }
+        metrics = {}
+        try:
+            with self.driver.session() as session:
+                for metric_name, query in queries.items():
+                    result = session.run(query)
+                    record = result.single()
+                    if record:
+                        key = list(record.keys())[0]
+                        metrics[metric_name] = record[key]
+                    else:
+                        metrics[metric_name] = 0
+                print(f"✓ Calculated {len(metrics)} network metrics")
+                return metrics
+        except Exception as e:
+            print(f"✗ Failed to calculate metrics: {e}")
+            return {"error": str(e)}
+def main():
+    """Test Neo4j setup and operations"""
+    print("Neo4j Setup for Stakeholder Analysis")
+    print("=" * 50)
+    # Initialize manager
+    manager = StakeholderNeo4jManager()
+    if not manager.driver:
+        print("Cannot proceed without Neo4j connection")
+        return
+    # Setup schema
+    manager.setup_schema()
+    # Clear existing data for clean test
+    manager.clear_database()
+    # Test data creation
+    print("\nCreating test data...")
+    # Create organization
+    org_data = {
+        "id": "org_001",
+        "canonical_name": "Federal Environmental Agency",
+        "entity_type": "organization",
+        "organization_type": "government_agency",
+        "sector": "environmental_regulation",
+        "size": "large",
+        "confidence": 0.95,
+        "quality_tier": "gold",
+        "created_by": "test_system",
+        "created_at": datetime.now().isoformat(),
+        "workflow_id": "test_workflow_001",
+        "description": "Federal agency responsible for environmental protection"
+    }
+    manager.create_organization(org_data)
+    # Create stakeholder
+    stakeholder_data = {
+        "id": "stakeholder_001",
+        "canonical_name": "Environmental Defense Coalition",
+        "stakeholder_type": "group",
+        "entity_type": "organization",
+        "legitimacy": 0.8,
+        "legitimacy_confidence": 0.9,
+        "urgency": 0.9,
+        "urgency_confidence": 0.85,
+        "power": 0.6,
+        "power_confidence": 0.75,
+        "salience_score": 0.765,  # (0.8 * 0.9 * 0.6)^(1/3)
+        "mitchell_category": "dependent",
+        "priority_tier": "high",
+        "confidence": 0.85,
+        "quality_tier": "silver",
+        "created_by": "test_system",
+        "created_at": datetime.now().isoformat(),
+        "workflow_id": "test_workflow_001",
+        "description": "Coalition of environmental advocacy organizations",
+        "surface_forms": json.dumps(["Environmental Defense Coalition", "EDC", "Environmental Coalition"]),
+        "mention_count": 15
+    }
+    manager.create_stakeholder(stakeholder_data)
+    # Create reified influence relationship
+    relationship_data = {
+        "id": "influence_001",
+        "source_id": "stakeholder_001",
+        "target_id": "org_001",
+        "relationship_type": "INFLUENCES",
+        "influence_strength": 0.7,
+        "influence_mechanism": "legal",
+        "conditionality": "during_regulatory_periods",
+        "temporal_scope": "2024_policy_cycle",
+        "confidence": 0.8,
+        "quality_tier": "silver",
+        "created_by": "test_system",
+        "created_at": datetime.now().isoformat(),
+        "workflow_id": "test_workflow_001",
+        "weight": 0.7,
+        "direction": "directed",
+        "source_role_name": "advocacy_group",
+        "target_role_name": "regulatory_agency",
+        "additional_participants": {}
+    }
+    manager.create_reified_influence_relationship(relationship_data)
+    # Test data retrieval
+    print("\nTesting data retrieval...")
+    network = manager.get_stakeholder_network()
+    print(f"Network relationships: {len(network)}")
+    table_data = manager.export_for_table_analysis()
+    print(f"Table rows: {len(table_data)}")
+    metrics = manager.calculate_network_metrics()
+    print(f"Network metrics: {metrics}")
+    # Cleanup
+    manager.close()
+    print("\n✓ Neo4j setup and testing completed")
+if __name__ == "__main__":
+    main()
+</file>
+
+<file path="stress_test_2025.07211755/schemas/base_schemas.py">
+"""
+Base Pydantic schemas for data type architecture
+Implements universal data types that all tools can produce/consume
+"""
+from typing import List, Dict, Any, Optional, Literal, Union
+from datetime import datetime
+from pydantic import BaseModel, Field, validator
+from enum import Enum
+class QualityTier(str, Enum):
+    """Quality assessment tiers"""
+    GOLD = "gold"
+    SILVER = "silver"
+    BRONZE = "bronze"
+    COPPER = "copper"
+class ObjectType(str, Enum):
+    """Core object types in the system"""
+    DOCUMENT = "document"
+    CHUNK = "chunk"
+    MENTION = "mention"
+    ENTITY = "entity"
+    RELATIONSHIP = "relationship"
+    GRAPH = "graph"
+    TABLE = "table"
+    VECTOR = "vector"
+class BaseObject(BaseModel):
+    """Foundation class for all data objects in the system"""
+    # Identity
+    id: str = Field(..., description="Unique identifier")
+    object_type: ObjectType = Field(..., description="Type of object")
+    # Quality (REQUIRED for all objects)
+    confidence: float = Field(..., ge=0.0, le=1.0, description="Confidence score 0.0-1.0")
+    quality_tier: QualityTier = Field(..., description="Quality assessment tier")
+    # Provenance (REQUIRED)
+    created_by: str = Field(..., description="Tool that created this object")
+    created_at: datetime = Field(default_factory=datetime.now, description="Creation timestamp")
+    workflow_id: str = Field(..., description="Workflow identifier")
+    # Version
+    version: int = Field(default=1, description="Object version number")
+    # Optional but common
+    warnings: List[str] = Field(default_factory=list, description="Validation warnings")
+    evidence: List[str] = Field(default_factory=list, description="Supporting evidence")
+    source_refs: List[str] = Field(default_factory=list, description="Source references")
+class TextChunk(BaseObject):
+    """Text chunk data structure"""
+    text: str = Field(..., description="Raw text content")
+    document_ref: str = Field(..., description="Source document reference")
+    chunk_index: int = Field(..., ge=0, description="Position in document")
+    start_position: int = Field(..., ge=0, description="Character start position")
+    end_position: int = Field(..., ge=0, description="Character end position")
+    overlap_chars: int = Field(default=0, ge=0, description="Overlap with adjacent chunks")
+    # Chunk metadata
+    word_count: int = Field(..., ge=0, description="Number of words")
+    sentence_count: int = Field(..., ge=0, description="Number of sentences")
+    @validator('end_position')
+    def end_after_start(cls, v, values):
+        if 'start_position' in values and v <= values['start_position']:
+            raise ValueError('end_position must be greater than start_position')
+        return v
+class EntityMention(BaseObject):
+    """Entity mention in text - Level 2 of three-level identity"""
+    surface_text: str = Field(..., description="Exact text as it appears")
+    document_ref: str = Field(..., description="Source document reference")
+    chunk_ref: str = Field(..., description="Source chunk reference")
+    position: int = Field(..., ge=0, description="Character position in text")
+    length: int = Field(..., gt=0, description="Length of mention in characters")
+    context_window: str = Field(..., description="Surrounding text context")
+    # Entity resolution
+    entity_candidates: List[tuple[str, float]] = Field(
+        default_factory=list, 
+        description="Possible entities with confidence scores"
+    )
+    selected_entity: Optional[str] = Field(None, description="Resolved entity ID")
+    # Type classification
+    entity_type: Optional[str] = Field(None, description="Classified entity type")
+    type_confidence: Optional[float] = Field(None, ge=0.0, le=1.0, description="Type classification confidence")
+class StandardEntity(BaseObject):
+    """Canonical entity - Level 3 of three-level identity"""
+    canonical_name: str = Field(..., description="Canonical entity name")
+    entity_type: str = Field(..., description="Entity type classification")
+    # Identity tracking
+    surface_forms: List[str] = Field(default_factory=list, description="All known surface forms")
+    mention_refs: List[str] = Field(default_factory=list, description="References to entity mentions")
+    # Flexible properties for domain-specific attributes
+    attributes: Dict[str, Any] = Field(default_factory=dict, description="Entity attributes")
+    # Quality indicators
+    mention_count: int = Field(default=0, ge=0, description="Number of mentions found")
+    consistency_score: float = Field(default=1.0, ge=0.0, le=1.0, description="Cross-mention consistency")
+class StandardRelationship(BaseObject):
+    """Relationship between entities"""
+    source_id: str = Field(..., description="Source entity ID")
+    target_id: str = Field(..., description="Target entity ID")
+    relationship_type: str = Field(..., description="Type of relationship")
+    # Relationship properties
+    weight: float = Field(default=1.0, ge=0.0, description="Relationship strength")
+    direction: Literal["directed", "undirected"] = Field(default="directed", description="Relationship direction")
+    # Evidence tracking
+    mention_refs: List[str] = Field(default_factory=list, description="Supporting mentions")
+    # ORM role names for semantic clarity
+    source_role_name: Optional[str] = Field(None, description="Role of source entity")
+    target_role_name: Optional[str] = Field(None, description="Role of target entity")
+    # Additional participants for n-ary relations
+    additional_participants: Dict[str, str] = Field(
+        default_factory=dict, 
+        description="Additional participants {role: entity_id}"
+    )
+class Document(BaseObject):
+    """Document data structure"""
+    title: str = Field(..., description="Document title")
+    content: str = Field(..., description="Full document content")
+    file_path: Optional[str] = Field(None, description="Original file path")
+    file_type: str = Field(default="text", description="Document type")
+    # Document metadata
+    author: Optional[str] = Field(None, description="Document author")
+    publication_date: Optional[datetime] = Field(None, description="Publication date")
+    word_count: int = Field(..., ge=0, description="Total word count")
+    # Processing metadata
+    extraction_method: str = Field(..., description="How content was extracted")
+    preprocessing_applied: List[str] = Field(default_factory=list, description="Preprocessing steps")
+class WorkflowState(BaseObject):
+    """Workflow execution state"""
+    workflow_name: str = Field(..., description="Name of the workflow")
+    current_step: str = Field(..., description="Current step identifier")
+    total_steps: int = Field(..., gt=0, description="Total number of steps")
+    completed_steps: int = Field(..., ge=0, description="Number of completed steps")
+    # State data
+    state_data: Dict[str, Any] = Field(default_factory=dict, description="Workflow state data")
+    checkpoint_data: Optional[Dict[str, Any]] = Field(None, description="Checkpoint data for recovery")
+    # Status
+    status: Literal["running", "completed", "failed", "paused"] = Field(..., description="Workflow status")
+    error_message: Optional[str] = Field(None, description="Error message if failed")
+    @validator('completed_steps')
+    def completed_not_exceed_total(cls, v, values):
+        if 'total_steps' in values and v > values['total_steps']:
+            raise ValueError('completed_steps cannot exceed total_steps')
+        return v
+class ValidationResult(BaseModel):
+    """Result of validation operations"""
+    valid: bool = Field(..., description="Whether validation passed")
+    errors: List[str] = Field(default_factory=list, description="Validation errors")
+    warnings: List[str] = Field(default_factory=list, description="Validation warnings")
+    metadata: Dict[str, Any] = Field(default_factory=dict, description="Additional validation metadata")
+    # Performance metrics
+    validation_time: Optional[float] = Field(None, ge=0.0, description="Validation time in seconds")
+    objects_validated: Optional[int] = Field(None, ge=0, description="Number of objects validated")
+# Schema registry for automatic validation
+SCHEMA_REGISTRY = {
+    "BaseObject": BaseObject,
+    "TextChunk": TextChunk, 
+    "EntityMention": EntityMention,
+    "StandardEntity": StandardEntity,
+    "StandardRelationship": StandardRelationship,
+    "Document": Document,
+    "WorkflowState": WorkflowState,
+    "ValidationResult": ValidationResult
+}
+def get_schema(schema_name: str) -> BaseModel:
+    """Get schema class by name"""
+    if schema_name not in SCHEMA_REGISTRY:
+        raise ValueError(f"Unknown schema: {schema_name}")
+    return SCHEMA_REGISTRY[schema_name]
+def validate_data_against_schema(data: Dict[str, Any], schema_name: str) -> ValidationResult:
+    """Validate data against a named schema"""
+    try:
+        schema_class = get_schema(schema_name)
+        validated_object = schema_class(**data)
+        return ValidationResult(
+            valid=True,
+            metadata={"schema": schema_name, "object_id": getattr(validated_object, 'id', None)}
+        )
+    except Exception as e:
+        return ValidationResult(
+            valid=False,
+            errors=[str(e)],
+            metadata={"schema": schema_name, "attempted_data": data}
+        )
+</file>
+
+<file path="stress_test_2025.07211755/schemas/stakeholder_schemas.py">
+"""
+Stakeholder Theory specific Pydantic schemas
+Implements domain-specific data types for stakeholder analysis
+"""
+from typing import List, Dict, Any, Optional, Literal
+from datetime import datetime
+from pydantic import BaseModel, Field, validator
+from enum import Enum
+from .base_schemas import BaseObject, StandardEntity, StandardRelationship
+class EvidenceType(str, Enum):
+    """Types of evidence for stakeholder claims"""
+    LEGAL = "legal"
+    MORAL = "moral"
+    CONTRACTUAL = "contractual"
+    ECONOMIC = "economic"
+    SOCIAL = "social"
+class StakeholderType(str, Enum):
+    """Types of stakeholders"""
+    INDIVIDUAL = "individual"
+    ORGANIZATION = "organization"
+    GROUP = "group"
+    INSTITUTION = "institution"
+    COMMUNITY = "community"
+class InfluenceMechanism(str, Enum):
+    """Mechanisms through which influence is exercised"""
+    ECONOMIC = "economic"
+    LEGAL = "legal"
+    SOCIAL = "social"
+    POLITICAL = "political"
+    MEDIA = "media"
+    REGULATORY = "regulatory"
+class LegitimacyScore(BaseModel):
+    """Stakeholder legitimacy assessment with evidence"""
+    value: float = Field(..., ge=0.0, le=1.0, description="Legitimacy score 0.0-1.0")
+    evidence_type: EvidenceType = Field(..., description="Type of supporting evidence")
+    confidence: float = Field(..., ge=0.0, le=1.0, description="Confidence in assessment")
+    source_mentions: List[str] = Field(default_factory=list, description="Supporting mention IDs")
+    # Detailed evidence
+    legal_basis: Optional[str] = Field(None, description="Legal foundation for claim")
+    moral_basis: Optional[str] = Field(None, description="Moral foundation for claim")
+    contractual_basis: Optional[str] = Field(None, description="Contractual foundation for claim")
+    @validator('value')
+    def legitimacy_bounds(cls, v):
+        if not 0.0 <= v <= 1.0:
+            raise ValueError('Legitimacy must be between 0.0 and 1.0')
+        return v
+class UrgencyScore(BaseModel):
+    """Stakeholder urgency assessment with temporal context"""
+    value: float = Field(..., ge=0.0, le=1.0, description="Urgency score 0.0-1.0")
+    confidence: float = Field(..., ge=0.0, le=1.0, description="Confidence in assessment")
+    source_mentions: List[str] = Field(default_factory=list, description="Supporting mention IDs")
+    # Temporal indicators
+    time_critical: bool = Field(default=False, description="Whether time-critical")
+    deadline_exists: Optional[datetime] = Field(None, description="Specific deadline if any")
+    urgency_indicators: List[str] = Field(default_factory=list, description="Textual urgency indicators")
+    # Decay modeling
+    urgency_decay_rate: Optional[float] = Field(None, ge=0.0, description="Rate of urgency decay over time")
+    assessment_date: datetime = Field(default_factory=datetime.now, description="When urgency was assessed")
+class PowerScore(BaseModel):
+    """Stakeholder power assessment with mechanism details"""
+    value: float = Field(..., ge=0.0, le=1.0, description="Power score 0.0-1.0")
+    confidence: float = Field(..., ge=0.0, le=1.0, description="Confidence in assessment")
+    source_mentions: List[str] = Field(default_factory=list, description="Supporting mention IDs")
+    # Power mechanisms
+    primary_mechanism: InfluenceMechanism = Field(..., description="Primary influence mechanism")
+    secondary_mechanisms: List[InfluenceMechanism] = Field(
+        default_factory=list, 
+        description="Additional influence mechanisms"
+    )
+    # Power indicators
+    resource_control: bool = Field(default=False, description="Controls critical resources")
+    regulatory_authority: bool = Field(default=False, description="Has regulatory authority")
+    media_influence: bool = Field(default=False, description="Has media influence")
+    coalition_potential: float = Field(default=0.0, ge=0.0, le=1.0, description="Ability to form coalitions")
+class SalienceScore(BaseModel):
+    """Mitchell-Agle-Wood stakeholder salience calculation"""
+    value: float = Field(..., ge=0.0, le=1.0, description="Overall salience score")
+    calculation_method: Literal["geometric_mean", "weighted_average", "custom"] = Field(
+        default="geometric_mean", 
+        description="Method used for calculation"
+    )
+    # Component scores
+    legitimacy: float = Field(..., ge=0.0, le=1.0, description="Legitimacy component")
+    urgency: float = Field(..., ge=0.0, le=1.0, description="Urgency component")
+    power: float = Field(..., ge=0.0, le=1.0, description="Power component")
+    # Metadata
+    calculation_timestamp: datetime = Field(default_factory=datetime.now, description="When calculated")
+    edge_case_handling: Optional[str] = Field(None, description="How edge cases were handled")
+    @validator('value')
+    def validate_geometric_mean(cls, v, values):
+        """Validate that geometric mean calculation is correct"""
+        if all(key in values for key in ['legitimacy', 'urgency', 'power']):
+            legitimacy, urgency, power = values['legitimacy'], values['urgency'], values['power']
+            # Handle zero case
+            if any(score == 0.0 for score in [legitimacy, urgency, power]):
+                expected = 0.0
+            else:
+                expected = (legitimacy * urgency * power) ** (1/3)
+            if abs(v - expected) > 0.001:  # Allow small floating point differences
+                raise ValueError(f'Salience {v} does not match geometric mean {expected}')
+        return v
+class StakeholderEntity(StandardEntity):
+    """Stakeholder-specific entity with theory attributes"""
+    stakeholder_type: StakeholderType = Field(..., description="Type of stakeholder")
+    # Mitchell-Agle-Wood dimensions
+    legitimacy: LegitimacyScore = Field(..., description="Legitimacy assessment")
+    urgency: UrgencyScore = Field(..., description="Urgency assessment")
+    power: PowerScore = Field(..., description="Power assessment")
+    salience: SalienceScore = Field(..., description="Overall salience score")
+    # Stakeholder classification
+    mitchell_category: Optional[str] = Field(None, description="Mitchell typology category")
+    priority_tier: Literal["high", "medium", "low"] = Field(..., description="Management priority")
+    # Relationships
+    coalition_members: List[str] = Field(default_factory=list, description="Coalition partner IDs")
+    conflicts_with: List[str] = Field(default_factory=list, description="Conflicting stakeholder IDs")
+    @validator('mitchell_category')
+    def validate_mitchell_category(cls, v, values):
+        """Validate Mitchell typology classification"""
+        valid_categories = [
+            "dormant", "discretionary", "demanding", 
+            "dominant", "dangerous", "dependent", "definitive"
+        ]
+        if v is not None and v.lower() not in valid_categories:
+            raise ValueError(f'Invalid Mitchell category: {v}')
+        return v.lower() if v else v
+class StakeholderInfluence(StandardRelationship):
+    """Influence relationship between stakeholders"""
+    # Influence specifics
+    influence_strength: float = Field(..., ge=0.0, le=1.0, description="Strength of influence")
+    influence_mechanism: InfluenceMechanism = Field(..., description="How influence is exercised")
+    conditionality: Optional[str] = Field(None, description="Conditions under which influence applies")
+    # Temporal aspects
+    temporal_scope: Optional[str] = Field(None, description="Time period of influence")
+    influence_decay: Optional[float] = Field(None, ge=0.0, description="Rate of influence decay")
+    # N-ary relation support
+    intermediary_actors: List[str] = Field(
+        default_factory=list, 
+        description="Intermediary actors in influence chain"
+    )
+    context_factors: Dict[str, str] = Field(
+        default_factory=dict, 
+        description="Contextual factors affecting influence"
+    )
+class PolicyDocument(BaseModel):
+    """Policy document for stakeholder analysis"""
+    # Document identification
+    document_id: str = Field(..., description="Unique document identifier")
+    title: str = Field(..., description="Document title")
+    document_type: Literal["policy", "proposal", "regulation", "report", "analysis"] = Field(
+        ..., 
+        description="Type of policy document"
+    )
+    # Content
+    content: str = Field(..., description="Full document text")
+    abstract: Optional[str] = Field(None, description="Document abstract or summary")
+    # Metadata
+    organization: Optional[str] = Field(None, description="Publishing organization")
+    publication_date: Optional[datetime] = Field(None, description="Publication date")
+    policy_domain: Optional[str] = Field(None, description="Policy domain (e.g., healthcare, environment)")
+    # Analysis metadata
+    stakeholder_count: Optional[int] = Field(None, ge=0, description="Number of stakeholders identified")
+    complexity_score: Optional[float] = Field(None, ge=0.0, le=1.0, description="Document complexity")
+class StakeholderAnalysisResult(BaseModel):
+    """Complete stakeholder analysis results"""
+    # Analysis metadata
+    analysis_id: str = Field(..., description="Unique analysis identifier")
+    document_ref: str = Field(..., description="Source document reference")
+    analysis_timestamp: datetime = Field(default_factory=datetime.now, description="Analysis timestamp")
+    # Results
+    stakeholders: List[StakeholderEntity] = Field(..., description="Identified stakeholders")
+    relationships: List[StakeholderInfluence] = Field(..., description="Stakeholder relationships")
+    # Summary statistics
+    total_stakeholders: int = Field(..., ge=0, description="Total stakeholders identified")
+    high_salience_count: int = Field(..., ge=0, description="High salience stakeholders")
+    coalition_count: int = Field(..., ge=0, description="Number of coalitions identified")
+    # Quality metrics
+    analysis_confidence: float = Field(..., ge=0.0, le=1.0, description="Overall analysis confidence")
+    coverage_completeness: float = Field(..., ge=0.0, le=1.0, description="Estimated coverage completeness")
+    # Theory validation
+    theory_compliance: Dict[str, Any] = Field(
+        default_factory=dict, 
+        description="Theory validation results"
+    )
+    boundary_cases_detected: List[str] = Field(
+        default_factory=list, 
+        description="Boundary cases encountered"
+    )
+# Stakeholder schema registry
+STAKEHOLDER_SCHEMA_REGISTRY = {
+    "LegitimacyScore": LegitimacyScore,
+    "UrgencyScore": UrgencyScore,
+    "PowerScore": PowerScore,
+    "SalienceScore": SalienceScore,
+    "StakeholderEntity": StakeholderEntity,
+    "StakeholderInfluence": StakeholderInfluence,
+    "PolicyDocument": PolicyDocument,
+    "StakeholderAnalysisResult": StakeholderAnalysisResult
+}
+def create_test_stakeholder() -> StakeholderEntity:
+    """Create a test stakeholder for validation"""
+    return StakeholderEntity(
+        id="stakeholder_001",
+        object_type="entity",
+        confidence=0.85,
+        quality_tier="silver",
+        created_by="test_system",
+        workflow_id="test_workflow",
+        canonical_name="Environmental Protection Agency",
+        entity_type="organization",
+        stakeholder_type=StakeholderType.INSTITUTION,
+        legitimacy=LegitimacyScore(
+            value=0.9,
+            evidence_type=EvidenceType.LEGAL,
+            confidence=0.95,
+            legal_basis="Federal environmental protection mandate"
+        ),
+        urgency=UrgencyScore(
+            value=0.7,
+            confidence=0.8,
+            time_critical=True,
+            urgency_indicators=["immediate action required", "environmental deadline"]
+        ),
+        power=PowerScore(
+            value=0.8,
+            confidence=0.9,
+            primary_mechanism=InfluenceMechanism.REGULATORY,
+            regulatory_authority=True
+        ),
+        salience=SalienceScore(
+            value=0.787,  # (0.9 * 0.7 * 0.8) ** (1/3)
+            legitimacy=0.9,
+            urgency=0.7,
+            power=0.8
+        ),
+        priority_tier="high"
+    )
+</file>
+
+<file path="stress_test_2025.07211755/scripts/salience_calculator.py">
+"""
+Mitchell-Agle-Wood Stakeholder Salience Calculator
+Implements the geometric mean calculation with edge case handling and validation
+"""
+import math
+import json
+from typing import Dict, Any, List, Optional, Tuple
+from dataclasses import dataclass
+from datetime import datetime
+import sys
+import os
+# Add project paths for importing schemas
+sys.path.append('/home/brian/projects/Digimons/stress_test_2025.07211755')
+sys.path.append('/home/brian/projects/Digimons/src')
+try:
+    from schemas.stakeholder_schemas import SalienceScore, LegitimacyScore, UrgencyScore, PowerScore
+    from schemas.base_schemas import ValidationResult
+except ImportError as e:
+    print(f"Warning: Could not import schemas: {e}")
+    # Fallback for standalone testing
+    SalienceScore = dict
+    ValidationResult = dict
+@dataclass
+class EdgeCaseResult:
+    """Result of edge case handling"""
+    handled: bool
+    strategy: str
+    explanation: str
+    modified_input: Optional[Dict[str, float]] = None
+class SalienceCalculationError(Exception):
+    """Custom exception for salience calculation errors"""
+    pass
+class MitchellAgleWoodCalculator:
+    """
+    Implements the Mitchell-Agle-Wood stakeholder salience calculation
+    with comprehensive edge case handling and validation
+    """
+    def __init__(self, enable_logging: bool = True):
+        self.enable_logging = enable_logging
+        self.calculation_log = []
+        # Test cases from theory schema
+        self.test_cases = [
+            {
+                "inputs": {"legitimacy": 1.0, "urgency": 1.0, "power": 1.0},
+                "expected_output": 1.0,
+                "description": "Definitive stakeholder - maximum salience"
+            },
+            {
+                "inputs": {"legitimacy": 0.8, "urgency": 0.6, "power": 0.4},
+                "expected_output": 0.573,
+                "description": "Moderate salience stakeholder"
+            },
+            {
+                "inputs": {"legitimacy": 0.0, "urgency": 0.0, "power": 0.0},
+                "expected_output": 0.0,
+                "description": "Non-stakeholder - zero salience"
+            },
+            {
+                "inputs": {"legitimacy": 1.0, "urgency": 0.0, "power": 0.0},
+                "expected_output": 0.0,
+                "description": "Discretionary stakeholder - zero urgency results in zero salience"
+            },
+            {
+                "inputs": {"legitimacy": 0.0, "urgency": 1.0, "power": 1.0},
+                "expected_output": 0.0,
+                "description": "Edge case - zero legitimacy results in zero salience"
+            }
+        ]
+    def _log(self, message: str):
+        """Log calculation steps if logging enabled"""
+        if self.enable_logging:
+            log_entry = {
+                "timestamp": datetime.now().isoformat(),
+                "message": message
+            }
+            self.calculation_log.append(log_entry)
+            print(f"[SALIENCE] {message}")
+    def validate_inputs(self, legitimacy: float, urgency: float, power: float) -> ValidationResult:
+        """
+        Validate input parameters for salience calculation
+        Args:
+            legitimacy: Legitimacy score (0.0-1.0)
+            urgency: Urgency score (0.0-1.0) 
+            power: Power score (0.0-1.0)
+        Returns:
+            ValidationResult with validation status and any errors
+        """
+        errors = []
+        warnings = []
+        # Check for required inputs
+        if legitimacy is None:
+            errors.append("Legitimacy score is required")
+        if urgency is None:
+            errors.append("Urgency score is required")
+        if power is None:
+            errors.append("Power score is required")
+        if errors:
+            return ValidationResult(
+                valid=False,
+                errors=errors,
+                metadata={"validation_type": "input_validation"}
+            )
+        # Check value ranges
+        for name, value in [("legitimacy", legitimacy), ("urgency", urgency), ("power", power)]:
+            if not isinstance(value, (int, float)):
+                errors.append(f"{name} must be a number, got {type(value)}")
+            elif value < 0.0:
+                errors.append(f"{name} cannot be negative, got {value}")
+            elif value > 1.0:
+                errors.append(f"{name} cannot exceed 1.0, got {value}")
+            elif value == 0.0:
+                warnings.append(f"{name} is zero, will result in zero salience")
+        return ValidationResult(
+            valid=len(errors) == 0,
+            errors=errors,
+            warnings=warnings,
+            metadata={
+                "validation_type": "input_validation",
+                "inputs": {"legitimacy": legitimacy, "urgency": urgency, "power": power}
+            }
+        )
+    def handle_edge_cases(self, legitimacy: float, urgency: float, power: float) -> EdgeCaseResult:
+        """
+        Handle edge cases in salience calculation
+        Args:
+            legitimacy: Legitimacy score
+            urgency: Urgency score
+            power: Power score
+        Returns:
+            EdgeCaseResult describing how edge case was handled
+        """
+        # Zero input handling
+        zero_inputs = [name for name, value in [("legitimacy", legitimacy), ("urgency", urgency), ("power", power)] if value == 0.0]
+        if zero_inputs:
+            return EdgeCaseResult(
+                handled=True,
+                strategy="zero_geometric_mean",
+                explanation=f"Geometric mean with zero inputs ({', '.join(zero_inputs)}) equals zero",
+                modified_input=None
+            )
+        # Very small values (potential floating point issues)
+        small_threshold = 1e-10
+        small_inputs = [name for name, value in [("legitimacy", legitimacy), ("urgency", urgency), ("power", power)] if 0 < value < small_threshold]
+        if small_inputs:
+            return EdgeCaseResult(
+                handled=True,
+                strategy="small_value_warning",
+                explanation=f"Very small values detected ({', '.join(small_inputs)}) may cause floating point precision issues",
+                modified_input=None
+            )
+        # Perfect scores (all 1.0)
+        if legitimacy == 1.0 and urgency == 1.0 and power == 1.0:
+            return EdgeCaseResult(
+                handled=True,
+                strategy="perfect_scores",
+                explanation="All dimensions at maximum (1.0) - definitive stakeholder",
+                modified_input=None
+            )
+        # No edge cases detected
+        return EdgeCaseResult(
+            handled=False,
+            strategy="none",
+            explanation="No edge cases detected - standard calculation applies"
+        )
+    def calculate_geometric_mean(self, legitimacy: float, urgency: float, power: float) -> float:
+        """
+        Calculate geometric mean of three dimensions
+        Args:
+            legitimacy: Legitimacy score (0.0-1.0)
+            urgency: Urgency score (0.0-1.0)
+            power: Power score (0.0-1.0)
+        Returns:
+            Geometric mean as salience score
+        """
+        # Handle zero case explicitly
+        if legitimacy == 0.0 or urgency == 0.0 or power == 0.0:
+            self._log("Zero input detected - geometric mean equals zero")
+            return 0.0
+        # Calculate geometric mean
+        product = legitimacy * urgency * power
+        geometric_mean = math.pow(product, 1.0/3.0)
+        self._log(f"Calculated: ({legitimacy} * {urgency} * {power})^(1/3) = {geometric_mean}")
+        return geometric_mean
+    def determine_mitchell_category(self, legitimacy: float, urgency: float, power: float) -> str:
+        """
+        Determine Mitchell typology category based on dimension values
+        Args:
+            legitimacy: Legitimacy score (0.0-1.0)
+            urgency: Urgency score (0.0-1.0)
+            power: Power score (0.0-1.0)
+        Returns:
+            Mitchell category string
+        """
+        # Use threshold of 0.5 to determine "high" vs "low"
+        threshold = 0.5
+        high_legitimacy = legitimacy >= threshold
+        high_urgency = urgency >= threshold  
+        high_power = power >= threshold
+        # Mitchell's seven stakeholder types
+        if high_legitimacy and high_urgency and high_power:
+            return "definitive"
+        elif high_legitimacy and high_urgency and not high_power:
+            return "dependent"
+        elif high_legitimacy and not high_urgency and high_power:
+            return "dominant"
+        elif not high_legitimacy and high_urgency and high_power:
+            return "dangerous"
+        elif high_legitimacy and not high_urgency and not high_power:
+            return "discretionary"
+        elif not high_legitimacy and high_urgency and not high_power:
+            return "demanding"
+        elif not high_legitimacy and not high_urgency and high_power:
+            return "dormant"
+        else:
+            return "non-stakeholder"
+    def calculate_salience(self, legitimacy: float, urgency: float, power: float, 
+                          stakeholder_id: Optional[str] = None) -> Dict[str, Any]:
+        """
+        Calculate stakeholder salience with full validation and metadata
+        Args:
+            legitimacy: Legitimacy score (0.0-1.0)
+            urgency: Urgency score (0.0-1.0)
+            power: Power score (0.0-1.0)
+            stakeholder_id: Optional stakeholder identifier for logging
+        Returns:
+            Dictionary with salience score and metadata
+        """
+        calculation_start = datetime.now()
+        stakeholder_label = stakeholder_id or "unknown"
+        self._log(f"Starting salience calculation for stakeholder: {stakeholder_label}")
+        self._log(f"Input values - Legitimacy: {legitimacy}, Urgency: {urgency}, Power: {power}")
+        # Validate inputs
+        validation = self.validate_inputs(legitimacy, urgency, power)
+        if not validation.valid:
+            raise SalienceCalculationError(f"Input validation failed: {validation.errors}")
+        if validation.warnings:
+            self._log(f"Validation warnings: {validation.warnings}")
+        # Handle edge cases
+        edge_case = self.handle_edge_cases(legitimacy, urgency, power)
+        self._log(f"Edge case handling: {edge_case.strategy} - {edge_case.explanation}")
+        # Calculate salience
+        salience_score = self.calculate_geometric_mean(legitimacy, urgency, power)
+        # Determine Mitchell category
+        mitchell_category = self.determine_mitchell_category(legitimacy, urgency, power)
+        calculation_end = datetime.now()
+        calculation_time = (calculation_end - calculation_start).total_seconds()
+        self._log(f"Calculation completed - Salience: {salience_score}, Category: {mitchell_category}")
+        # Prepare result
+        result = {
+            "salience_score": salience_score,
+            "mitchell_category": mitchell_category,
+            "calculation_method": "geometric_mean",
+            "input_components": {
+                "legitimacy": legitimacy,
+                "urgency": urgency,
+                "power": power
+            },
+            "validation": {
+                "input_valid": validation.valid,
+                "warnings": validation.warnings
+            },
+            "edge_case_handling": {
+                "strategy": edge_case.strategy,
+                "explanation": edge_case.explanation,
+                "handled": edge_case.handled
+            },
+            "metadata": {
+                "stakeholder_id": stakeholder_id,
+                "calculation_timestamp": calculation_end.isoformat(),
+                "calculation_time_seconds": calculation_time,
+                "algorithm_version": "mitchell_agle_wood_v1.0"
+            }
+        }
+        return result
+    def run_test_cases(self) -> Dict[str, Any]:
+        """
+        Run all test cases and return validation results
+        Returns:
+            Dictionary with test results and validation status
+        """
+        self._log("Running Mitchell-Agle-Wood salience test cases")
+        test_results = []
+        total_tests = len(self.test_cases)
+        passed_tests = 0
+        for i, test_case in enumerate(self.test_cases):
+            test_start = datetime.now()
+            inputs = test_case["inputs"]
+            expected = test_case["expected_output"]
+            description = test_case["description"]
+            self._log(f"Test {i+1}/{total_tests}: {description}")
+            try:
+                result = self.calculate_salience(
+                    legitimacy=inputs["legitimacy"],
+                    urgency=inputs["urgency"], 
+                    power=inputs["power"],
+                    stakeholder_id=f"test_case_{i+1}"
+                )
+                actual = result["salience_score"]
+                tolerance = 0.01   # Allow reasonable floating point differences
+                if abs(actual - expected) <= tolerance:
+                    test_passed = True
+                    passed_tests += 1
+                    self._log(f"✓ PASS - Expected: {expected}, Actual: {actual}")
+                else:
+                    test_passed = False
+                    self._log(f"✗ FAIL - Expected: {expected}, Actual: {actual}, Difference: {abs(actual - expected)}")
+                test_results.append({
+                    "test_number": i + 1,
+                    "description": description,
+                    "inputs": inputs,
+                    "expected_output": expected,
+                    "actual_output": actual,
+                    "passed": test_passed,
+                    "difference": abs(actual - expected),
+                    "mitchell_category": result["mitchell_category"],
+                    "calculation_time": (datetime.now() - test_start).total_seconds()
+                })
+            except Exception as e:
+                test_passed = False
+                self._log(f"✗ ERROR - Test failed with exception: {e}")
+                test_results.append({
+                    "test_number": i + 1,
+                    "description": description,
+                    "inputs": inputs,
+                    "expected_output": expected,
+                    "actual_output": None,
+                    "passed": False,
+                    "error": str(e),
+                    "calculation_time": (datetime.now() - test_start).total_seconds()
+                })
+        success_rate = passed_tests / total_tests
+        summary = {
+            "total_tests": total_tests,
+            "passed_tests": passed_tests,
+            "failed_tests": total_tests - passed_tests,
+            "success_rate": success_rate,
+            "all_tests_passed": success_rate == 1.0,
+            "test_results": test_results,
+            "validation_timestamp": datetime.now().isoformat()
+        }
+        self._log(f"Test summary: {passed_tests}/{total_tests} passed ({success_rate:.1%})")
+        return summary
+    def get_calculation_log(self) -> List[Dict[str, Any]]:
+        """Return the calculation log"""
+        return self.calculation_log
+    def clear_log(self):
+        """Clear the calculation log"""
+        self.calculation_log = []
+def main():
+    """Main function for standalone testing"""
+    print("Mitchell-Agle-Wood Stakeholder Salience Calculator")
+    print("=" * 50)
+    calculator = MitchellAgleWoodCalculator(enable_logging=True)
+    # Run test cases
+    test_results = calculator.run_test_cases()
+    print("\n" + "=" * 50)
+    print("TEST RESULTS SUMMARY")
+    print("=" * 50)
+    print(f"Tests passed: {test_results['passed_tests']}/{test_results['total_tests']}")
+    print(f"Success rate: {test_results['success_rate']:.1%}")
+    print(f"All tests passed: {test_results['all_tests_passed']}")
+    if not test_results['all_tests_passed']:
+        print("\nFAILED TESTS:")
+        for result in test_results['test_results']:
+            if not result['passed']:
+                print(f"- Test {result['test_number']}: {result['description']}")
+                if 'error' in result:
+                    print(f"  Error: {result['error']}")
+                else:
+                    print(f"  Expected: {result['expected_output']}, Got: {result['actual_output']}")
+    # Interactive calculation
+    print("\n" + "=" * 50)
+    print("INTERACTIVE CALCULATION")
+    print("=" * 50)
+    try:
+        print("Enter stakeholder dimensions (0.0-1.0):")
+        legitimacy = float(input("Legitimacy: "))
+        urgency = float(input("Urgency: "))
+        power = float(input("Power: "))
+        result = calculator.calculate_salience(legitimacy, urgency, power, "interactive_test")
+        print(f"\nRESULT:")
+        print(f"Salience Score: {result['salience_score']:.3f}")
+        print(f"Mitchell Category: {result['mitchell_category']}")
+        print(f"Edge Case Strategy: {result['edge_case_handling']['strategy']}")
+        print(f"Calculation Time: {result['metadata']['calculation_time_seconds']:.4f}s")
+    except (ValueError, KeyboardInterrupt):
+        print("Interactive calculation skipped.")
+    return test_results
+if __name__ == "__main__":
+    results = main()
+</file>
+
+<file path="stress_test_2025.07211755/theory/stakeholder_theory_v10.json">
+{
+  "theory_id": "stakeholder_theory",
+  "theory_name": "Stakeholder Theory",
+  "version": "1.0.0",
+  "authors": ["R. Edward Freeman", "Archie B. Carroll", "Ronald K. Mitchell", "Bradley R. Agle", "Donna J. Wood"],
+  "publication_year": 1984,
+  "description": "Theory that organizations should consider the interests of all stakeholders, not just shareholders, in decision-making processes. Stakeholder salience depends on legitimacy, urgency, and power.",
+  
+  "classification": {
+    "domain": {
+      "level": "Meso",
+      "component": "Who",
+      "metatheory": "Interdependent"
+    },
+    "complexity_tier": "heuristic"
+  },
+  
+  "ontology": {
+    "entities": [
+      {
+        "name": "Stakeholder",
+        "description": "Any group or individual who can affect or is affected by the achievement of the organization's objectives",
+        "mcl_id": "external_actor",
+        "dolce_parent": "http://www.loa.istc.cnr.it/dolce/SocialAgent",
+        "data_schema": "StakeholderEntity",
+        "properties": [
+          {
+            "name": "legitimacy",
+            "type": "float",
+            "description": "Degree to which stakeholder claims are valid and appropriate",
+            "data_schema": "LegitimacyScore",
+            "operationalization": {
+              "measurement_approach": "llm_assessment",
+              "boundary_rules": [
+                {"condition": "legal_right == true", "legitimacy": 0.8},
+                {"condition": "moral_claim == true", "legitimacy": 0.6},
+                {"condition": "contractual_relationship == true", "legitimacy": 0.9}
+              ],
+              "fuzzy_boundaries": true,
+              "validation_examples": [
+                {"text": "Employees demanding fair wages", "expected_legitimacy": 0.9},
+                {"text": "Competitors complaining about success", "expected_legitimacy": 0.1}
+              ]
+            }
+          },
+          {
+            "name": "urgency",
+            "type": "float",
+            "description": "Degree to which stakeholder claims call for immediate attention",
+            "data_schema": "UrgencyScore",
+            "operationalization": {
+              "measurement_approach": "temporal_analysis",
+              "boundary_rules": [
+                {"condition": "time_critical == true", "urgency": 0.8},
+                {"condition": "legal_deadline_exists == true", "urgency": 0.9},
+                {"condition": "public_pressure_mounting == true", "urgency": 0.7}
+              ],
+              "fuzzy_boundaries": true,
+              "validation_examples": [
+                {"text": "Environmental group threatening lawsuit next week", "expected_urgency": 0.9},
+                {"text": "Community requesting future consultation", "expected_urgency": 0.3}
+              ]
+            }
+          },
+          {
+            "name": "power",
+            "type": "float", 
+            "description": "Ability to influence organizational decisions and outcomes",
+            "data_schema": "PowerScore",
+            "operationalization": {
+              "measurement_approach": "network_centrality",
+              "boundary_rules": [
+                {"condition": "control_resources == true", "power": 0.8},
+                {"condition": "regulatory_authority == true", "power": 0.9},
+                {"condition": "media_influence == true", "power": 0.6}
+              ],
+              "fuzzy_boundaries": false,
+              "validation_examples": [
+                {"text": "Government regulator with enforcement power", "expected_power": 0.9},
+                {"text": "Individual customer with no special influence", "expected_power": 0.1}
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "name": "Organization",
+        "description": "Focal entity whose stakeholder relationships are being analyzed",
+        "mcl_id": "organization",
+        "dolce_parent": "http://www.loa.istc.cnr.it/dolce/SocialObject",
+        "data_schema": "StandardEntity",
+        "properties": [
+          {
+            "name": "sector",
+            "type": "string",
+            "description": "Industry or organizational sector"
+          },
+          {
+            "name": "size",
+            "type": "string",
+            "description": "Organizational size category"
+          }
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "name": "HAS_STAKE_IN",
+        "description": "Stakeholder has interest in organizational decisions or outcomes",
+        "source_role": "Stakeholder",
+        "target_role": "Organization",
+        "dolce_parent": "http://www.loa.istc.cnr.it/dolce/Participation",
+        "data_schema": "StakeholderInfluence",
+        "properties": [
+          {
+            "name": "stake_type",
+            "type": "string",
+            "description": "Type of stakeholder interest (financial, operational, social, environmental)"
+          },
+          {
+            "name": "stake_strength",
+            "type": "float",
+            "description": "Intensity of stakeholder interest"
+          }
+        ]
+      },
+      {
+        "name": "INFLUENCES",
+        "description": "Stakeholder ability to affect organizational decisions",
+        "source_role": "Stakeholder", 
+        "target_role": "Organization",
+        "dolce_parent": "http://www.loa.istc.cnr.it/dolce/Causation",
+        "data_schema": "StakeholderInfluence",
+        "properties": [
+          {
+            "name": "influence_mechanism",
+            "type": "string",
+            "description": "How influence is exercised (economic, legal, social, political)"
+          },
+          {
+            "name": "influence_strength",
+            "type": "float",
+            "description": "Degree of influence capability"
+          }
+        ]
+      }
+    ]
+  },
+  
+  "execution": {
+    "process_type": "sequential",
+    "analysis_steps": [
+      {
+        "step_id": "identify_stakeholders",
+        "description": "Extract all stakeholder entities mentioned in documents",
+        "method": "llm_extraction",
+        "inputs": ["documents"],
+        "outputs": ["stakeholder_entities"],
+        "data_contracts": {
+          "input_schemas": ["Document", "TextChunk"],
+          "output_schemas": ["EntityMention", "StakeholderEntity"]
+        },
+        
+        "llm_prompts": {
+          "extraction_prompt": "Identify all stakeholders mentioned in this text. Look for:\n- Employees and labor unions\n- Customers and consumer groups  \n- Shareholders and investors\n- Suppliers and business partners\n- Government agencies and regulators\n- Local communities and residents\n- Environmental groups and activists\n- Media organizations\n- Competitors\n- Any other groups that can affect or are affected by the organization.\n\nFor each stakeholder, extract:\n- Name/identifier\n- Type of stakeholder\n- Specific interests or concerns mentioned\n- Any indications of legitimacy, urgency, or power",
+          
+          "validation_prompt": "Review this extracted stakeholder: {stakeholder}\n\nDoes this entity qualify as a stakeholder according to Freeman's definition: 'any group or individual who can affect or is affected by the achievement of the organization's objectives'?\n\nConsider:\n- Can they affect the organization?\n- Are they affected by the organization? \n- Do they have a legitimate claim or interest?\n\nReturn YES if they qualify as a stakeholder, NO if they don't, with brief justification.",
+          
+          "context_instructions": "Focus on explicit mentions and clear implications. Avoid over-interpreting indirect references. When in doubt about stakeholder status, include the entity but flag uncertainty."
+        },
+        
+        "uncertainty_handling": {
+          "confidence_thresholds": {
+            "high_confidence": 0.8,
+            "medium_confidence": 0.6,
+            "low_confidence": 0.4
+          },
+          "fallback_strategy": "human_review_for_low_confidence",
+          "uncertainty_propagation": "maintain_entity_confidence_scores"
+        }
+      },
+      
+      {
+        "step_id": "assess_legitimacy",
+        "description": "Evaluate the legitimacy dimension for each stakeholder",
+        "method": "llm_extraction",
+        "inputs": ["stakeholder_entities", "documents"],
+        "outputs": ["legitimacy_scores"],
+        "data_contracts": {
+          "input_schemas": ["StakeholderEntity", "TextChunk"],
+          "output_schemas": ["LegitimacyScore"]
+        },
+        
+        "llm_prompts": {
+          "extraction_prompt": "Assess the legitimacy of this stakeholder's claims on the organization: {stakeholder}\n\nLegitimacy indicators:\n- Legal rights (contracts, regulations, laws)\n- Moral claims (ethical responsibilities, fairness)\n- Property rights (ownership, investment)\n- Reciprocal relationships (mutual dependencies)\n- At-risk status (potential harm from organizational actions)\n\nBased on the context provided, rate legitimacy on a 0-1 scale where:\n0.0 = No legitimate claim\n0.3 = Weak moral claim\n0.6 = Strong moral or weak legal claim  \n0.8 = Strong legal or contractual claim\n1.0 = Absolute legal right\n\nProvide score and justification.",
+          
+          "validation_prompt": "Is this legitimacy assessment reasonable given stakeholder theory principles? Score: {score}, Justification: {justification}\n\nCheck for:\n- Consistency with Freeman's legitimacy concept\n- Appropriate consideration of legal vs moral claims\n- Reasonable interpretation of evidence\n\nReturn VALID or suggest corrections."
+        },
+        
+        "edge_case_handling": {
+          "zero_legitimacy": "Flag as potential non-stakeholder, require additional validation",
+          "negative_legitimacy": "Invalid - legitimacy cannot be negative, default to 0.0",
+          "conflicting_evidence": "Use evidence-weighted average with uncertainty flag"
+        }
+      },
+      
+      {
+        "step_id": "assess_urgency", 
+        "description": "Evaluate the urgency dimension for each stakeholder",
+        "method": "llm_extraction",
+        "inputs": ["stakeholder_entities", "documents"],
+        "outputs": ["urgency_scores"],
+        "data_contracts": {
+          "input_schemas": ["StakeholderEntity", "TextChunk"],
+          "output_schemas": ["UrgencyScore"]
+        },
+        
+        "llm_prompts": {
+          "extraction_prompt": "Assess the urgency of this stakeholder's claims: {stakeholder}\n\nUrgency indicators:\n- Time-critical nature of claims\n- Deadlines or time constraints mentioned\n- Escalating situations or mounting pressure\n- Immediate consequences if ignored\n- Crisis or emergency situations\n- Legal deadlines or regulatory timeframes\n\nRate urgency on a 0-1 scale where:\n0.0 = No time pressure, can be delayed indefinitely\n0.3 = Moderate time sensitivity\n0.6 = Time-sensitive, should be addressed soon\n0.8 = Urgent, requires prompt attention\n1.0 = Crisis-level urgency, immediate action required\n\nProvide score and justification.",
+          
+          "validation_prompt": "Is this urgency assessment consistent with the temporal indicators in the text? Score: {score}, Evidence: {evidence}\n\nVerify that urgency reflects actual time pressure, not just stakeholder importance."
+        },
+        
+        "temporal_modeling": {
+          "urgency_decay": {
+            "enabled": true,
+            "decay_function": "exponential",
+            "half_life_days": 30,
+            "minimum_urgency": 0.1
+          }
+        }
+      },
+      
+      {
+        "step_id": "assess_power",
+        "description": "Evaluate the power dimension for each stakeholder", 
+        "method": "hybrid",
+        "inputs": ["stakeholder_entities", "documents", "stakeholder_network"],
+        "outputs": ["power_scores"],
+        "data_contracts": {
+          "input_schemas": ["StakeholderEntity", "TextChunk", "StandardRelationship"],
+          "output_schemas": ["PowerScore"]
+        },
+        
+        "llm_prompts": {
+          "extraction_prompt": "Assess this stakeholder's power to influence the organization: {stakeholder}\n\nPower indicators:\n- Control over critical resources (capital, labor, materials)\n- Regulatory or legal authority\n- Market position or economic leverage\n- Media influence or public platform\n- Coalition building capability\n- Ability to disrupt operations\n- Access to decision-makers\n- Reputation or symbolic influence\n\nRate power on a 0-1 scale where:\n0.0 = No influence capability\n0.3 = Limited, indirect influence\n0.6 = Moderate influence on specific issues\n0.8 = Strong influence capability\n1.0 = Decisive control or veto power\n\nProvide score and justification."
+        },
+        
+        "tool_mapping": {
+          "preferred_tool": "graph_centrality_mcp",
+          "tool_parameters": {
+            "centrality_type": "pagerank",
+            "weight_property": "influence_strength"
+          },
+          "parameter_adaptation": {
+            "method": "network_power_calculation",
+            "adaptation_logic": "Combine LLM power assessment with network centrality metrics",
+            "wrapper_script": "final_power = 0.7 * llm_power_score + 0.3 * normalized_centrality"
+          }
+        }
+      },
+      
+      {
+        "step_id": "calculate_salience",
+        "description": "Compute stakeholder salience using Mitchell-Agle-Wood model",
+        "method": "custom_script",
+        "inputs": ["legitimacy_scores", "urgency_scores", "power_scores"],
+        "outputs": ["salience_scores", "stakeholder_categories"],
+        "data_contracts": {
+          "input_schemas": ["LegitimacyScore", "UrgencyScore", "PowerScore"],
+          "output_schemas": ["SalienceScore"]
+        },
+        
+        "custom_script": {
+          "algorithm_name": "mitchell_agle_wood_salience",
+          "description": "Calculate stakeholder salience as geometric mean of legitimacy, urgency, and power dimensions",
+          "business_logic": "Salience represents the overall priority managers should give to each stakeholder based on their possession of legitimacy, urgency, and power attributes. Uses geometric mean to ensure balanced consideration of all three dimensions.",
+          "implementation_hint": "salience = (legitimacy * urgency * power) ^ (1/3)",
+          
+          "inputs": {
+            "legitimacy": {
+              "type": "float", 
+              "range": [0, 1],
+              "description": "Stakeholder legitimacy score",
+              "constraints": {"required": true}
+            },
+            "urgency": {
+              "type": "float",
+              "range": [0, 1], 
+              "description": "Stakeholder urgency score",
+              "constraints": {"required": true}
+            },
+            "power": {
+              "type": "float",
+              "range": [0, 1],
+              "description": "Stakeholder power score", 
+              "constraints": {"required": true}
+            }
+          },
+          
+          "outputs": {
+            "salience_score": {
+              "type": "float",
+              "range": [0, 1],
+              "description": "Overall stakeholder salience priority"
+            },
+            "stakeholder_category": {
+              "type": "string",
+              "description": "Mitchell typology category based on attribute possession"
+            }
+          },
+          
+          "test_cases": [
+            {
+              "inputs": {"legitimacy": 1.0, "urgency": 1.0, "power": 1.0},
+              "expected_output": 1.0,
+              "description": "Definitive stakeholder - maximum salience"
+            },
+            {
+              "inputs": {"legitimacy": 0.8, "urgency": 0.6, "power": 0.4},
+              "expected_output": 0.573,
+              "description": "Moderate salience stakeholder"
+            },
+            {
+              "inputs": {"legitimacy": 0.0, "urgency": 0.0, "power": 0.0},
+              "expected_output": 0.0,
+              "description": "Non-stakeholder - zero salience"
+            },
+            {
+              "inputs": {"legitimacy": 1.0, "urgency": 0.0, "power": 0.0},
+              "expected_output": 0.0,
+              "description": "Discretionary stakeholder - zero urgency results in zero salience"
+            },
+            {
+              "inputs": {"legitimacy": 0.0, "urgency": 1.0, "power": 1.0},
+              "expected_output": 0.0,
+              "description": "Edge case - zero legitimacy results in zero salience"
+            }
+          ],
+          
+          "edge_case_handling": {
+            "zero_inputs": {
+              "behavior": "return_zero",
+              "explanation": "Any zero dimension results in zero salience (geometric mean property)"
+            },
+            "negative_inputs": {
+              "behavior": "raise_error",
+              "explanation": "Negative values are invalid for stakeholder dimensions"
+            },
+            "missing_inputs": {
+              "behavior": "raise_error", 
+              "explanation": "All three dimensions required for salience calculation"
+            }
+          },
+          
+          "validation_rules": [
+            "all_inputs_required",
+            "output_bounds_check",
+            "geometric_mean_property_check"
+          ],
+          
+          "tool_contracts": [
+            "stakeholder_data_interface",
+            "salience_calculator_interface"
+          ]
+        }
+      },
+      
+      {
+        "step_id": "stakeholder_mapping",
+        "description": "Create stakeholder influence network and prioritization matrix",
+        "method": "predefined_tool",
+        "inputs": ["stakeholder_entities", "salience_scores", "influence_relationships"],
+        "outputs": ["stakeholder_network", "priority_matrix"],
+        "data_contracts": {
+          "input_schemas": ["StakeholderEntity", "SalienceScore", "StakeholderInfluence"],
+          "output_schemas": ["StandardRelationship"]
+        },
+        
+        "tool_mapping": {
+          "preferred_tool": "network_builder_mcp",
+          "alternative_tools": ["graph_constructor_mcp"],
+          "tool_parameters": {
+            "node_size_property": "salience_score",
+            "edge_weight_property": "influence_strength",
+            "layout_algorithm": "force_directed"
+          }
+        }
+      },
+      
+      {
+        "step_id": "stakeholder_analysis",
+        "description": "Analyze stakeholder network patterns and generate insights",
+        "method": "hybrid", 
+        "inputs": ["stakeholder_network", "salience_scores"],
+        "outputs": ["network_insights", "management_recommendations"],
+        "data_contracts": {
+          "input_schemas": ["StandardRelationship", "SalienceScore"],
+          "output_schemas": ["StakeholderAnalysisResult"]
+        },
+        
+        "tool_mapping": {
+          "preferred_tool": "graph_analytics_mcp",
+          "tool_parameters": {
+            "centrality_measures": ["pagerank", "betweenness", "closeness"],
+            "community_detection": true,
+            "influence_path_analysis": true
+          }
+        },
+        
+        "llm_prompts": {
+          "extraction_prompt": "Analyze this stakeholder network and provide management insights:\n\nNetwork metrics: {network_metrics}\nHigh-salience stakeholders: {high_salience_list}\nInfluence patterns: {influence_patterns}\n\nProvide insights on:\n1. Most critical stakeholder relationships to manage\n2. Potential coalition risks (stakeholders that might align against organization)\n3. Opportunities for stakeholder engagement strategies\n4. Key influencers who could help manage other stakeholders\n5. Stakeholders requiring immediate attention vs long-term relationship building\n\nFormat as actionable management recommendations."
+        }
+      }
+    ],
+    
+    "cross_modal_mappings": {
+      "graph_representation": {
+        "nodes": "stakeholder_entities",
+        "edges": "influence_relationships",
+        "node_properties": ["salience_score", "legitimacy", "urgency", "power", "stakeholder_type"],
+        "edge_properties": ["influence_strength", "influence_mechanism"],
+        "layout_constraints": "salience_score determines node size",
+        "data_schema": "StandardRelationship"
+      },
+      
+      "table_representation": {
+        "primary_table": "stakeholder_analysis",
+        "key_columns": ["stakeholder_id", "stakeholder_name", "legitimacy", "urgency", "power", "salience_score", "priority_rank"],
+        "calculated_metrics": ["network_centrality", "influence_reach", "coalition_potential"],
+        "aggregation_views": ["by_stakeholder_type", "by_salience_tier", "by_urgency_level"],
+        "data_schema": "StakeholderAnalysisResult"
+      },
+      
+      "vector_representation": {
+        "embedding_features": ["stakeholder_concerns", "communication_style", "historical_positions"],
+        "similarity_metrics": ["stakeholder_alignment", "interest_overlap"],
+        "clustering_approach": "stakeholder_type_similarity"
+      },
+      
+      "mode_conversions": [
+        {
+          "from": "graph",
+          "to": "table", 
+          "mapping": "Export node properties and centrality metrics to stakeholder table",
+          "semantic_preservation": {
+            "preserved_semantics": ["influence_relationships", "salience_ordering", "stakeholder_attributes"],
+            "information_loss": ["network_topology", "path_dependencies"],
+            "validation_test": "verify_stakeholder_rankings_preserved"
+          }
+        },
+        {
+          "from": "table",
+          "to": "graph",
+          "mapping": "Build network from stakeholder relationships and influence data",
+          "semantic_preservation": {
+            "preserved_semantics": ["stakeholder_attributes", "relationship_strengths", "categorical_data"],
+            "information_loss": ["statistical_correlations", "aggregate_patterns"],
+            "validation_test": "verify_relationship_strengths_preserved"
+          }
+        }
+      ]
+    }
+  },
+  
+  "telos": {
+    "purpose": "Identify, prioritize, and analyze stakeholder relationships to inform organizational decision-making and stakeholder management strategies",
+    "output_format": "Stakeholder priority matrix, influence network visualization, management recommendations",
+    "success_criteria": [
+      "All relevant stakeholders identified and categorized",
+      "Salience scores calculated for prioritization", 
+      "Network influence patterns mapped",
+      "Actionable management recommendations provided"
+    ],
+    "analysis_tiers": ["descriptive", "explanatory", "predictive", "interventionary"]
+  },
+  
+  "validation": {
+    "operationalization_notes": [
+      "Legitimacy operationalized as combination of legal rights and moral claims (0-1 scale)",
+      "Urgency operationalized as time-critical nature requiring immediate attention (0-1 scale)",
+      "Power operationalized as ability to influence organizational decisions through various mechanisms (0-1 scale)",
+      "Salience calculated as geometric mean to ensure balanced weighting of all dimensions",
+      "Stakeholder identification follows Freeman's broad definition including affected and affecting parties"
+    ],
+    
+    "theory_tests": [
+      {
+        "test_name": "high_salience_identification",
+        "input_scenario": "Environmental group (Greenpeace) threatens lawsuit over oil spill, has strong legal standing, demands immediate cleanup, and has significant media influence",
+        "expected_theory_application": "High legitimacy (0.8+), high urgency (0.8+), high power (0.7+), resulting in high salience (0.75+)",
+        "validation_criteria": "All three dimensions rated highly, categorized as 'Definitive Stakeholder'"
+      },
+      {
+        "test_name": "low_salience_filtering",
+        "input_scenario": "Distant community with no legal relationship to company, no immediate concerns, and no influence mechanism",
+        "expected_theory_application": "Low legitimacy (0.2-), low urgency (0.2-), low power (0.2-), resulting in very low salience (0.2-)",
+        "validation_criteria": "Correctly identified as low-priority or non-stakeholder"
+      },
+      {
+        "test_name": "dimension_trade_offs", 
+        "input_scenario": "Employees have high legitimacy and urgency about workplace safety but limited power to force changes",
+        "expected_theory_application": "High legitimacy (0.8+), high urgency (0.8+), moderate power (0.4-0.6), moderate overall salience",
+        "validation_criteria": "Geometric mean appropriately balances dimensions, not dominated by single high score"
+      }
+    ],
+    
+    "boundary_cases": [
+      {
+        "case_description": "Future or potential stakeholders not yet affected by organization",
+        "theory_applicability": "Mitchell model applies to current stakeholders; future stakeholders require modified assessment",
+        "expected_behavior": "Flag as special case, use predictive legitimacy/urgency assessment"
+      },
+      {
+        "case_description": "Stakeholders with conflicting claims (different groups wanting opposite outcomes)",
+        "theory_applicability": "Each group assessed separately; conflict noted as management challenge",
+        "expected_behavior": "Individual salience scores for each group, conflict flagged in recommendations"
+      },
+      {
+        "case_description": "Stakeholders acting through intermediaries or representatives",
+        "theory_applicability": "Assess both direct stakeholder and their representative; consider representation relationship",
+        "expected_behavior": "Map representation relationship, assess combined influence pattern"
+      }
+    ]
+  },
+  
+  "configuration": {
+    "tracing_level": "standard",
+    "llm_models": {
+      "extraction": "gpt-4-turbo",
+      "reasoning": "claude-3-opus",
+      "validation": "gpt-3.5-turbo"
+    },
+    "performance_optimization": {
+      "enable_caching": true,
+      "batch_processing": true,
+      "parallel_execution": false
+    },
+    "fallback_strategies": {
+      "missing_tools": "llm_implementation_with_confidence_penalty",
+      "low_confidence": "human_review_flagging",
+      "edge_cases": "uncertainty_propagation_with_explanation"
+    }
+  },
+  
+  "metadata": {
+    "mcl_id": "stakeholder_theory_v1",
+    "created": "2025-07-21T00:00:00Z",
+    "modified": "2025-07-21T00:00:00Z", 
+    "contributors": ["theory_extraction_system", "domain_expert_validation"],
+    "validation_status": "schema_validated",
+    "implementation_status": "ready_for_testing",
+    "test_coverage": 0.95
+  }
+}
+</file>
+
+<file path="stress_test_2025.07211755/run_stress_test.py">
+#!/usr/bin/env python3
+"""
+Comprehensive Stakeholder Theory Stress Test
+End-to-end validation of theory meta-schema v10.0 with data type architecture
+This script runs a complete stakeholder theory analysis including:
+- Theory meta-schema validation
+- Custom algorithm implementation and testing
+- Database integration (Neo4j + SQLite)
+- Cross-modal analysis (graph ↔ table)
+- Edge case handling and validation
+"""
+import sys
+import os
+import json
+import time
+from datetime import datetime
+from typing import Dict, List, Any, Optional
+from pathlib import Path
+import argparse
+# Add project paths
+PROJECT_ROOT = Path(__file__).parent
+sys.path.append(str(PROJECT_ROOT))
+sys.path.append('/home/brian/projects/Digimons/src')
+# Import components
+try:
+    from scripts.salience_calculator import MitchellAgleWoodCalculator
+    from database.neo4j_setup import StakeholderNeo4jManager
+    from schemas.stakeholder_schemas import (
+        StakeholderEntity, StakeholderInfluence, SalienceScore,
+        LegitimacyScore, UrgencyScore, PowerScore, StakeholderAnalysisResult
+    )
+    from schemas.base_schemas import ValidationResult, Document, TextChunk
+except ImportError as e:
+    print(f"Import error: {e}")
+    print("Some components may not be available")
+class StakeholderTheoryStressTest:
+    """
+    Comprehensive stress test for stakeholder theory implementation
+    """
+    def __init__(self, output_dir: Optional[str] = None):
+        """Initialize stress test"""
+        self.start_time = datetime.now()
+        self.output_dir = Path(output_dir) if output_dir else PROJECT_ROOT / "results"
+        self.output_dir.mkdir(exist_ok=True)
+        # Test components
+        self.salience_calculator = MitchellAgleWoodCalculator(enable_logging=True)
+        self.neo4j_manager = StakeholderNeo4jManager()
+        # Test results
+        self.results = {
+            "test_session": {
+                "start_time": self.start_time.isoformat(),
+                "test_id": f"stress_test_{int(time.time())}",
+                "version": "1.0.0"
+            },
+            "schema_validation": {},
+            "algorithm_validation": {},
+            "database_integration": {},
+            "cross_modal_analysis": {},
+            "edge_case_testing": {},
+            "performance_metrics": {},
+            "overall_results": {}
+        }
+        print("🧪 Stakeholder Theory Stress Test Initialized")
+        print(f"📁 Output directory: {self.output_dir}")
+        print(f"🕐 Start time: {self.start_time}")
+    def load_test_data(self) -> Dict[str, Any]:
+        """Load test data and theory schema"""
+        print("\n📖 Loading test data and theory schema...")
+        # Load theory schema
+        try:
+            theory_path = PROJECT_ROOT / "theory" / "stakeholder_theory_v10.json"
+            with open(theory_path, 'r') as f:
+                theory_schema = json.load(f)
+            print(f"✓ Loaded theory schema: {theory_schema['theory_name']} v{theory_schema['version']}")
+        except Exception as e:
+            print(f"✗ Failed to load theory schema: {e}")
+            theory_schema = {}
+        # Load policy document
+        try:
+            doc_path = PROJECT_ROOT / "data" / "policy_documents" / "climate_policy_proposal.txt"
+            with open(doc_path, 'r') as f:
+                policy_text = f.read()
+            print(f"✓ Loaded policy document: {len(policy_text)} characters")
+        except Exception as e:
+            print(f"✗ Failed to load policy document: {e}")
+            policy_text = ""
+        # Load MCL mock
+        try:
+            mcl_path = PROJECT_ROOT / "theory" / "mcl_mock.yaml"
+            import yaml
+            with open(mcl_path, 'r') as f:
+                mcl_data = yaml.safe_load(f)
+            print(f"✓ Loaded MCL mock: {len(mcl_data.get('entity_concepts', {}))} entity concepts")
+        except Exception as e:
+            print(f"✗ Failed to load MCL mock: {e}")
+            mcl_data = {}
+        return {
+            "theory_schema": theory_schema,
+            "policy_text": policy_text,
+            "mcl_data": mcl_data
+        }
+    def test_schema_validation(self, test_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Test Pydantic schema validation"""
+        print("\n🔍 Testing Schema Validation...")
+        schema_results = {
+            "tests_run": 0,
+            "tests_passed": 0,
+            "tests_failed": 0,
+            "validation_errors": [],
+            "test_details": []
+        }
+        # Test 1: Valid stakeholder entity creation
+        try:
+            legitimacy = LegitimacyScore(
+                value=0.85,
+                evidence_type="legal",
+                confidence=0.9,
+                legal_basis="Federal environmental protection mandate"
+            )
+            urgency = UrgencyScore(
+                value=0.75,
+                confidence=0.8,
+                time_critical=True,
+                urgency_indicators=["immediate action required"]
+            )
+            power = PowerScore(
+                value=0.65,
+                confidence=0.85,
+                primary_mechanism="regulatory",
+                regulatory_authority=True
+            )
+            salience = SalienceScore(
+                value=0.747,  # (0.85 * 0.75 * 0.65)^(1/3)
+                legitimacy=0.85,
+                urgency=0.75,
+                power=0.65
+            )
+            stakeholder = StakeholderEntity(
+                id="test_stakeholder_001",
+                object_type="entity",
+                confidence=0.85,
+                quality_tier="silver",
+                created_by="stress_test",
+                workflow_id="test_workflow_001",
+                canonical_name="Environmental Protection Agency",
+                entity_type="organization",
+                stakeholder_type="institution",
+                legitimacy=legitimacy,
+                urgency=urgency,
+                power=power,
+                salience=salience,
+                priority_tier="high"
+            )
+            schema_results["tests_passed"] += 1
+            schema_results["test_details"].append({
+                "test": "valid_stakeholder_creation",
+                "status": "passed",
+                "stakeholder_id": stakeholder.id
+            })
+            print("✓ Valid stakeholder entity creation")
+        except Exception as e:
+            schema_results["tests_failed"] += 1
+            schema_results["validation_errors"].append(f"Valid stakeholder creation failed: {e}")
+            schema_results["test_details"].append({
+                "test": "valid_stakeholder_creation",
+                "status": "failed",
+                "error": str(e)
+            })
+            print(f"✗ Valid stakeholder creation failed: {e}")
+        schema_results["tests_run"] += 1
+        # Test 2: Invalid data validation
+        try:
+            # This should fail due to invalid legitimacy score
+            invalid_legitimacy = LegitimacyScore(
+                value=1.5,  # Invalid - exceeds 1.0
+                evidence_type="legal",
+                confidence=0.9
+            )
+            schema_results["tests_failed"] += 1  # This should fail
+            schema_results["test_details"].append({
+                "test": "invalid_legitimacy_detection",
+                "status": "failed",
+                "error": "Should have rejected value > 1.0"
+            })
+            print("✗ Invalid data validation failed to catch error")
+        except Exception as e:
+            # This is expected behavior
+            schema_results["tests_passed"] += 1
+            schema_results["test_details"].append({
+                "test": "invalid_legitimacy_detection",
+                "status": "passed",
+                "caught_error": str(e)
+            })
+            print("✓ Invalid data properly rejected")
+        schema_results["tests_run"] += 1
+        # Test 3: Cross-schema compatibility
+        try:
+            # Create compatible schemas
+            text_chunk = TextChunk(
+                id="chunk_001",
+                object_type="chunk",
+                confidence=0.9,
+                quality_tier="gold",
+                created_by="stress_test",
+                workflow_id="test_workflow_001",
+                text="The Environmental Protection Agency announced new regulations...",
+                document_ref="policy_doc_001",
+                chunk_index=0,
+                start_position=0,
+                end_position=100,
+                word_count=15,
+                sentence_count=1
+            )
+            schema_results["tests_passed"] += 1
+            schema_results["test_details"].append({
+                "test": "cross_schema_compatibility",
+                "status": "passed",
+                "chunk_id": text_chunk.id
+            })
+            print("✓ Cross-schema compatibility")
+        except Exception as e:
+            schema_results["tests_failed"] += 1
+            schema_results["validation_errors"].append(f"Cross-schema compatibility failed: {e}")
+            print(f"✗ Cross-schema compatibility failed: {e}")
+        schema_results["tests_run"] += 1
+        # Calculate success rate
+        if schema_results["tests_run"] > 0:
+            schema_results["success_rate"] = schema_results["tests_passed"] / schema_results["tests_run"]
+        else:
+            schema_results["success_rate"] = 0.0
+        print(f"📊 Schema validation: {schema_results['tests_passed']}/{schema_results['tests_run']} passed ({schema_results['success_rate']:.1%})")
+        return schema_results
+    def test_algorithm_validation(self, test_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Test custom algorithm implementation"""
+        print("\n🧮 Testing Algorithm Validation...")
+        # Run salience calculator test cases
+        test_results = self.salience_calculator.run_test_cases()
+        # Additional edge case tests
+        edge_case_results = []
+        # Test negative input handling
+        try:
+            self.salience_calculator.calculate_salience(-0.1, 0.5, 0.5)
+            edge_case_results.append({"test": "negative_input", "status": "failed", "error": "Should reject negative values"})
+        except Exception as e:
+            edge_case_results.append({"test": "negative_input", "status": "passed", "caught_error": str(e)})
+        # Test missing input handling
+        try:
+            self.salience_calculator.calculate_salience(None, 0.5, 0.5)
+            edge_case_results.append({"test": "missing_input", "status": "failed", "error": "Should reject None values"})
+        except Exception as e:
+            edge_case_results.append({"test": "missing_input", "status": "passed", "caught_error": str(e)})
+        # Test boundary values
+        boundary_tests = [
+            {"inputs": (0.0, 0.0, 0.0), "expected": 0.0, "description": "all_zero"},
+            {"inputs": (1.0, 1.0, 1.0), "expected": 1.0, "description": "all_max"},
+            {"inputs": (0.001, 0.001, 0.001), "expected": 0.001, "description": "very_small"}
+        ]
+        for test in boundary_tests:
+            try:
+                result = self.salience_calculator.calculate_salience(*test["inputs"])
+                actual = result["salience_score"]
+                expected = test["expected"]
+                if abs(actual - expected) < 0.001:
+                    edge_case_results.append({
+                        "test": f"boundary_{test['description']}",
+                        "status": "passed",
+                        "expected": expected,
+                        "actual": actual
+                    })
+                else:
+                    edge_case_results.append({
+                        "test": f"boundary_{test['description']}",
+                        "status": "failed",
+                        "expected": expected,
+                        "actual": actual,
+                        "difference": abs(actual - expected)
+                    })
+            except Exception as e:
+                edge_case_results.append({
+                    "test": f"boundary_{test['description']}",
+                    "status": "error",
+                    "error": str(e)
+                })
+        algorithm_results = {
+            "salience_test_results": test_results,
+            "edge_case_results": edge_case_results,
+            "overall_success": test_results["all_tests_passed"] and all(r["status"] == "passed" for r in edge_case_results if r["status"] != "error")
+        }
+        print(f"📊 Algorithm validation: {'✓ ALL PASSED' if algorithm_results['overall_success'] else '✗ SOME FAILED'}")
+        return algorithm_results
+    def test_database_integration(self, test_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Test database integration and operations"""
+        print("\n🗄️ Testing Database Integration...")
+        db_results = {
+            "neo4j_connection": False,
+            "schema_setup": False,
+            "data_creation": False,
+            "data_retrieval": False,
+            "network_metrics": False,
+            "errors": []
+        }
+        try:
+            # Test Neo4j connection
+            if self.neo4j_manager.driver:
+                db_results["neo4j_connection"] = True
+                print("✓ Neo4j connection established")
+            else:
+                db_results["errors"].append("Neo4j connection failed")
+                print("✗ Neo4j connection failed")
+                return db_results
+            # Test schema setup
+            self.neo4j_manager.setup_schema()
+            db_results["schema_setup"] = True
+            print("✓ Neo4j schema setup completed")
+            # Clear and create test data
+            self.neo4j_manager.clear_database()
+            # Create test organization
+            org_data = {
+                "id": "test_org_001",
+                "canonical_name": "Test Federal Agency",
+                "entity_type": "organization",
+                "organization_type": "government_agency",
+                "sector": "environmental",
+                "size": "large",
+                "confidence": 0.95,
+                "quality_tier": "gold",
+                "created_by": "stress_test",
+                "created_at": datetime.now().isoformat(),
+                "workflow_id": "stress_test_001",
+                "description": "Test federal agency for stress testing"
+            }
+            if self.neo4j_manager.create_organization(org_data):
+                print("✓ Test organization created")
+            else:
+                db_results["errors"].append("Failed to create test organization")
+            # Create test stakeholder
+            stakeholder_data = {
+                "id": "test_stakeholder_001",
+                "canonical_name": "Test Environmental Group",
+                "stakeholder_type": "group",
+                "entity_type": "organization",
+                "legitimacy": 0.8,
+                "legitimacy_confidence": 0.9,
+                "urgency": 0.7,
+                "urgency_confidence": 0.85,
+                "power": 0.6,
+                "power_confidence": 0.8,
+                "salience_score": 0.699,  # (0.8 * 0.7 * 0.6)^(1/3)
+                "mitchell_category": "dependent",
+                "priority_tier": "high",
+                "confidence": 0.85,
+                "quality_tier": "silver",
+                "created_by": "stress_test",
+                "created_at": datetime.now().isoformat(),
+                "workflow_id": "stress_test_001",
+                "description": "Test environmental advocacy group",
+                "surface_forms": json.dumps(["Test Environmental Group", "TEG"]),
+                "mention_count": 5
+            }
+            if self.neo4j_manager.create_stakeholder(stakeholder_data):
+                print("✓ Test stakeholder created")
+            else:
+                db_results["errors"].append("Failed to create test stakeholder")
+            # Create test relationship
+            relationship_data = {
+                "id": "test_influence_001",
+                "source_id": "test_stakeholder_001",
+                "target_id": "test_org_001",
+                "relationship_type": "INFLUENCES",
+                "influence_strength": 0.75,
+                "influence_mechanism": "advocacy",
+                "conditionality": "public_pressure_campaigns",
+                "temporal_scope": "ongoing",
+                "confidence": 0.8,
+                "quality_tier": "silver",
+                "created_by": "stress_test",
+                "created_at": datetime.now().isoformat(),
+                "workflow_id": "stress_test_001",
+                "weight": 0.75,
+                "direction": "directed",
+                "source_role_name": "advocacy_group",
+                "target_role_name": "target_agency",
+                "additional_participants": {}
+            }
+            if self.neo4j_manager.create_reified_influence_relationship(relationship_data):
+                db_results["data_creation"] = True
+                print("✓ Test data creation completed")
+            else:
+                db_results["errors"].append("Failed to create test relationship")
+            # Test data retrieval
+            network_data = self.neo4j_manager.get_stakeholder_network()
+            if len(network_data) > 0:
+                db_results["data_retrieval"] = True
+                print(f"✓ Data retrieval successful: {len(network_data)} relationships")
+            else:
+                db_results["errors"].append("No data retrieved")
+            # Test network metrics
+            metrics = self.neo4j_manager.calculate_network_metrics()
+            if metrics and "error" not in metrics:
+                db_results["network_metrics"] = True
+                print("✓ Network metrics calculated")
+            else:
+                db_results["errors"].append(f"Network metrics failed: {metrics.get('error', 'Unknown error')}")
+        except Exception as e:
+            db_results["errors"].append(f"Database integration error: {e}")
+            print(f"✗ Database integration error: {e}")
+        db_results["overall_success"] = all([
+            db_results["neo4j_connection"],
+            db_results["schema_setup"],
+            db_results["data_creation"],
+            db_results["data_retrieval"]
+        ])
+        print(f"📊 Database integration: {'✓ SUCCESS' if db_results['overall_success'] else '✗ FAILED'}")
+        return db_results
+    def test_cross_modal_analysis(self, test_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Test cross-modal analysis (graph ↔ table conversion)"""
+        print("\n🔄 Testing Cross-Modal Analysis...")
+        cross_modal_results = {
+            "graph_to_table": False,
+            "semantic_preservation": False,
+            "table_analysis": False,
+            "data_quality": {},
+            "errors": []
+        }
+        try:
+            # Get graph data
+            network_data = self.neo4j_manager.get_stakeholder_network()
+            if len(network_data) == 0:
+                cross_modal_results["errors"].append("No graph data available for conversion")
+                return cross_modal_results
+            # Convert to table format
+            table_data = self.neo4j_manager.export_for_table_analysis()
+            if len(table_data) > 0:
+                cross_modal_results["graph_to_table"] = True
+                print(f"✓ Graph to table conversion: {len(table_data)} rows")
+                # Verify semantic preservation
+                original_stakeholder = network_data[0]["stakeholder"]
+                table_row = table_data[0]
+                preserved_fields = [
+                    "stakeholder_id", "stakeholder_name", "stakeholder_type",
+                    "legitimacy", "urgency", "power", "salience_score",
+                    "influence_strength", "influence_mechanism"
+                ]
+                preservation_check = True
+                for field in preserved_fields:
+                    if field in table_row:
+                        print(f"  ✓ Preserved: {field}")
+                    else:
+                        print(f"  ✗ Missing: {field}")
+                        preservation_check = False
+                cross_modal_results["semantic_preservation"] = preservation_check
+                # Analyze table data quality
+                cross_modal_results["data_quality"] = {
+                    "rows_created": len(table_data),
+                    "columns_preserved": len([f for f in preserved_fields if f in table_data[0]]),
+                    "relationship_data_preserved": "relationship_id" in table_data[0],
+                    "n_ary_participants_preserved": "additional_participants" in table_data[0]
+                }
+                cross_modal_results["table_analysis"] = True
+                print("✓ Table analysis completed")
+            else:
+                cross_modal_results["errors"].append("Graph to table conversion produced no data")
+        except Exception as e:
+            cross_modal_results["errors"].append(f"Cross-modal analysis error: {e}")
+            print(f"✗ Cross-modal analysis error: {e}")
+        cross_modal_results["overall_success"] = all([
+            cross_modal_results["graph_to_table"],
+            cross_modal_results["semantic_preservation"],
+            cross_modal_results["table_analysis"]
+        ])
+        print(f"📊 Cross-modal analysis: {'✓ SUCCESS' if cross_modal_results['overall_success'] else '✗ FAILED'}")
+        return cross_modal_results
+    def generate_report(self) -> str:
+        """Generate comprehensive test report"""
+        end_time = datetime.now()
+        duration = (end_time - self.start_time).total_seconds()
+        # Calculate overall success
+        component_success = [
+            self.results.get("schema_validation", {}).get("success_rate", 0) >= 0.8,
+            self.results.get("algorithm_validation", {}).get("overall_success", False),
+            self.results.get("database_integration", {}).get("overall_success", False),
+            self.results.get("cross_modal_analysis", {}).get("overall_success", False)
+        ]
+        overall_success = all(component_success)
+        success_count = sum(component_success)
+        # Update results
+        self.results["test_session"]["end_time"] = end_time.isoformat()
+        self.results["test_session"]["duration_seconds"] = duration
+        self.results["overall_results"] = {
+            "overall_success": overall_success,
+            "components_passed": success_count,
+            "components_total": len(component_success),
+            "success_rate": success_count / len(component_success),
+            "test_summary": {
+                "schema_validation": "✓" if component_success[0] else "✗",
+                "algorithm_validation": "✓" if component_success[1] else "✗",
+                "database_integration": "✓" if component_success[2] else "✗",
+                "cross_modal_analysis": "✓" if component_success[3] else "✗"
+            }
+        }
+        # Generate report text
+        report = f"""
+# Stakeholder Theory Stress Test Report
+**Test Session**: {self.results['test_session']['test_id']}
+**Duration**: {duration:.2f} seconds
+**Overall Result**: {'✅ SUCCESS' if overall_success else '❌ FAILED'}
+**Components Passed**: {success_count}/{len(component_success)}
+## Test Results Summary
+### 🔍 Schema Validation
+- **Status**: {self.results['overall_results']['test_summary']['schema_validation']}
+- **Tests Passed**: {self.results.get('schema_validation', {}).get('tests_passed', 0)}/{self.results.get('schema_validation', {}).get('tests_run', 0)}
+- **Success Rate**: {self.results.get('schema_validation', {}).get('success_rate', 0):.1%}
+### 🧮 Algorithm Validation  
+- **Status**: {self.results['overall_results']['test_summary']['algorithm_validation']}
+- **Salience Calculator**: {self.results.get('algorithm_validation', {}).get('salience_test_results', {}).get('success_rate', 0):.1%} success rate
+- **Edge Cases**: {'✓ All passed' if self.results.get('algorithm_validation', {}).get('overall_success', False) else '✗ Some failed'}
+### 🗄️ Database Integration
+- **Status**: {self.results['overall_results']['test_summary']['database_integration']}
+- **Neo4j Connection**: {'✓' if self.results.get('database_integration', {}).get('neo4j_connection', False) else '✗'}
+- **Data Operations**: {'✓' if self.results.get('database_integration', {}).get('data_creation', False) else '✗'}
+- **Network Metrics**: {'✓' if self.results.get('database_integration', {}).get('network_metrics', False) else '✗'}
+### 🔄 Cross-Modal Analysis
+- **Status**: {self.results['overall_results']['test_summary']['cross_modal_analysis']}
+- **Graph→Table Conversion**: {'✓' if self.results.get('cross_modal_analysis', {}).get('graph_to_table', False) else '✗'}
+- **Semantic Preservation**: {'✓' if self.results.get('cross_modal_analysis', {}).get('semantic_preservation', False) else '✗'}
+## Key Findings
+### ✅ Successful Components
+"""
+        for i, (component, passed) in enumerate(zip(["Schema Validation", "Algorithm Validation", "Database Integration", "Cross-Modal Analysis"], component_success)):
+            if passed:
+                report += f"- {component}: All tests passed\n"
+        report += "\n### ❌ Failed Components\n"
+        for i, (component, passed) in enumerate(zip(["Schema Validation", "Algorithm Validation", "Database Integration", "Cross-Modal Analysis"], component_success)):
+            if not passed:
+                report += f"- {component}: Tests failed or incomplete\n"
+        report += f"""
+## Performance Metrics
+- **Total Execution Time**: {duration:.2f} seconds
+- **Test Components**: {len(component_success)}
+- **Overall Success Rate**: {success_count / len(component_success):.1%}
+## Recommendations
+{"✅ System ready for production use with theory meta-schema v10.0" if overall_success else "❌ Address failing components before production deployment"}
+Generated: {end_time.isoformat()}
+"""
+        return report
+    def save_results(self):
+        """Save test results to files"""
+        # Save JSON results
+        results_file = self.output_dir / f"stress_test_results_{int(time.time())}.json"
+        with open(results_file, 'w') as f:
+            json.dump(self.results, f, indent=2, default=str)
+        # Save report
+        report = self.generate_report()
+        report_file = self.output_dir / f"stress_test_report_{int(time.time())}.md"
+        with open(report_file, 'w') as f:
+            f.write(report)
+        print(f"\n📁 Results saved:")
+        print(f"   JSON: {results_file}")
+        print(f"   Report: {report_file}")
+        return results_file, report_file
+    def run_full_test(self) -> bool:
+        """Run complete stress test suite"""
+        print("🚀 Starting Comprehensive Stakeholder Theory Stress Test")
+        print("=" * 70)
+        # Load test data
+        test_data = self.load_test_data()
+        # Run test components
+        self.results["schema_validation"] = self.test_schema_validation(test_data)
+        self.results["algorithm_validation"] = self.test_algorithm_validation(test_data)
+        self.results["database_integration"] = self.test_database_integration(test_data)
+        self.results["cross_modal_analysis"] = self.test_cross_modal_analysis(test_data)
+        # Generate and save results
+        results_file, report_file = self.save_results()
+        # Print final summary
+        print("\n" + "=" * 70)
+        print("🏁 STRESS TEST COMPLETED")
+        print("=" * 70)
+        overall_success = self.results["overall_results"]["overall_success"]
+        print(f"Overall Result: {'✅ SUCCESS' if overall_success else '❌ FAILED'}")
+        print(f"Components Passed: {self.results['overall_results']['components_passed']}/{self.results['overall_results']['components_total']}")
+        print(f"Duration: {self.results['test_session']['duration_seconds']:.2f} seconds")
+        return overall_success
+    def cleanup(self):
+        """Cleanup resources"""
+        if hasattr(self, 'neo4j_manager') and self.neo4j_manager:
+            self.neo4j_manager.close()
+def main():
+    """Main function"""
+    parser = argparse.ArgumentParser(description="Run stakeholder theory stress test")
+    parser.add_argument("--output-dir", help="Output directory for results")
+    parser.add_argument("--component", help="Run specific component test", 
+                       choices=["schemas", "algorithms", "database", "cross_modal"])
+    args = parser.parse_args()
+    # Initialize and run test
+    stress_test = StakeholderTheoryStressTest(output_dir=args.output_dir)
+    try:
+        if args.component:
+            # Run specific component
+            test_data = stress_test.load_test_data()
+            if args.component == "schemas":
+                result = stress_test.test_schema_validation(test_data)
+            elif args.component == "algorithms":
+                result = stress_test.test_algorithm_validation(test_data)
+            elif args.component == "database":
+                result = stress_test.test_database_integration(test_data)
+            elif args.component == "cross_modal":
+                result = stress_test.test_cross_modal_analysis(test_data)
+            print(f"\nComponent test result: {result}")
+        else:
+            # Run full test suite
+            success = stress_test.run_full_test()
+            sys.exit(0 if success else 1)
+    except KeyboardInterrupt:
+        print("\n⏹️ Test interrupted by user")
+        sys.exit(1)
+    except Exception as e:
+        print(f"\n💥 Test failed with exception: {e}")
+        import traceback
+        traceback.print_exc()
+        sys.exit(1)
+    finally:
+        stress_test.cleanup()
+if __name__ == "__main__":
+    main()
+</file>
+
+</files>

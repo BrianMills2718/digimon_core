@@ -1,0 +1,76 @@
+project_name: "Architecture Documentation Consistency Review"
+
+include_patterns:
+  - "docs/architecture/cross-modal-analysis.md"
+  - "docs/architecture/concepts/cross-modal-philosophy.md"
+  - "docs/architecture/data/theory-meta-schema-v10.md"
+  - "docs/architecture/ARCHITECTURE_OVERVIEW.md"
+  - "docs/architecture/concepts/uncertainty-architecture.md"
+  - "docs/architecture/data/mcl-concept-mediation-specification.md"
+  - "docs/architecture/systems/tool-contract-validation-specification.md"
+  - "src/core/cross_modal_entity.py"
+  - "docs/planning/integration-insights-2025-07-21.md"
+  - "docs/planning/cross-modal-preservation-implementation-report.md"
+  - "docs/planning/complete-architecture-documentation-updates-2025-07-21.md"
+
+custom_prompt: |
+  Please conduct a comprehensive consistency review of the KGAS architecture documentation updates that were just implemented. Focus on identifying any inconsistencies, contradictions, or gaps across the documentation.
+
+  ## SPECIFIC AREAS TO REVIEW:
+
+  ### 1. Cross-Modal Analysis Consistency
+  - Are the technical specifications in cross-modal-analysis.md consistent with the philosophy in cross-modal-philosophy.md?
+  - Do the implementation claims match the evidence in src/core/cross_modal_entity.py?
+  - Are the 100% semantic preservation claims consistent across all files?
+  - Is the CrossModalEntity system described consistently?
+
+  ### 2. Meta-Schema Framework Consistency  
+  - Are the implementation status claims in theory-meta-schema-v10.md accurate?
+  - Do the security warnings about eval() usage appear consistently?
+  - Are the rule execution success claims (100%, 45 evaluations) consistent?
+  - Do the validation evidence references match actual implementation files?
+
+  ### 3. Integration Architecture Consistency
+  - Are the "production ready" and validation status claims consistent across files?
+  - Do the integration scores and success metrics match across documents?
+  - Are the evidence file references accurate and consistent?
+  - Is the Gemini AI validation claim consistent?
+
+  ### 4. Uncertainty Framework Consistency
+  - Are the CERQual framework validation claims consistent?
+  - Do the 18 ADR-004 research file references match reality?
+  - Are the validation claims for discourse analysis consistent?
+  - Is the academic context validation described consistently?
+
+  ### 5. New Specification Documents Consistency
+  - Do the MCL and Tool Contract specifications match claims in other files?
+  - Are the technical implementation details consistent with main architecture?
+  - Do the validation evidence references point to correct files?
+  - Are the integration points described consistently?
+
+  ### 6. Evidence and Implementation Consistency
+  - Do the file paths and line number references actually exist and match?
+  - Are the quantified metrics (100%, 99%, etc.) consistent across files?
+  - Do the implementation evidence claims match the actual code?
+  - Are the third-party validation claims accurate?
+
+  ### 7. Status and Timeline Consistency
+  - Are the dates (2025-07-21, 2025-07-20) used consistently?
+  - Do the status indicators (✅, ⚠️, etc.) match across files?
+  - Are the validation timeframes consistent?
+
+  ## OUTPUT REQUIREMENTS:
+
+  For each inconsistency found, provide:
+  1. **Location**: Specific files and sections where inconsistency appears
+  2. **Description**: What the inconsistency is
+  3. **Severity**: Critical/Major/Minor
+  4. **Recommendation**: How to resolve the inconsistency
+
+  Also verify:
+  - All file path references are accurate
+  - All quantified claims are consistent
+  - All validation evidence claims are verifiable
+  - All cross-references between documents are accurate
+
+  Focus on factual accuracy, internal consistency, and evidence traceability rather than writing style.

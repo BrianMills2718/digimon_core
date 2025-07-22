@@ -247,4 +247,4 @@ result = workflow.execute_workflow("document.pdf", "What are the main entities?"
 ---
 
 **📝 Note**: This registry represents the complete technical capability of the GraphRAG system as of June 2025. For operational status and quality assessment of individual capabilities, see `PROJECT_STATUS.md`.-e 
-<br><sup>See `docs/planning/roadmap.md` for master plan.</sup>
+<br><sup>See `docs/roadmap/ROADMAP_OVERVIEW.md` for master plan.</sup>

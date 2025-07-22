@@ -1,0 +1,48 @@
+project_name: "Comprehensive Stakeholder Theory Implementation Validation"
+output_file: "comprehensive_validation.md"
+
+include_patterns:
+  - "run_stress_test.py"
+  - "salience_calculator.py"
+  - "results/stress_test_report_1753146572.md"
+
+custom_prompt: |
+  VALIDATION OBJECTIVE: Verify the completeness and correctness of stakeholder theory stress test implementation claims.
+
+  SPECIFIC CLAIMS TO VALIDATE:
+
+  1. **COMPREHENSIVE STRESS TEST FRAMEWORK** (run_stress_test.py):
+     - Complete end-to-end testing orchestrator implemented
+     - Four distinct test components: schema validation, algorithm validation, database integration, cross-modal analysis
+     - Real test execution with results saving and reporting
+     - Performance metrics and success rate calculation
+
+  2. **MITCHELL-AGLE-WOOD SALIENCE CALCULATOR** (salience_calculator.py):
+     - Geometric mean calculation implementation: (legitimacy × urgency × power)^(1/3)
+     - Edge case handling for zero inputs, boundary values, and floating point precision
+     - Comprehensive test cases with 100% success rate achievement
+     - Mitchell stakeholder categorization (definitive, dependent, dominant, etc.)
+     - Input validation and error handling
+
+  3. **100% SUCCESS VALIDATION** (results/stress_test_report_1753146572.md):
+     - All four test components achieved 100% success rate
+     - Real execution results with performance metrics
+     - Production-ready system validation
+     - Comprehensive test coverage demonstration
+
+  VALIDATION CRITERIA FOR EACH CLAIM:
+  - **Implementation Present**: Does the claimed functionality exist in the specified files?
+  - **Functionality Complete**: Is it fully implemented with working code (not stubs/placeholders)?
+  - **Requirements Met**: Does it satisfy the specific technical requirements mentioned?
+  - **Test Results Valid**: Do the claimed success rates match actual test execution results?
+
+  EXPECTED EVIDENCE:
+  - Specific line numbers referencing the implemented features
+  - Actual code analysis showing complete implementations
+  - Verification of test results and success metrics
+  - Assessment of technical architecture completeness
+
+  Please provide a detailed analysis with:
+  - ✅ FULLY RESOLVED: Complete implementation with evidence
+  - ⚠️ PARTIALLY RESOLVED: Implementation present but with limitations
+  - ❌ NOT RESOLVED: Missing or incomplete implementation

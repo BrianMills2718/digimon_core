@@ -2,7 +2,11 @@
 
 **Status**: Target Architecture  
 **Purpose**: Single source of truth for KGAS final architecture  
-**Stability**: Changes only when architectural goals change
+**Stability**: Changes only when architectural goals change  
+
+**This document defines the target system architecture for KGAS (Knowledge Graph Analysis System). It describes the intended design and component relationships that guide implementation. For current implementation status, see the [Roadmap Overview](../../ROADMAP_OVERVIEW.md).**
+
+---
 
 ## System Vision
 
@@ -30,12 +34,29 @@ KGAS (Knowledge Graph Analysis System) is a theory-aware, cross-modal analysis p
 - **Reproducibility first** with complete provenance tracking
 - **Flexibility over performance** for exploratory research
 
+### 5. Fail-Fast Design Philosophy
+- **Immediate error exposure**: Problems surface immediately rather than being masked
+- **Input validation**: Rigorous validation at system boundaries
+- **Complete failure**: System fails entirely on critical errors rather than degrading
+- **Evidence-based operation**: All functionality backed by validation evidence
+
 ## High-Level Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                    User Interface Layer                      │
 │         (Natural Language → Agent → Workflow → Results)      │
+└─────────────────────────────────────────────────────────────┘
+                              │
+┌─────────────────────────────────────────────────────────────┐
+│                Multi-Layer Agent Interface                   │
+│  ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐ │
+│  │   Layer 1:      │ │   Layer 2:      │ │   Layer 3:      │ │
+│  │Agent-Controlled │ │Agent-Assisted   │ │Manual Control   │ │
+│  │                 │ │                 │ │                 │ │
+│  │NL→YAML→Execute  │ │YAML Review      │ │Direct YAML      │ │
+│  │Complete Auto    │ │User Approval    │ │Expert Control   │ │
+│  └─────────────────┘ └─────────────────┘ └─────────────────┘ │
 └─────────────────────────────────────────────────────────────┘
                               │
 ┌─────────────────────────────────────────────────────────────┐
@@ -51,6 +72,8 @@ KGAS (Knowledge Graph Analysis System) is a theory-aware, cross-modal analysis p
 │  │PipelineOrchestrator│ │IdentityService │ │PiiService   │ │
 │  ├────────────────────┤ ├────────────────┤ ├─────────────┤ │
 │  │AnalyticsService    │ │TheoryRepository│ │QualityService│ │
+│  ├────────────────────┤ ├────────────────┤ ├─────────────┤ │
+│  │ProvenanceService   │ │WorkflowEngine  │ │SecurityMgr  │ │
 │  └────────────────────┘ └────────────────┘ └─────────────┘ │
 └─────────────────────────────────────────────────────────────┘
                               │
@@ -65,10 +88,28 @@ KGAS (Knowledge Graph Analysis System) is a theory-aware, cross-modal analysis p
 
 ## Component Architecture
 
+**📝 [See Detailed Component Architecture](systems/COMPONENT_ARCHITECTURE_DETAILED.md)** for complete specifications including interfaces, algorithms, and pseudo-code examples.
+
 ### User Interface Layer
 - **[Agent Interface](agent-interface.md)**: Three-layer interface (automated, assisted, manual)
 - **[MCP Integration](systems/mcp-integration-architecture.md)**: LLM tool orchestration protocol
 - **Workflow Engine**: YAML-based reproducible workflows
+
+### Multi-Layer Agent Interface
+#### Layer 1: Agent-Controlled
+- **Complete automation**: Natural language → YAML → execution
+- **No user intervention**: Fully autonomous workflow generation
+- **Optimal for**: Standard research patterns and common analysis tasks
+
+#### Layer 2: Agent-Assisted  
+- **Human-in-the-loop**: Agent generates YAML, user reviews and approves
+- **Quality control**: User validates before execution
+- **Optimal for**: Complex research requiring validation
+
+#### Layer 3: Manual Control
+- **Expert control**: Direct YAML workflow creation and modification
+- **Maximum flexibility**: Custom workflows and edge cases
+- **Optimal for**: Novel research methodologies and system debugging
 
 ### Cross-Modal Analysis Layer
 - **[Cross-Modal Analysis](cross-modal-analysis.md)**: Fluid movement between representations
@@ -76,14 +117,16 @@ KGAS (Knowledge Graph Analysis System) is a theory-aware, cross-modal analysis p
 - **[Provenance Tracking](specifications/PROVENANCE.md)**: Complete source traceability
 
 ### Core Services Layer
-- **[Pipeline Orchestrator](adrs/ADR-002-Pipeline-Orchestrator-Architecture.md)**: Workflow coordination
-- **[Service Architecture](systems/)**:  Modular service design
-- **[Tool Contracts](adrs/ADR-001-Phase-Interface-Design.md)**: Standardized interfaces
+- **[Pipeline Orchestrator](systems/COMPONENT_ARCHITECTURE_DETAILED.md#1-pipeline-orchestrator)**: Workflow coordination with topological sorting
+- **[Analytics Service](systems/COMPONENT_ARCHITECTURE_DETAILED.md#2-analytics-service)**: Cross-modal orchestration with mode selection algorithms
+- **[Identity Service](systems/COMPONENT_ARCHITECTURE_DETAILED.md#3-identity-service)**: Context-aware entity resolution with multi-factor scoring
+- **[Theory Repository](systems/COMPONENT_ARCHITECTURE_DETAILED.md#4-theory-repository)**: Theory schema management and validation
+- **[Provenance Service](systems/COMPONENT_ARCHITECTURE_DETAILED.md#5-provenance-service)**: Complete lineage tracking for reproducibility
 
 ### Data Storage Layer
-- **[Bi-Store Architecture](data/bi-store-justification.md)**: Neo4j + SQLite design
+- **[Bi-Store Architecture](data/bi-store-justification.md)**: Neo4j + SQLite design with trade-off analysis
 - **[Data Models](data/schemas.md)**: Entity, relationship, and metadata schemas
-- **[Vector Storage](adrs/ADR-003-Vector-Store-Consolidation.md)**: Native Neo4j vectors
+- **[Vector Storage](adrs/ADR-003-Vector-Store-Consolidation.md)**: Native Neo4j vectors with HNSW indexing
 
 ## Theory Integration Architecture
 
@@ -108,6 +151,24 @@ KGAS (Knowledge Graph Analysis System) is a theory-aware, cross-modal analysis p
 
 See **[Uncertainty Architecture](concepts/uncertainty-architecture.md)** for details.
 
+## MCP Integration Architecture
+
+KGAS exposes all system capabilities through the Model Context Protocol (MCP) for comprehensive external tool access:
+
+### Complete Tool Access
+- **121+ KGAS tools** accessible via standardized MCP interface
+- **Multiple client support**: Works with Claude Desktop, custom Streamlit UI, and other MCP clients
+- **Security framework**: Comprehensive security measures addressing MCP protocol vulnerabilities
+- **Performance optimization**: Mitigation strategies for MCP limitations (40-tool barrier, context scaling)
+
+### MCP Server Integration
+- **FastMCP framework**: Production-grade MCP server implementation
+- **External access**: Tool access for Claude Desktop, ChatGPT, and other LLM clients
+- **Type-safe interfaces**: Standardized tool protocols
+- **Complete documentation**: Auto-generated capability registry
+
+See [MCP Architecture Details](systems/mcp-integration-architecture.md) for comprehensive integration specifications.
+
 ## Quality Attributes
 
 ### Performance
@@ -130,14 +191,108 @@ See **[Uncertainty Architecture](concepts/uncertainty-architecture.md)** for det
 - **Contract-first design**: Stable interfaces
 - **Comprehensive logging**: Structured operational logs
 
+## Key Architectural Trade-offs
+
+### 1. Single-Node vs Distributed Architecture
+
+**Decision**: Single-node architecture optimized for academic research
+
+**Trade-offs**:
+- ✅ **Simplicity**: Easier deployment, maintenance, and debugging
+- ✅ **Cost**: Lower infrastructure and operational costs
+- ✅ **Consistency**: Simplified data consistency without distributed transactions
+- ❌ **Scalability**: Limited to vertical scaling (~1M entities practical limit)
+- ❌ **Availability**: No built-in redundancy or failover
+
+**Rationale**: Academic research projects typically process thousands of documents, not millions. The simplicity benefits outweigh scalability limitations for the target use case.
+
+### 2. Bi-Store (Neo4j + SQLite) vs Alternative Architectures
+
+**Decision**: Neo4j for graph/vectors, SQLite for metadata/workflow
+
+**Trade-offs**:
+- ✅ **Optimized Storage**: Each database used for its strengths
+- ✅ **Native Features**: Graph algorithms in Neo4j, SQL queries in SQLite
+- ✅ **Simplicity**: Simpler than tri-store, avoids PostgreSQL complexity
+- ❌ **Consistency**: Cross-database transactions not atomic
+- ❌ **Integration**: Requires entity ID synchronization
+
+**Rationale**: The bi-store provides the right balance of capability and complexity. See [ADR-003](adrs/ADR-003-Vector-Store-Consolidation.md) for detailed analysis.
+
+### 3. Theory-First vs Data-First Processing
+
+**Decision**: Theory-aware extraction with domain ontologies
+
+**Trade-offs**:
+- ✅ **Quality**: Higher quality extractions aligned with domain knowledge
+- ✅ **Research Value**: Enables theory validation and testing
+- ✅ **Consistency**: Standardized concepts across analyses
+- ❌ **Complexity**: Requires theory schema management
+- ❌ **Coverage**: May miss emergent patterns not in theories
+
+**Rationale**: KGAS targets theory-driven research where quality and theoretical alignment matter more than discovering completely novel patterns.
+
+### 4. Contract-First Tool Design vs Flexible Interfaces
+
+**Decision**: All tools implement standardized contracts
+
+**Trade-offs**:
+- ✅ **Integration**: Tools compose without custom logic
+- ✅ **Testing**: Standardized testing across all tools
+- ✅ **Agent Orchestration**: Enables intelligent tool selection
+- ❌ **Flexibility**: Tools must fit the contract model
+- ❌ **Migration Effort**: Existing tools need refactoring
+
+**Rationale**: The long-term benefits of standardization outweigh short-term migration costs. See [ADR-001](adrs/ADR-001-Phase-Interface-Design.md).
+
+### 5. Comprehensive Uncertainty vs Simple Confidence
+
+**Decision**: 4-layer uncertainty architecture with CERQual framework
+
+**Trade-offs**:
+- ✅ **Research Quality**: Publication-grade uncertainty quantification
+- ✅ **Decision Support**: Rich information for interpretation
+- ✅ **Flexibility**: Configurable complexity levels
+- ❌ **Complexity**: Harder to implement and understand
+- ❌ **Performance**: Additional computation overhead
+
+**Rationale**: Research credibility requires sophisticated uncertainty handling. The architecture allows starting simple and adding layers as needed.
+
+### 6. LLM Integration Approach
+
+**Decision**: LLM for ontology generation and mode selection, not core processing
+
+**Trade-offs**:
+- ✅ **Reproducibility**: Core processing deterministic
+- ✅ **Cost Control**: LLM used strategically, not for every operation
+- ✅ **Flexibility**: Can swap LLM providers
+- ❌ **Capability**: May miss LLM advances in extraction
+- ❌ **Integration**: Requires careful prompt engineering
+
+**Rationale**: Balances advanced capabilities with research requirements for reproducibility and cost management.
+
+### 7. MCP Protocol for Tool Access
+
+**Decision**: All tools exposed via Model Context Protocol
+
+**Trade-offs**:
+- ✅ **Ecosystem**: Integrates with Claude, ChatGPT, etc.
+- ✅ **Standardization**: Industry-standard protocol
+- ✅ **External Access**: Tools available to any MCP client
+- ❌ **Overhead**: Additional protocol layer
+- ❌ **Limitations**: MCP's 40-tool discovery limit
+
+**Rationale**: MCP provides immediate integration with LLM ecosystems, outweighing protocol overhead.
+
 ## Architecture Decision Records
 
 Key architectural decisions are documented in ADRs:
 
-- **[ADR-001](adrs/ADR-001-Phase-Interface-Design.md)**: Contract-first tool interfaces
+- **[ADR-001](adrs/ADR-001-Phase-Interface-Design.md)**: Contract-first tool interfaces with trade-off analysis
 - **[ADR-002](adrs/ADR-002-Pipeline-Orchestrator-Architecture.md)**: Pipeline orchestration design  
-- **[ADR-003](adrs/ADR-003-Vector-Store-Consolidation.md)**: Bi-store data architecture
-- **[ADR-004](adrs/ADR-004-Normative-Confidence-Score-Ontology.md)**: Uncertainty quantification
+- **[ADR-003](adrs/ADR-003-Vector-Store-Consolidation.md)**: Bi-store data architecture with detailed trade-offs
+- **[ADR-004](adrs/ADR-004-Normative-Confidence-Score-Ontology.md)**: Uncertainty quantification approach
+- **[ADR-005](adrs/ADR-005-buy-vs-build-strategy.md)**: Strategic buy vs build decisions for external services
 
 ## Related Documentation
 
@@ -147,14 +302,18 @@ Key architectural decisions are documented in ADRs:
 - **[Systems](systems/)**: Component detailed designs
 - **[Specifications](specifications/)**: Formal specifications
 
-### Implementation Guidance
-**NOT IN THIS DOCUMENT** - See [Roadmap](../planning/roadmap.md) for:
-- Current implementation status
-- Development phases
+### Implementation Status
+**NOT IN THIS DOCUMENT** - See [Roadmap Overview](../../ROADMAP_OVERVIEW.md) for:
+- Current implementation status and progress
+- Development phases and completion evidence
 - Known issues and limitations
 - Timeline and milestones
+- Phase-specific implementation evidence
 
 ## Architecture Governance
+
+### Tool Ecosystem Governance
+**[See Tool Governance Framework](TOOL_GOVERNANCE.md)** for comprehensive tool lifecycle management, quality standards, and the 121-tool ecosystem governance process.
 
 ### Change Process
 1. Architectural changes require ADR documentation
@@ -166,50 +325,8 @@ Key architectural decisions are documented in ADRs:
 - Quarterly architecture review
 - Annual principle reassessment
 - Continuous ADR updates as needed
+- Monthly tool governance board reviews
 
 ---
 
-## Validated Architecture Components (2025-07-21)
-
-### Core Integration Status - PRODUCTION READY
-1. ✅ **Meta-Schema Execution**: 100% dynamic rule execution (security fix needed)
-2. ✅ **MCL Concept Mediation**: High-confidence resolution capability
-3. ✅ **Cross-Modal Preservation**: 100% semantic preservation
-4. ✅ **Tool Contract Validation**: 100% compatibility checking
-5. ✅ **Statistical Robustness**: 99% robustness through integration pipeline
-
-### Integration Validation Results
-- **Overall Integration Score**: 100% (all critical challenges resolved)
-- **Validation Method**: End-to-end academic analysis pipeline testing
-- **Third-Party Confirmation**: Independent Gemini AI validation
-- **Evidence Base**: Comprehensive stress testing with quantified results
-- **Academic Application**: Carter speech analysis with stakeholder theory
-
-### Implementation Evidence
-- Technical Solutions: Complete implementations for cross-modal preservation and theory integration
-- Research Foundation: 18 uncertainty research files and extensive architectural development
-- Validation Documentation: docs/planning/integration-insights-2025-07-21.md
-
-## Architecture Validation Methodology (2025-07-21)
-
-### Systematic Validation Approach
-- **Stress Testing**: End-to-end academic analysis pipeline validation
-- **Quantified Results**: Measurable performance metrics for all claims
-- **Third-Party Validation**: Independent Gemini AI confirmation
-- **Implementation Evidence**: Working code demonstrations for all capabilities
-
-### Evidence Documentation
-- **Integration Analysis**: docs/planning/integration-insights-2025-07-21.md
-- **Implementation Report**: docs/planning/cross-modal-preservation-implementation-report.md
-- **Claims Inventory**: docs/planning/comprehensive-architecture-claims-inventory-2025-07-21.md
-- **Comparative Analysis**: docs/planning/complete-comprehensive-architecture-analysis-2025-07-21.md
-
-### Academic Use Case Validation
-- **Test Case**: 1977 Carter Charleston speech on Soviet-American relations
-- **Theoretical Framework**: Young (1996) cognitive mapping meets semantic networks
-- **Analysis Pipeline**: Document ingestion → entity extraction → theory application → cross-modal analysis
-- **Success Metrics**: 100% semantic preservation, high concept resolution, 99% statistical robustness
-
----
-
-This architecture represents our target system design. For current implementation status and development plans, see the [Roadmap Overview](../planning/roadmap.md).
+This architecture represents our target system design. For current implementation status and development plans, see the [Roadmap Overview](../../ROADMAP_OVERVIEW.md).

@@ -1,0 +1,26 @@
+project_name: "Cross-Modal Analysis Consistency Check"
+
+include_patterns:
+  - "docs/architecture/cross-modal-analysis.md"
+  - "docs/architecture/concepts/cross-modal-philosophy.md"
+
+custom_prompt: |
+  Validate ONLY cross-modal analysis consistency between these two architecture files:
+
+  **SPECIFIC CONSISTENCY CHECKS**:
+  1. **100% Semantic Preservation Claims**: Are the claims about 100% semantic preservation consistent between both files?
+  2. **CrossModalEntity System**: Is the CrossModalEntity system described consistently in both files?
+  3. **Philosophy vs Implementation**: Do the technical specs in cross-modal-analysis.md align with the philosophy in cross-modal-philosophy.md?
+  4. **Validation Evidence**: Are the evidence file references (src/core/cross_modal_entity.py, stress_test files) consistent?
+
+  **EVIDENCE REQUIRED**:
+  - Quote specific inconsistencies with file names and section references
+  - Verify file path references are accurate
+  - Check if quantified metrics (100%, 40%, etc.) match
+
+  **IGNORE**: Everything not related to cross-modal analysis consistency
+
+  **OUTPUT FORMAT**:
+  - ✅ CONSISTENT: [specific evidence]
+  - ⚠️ INCONSISTENT: [specific issue and location]
+  - ❌ CONTRADICTION: [specific contradiction found]

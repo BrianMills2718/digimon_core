@@ -40,4 +40,4 @@ This section details fundamental design choices that define the system's operati
 
 ---
 
-<br><sup>See `docs/planning/roadmap.md` for the master plan and future feature concepts.</sup>
+<br><sup>See `docs/roadmap/ROADMAP_OVERVIEW.md` for the master plan and future feature concepts.</sup>

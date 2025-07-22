@@ -68,7 +68,7 @@ class GraphRAGPhase(ABC):
 
 See `docs/architecture/COMPATIBILITY_MATRIX.md` for contract system integration and `docs/architecture/ARCHITECTURE.md` for architectural context.
 
-<br><sup>See `docs/planning/roadmap.md` for master plan.</sup>
+<br><sup>See `docs/roadmap/ROADMAP_OVERVIEW.md` for master plan.</sup>
 
 ## 📚 Navigation
 - [KGAS Evergreen Documentation](KGAS_EVERGREEN_DOCUMENTATION.md)

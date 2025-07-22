@@ -1,0 +1,95 @@
+project_name: "Deep Integration Framework Implementation Validation"
+
+include_patterns:
+  - "stress_test_2025.07211755/deep_integration_scenario.py"
+  - "stress_test_2025.07211755/theory/stakeholder_theory_v10.json"
+  - "stress_test_2025.07211755/deep_integration_results_1753150369.json"
+  - "stress_test_2025.07211755/DEEP_INTEGRATION_ANALYSIS_FINAL.md"
+
+ignore_patterns:
+  - "**/*.log"
+  - "**/Evidence.md"
+  - "**/gemini*.md"
+  - "**/test_*.py"
+  - "**/logs/**"
+
+output_format: "markdown"
+show_line_numbers: true
+include_diffs: false
+
+custom_prompt: |
+  Please validate the implementation claims for the Deep Integration Framework by analyzing the specific code implementations.
+  
+  ## VALIDATION CLAIMS TO VERIFY:
+  
+  ### CLAIM 1: Dynamic Meta-Schema Execution Engine 
+  **Location**: deep_integration_scenario.py lines 50-124
+  **Claim**: Successfully extracts validation rules from theory schema JSON and executes them dynamically at runtime
+  **Expected**: MetaSchemaExecutionEngine class with execute_validation_rule() method that parses conditional logic from JSON
+  **Test Result Claimed**: 100% execution success rate, 45 rule evaluations across 3 scenarios
+  
+  ### CLAIM 2: MCL Concept Mediation System
+  **Location**: deep_integration_scenario.py lines 126-237  
+  **Claim**: Automatically resolves indigenous terms to canonical concepts with confidence scoring and DOLCE ontology integration
+  **Expected**: MCLConceptMediator class with resolve_indigenous_term() method and concept mapping database
+  **Test Result Claimed**: 92% high-confidence resolutions, 100% resolution success rate
+  
+  ### CLAIM 3: Cross-Modal Semantic Preservation
+  **Location**: deep_integration_scenario.py lines 239-471
+  **Claim**: Tests semantic preservation through graph→table→vector→graph round-trip transformations
+  **Expected**: CrossModalSemanticValidator class with validate_round_trip_integrity() and semantic preservation scoring
+  **Test Result Claimed**: 40% preservation score (partial success, information loss identified)
+  
+  ### CLAIM 4: Tool Contract Validation System
+  **Location**: deep_integration_scenario.py lines 473-596
+  **Claim**: Validates tool compatibility and automatic transformations between incompatible data types
+  **Expected**: ToolContractValidator class with validate_io_compatibility() and execute_transformation() methods
+  **Test Result Claimed**: 100% compatibility rate for tested contracts
+  
+  ### CLAIM 5: Statistical Robustness Testing
+  **Location**: deep_integration_scenario.py lines 598-735
+  **Claim**: Tests statistical properties preservation through integration pipeline with confidence intervals and noise robustness
+  **Expected**: StatisticalIntegrationValidator class with compute_confidence_intervals() and test_robustness_under_noise() methods
+  **Test Result Claimed**: 99% robustness score, statistical validation working
+  
+  ## VERIFICATION REQUIREMENTS:
+  
+  For each claim, verify:
+  1. **Implementation Present**: Does the claimed class and methods exist at specified locations?
+  2. **Functionality Complete**: Is the implementation fully functional (not stub/placeholder)?
+  3. **Test Results Valid**: Do the test results in deep_integration_results_1753150369.json match the claimed functionality?
+  4. **Integration Working**: Does the DeepIntegrationScenario class successfully orchestrate all components?
+  
+  ## SPECIFIC VALIDATION POINTS:
+  
+  - Confirm MetaSchemaExecutionEngine._evaluate_condition() can parse and execute conditional logic
+  - Verify MCLConceptMediator.concept_mappings contains the political/stakeholder term mappings mentioned
+  - Check CrossModalSemanticValidator implements all 4 transformation steps (graph→table→vector→graph)
+  - Confirm ToolContractValidator._check_type_compatibility() handles inheritance and transformation detection
+  - Verify StatisticalIntegrationValidator imports statistics module and computes actual confidence intervals
+  
+  Please analyze each implementation and provide a verdict for each claim:
+  - ✅ **FULLY RESOLVED** - Implementation present, complete, meets requirements
+  - ⚠️ **PARTIALLY RESOLVED** - Implementation present but incomplete or doesn't fully meet requirements  
+  - ❌ **NOT RESOLVED** - Implementation missing or doesn't address the claimed issue
+
+claims_of_success: |
+  implementation: "Dynamic Meta-Schema Execution Engine with conditional logic parsing"
+  location: "deep_integration_scenario.py:52-124"
+  expected_behavior: "Extracts validation rules from JSON and executes them dynamically"
+  
+  implementation: "MCL Concept Mediation with indigenous term resolution"
+  location: "deep_integration_scenario.py:127-237" 
+  expected_behavior: "Maps terms like 'President' to canonical concepts with confidence scores"
+  
+  implementation: "Cross-Modal round-trip semantic preservation testing"
+  location: "deep_integration_scenario.py:240-471"
+  expected_behavior: "Tests graph→table→vector→graph transformations with preservation scoring"
+  
+  implementation: "Tool Contract Validation with type compatibility checking"
+  location: "deep_integration_scenario.py:475-596"
+  expected_behavior: "Validates tool I/O compatibility and automatic transformations"
+  
+  implementation: "Statistical Robustness Testing with confidence intervals"
+  location: "deep_integration_scenario.py:600-735"
+  expected_behavior: "Computes confidence intervals and tests noise robustness"

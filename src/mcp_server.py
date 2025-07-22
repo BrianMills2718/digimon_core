@@ -426,6 +426,75 @@ def get_workflow_statistics() -> Dict[str, Any]:
     return workflow_service.get_service_statistics()
 
 
+@mcp.tool()
+def save_workflow_template(
+    workflow_id: str,
+    template_name: str,
+    description: str = None,
+    include_data: bool = False
+) -> Dict[str, Any]:
+    """Save a workflow as a reusable template for reproducibility.
+    
+    Args:
+        workflow_id: ID of completed workflow to save as template
+        template_name: Name for the workflow template
+        description: Optional description of the workflow template
+        include_data: Whether to include actual data or just structure
+    """
+    return workflow_service.save_workflow_template(
+        workflow_id=workflow_id,
+        template_name=template_name,
+        description=description,
+        include_data=include_data
+    )
+
+
+@mcp.tool()
+def load_workflow_template(template_id: str) -> Dict[str, Any]:
+    """Load a workflow template for creating new workflows.
+    
+    Args:
+        template_id: ID of template to load
+    """
+    return workflow_service.load_workflow_template(template_id)
+
+
+@mcp.tool()
+def create_workflow_from_template(
+    template_id: str,
+    new_workflow_name: str,
+    initial_state: Dict[str, Any] = None
+) -> str:
+    """Create a new workflow based on a saved template.
+    
+    Args:
+        template_id: ID of template to use
+        new_workflow_name: Name for the new workflow
+        initial_state: Initial state data for the new workflow
+    """
+    return workflow_service.create_workflow_from_template(
+        template_id=template_id,
+        new_workflow_name=new_workflow_name,
+        initial_state=initial_state
+    )
+
+
+@mcp.tool()
+def list_workflow_templates() -> Dict[str, Any]:
+    """List all available workflow templates."""
+    return workflow_service.list_workflow_templates()
+
+
+@mcp.tool()
+def delete_workflow_template(template_id: str) -> Dict[str, Any]:
+    """Delete a workflow template.
+    
+    Args:
+        template_id: ID of template to delete
+    """
+    return workflow_service.delete_workflow_template(template_id)
+
+
 # =============================================================================
 # Phase 1: Vertical Slice Tools
 # =============================================================================
@@ -483,6 +552,7 @@ def get_system_status() -> Dict[str, Any]:
         },
         "core_services_count": 4,
         "phase1_tools_count": 33,  # Updated count: 8 existing + 25 new pipeline tools
+        "workflow_template_tools": 5,  # New workflow template management tools
         "orchestrator_ready": True,
         "server_name": "super-digimon"
     }

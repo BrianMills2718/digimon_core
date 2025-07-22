@@ -1,7 +1,5 @@
 # Uncertainty Architecture for KGAS
 
-**Status**: Target Architecture  
-**Date**: 2025-07-21  
 **Purpose**: Define the comprehensive uncertainty handling architecture for Knowledge Graph Analysis System
 
 ---
@@ -200,7 +198,380 @@ communities = {
 
 ---
 
-## 5. Uncertainty Propagation Rules
+## 5. Uncertainty Propagation Algorithms
+
+### Core Propagation Principles
+
+KGAS uses mathematically rigorous uncertainty propagation that adapts based on the relationship between pipeline stages:
+
+```python
+from typing import List, Tuple, Dict, Optional
+import numpy as np
+from scipy import stats
+from dataclasses import dataclass
+
+@dataclass
+class UncertaintyDistribution:
+    """Represents uncertainty as a distribution rather than point estimate"""
+    mean: float
+    variance: float
+    distribution_type: str = "normal"
+    parameters: Optional[Dict] = None
+    samples: Optional[np.ndarray] = None
+```
+
+### Phase 1: Basic Propagation (MVP)
+
+For the initial implementation, use simple but conservative multiplication:
+
+```python
+def propagate_confidence_simple(parent_scores: List[float]) -> float:
+    """
+    Simple multiplication for MVP - conservative but easy to understand
+    
+    Args:
+        parent_scores: List of confidence scores from upstream operations
+        
+    Returns:
+        Combined confidence score
+        
+    Example:
+        Entity extraction: 0.9
+        Relationship detection: 0.8
+        Combined: 0.9 × 0.8 = 0.72
+    """
+    if not parent_scores:
+        return 1.0
+    
+    # Conservative: multiply all confidences
+    result = 1.0
+    for score in parent_scores:
+        result *= score
+    
+    return result
+```
+
+### Phase 2: Dependency-Aware Propagation
+
+Account for dependencies between pipeline stages:
+
+```python
+def propagate_confidence_dependent(
+    parent_scores: List[float],
+    dependencies: Dict[Tuple[int, int], float]
+) -> float:
+    """
+    Propagate confidence accounting for dependencies between stages
+    
+    Args:
+        parent_scores: Confidence scores from upstream operations
+        dependencies: Correlation coefficients between stage pairs
+        
+    Returns:
+        Combined confidence accounting for dependencies
+        
+    Example:
+        If entity extraction and relationship detection are correlated (ρ=0.6),
+        the combined uncertainty is less than independent multiplication
+    """
+    n = len(parent_scores)
+    
+    if n == 0:
+        return 1.0
+    if n == 1:
+        return parent_scores[0]
+    
+    # Convert confidences to variances (assuming beta distribution)
+    variances = [(1 - p) * p for p in parent_scores]
+    
+    # Build covariance matrix
+    cov_matrix = np.zeros((n, n))
+    for i in range(n):
+        cov_matrix[i, i] = variances[i]
+        for j in range(i + 1, n):
+            if (i, j) in dependencies:
+                correlation = dependencies[(i, j)]
+                cov = correlation * np.sqrt(variances[i] * variances[j])
+                cov_matrix[i, j] = cov
+                cov_matrix[j, i] = cov
+    
+    # Propagate through linear combination (conservative approach)
+    weights = np.ones(n) / n  # Equal weighting
+    combined_variance = weights.T @ cov_matrix @ weights
+    
+    # Convert back to confidence
+    # Using Chebyshev's inequality for conservative bound
+    combined_confidence = 1 - np.sqrt(combined_variance)
+    
+    return max(0, min(1, combined_confidence))
+```
+
+### Phase 3: Full Bayesian Propagation
+
+Implement complete Bayesian Network for uncertainty propagation:
+
+```python
+class BayesianUncertaintyPropagator:
+    """
+    Full Bayesian propagation for Phase 3 - handles complex dependencies
+    """
+    
+    def __init__(self):
+        self.network = {}  # Bayesian network structure
+        self.cpt = {}      # Conditional probability tables
+        
+    def propagate_uncertainty(
+        self,
+        parent_uncertainties: List[UncertaintyDistribution],
+        operation_type: str,
+        context: Dict[str, Any]
+    ) -> UncertaintyDistribution:
+        """
+        Full 4-layer uncertainty propagation
+        
+        Args:
+            parent_uncertainties: Full distributions from parent operations
+            operation_type: Type of operation being performed
+            context: Additional context (domain, data quality, etc.)
+            
+        Returns:
+            Propagated uncertainty distribution
+        """
+        # Layer 1: Contextual adjustment
+        adjusted_parents = self._apply_contextual_adjustment(
+            parent_uncertainties, context
+        )
+        
+        # Layer 2: Temporal decay
+        if context.get('temporal_info'):
+            adjusted_parents = self._apply_temporal_decay(
+                adjusted_parents, context['temporal_info']
+            )
+        
+        # Layer 3: Operation-specific propagation
+        if operation_type == "entity_extraction":
+            result = self._propagate_extraction_uncertainty(adjusted_parents)
+        elif operation_type == "relationship_inference":
+            result = self._propagate_relationship_uncertainty(adjusted_parents)
+        elif operation_type == "aggregation":
+            result = self._propagate_aggregation_uncertainty(adjusted_parents)
+        else:
+            result = self._propagate_generic_uncertainty(adjusted_parents)
+        
+        # Layer 4: Distribution preservation
+        return self._preserve_distribution_characteristics(result)
+    
+    def _propagate_extraction_uncertainty(
+        self,
+        inputs: List[UncertaintyDistribution]
+    ) -> UncertaintyDistribution:
+        """Entity extraction specific propagation"""
+        # Text quality affects extraction confidence
+        text_quality = inputs[0]
+        
+        # Model uncertainty
+        model_uncertainty = UncertaintyDistribution(
+            mean=0.85,  # Base model accuracy
+            variance=0.02
+        )
+        
+        # Combine using extraction-specific rules
+        combined_mean = text_quality.mean * model_uncertainty.mean
+        combined_variance = (
+            text_quality.variance * model_uncertainty.mean**2 +
+            model_uncertainty.variance * text_quality.mean**2 +
+            text_quality.variance * model_uncertainty.variance
+        )
+        
+        return UncertaintyDistribution(
+            mean=combined_mean,
+            variance=combined_variance,
+            distribution_type="beta"
+        )
+    
+    def _propagate_relationship_uncertainty(
+        self,
+        inputs: List[UncertaintyDistribution]
+    ) -> UncertaintyDistribution:
+        """Relationship detection specific propagation"""
+        # Minimum of entity confidences × pattern confidence
+        entity1, entity2 = inputs[:2]
+        
+        # Relationship confidence bounded by entity confidence
+        min_entity_confidence = min(entity1.mean, entity2.mean)
+        
+        # Pattern matching uncertainty
+        pattern_confidence = 0.75  # Domain-specific
+        
+        combined_mean = min_entity_confidence * pattern_confidence
+        
+        # Variance increases with entity uncertainty
+        combined_variance = (
+            entity1.variance + entity2.variance + 
+            0.05  # Base pattern uncertainty
+        )
+        
+        return UncertaintyDistribution(
+            mean=combined_mean,
+            variance=min(combined_variance, 0.25),  # Cap variance
+            distribution_type="beta"
+        )
+```
+
+### Practical Examples
+
+#### Example 1: Document Processing Pipeline
+
+```python
+# Document → Chunks → Entities → Relationships → Graph
+
+# Step 1: PDF extraction
+pdf_confidence = 0.95  # High quality PDF
+
+# Step 2: Text chunking  
+chunk_confidence = propagate_confidence_simple([pdf_confidence])
+# Result: 0.95 (no loss in chunking)
+
+# Step 3: Entity extraction
+entity_confidence = propagate_confidence_simple([chunk_confidence, 0.88])
+# Result: 0.95 × 0.88 = 0.836
+
+# Step 4: Relationship extraction (entities are dependent)
+relationship_confidence = propagate_confidence_dependent(
+    [entity_confidence, entity_confidence, 0.75],  # Two entities + pattern
+    {(0, 1): 0.8}  # High correlation between entity uncertainties
+)
+# Result: ~0.65 (accounting for dependencies)
+```
+
+#### Example 2: Cross-Modal Analysis
+
+```python
+# Graph → Statistical Table → Insights
+
+# Graph analysis confidence
+graph_metrics = UncertaintyDistribution(mean=0.9, variance=0.01)
+
+# Conversion uncertainty (some information lost)
+conversion = UncertaintyDistribution(mean=0.85, variance=0.02)
+
+# Statistical analysis on converted data
+propagator = BayesianUncertaintyPropagator()
+table_confidence = propagator.propagate_uncertainty(
+    [graph_metrics, conversion],
+    operation_type="cross_modal_conversion",
+    context={"source": "graph", "target": "table"}
+)
+# Result: Distribution with mean ~0.76, increased variance
+```
+
+#### Example 3: Theory-Aware Analysis
+
+```python
+# Theory application with domain competence
+
+# Base extraction confidence
+extraction = UncertaintyDistribution(mean=0.82, variance=0.03)
+
+# Domain competence assessment
+domain_competence = {
+    "political_science": 0.9,
+    "quantum_physics": 0.3,  # Low competence
+    "general_social": 0.8
+}
+
+# Adjust for domain
+if current_domain == "quantum_physics":
+    adjusted_confidence = extraction.mean * domain_competence["quantum_physics"]
+    adjusted_variance = extraction.variance + 0.1  # High uncertainty
+else:
+    adjusted_confidence = extraction.mean * domain_competence.get(
+        current_domain, 0.7
+    )
+    adjusted_variance = extraction.variance
+```
+
+### Implementation Guidelines
+
+#### Phase-Based Implementation
+
+1. **Phase 1 (MVP)**: Use `propagate_confidence_simple()`
+   - Easy to implement and understand
+   - Conservative (may underestimate confidence)
+   - Sufficient for basic pipeline
+
+2. **Phase 2**: Add `propagate_confidence_dependent()`
+   - When correlation patterns are observed
+   - Improves accuracy without full complexity
+   - Good balance of accuracy/complexity
+
+3. **Phase 3**: Full `BayesianUncertaintyPropagator`
+   - When research requires detailed uncertainty
+   - For publication-grade analysis
+   - When distributional information matters
+
+#### Configuration Examples
+
+```python
+# Phase 1 Configuration
+uncertainty_config = UncertaintyConfig(
+    propagation_method="simple",
+    preserve_distributions=False,
+    track_dependencies=False
+)
+
+# Phase 2 Configuration  
+uncertainty_config = UncertaintyConfig(
+    propagation_method="dependent",
+    preserve_distributions=True,
+    track_dependencies=True,
+    dependency_threshold=0.3  # Minimum correlation to track
+)
+
+# Phase 3 Configuration
+uncertainty_config = UncertaintyConfig(
+    propagation_method="bayesian",
+    preserve_distributions=True,
+    track_dependencies=True,
+    use_temporal_decay=True,
+    domain_calibration=True,
+    max_distribution_samples=1000
+)
+```
+
+### Validation Approach
+
+```python
+def validate_propagation(test_cases: List[TestCase]) -> Dict[str, float]:
+    """Validate uncertainty propagation against known cases"""
+    results = {}
+    
+    for case in test_cases:
+        # Run propagation
+        predicted = propagate_uncertainty(
+            case.inputs,
+            case.operation,
+            case.method
+        )
+        
+        # Compare to expected
+        error = abs(predicted - case.expected)
+        results[case.name] = error
+        
+        # Check monotonicity (lower input → lower output)
+        assert all(
+            propagate_uncertainty([x], case.operation, case.method) <= 
+            propagate_uncertainty([y], case.operation, case.method)
+            for x, y in zip(case.inputs[:-1], case.inputs[1:])
+            if x <= y
+        )
+    
+    return results
+```
+
+---
+
+## 5.1 Original Propagation Rules (Retained for Reference)
 
 ### Dependency-Aware Propagation
 
@@ -491,18 +862,3 @@ class ExplainableUncertaintyResult:
 
 This uncertainty architecture transforms KGAS from a system that produces confident but potentially unreliable results into one that provides honest, calibrated, and actionable uncertainty information that enhances research validity and decision-making quality.
 
-## Framework Validation (2025-07-20/21)
-
-### Comprehensive Research Evidence
-- **CERQual Academic Framework**: ✅ VALIDATED for social science discourse analysis
-- **Four-Layer Architecture**: ✅ CONCEPTUALLY VALIDATED with implementation tiers
-- **Configurable Complexity**: ✅ VALIDATED (simple → advanced Bayesian progression)
-- **Stress Testing**: ✅ VALIDATED uncertainty propagation through pipelines
-- **Statistical Robustness**: ✅ VALIDATED with 99% robustness maintenance
-
-### Research Foundation
-- **Documentation**: 18 ADR-004 research files (2025-07-20)
-- **Discourse Analysis**: uncertainty_framework_discourse_analysis_context_2025_07_20.md
-- **Stress Testing**: advanced_framework_stress_tests_2025_07_20.md
-- **Best Practices**: uncertainty_best_practices_synthesis_2025_07_20.md
-- **Academic Context**: Framework proven for intended social science use case

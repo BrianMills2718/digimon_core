@@ -59,7 +59,7 @@ Welcome to the Knowledge Graph Analysis System (KGAS) documentation. This hub pr
 
 For the most up-to-date information on project status, current development phase, and future plans, please see the master roadmap.
 
-- **[View Master Roadmap & Status →](./planning/roadmap.md)**
+- **[View Master Roadmap & Status →](../ROADMAP_OVERVIEW.md)**
 
 ## 📚 Documentation Sections
 
@@ -75,8 +75,8 @@ For the most up-to-date information on project status, current development phase
 - [ADRs](./architecture/adrs/) - Architecture Decision Records.
 
 ### 📈 Planning
-- **[Planning Home](./planning/)** - Project planning, strategy, and initiatives.
-- [Roadmap](./planning/roadmap.md) - The master roadmap and status dashboard.
+- **[Roadmap Overview](../ROADMAP_OVERVIEW.md)** - The master roadmap and current status dashboard.
+- [Planning Home](./planning/) - Project planning, strategy, and initiatives.
 - [Implementation Phases](./planning/phases/) - Detailed implementation plans for each development phase.
 - [Strategy](./planning/strategy/) - High-level strategic and vision documents.
 - [Initiatives](./planning/initiatives/) - Plans for specific workstreams (e.g., identity, performance).

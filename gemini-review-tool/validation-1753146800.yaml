@@ -1,0 +1,97 @@
+project_name: "Stakeholder Theory Stress Test Implementation Validation"
+output_file: "stress_test_validation.md"
+
+include_patterns:
+  - "stress_test_2025.07211755/run_stress_test.py"
+  - "stress_test_2025.07211755/scripts/salience_calculator.py"
+  - "stress_test_2025.07211755/database/neo4j_setup.py"
+  - "stress_test_2025.07211755/schemas/stakeholder_schemas.py"
+  - "stress_test_2025.07211755/schemas/base_schemas.py"
+  - "stress_test_2025.07211755/theory/stakeholder_theory_v10.json"
+  - "stress_test_2025.07211755/results/stress_test_report_1753146572.md"
+
+ignore_patterns:
+  - "**/*.pyc"
+  - "**/Evidence.md"
+  - "**/logs/**"
+  - "**/data/**"
+  - "**/__pycache__/**"
+
+custom_prompt: |
+  VALIDATION OBJECTIVE: Verify the completeness and correctness of the stakeholder theory stress test implementation claims.
+
+  SPECIFIC CLAIMS TO VALIDATE:
+
+  1. **COMPREHENSIVE STRESS TEST FRAMEWORK** (run_stress_test.py):
+     - Complete end-to-end testing orchestrator implemented
+     - Four distinct test components: schema validation, algorithm validation, database integration, cross-modal analysis
+     - Real test execution with results saving and reporting
+     - Performance metrics and success rate calculation
+
+  2. **MITCHELL-AGLE-WOOD SALIENCE CALCULATOR** (scripts/salience_calculator.py):
+     - Geometric mean calculation implementation: (legitimacy × urgency × power)^(1/3)
+     - Edge case handling for zero inputs, boundary values, and floating point precision
+     - Comprehensive test cases with 100% success rate achievement
+     - Mitchell stakeholder categorization (definitive, dependent, dominant, etc.)
+     - Input validation and error handling
+
+  3. **NEO4J DATABASE INTEGRATION** (database/neo4j_setup.py):
+     - Reified n-ary relationship implementation for complex stakeholder networks
+     - Cross-modal analysis: graph to table conversion with semantic preservation
+     - Network metrics calculation with proper Cypher queries
+     - Real database operations with stakeholder and organization entities
+
+  4. **PYDANTIC SCHEMA ARCHITECTURE** (schemas/stakeholder_schemas.py, schemas/base_schemas.py):
+     - Theory meta-schema v10.0 implementation using Pydantic
+     - Data type architecture with universal composability
+     - Schema validation with proper type safety and constraints
+     - Cross-schema compatibility verification
+
+  5. **THEORY META-SCHEMA V10.0** (theory/stakeholder_theory_v10.json):
+     - Complete theory specification with executable implementation framework
+     - Custom scripts, LLM prompts, and validation criteria
+     - Edge case handling and boundary conditions
+     - MCL integration and cross-modal mappings
+
+  6. **100% SUCCESS VALIDATION** (results/stress_test_report_1753146572.md):
+     - All four test components achieved 100% success rate
+     - Real execution results with performance metrics
+     - Production-ready system validation
+     - Comprehensive test coverage demonstration
+
+  VALIDATION CRITERIA FOR EACH CLAIM:
+  - **Implementation Present**: Does the claimed functionality exist in the specified files?
+  - **Functionality Complete**: Is it fully implemented with working code (not stubs/placeholders)?
+  - **Requirements Met**: Does it satisfy the specific technical requirements mentioned?
+  - **Test Results Valid**: Do the claimed success rates match actual test execution results?
+
+  EXPECTED EVIDENCE:
+  - Specific line numbers referencing the implemented features
+  - Actual code analysis showing complete implementations
+  - Verification of test results and success metrics
+  - Assessment of technical architecture completeness
+
+claims_of_success:
+  comprehensive_stress_test_framework:
+    files: ["stress_test_2025.07211755/run_stress_test.py"]
+    expected_behavior: "Complete testing orchestrator with four test components, results saving, and 100% success achievement"
+    
+  mitchell_agle_wood_calculator:
+    files: ["stress_test_2025.07211755/scripts/salience_calculator.py"] 
+    expected_behavior: "Geometric mean calculation, edge case handling, test cases with 100% success rate"
+    
+  neo4j_database_integration:
+    files: ["stress_test_2025.07211755/database/neo4j_setup.py"]
+    expected_behavior: "Reified n-ary relationships, cross-modal analysis, network metrics, real database operations"
+    
+  pydantic_schema_architecture:
+    files: ["stress_test_2025.07211755/schemas/stakeholder_schemas.py", "stress_test_2025.07211755/schemas/base_schemas.py"]
+    expected_behavior: "Theory meta-schema v10.0 with Pydantic, data type architecture, schema validation"
+    
+  theory_meta_schema_v10:
+    files: ["stress_test_2025.07211755/theory/stakeholder_theory_v10.json"]
+    expected_behavior: "Complete theory specification with executable framework, custom scripts, validation"
+    
+  hundred_percent_success_validation:
+    files: ["stress_test_2025.07211755/results/stress_test_report_1753146572.md"]
+    expected_behavior: "Documented 100% success rate across all four test components with real execution results"

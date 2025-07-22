@@ -3,7 +3,7 @@
 # ADR-001: Contract-First Tool Interface Design
 
 **Date**: 2025-01-27  
-**Status**: Superseded by MVRT Architecture - Updated 2025-01-20  
+**Status**: Partially Implemented - 12 tools use legacy interfaces, contract-first design remains architectural goal  
 **Deciders**: Development Team  
 **Context**: Tool integration failures due to incompatible interfaces
 
@@ -32,25 +32,92 @@ All tools must implement standardized contracts with theory schema support to en
 
 ---
 
-## 💡 **Considered Options**
+## 💡 **Trade-off Analysis**
 
-### **Option 1: Retrofit Existing Tools (Rejected)**
-- **Approach**: Keep existing tool implementations, add adapters
-- **Pros**: Minimal code changes, preserve existing functionality
-- **Cons**: Complex adapter logic, theory integration difficult, technical debt
-- **Decision**: Rejected - would perpetuate integration problems
+### Options Considered
 
-### **Option 2: Contract-First Design (Selected)**
-- **Approach**: Define standardized tool contracts first, then implement/migrate tools
-- **Pros**: Clean interfaces, theory integration built-in, agent orchestration enabled
-- **Cons**: Requires refactoring existing tools, more upfront work
-- **Decision**: Selected - enables agent-based workflows and cross-modal analysis
+#### Option 1: Keep Status Quo (Tool-Specific Interfaces)
+- **Pros**:
+  - No migration effort required
+  - Tools remain independent and specialized
+  - Developers familiar with existing patterns
+  - Quick to add new tools without constraints
+  
+- **Cons**:
+  - Integration complexity grows exponentially with tool count
+  - Agent orchestration requires complex adapter logic
+  - No consistent error handling or confidence tracking
+  - Theory integration would require per-tool implementation
+  - Testing each tool combination separately
 
-### **Option 3: Gradual Migration (Rejected)**
-- **Approach**: Migrate tools one at a time to new interface
-- **Pros**: Incremental approach, lower risk
-- **Cons**: Extended period of mixed interfaces, complexity
-- **Decision**: Rejected - would maintain integration problems longer
+#### Option 2: Retrofit with Adapters
+- **Pros**:
+  - Preserve existing tool implementations
+  - Gradual migration possible
+  - Lower initial development effort
+  - Can maintain backward compatibility
+  
+- **Cons**:
+  - Adapter layer adds performance overhead
+  - Theory integration still difficult
+  - Two patterns to maintain (native + adapted)
+  - Technical debt accumulates
+  - Doesn't solve root cause of integration issues
+
+#### Option 3: Contract-First Design [SELECTED]
+- **Pros**:
+  - Clean, consistent interfaces across all tools
+  - Theory integration built into contract
+  - Enables intelligent agent orchestration
+  - Simplified testing and validation
+  - Future tools automatically compatible
+  - Cross-modal analysis becomes straightforward
+  
+- **Cons**:
+  - Significant refactoring of existing tools
+  - Higher upfront design effort
+  - Team learning curve for new patterns
+  - Risk of over-engineering contracts
+
+#### Option 4: Microservice Architecture
+- **Pros**:
+  - Tools completely decoupled
+  - Independent scaling and deployment
+  - Technology agnostic (tools in any language)
+  - Industry-standard pattern
+  
+- **Cons**:
+  - Massive complexity increase for research platform
+  - Network overhead for local processing
+  - Distributed system challenges
+  - Overkill for single-user academic use case
+
+### Decision Rationale
+
+Contract-First Design (Option 3) was selected because:
+
+1. **Agent Enablement**: Standardized interfaces are essential for intelligent agent orchestration of tool workflows.
+
+2. **Theory Integration**: Built-in support for theory schemas ensures consistent application of domain knowledge.
+
+3. **Cross-Modal Requirements**: Consistent interfaces enable seamless conversion between graph, table, and vector representations.
+
+4. **Research Quality**: Standardized confidence scoring and provenance tracking improve research reproducibility.
+
+5. **Long-term Maintenance**: While initial effort is higher, the reduced integration complexity pays dividends over time.
+
+6. **Testing Efficiency**: Integration tests can validate tool combinations systematically rather than ad-hoc.
+
+### When to Reconsider
+
+This decision should be revisited if:
+- Moving from research platform to production service
+- Need to integrate external tools not under our control
+- Performance overhead of contracts exceeds 10%
+- Team size grows beyond 5 developers
+- Requirements shift from batch to real-time processing
+
+The contract abstraction provides flexibility to evolve the implementation while maintaining interface stability.
 
 ---
 
@@ -185,4 +252,4 @@ class KGASTool(ABC):
 
 **Related ADRs**: None (first ADR)  
 **Related Documentation**: `ROADMAP_v2.md`, `ARCHITECTURE.md`, `KGAS_EVERGREEN_DOCUMENTATION.md` -e 
-<br><sup>See `docs/planning/roadmap.md` for master plan.</sup>
+<br><sup>See `docs/roadmap/ROADMAP_OVERVIEW.md` for master plan.</sup>

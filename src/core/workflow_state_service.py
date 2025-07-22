@@ -25,6 +25,9 @@ import json
 import pickle
 from pathlib import Path
 import os
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -53,6 +56,7 @@ class WorkflowProgress:
     status: str = "running"  # running, completed, failed, paused
     last_checkpoint_id: Optional[str] = None
     error_message: Optional[str] = None
+    metadata: Dict[str, Any] = field(default_factory=dict)
 
 
 class WorkflowStateService:
@@ -242,7 +246,7 @@ class WorkflowStateService:
             # Update workflow status if workflow still exists
             if checkpoint.workflow_id in self.workflows:
                 workflow = self.workflows[checkpoint.workflow_id]
-                workflow.current_step = checkpoint.step_number
+                workflow.step_number = checkpoint.step_number
                 workflow.status = "running"
                 workflow.error_message = None
             
@@ -388,7 +392,8 @@ class WorkflowStateService:
             Cleanup result
         """
         try:
-            cutoff_date = datetime.now() - datetime.timedelta(days=days_old)
+            from datetime import timedelta
+            cutoff_date = datetime.now() - timedelta(days=days_old)
             removed_count = 0
             
             # Find old checkpoints
@@ -480,6 +485,271 @@ class WorkflowStateService:
                 "workflow_id": workflow_id
             }
     
+    def save_workflow_template(
+        self,
+        workflow_id: str,
+        template_name: str,
+        description: Optional[str] = None,
+        include_data: bool = False
+    ) -> Dict[str, Any]:
+        """Save a workflow as a reusable template for reproducibility.
+        
+        Args:
+            workflow_id: ID of completed workflow to save as template
+            template_name: Name for the workflow template
+            description: Optional description of the workflow template
+            include_data: Whether to include actual data or just structure
+            
+        Returns:
+            Template save result with template ID
+        """
+        try:
+            if workflow_id not in self.workflows:
+                return {
+                    "status": "error",
+                    "error": f"Workflow {workflow_id} not found"
+                }
+            
+            workflow = self.workflows[workflow_id]
+            workflow_checkpoints = self.get_workflow_checkpoints(workflow_id)
+            
+            # Create workflow template
+            template_id = f"template_{uuid.uuid4().hex[:8]}"
+            template_data = {
+                "template_id": template_id,
+                "template_name": template_name,
+                "description": description or f"Template created from workflow {workflow_id}",
+                "original_workflow_id": workflow_id,
+                "workflow_structure": {
+                    "name": workflow.name,
+                    "total_steps": workflow.total_steps,
+                    "step_sequence": [cp["step_name"] for cp in workflow_checkpoints]
+                },
+                "checkpoints": [],
+                "created_at": datetime.now().isoformat(),
+                "metadata": {
+                    "original_started_at": workflow.started_at.isoformat(),
+                    "original_status": workflow.status,
+                    "completed_steps": len(workflow.completed_steps),
+                    "failed_steps": len(workflow.failed_steps)
+                }
+            }
+            
+            # Include checkpoint data based on include_data flag
+            for checkpoint_info in workflow_checkpoints:
+                checkpoint_id = checkpoint_info["checkpoint_id"]
+                if checkpoint_id in self.checkpoints:
+                    checkpoint = self.checkpoints[checkpoint_id]
+                    template_checkpoint = {
+                        "step_name": checkpoint.step_name,
+                        "step_number": checkpoint.step_number,
+                        "metadata": checkpoint.metadata.copy()
+                    }
+                    
+                    if include_data:
+                        # Include actual state data for complete reproducibility
+                        template_checkpoint["state_data"] = checkpoint.state_data.copy()
+                    else:
+                        # Include only structure for workflow pattern reuse
+                        template_checkpoint["state_schema"] = self._extract_state_schema(checkpoint.state_data)
+                    
+                    template_data["checkpoints"].append(template_checkpoint)
+            
+            # Save template to file
+            template_file = self.storage_dir / f"workflow_template_{template_id}.json"
+            with open(template_file, 'w') as f:
+                json.dump(template_data, f, indent=2)
+            
+            return {
+                "status": "success",
+                "template_id": template_id,
+                "template_name": template_name,
+                "template_file": str(template_file),
+                "total_steps": template_data["workflow_structure"]["total_steps"],
+                "include_data": include_data,
+                "message": "Workflow template saved successfully"
+            }
+            
+        except Exception as e:
+            return {
+                "status": "error",
+                "error": f"Failed to save workflow template: {str(e)}"
+            }
+    
+    def load_workflow_template(self, template_id: str) -> Dict[str, Any]:
+        """Load a workflow template for creating new workflows.
+        
+        Args:
+            template_id: ID of template to load
+            
+        Returns:
+            Template data for workflow creation
+        """
+        try:
+            template_file = self.storage_dir / f"workflow_template_{template_id}.json"
+            
+            if not template_file.exists():
+                return {
+                    "status": "error",
+                    "error": f"Template {template_id} not found"
+                }
+            
+            with open(template_file, 'r') as f:
+                template_data = json.load(f)
+            
+            return {
+                "status": "success",
+                "template_data": template_data,
+                "template_id": template_id,
+                "message": "Workflow template loaded successfully"
+            }
+            
+        except Exception as e:
+            return {
+                "status": "error",
+                "error": f"Failed to load workflow template: {str(e)}"
+            }
+    
+    def create_workflow_from_template(
+        self,
+        template_id: str,
+        new_workflow_name: str,
+        initial_state: Dict[str, Any] = None
+    ) -> str:
+        """Create a new workflow based on a saved template.
+        
+        Args:
+            template_id: ID of template to use
+            new_workflow_name: Name for the new workflow
+            initial_state: Initial state data for the new workflow
+            
+        Returns:
+            New workflow ID
+        """
+        try:
+            # Load template
+            template_result = self.load_workflow_template(template_id)
+            if template_result["status"] == "error":
+                raise RuntimeError(template_result["error"])
+            
+            template_data = template_result["template_data"]
+            workflow_structure = template_data["workflow_structure"]
+            
+            # Create new workflow with template structure
+            workflow_id = self.start_workflow(
+                name=new_workflow_name,
+                total_steps=workflow_structure["total_steps"],
+                initial_state=initial_state or {}
+            )
+            
+            # Add template metadata to workflow
+            if workflow_id in self.workflows:
+                workflow = self.workflows[workflow_id]
+                workflow.metadata = {
+                    "created_from_template": template_id,
+                    "template_name": template_data["template_name"],
+                    "step_sequence": workflow_structure["step_sequence"]
+                }
+            
+            return workflow_id
+            
+        except Exception as e:
+            raise RuntimeError(f"Failed to create workflow from template: {str(e)}")
+    
+    def list_workflow_templates(self) -> Dict[str, Any]:
+        """List all available workflow templates.
+        
+        Returns:
+            List of available templates with metadata
+        """
+        try:
+            templates = []
+            template_pattern = "workflow_template_*.json"
+            
+            for template_file in self.storage_dir.glob(template_pattern):
+                try:
+                    with open(template_file, 'r') as f:
+                        template_data = json.load(f)
+                    
+                    templates.append({
+                        "template_id": template_data["template_id"],
+                        "template_name": template_data["template_name"],
+                        "description": template_data["description"],
+                        "total_steps": template_data["workflow_structure"]["total_steps"],
+                        "created_at": template_data["created_at"],
+                        "original_workflow_id": template_data["original_workflow_id"],
+                        "step_sequence": template_data["workflow_structure"]["step_sequence"]
+                    })
+                    
+                except Exception as e:
+                    # Log error but continue with other templates
+                    pass
+            
+            # Sort by creation date (newest first)
+            templates.sort(key=lambda x: x["created_at"], reverse=True)
+            
+            return {
+                "status": "success",
+                "templates": templates,
+                "total_templates": len(templates)
+            }
+            
+        except Exception as e:
+            return {
+                "status": "error",
+                "error": f"Failed to list templates: {str(e)}"
+            }
+    
+    def delete_workflow_template(self, template_id: str) -> Dict[str, Any]:
+        """Delete a workflow template.
+        
+        Args:
+            template_id: ID of template to delete
+            
+        Returns:
+            Deletion result
+        """
+        try:
+            template_file = self.storage_dir / f"workflow_template_{template_id}.json"
+            
+            if not template_file.exists():
+                return {
+                    "status": "error",
+                    "error": f"Template {template_id} not found"
+                }
+            
+            template_file.unlink()
+            
+            return {
+                "status": "success",
+                "template_id": template_id,
+                "message": "Workflow template deleted successfully"
+            }
+            
+        except Exception as e:
+            return {
+                "status": "error",
+                "error": f"Failed to delete template: {str(e)}"
+            }
+    
+    def _extract_state_schema(self, state_data: Dict[str, Any]) -> Dict[str, str]:
+        """Extract schema information from state data without including actual values."""
+        schema = {}
+        for key, value in state_data.items():
+            if isinstance(value, dict):
+                schema[key] = "dict"
+            elif isinstance(value, list):
+                schema[key] = "list"
+            elif isinstance(value, str):
+                schema[key] = "string"
+            elif isinstance(value, (int, float)):
+                schema[key] = "number"
+            elif isinstance(value, bool):
+                schema[key] = "boolean"
+            else:
+                schema[key] = "unknown"
+        return schema
+    
     def get_service_statistics(self) -> Dict[str, Any]:
         """Get workflow service statistics."""
         try:
@@ -494,16 +764,21 @@ class WorkflowStateService:
                 wf_id = checkpoint.workflow_id
                 checkpoint_count_by_workflow[wf_id] = checkpoint_count_by_workflow.get(wf_id, 0) + 1
             
+            # Template statistics
+            template_count = len(list(self.storage_dir.glob("workflow_template_*.json")))
+            
             return {
                 "status": "success",
                 "total_workflows": len(self.workflows),
                 "total_checkpoints": len(self.checkpoints),
+                "total_templates": template_count,
                 "workflow_status_distribution": status_counts,
                 "average_checkpoints_per_workflow": (
                     len(self.checkpoints) / len(self.workflows) if self.workflows else 0
                 ),
                 "storage_directory": str(self.storage_dir),
-                "checkpoint_files_on_disk": len(list(self.storage_dir.glob("checkpoint_*.json")))
+                "checkpoint_files_on_disk": len(list(self.storage_dir.glob("checkpoint_*.json"))),
+                "template_files_on_disk": template_count
             }
             
         except Exception as e:

@@ -1,0 +1,1905 @@
+{
+  "metadata": {
+    "total_tools": 123,
+    "last_updated": "2025-07-21T23:48:28.155316",
+    "implementation_status": {
+      "implemented": 12,
+      "not_started": 111,
+      "total": 123,
+      "implemented_total": 12,
+      "implementation_percentage": 9.8
+    },
+    "category_summary": {
+      "graph": {
+        "total": 32,
+        "implemented": 4,
+        "percentage": 12.5
+      },
+      "table": {
+        "total": 30,
+        "implemented": 3,
+        "percentage": 10.0
+      },
+      "vector": {
+        "total": 30,
+        "implemented": 1,
+        "percentage": 3.3
+      },
+      "cross_modal": {
+        "total": 31,
+        "implemented": 4,
+        "percentage": 12.9
+      }
+    }
+  },
+  "tools": {
+    "T01": {
+      "name": "PDF Loader",
+      "description": "Load and extract text from PDF documents",
+      "category": "graph",
+      "status": "implemented",
+      "priority": 10,
+      "dependencies": [
+        "pypdf",
+        "provenance_service"
+      ],
+      "file_path": "src/tools/phase1/t01_pdf_loader.py",
+      "test_coverage": 85.0,
+      "unified_interface": false,
+      "mcp_exposed": true,
+      "last_updated": "2025-07-21T23:48:28.154226"
+    },
+    "T02": {
+      "name": "Word Loader",
+      "description": "Load and extract text from Word documents",
+      "category": "graph",
+      "status": "not_started",
+      "priority": 8,
+      "dependencies": [
+        "python-docx"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154237"
+    },
+    "T03": {
+      "name": "Text Loader",
+      "description": "Load plain text documents",
+      "category": "graph",
+      "status": "not_started",
+      "priority": 6,
+      "dependencies": [],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154241"
+    },
+    "T04": {
+      "name": "Markdown Loader",
+      "description": "Load and parse Markdown documents",
+      "category": "graph",
+      "status": "not_started",
+      "priority": 5,
+      "dependencies": [
+        "markdown"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154244"
+    },
+    "T05": {
+      "name": "CSV Loader",
+      "description": "Load structured data from CSV files",
+      "category": "graph",
+      "status": "not_started",
+      "priority": 7,
+      "dependencies": [
+        "pandas"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154247"
+    },
+    "T06": {
+      "name": "Degree Centrality",
+      "description": "Calculate degree centrality for graph nodes",
+      "category": "graph",
+      "status": "not_started",
+      "priority": 8,
+      "dependencies": [
+        "networkx",
+        "neo4j"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154250"
+    },
+    "T07": {
+      "name": "Betweenness Centrality",
+      "description": "Calculate betweenness centrality",
+      "category": "graph",
+      "status": "not_started",
+      "priority": 7,
+      "dependencies": [
+        "networkx",
+        "neo4j"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154253"
+    },
+    "T08": {
+      "name": "Closeness Centrality",
+      "description": "Calculate closeness centrality",
+      "category": "graph",
+      "status": "not_started",
+      "priority": 6,
+      "dependencies": [
+        "networkx",
+        "neo4j"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154255"
+    },
+    "T09": {
+      "name": "Eigenvector Centrality",
+      "description": "Calculate eigenvector centrality",
+      "category": "graph",
+      "status": "not_started",
+      "priority": 6,
+      "dependencies": [
+        "networkx",
+        "neo4j"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154258"
+    },
+    "T10": {
+      "name": "PageRank Alternative",
+      "description": "Alternative PageRank implementation",
+      "category": "graph",
+      "status": "not_started",
+      "priority": 5,
+      "dependencies": [
+        "networkx",
+        "neo4j"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154260"
+    },
+    "T11": {
+      "name": "Community Detection",
+      "description": "Detect communities using Louvain algorithm",
+      "category": "graph",
+      "status": "not_started",
+      "priority": 8,
+      "dependencies": [
+        "python-louvain",
+        "neo4j"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154263"
+    },
+    "T12": {
+      "name": "Modularity Calculator",
+      "description": "Calculate network modularity",
+      "category": "graph",
+      "status": "not_started",
+      "priority": 6,
+      "dependencies": [
+        "networkx",
+        "neo4j"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154266"
+    },
+    "T13": {
+      "name": "Label Propagation",
+      "description": "Community detection via label propagation",
+      "category": "graph",
+      "status": "not_started",
+      "priority": 5,
+      "dependencies": [
+        "networkx",
+        "neo4j"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154268"
+    },
+    "T14": {
+      "name": "Shortest Path",
+      "description": "Find shortest paths between nodes",
+      "category": "graph",
+      "status": "not_started",
+      "priority": 7,
+      "dependencies": [
+        "neo4j"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154271"
+    },
+    "T15": {
+      "name": "All Paths",
+      "description": "Find all paths between nodes",
+      "category": "graph",
+      "status": "not_started",
+      "priority": 5,
+      "dependencies": [
+        "neo4j"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154273"
+    },
+    "T15A": {
+      "name": "Text Chunker",
+      "description": "Split text into overlapping chunks",
+      "category": "graph",
+      "status": "implemented",
+      "priority": 10,
+      "dependencies": [
+        "quality_service"
+      ],
+      "file_path": "src/tools/phase1/t15a_text_chunker.py",
+      "test_coverage": 90.0,
+      "unified_interface": false,
+      "mcp_exposed": true,
+      "last_updated": "2025-07-21T23:48:28.154276"
+    },
+    "T16": {
+      "name": "Path Analysis",
+      "description": "Analyze path patterns and properties",
+      "category": "graph",
+      "status": "not_started",
+      "priority": 6,
+      "dependencies": [
+        "neo4j"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154279"
+    },
+    "T17": {
+      "name": "Ego Network",
+      "description": "Extract ego networks around nodes",
+      "category": "graph",
+      "status": "not_started",
+      "priority": 6,
+      "dependencies": [
+        "neo4j"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154282"
+    },
+    "T18": {
+      "name": "K-hop Neighborhood",
+      "description": "Extract k-hop neighborhoods",
+      "category": "graph",
+      "status": "not_started",
+      "priority": 7,
+      "dependencies": [
+        "neo4j"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154284"
+    },
+    "T19": {
+      "name": "Subgraph Extraction",
+      "description": "Extract subgraphs by criteria",
+      "category": "graph",
+      "status": "not_started",
+      "priority": 7,
+      "dependencies": [
+        "neo4j"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154287"
+    },
+    "T20": {
+      "name": "Graph Clustering",
+      "description": "Cluster nodes by similarity",
+      "category": "graph",
+      "status": "not_started",
+      "priority": 6,
+      "dependencies": [
+        "scikit-learn",
+        "neo4j"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154289"
+    },
+    "T21": {
+      "name": "Graph Metrics",
+      "description": "Calculate global graph metrics",
+      "category": "graph",
+      "status": "not_started",
+      "priority": 5,
+      "dependencies": [
+        "networkx",
+        "neo4j"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154292"
+    },
+    "T22": {
+      "name": "Node Similarity",
+      "description": "Calculate node similarity scores",
+      "category": "graph",
+      "status": "not_started",
+      "priority": 6,
+      "dependencies": [
+        "neo4j"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154295"
+    },
+    "T23": {
+      "name": "Entity Extraction Alt",
+      "description": "Alternative entity extraction method",
+      "category": "graph",
+      "status": "not_started",
+      "priority": 5,
+      "dependencies": [
+        "transformers"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154298"
+    },
+    "T23A": {
+      "name": "spaCy NER",
+      "description": "Extract named entities using spaCy",
+      "category": "graph",
+      "status": "implemented",
+      "priority": 10,
+      "dependencies": [
+        "spacy",
+        "identity_service"
+      ],
+      "file_path": "src/tools/phase1/t23a_spacy_ner.py",
+      "test_coverage": 88.0,
+      "unified_interface": false,
+      "mcp_exposed": true,
+      "last_updated": "2025-07-21T23:48:28.154302"
+    },
+    "T24": {
+      "name": "Relation Extraction Alt",
+      "description": "Alternative relation extraction",
+      "category": "graph",
+      "status": "not_started",
+      "priority": 5,
+      "dependencies": [
+        "transformers"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154304"
+    },
+    "T25": {
+      "name": "Coreference Resolution",
+      "description": "Resolve entity coreferences",
+      "category": "graph",
+      "status": "not_started",
+      "priority": 7,
+      "dependencies": [
+        "neuralcoref",
+        "spacy"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154307"
+    },
+    "T26": {
+      "name": "Entity Linking",
+      "description": "Link entities to knowledge bases",
+      "category": "graph",
+      "status": "not_started",
+      "priority": 6,
+      "dependencies": [
+        "entity-linker"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154309"
+    },
+    "T27": {
+      "name": "Relationship Extractor",
+      "description": "Extract relationships between entities",
+      "category": "graph",
+      "status": "implemented",
+      "priority": 9,
+      "dependencies": [
+        "spacy",
+        "identity_service"
+      ],
+      "file_path": "src/tools/phase1/t27_relationship_extractor.py",
+      "test_coverage": 82.0,
+      "unified_interface": false,
+      "mcp_exposed": true,
+      "last_updated": "2025-07-21T23:48:28.154313"
+    },
+    "T28": {
+      "name": "Graph Validation",
+      "description": "Validate graph consistency",
+      "category": "graph",
+      "status": "not_started",
+      "priority": 6,
+      "dependencies": [
+        "neo4j"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154315"
+    },
+    "T29": {
+      "name": "Graph Repair",
+      "description": "Repair graph inconsistencies",
+      "category": "graph",
+      "status": "not_started",
+      "priority": 5,
+      "dependencies": [
+        "neo4j"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154318"
+    },
+    "T30": {
+      "name": "Graph Export",
+      "description": "Export graphs to various formats",
+      "category": "graph",
+      "status": "not_started",
+      "priority": 7,
+      "dependencies": [
+        "neo4j",
+        "networkx"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154320"
+    },
+    "T31": {
+      "name": "Entity Builder",
+      "description": "Build entity nodes in graph",
+      "category": "table",
+      "status": "implemented",
+      "priority": 10,
+      "dependencies": [
+        "neo4j",
+        "identity_service"
+      ],
+      "file_path": "src/tools/phase1/t31_entity_builder.py",
+      "test_coverage": 87.0,
+      "unified_interface": false,
+      "mcp_exposed": true,
+      "last_updated": "2025-07-21T23:48:28.154330"
+    },
+    "T32": {
+      "name": "Entity Merger",
+      "description": "Merge duplicate entities",
+      "category": "table",
+      "status": "not_started",
+      "priority": 8,
+      "dependencies": [
+        "neo4j",
+        "identity_service"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154332"
+    },
+    "T33": {
+      "name": "Entity Enricher",
+      "description": "Enrich entities with metadata",
+      "category": "table",
+      "status": "not_started",
+      "priority": 6,
+      "dependencies": [
+        "neo4j"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154335"
+    },
+    "T34": {
+      "name": "Edge Builder",
+      "description": "Build relationship edges in graph",
+      "category": "table",
+      "status": "implemented",
+      "priority": 10,
+      "dependencies": [
+        "neo4j",
+        "quality_service"
+      ],
+      "file_path": "src/tools/phase1/t34_edge_builder.py",
+      "test_coverage": 85.0,
+      "unified_interface": false,
+      "mcp_exposed": true,
+      "last_updated": "2025-07-21T23:48:28.154338"
+    },
+    "T35": {
+      "name": "Edge Enricher",
+      "description": "Enrich edges with metadata",
+      "category": "table",
+      "status": "not_started",
+      "priority": 6,
+      "dependencies": [
+        "neo4j"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154341"
+    },
+    "T36": {
+      "name": "Table Loader",
+      "description": "Load data from tabular sources",
+      "category": "table",
+      "status": "not_started",
+      "priority": 8,
+      "dependencies": [
+        "pandas"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154343"
+    },
+    "T37": {
+      "name": "Table Joiner",
+      "description": "Join multiple tables",
+      "category": "table",
+      "status": "not_started",
+      "priority": 7,
+      "dependencies": [
+        "pandas"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154346"
+    },
+    "T38": {
+      "name": "Table Aggregator",
+      "description": "Aggregate table data",
+      "category": "table",
+      "status": "not_started",
+      "priority": 6,
+      "dependencies": [
+        "pandas"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154348"
+    },
+    "T39": {
+      "name": "Table Filter",
+      "description": "Filter table rows by criteria",
+      "category": "table",
+      "status": "not_started",
+      "priority": 5,
+      "dependencies": [
+        "pandas"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154351"
+    },
+    "T40": {
+      "name": "Table Transformer",
+      "description": "Transform table structure",
+      "category": "table",
+      "status": "not_started",
+      "priority": 6,
+      "dependencies": [
+        "pandas"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154353"
+    },
+    "T41": {
+      "name": "Descriptive Stats",
+      "description": "Calculate descriptive statistics",
+      "category": "table",
+      "status": "not_started",
+      "priority": 7,
+      "dependencies": [
+        "pandas",
+        "numpy"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154356"
+    },
+    "T42": {
+      "name": "Correlation Analysis",
+      "description": "Analyze correlations in data",
+      "category": "table",
+      "status": "not_started",
+      "priority": 7,
+      "dependencies": [
+        "pandas",
+        "scipy"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154359"
+    },
+    "T43": {
+      "name": "Regression Analysis",
+      "description": "Perform regression analysis",
+      "category": "table",
+      "status": "not_started",
+      "priority": 6,
+      "dependencies": [
+        "scikit-learn"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154361"
+    },
+    "T44": {
+      "name": "Time Series Analysis",
+      "description": "Analyze time series data",
+      "category": "table",
+      "status": "not_started",
+      "priority": 6,
+      "dependencies": [
+        "statsmodels"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154364"
+    },
+    "T45": {
+      "name": "Statistical Tests",
+      "description": "Perform statistical hypothesis tests",
+      "category": "table",
+      "status": "not_started",
+      "priority": 5,
+      "dependencies": [
+        "scipy"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154366"
+    },
+    "T46": {
+      "name": "Data Profiler",
+      "description": "Profile data quality and completeness",
+      "category": "table",
+      "status": "not_started",
+      "priority": 8,
+      "dependencies": [
+        "pandas-profiling"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154369"
+    },
+    "T47": {
+      "name": "Anomaly Detector",
+      "description": "Detect anomalies in data",
+      "category": "table",
+      "status": "not_started",
+      "priority": 7,
+      "dependencies": [
+        "scikit-learn"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154371"
+    },
+    "T48": {
+      "name": "Data Validator",
+      "description": "Validate data against schemas",
+      "category": "table",
+      "status": "not_started",
+      "priority": 7,
+      "dependencies": [
+        "jsonschema"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154374"
+    },
+    "T49": {
+      "name": "Multi-hop Query",
+      "description": "Perform multi-hop graph queries",
+      "category": "table",
+      "status": "implemented",
+      "priority": 9,
+      "dependencies": [
+        "neo4j"
+      ],
+      "file_path": "src/tools/phase1/t49_multi-hop_query.py",
+      "test_coverage": 80.0,
+      "unified_interface": false,
+      "mcp_exposed": true,
+      "last_updated": "2025-07-21T23:48:28.154377"
+    },
+    "T50": {
+      "name": "Data Cleaner",
+      "description": "Clean and standardize data",
+      "category": "table",
+      "status": "not_started",
+      "priority": 6,
+      "dependencies": [
+        "pandas"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154379"
+    },
+    "T51": {
+      "name": "Chart Data Prep",
+      "description": "Prepare data for charting",
+      "category": "table",
+      "status": "not_started",
+      "priority": 6,
+      "dependencies": [
+        "pandas"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154382"
+    },
+    "T52": {
+      "name": "Graph Layout",
+      "description": "Calculate graph layout coordinates",
+      "category": "table",
+      "status": "not_started",
+      "priority": 5,
+      "dependencies": [
+        "networkx"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154385"
+    },
+    "T53": {
+      "name": "Heatmap Generator",
+      "description": "Generate heatmap data",
+      "category": "table",
+      "status": "not_started",
+      "priority": 5,
+      "dependencies": [
+        "numpy"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154387"
+    },
+    "T54": {
+      "name": "Timeline Generator",
+      "description": "Generate timeline visualizations",
+      "category": "table",
+      "status": "not_started",
+      "priority": 5,
+      "dependencies": [
+        "pandas"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154390"
+    },
+    "T55": {
+      "name": "Dashboard Aggregator",
+      "description": "Aggregate data for dashboards",
+      "category": "table",
+      "status": "not_started",
+      "priority": 6,
+      "dependencies": [
+        "pandas"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154392"
+    },
+    "T56": {
+      "name": "Excel Exporter",
+      "description": "Export data to Excel format",
+      "category": "table",
+      "status": "not_started",
+      "priority": 6,
+      "dependencies": [
+        "openpyxl"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154395"
+    },
+    "T57": {
+      "name": "JSON Exporter",
+      "description": "Export data to JSON format",
+      "category": "table",
+      "status": "not_started",
+      "priority": 5,
+      "dependencies": [],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154397"
+    },
+    "T58": {
+      "name": "SQL Importer",
+      "description": "Import data from SQL databases",
+      "category": "table",
+      "status": "not_started",
+      "priority": 7,
+      "dependencies": [
+        "sqlalchemy"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154400"
+    },
+    "T59": {
+      "name": "API Connector",
+      "description": "Connect to external APIs",
+      "category": "table",
+      "status": "not_started",
+      "priority": 7,
+      "dependencies": [
+        "requests"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154402"
+    },
+    "T60": {
+      "name": "Report Generator",
+      "description": "Generate analysis reports",
+      "category": "table",
+      "status": "not_started",
+      "priority": 7,
+      "dependencies": [
+        "jinja2"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154405"
+    },
+    "T61": {
+      "name": "Word2Vec Embedder",
+      "description": "Generate Word2Vec embeddings",
+      "category": "vector",
+      "status": "not_started",
+      "priority": 7,
+      "dependencies": [
+        "gensim"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154414"
+    },
+    "T62": {
+      "name": "FastText Embedder",
+      "description": "Generate FastText embeddings",
+      "category": "vector",
+      "status": "not_started",
+      "priority": 6,
+      "dependencies": [
+        "fasttext"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154417"
+    },
+    "T63": {
+      "name": "BERT Embedder",
+      "description": "Generate BERT embeddings",
+      "category": "vector",
+      "status": "not_started",
+      "priority": 8,
+      "dependencies": [
+        "transformers"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154419"
+    },
+    "T64": {
+      "name": "Sentence Embedder",
+      "description": "Generate sentence embeddings",
+      "category": "vector",
+      "status": "not_started",
+      "priority": 8,
+      "dependencies": [
+        "sentence-transformers"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154422"
+    },
+    "T65": {
+      "name": "Document Embedder",
+      "description": "Generate document embeddings",
+      "category": "vector",
+      "status": "not_started",
+      "priority": 7,
+      "dependencies": [
+        "doc2vec"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154424"
+    },
+    "T66": {
+      "name": "Vector Similarity",
+      "description": "Calculate vector similarities",
+      "category": "vector",
+      "status": "not_started",
+      "priority": 8,
+      "dependencies": [
+        "numpy",
+        "scipy"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154427"
+    },
+    "T67": {
+      "name": "Vector Clustering",
+      "description": "Cluster vectors",
+      "category": "vector",
+      "status": "not_started",
+      "priority": 7,
+      "dependencies": [
+        "scikit-learn"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154429"
+    },
+    "T68": {
+      "name": "PageRank Calculator",
+      "description": "Calculate PageRank scores",
+      "category": "vector",
+      "status": "implemented",
+      "priority": 9,
+      "dependencies": [
+        "networkx",
+        "neo4j"
+      ],
+      "file_path": null,
+      "test_coverage": 92.0,
+      "unified_interface": false,
+      "mcp_exposed": true,
+      "last_updated": "2025-07-21T23:48:28.154433"
+    },
+    "T69": {
+      "name": "Vector Projection",
+      "description": "Project vectors to lower dimensions",
+      "category": "vector",
+      "status": "not_started",
+      "priority": 6,
+      "dependencies": [
+        "scikit-learn"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154435"
+    },
+    "T70": {
+      "name": "Vector Indexer",
+      "description": "Index vectors for fast search",
+      "category": "vector",
+      "status": "not_started",
+      "priority": 7,
+      "dependencies": [
+        "faiss"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154438"
+    },
+    "T71": {
+      "name": "Semantic Search",
+      "description": "Perform semantic similarity search",
+      "category": "vector",
+      "status": "not_started",
+      "priority": 8,
+      "dependencies": [
+        "faiss",
+        "sentence-transformers"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154440"
+    },
+    "T72": {
+      "name": "Query Expansion",
+      "description": "Expand queries with similar terms",
+      "category": "vector",
+      "status": "not_started",
+      "priority": 6,
+      "dependencies": [
+        "gensim"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154443"
+    },
+    "T73": {
+      "name": "Concept Extraction",
+      "description": "Extract concepts from embeddings",
+      "category": "vector",
+      "status": "not_started",
+      "priority": 6,
+      "dependencies": [
+        "scikit-learn"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154446"
+    },
+    "T74": {
+      "name": "Topic Modeling",
+      "description": "Discover topics in documents",
+      "category": "vector",
+      "status": "not_started",
+      "priority": 7,
+      "dependencies": [
+        "gensim",
+        "scikit-learn"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154448"
+    },
+    "T75": {
+      "name": "Semantic Clustering",
+      "description": "Cluster by semantic similarity",
+      "category": "vector",
+      "status": "not_started",
+      "priority": 6,
+      "dependencies": [
+        "scikit-learn"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154451"
+    },
+    "T76": {
+      "name": "ChromaDB Connector",
+      "description": "Connect to ChromaDB vector store",
+      "category": "vector",
+      "status": "not_started",
+      "priority": 8,
+      "dependencies": [
+        "chromadb"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154453"
+    },
+    "T77": {
+      "name": "Pinecone Connector",
+      "description": "Connect to Pinecone vector store",
+      "category": "vector",
+      "status": "not_started",
+      "priority": 7,
+      "dependencies": [
+        "pinecone-client"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154456"
+    },
+    "T78": {
+      "name": "Weaviate Connector",
+      "description": "Connect to Weaviate vector store",
+      "category": "vector",
+      "status": "not_started",
+      "priority": 7,
+      "dependencies": [
+        "weaviate-client"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154458"
+    },
+    "T79": {
+      "name": "Vector Cache",
+      "description": "Cache frequently used vectors",
+      "category": "vector",
+      "status": "not_started",
+      "priority": 6,
+      "dependencies": [
+        "redis"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154461"
+    },
+    "T80": {
+      "name": "Vector Persistence",
+      "description": "Persist vectors to disk",
+      "category": "vector",
+      "status": "not_started",
+      "priority": 5,
+      "dependencies": [
+        "numpy"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154464"
+    },
+    "T81": {
+      "name": "Cross-lingual Embedder",
+      "description": "Generate cross-lingual embeddings",
+      "category": "vector",
+      "status": "not_started",
+      "priority": 6,
+      "dependencies": [
+        "laser"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154467"
+    },
+    "T82": {
+      "name": "Multimodal Embedder",
+      "description": "Generate multimodal embeddings",
+      "category": "vector",
+      "status": "not_started",
+      "priority": 7,
+      "dependencies": [
+        "clip"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154470"
+    },
+    "T83": {
+      "name": "Fine-tuned Embedder",
+      "description": "Fine-tune embeddings for domain",
+      "category": "vector",
+      "status": "not_started",
+      "priority": 6,
+      "dependencies": [
+        "transformers"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154472"
+    },
+    "T84": {
+      "name": "Embedding Evaluator",
+      "description": "Evaluate embedding quality",
+      "category": "vector",
+      "status": "not_started",
+      "priority": 5,
+      "dependencies": [
+        "scipy"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154475"
+    },
+    "T85": {
+      "name": "Embedding Visualizer",
+      "description": "Visualize embedding spaces",
+      "category": "vector",
+      "status": "not_started",
+      "priority": 5,
+      "dependencies": [
+        "matplotlib",
+        "plotly"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154478"
+    },
+    "T86": {
+      "name": "Document Chunker Pro",
+      "description": "Advanced document chunking for RAG",
+      "category": "vector",
+      "status": "not_started",
+      "priority": 8,
+      "dependencies": [
+        "langchain"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154480"
+    },
+    "T87": {
+      "name": "Context Builder",
+      "description": "Build context for RAG queries",
+      "category": "vector",
+      "status": "not_started",
+      "priority": 8,
+      "dependencies": [
+        "langchain"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154483"
+    },
+    "T88": {
+      "name": "Retrieval Ranker",
+      "description": "Rank retrieved documents",
+      "category": "vector",
+      "status": "not_started",
+      "priority": 7,
+      "dependencies": [
+        "sentence-transformers"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154486"
+    },
+    "T89": {
+      "name": "Answer Generator",
+      "description": "Generate answers from context",
+      "category": "vector",
+      "status": "not_started",
+      "priority": 8,
+      "dependencies": [
+        "transformers"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154488"
+    },
+    "T90": {
+      "name": "RAG Evaluator",
+      "description": "Evaluate RAG pipeline quality",
+      "category": "vector",
+      "status": "not_started",
+      "priority": 6,
+      "dependencies": [
+        "ragas"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154491"
+    },
+    "T91": {
+      "name": "Graph to Table",
+      "description": "Convert graph data to table format",
+      "category": "cross_modal",
+      "status": "not_started",
+      "priority": 9,
+      "dependencies": [
+        "neo4j",
+        "pandas"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154499"
+    },
+    "T92": {
+      "name": "Table to Graph",
+      "description": "Convert table data to graph format",
+      "category": "cross_modal",
+      "status": "not_started",
+      "priority": 9,
+      "dependencies": [
+        "pandas",
+        "neo4j"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154502"
+    },
+    "T93": {
+      "name": "Graph Stats Table",
+      "description": "Generate statistics table from graph",
+      "category": "cross_modal",
+      "status": "not_started",
+      "priority": 7,
+      "dependencies": [
+        "neo4j",
+        "pandas"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154504"
+    },
+    "T94": {
+      "name": "Edge List Generator",
+      "description": "Generate edge lists from graphs",
+      "category": "cross_modal",
+      "status": "not_started",
+      "priority": 6,
+      "dependencies": [
+        "neo4j",
+        "pandas"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154507"
+    },
+    "T95": {
+      "name": "Adjacency Matrix",
+      "description": "Generate adjacency matrices",
+      "category": "cross_modal",
+      "status": "not_started",
+      "priority": 6,
+      "dependencies": [
+        "networkx",
+        "numpy"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154509"
+    },
+    "T96": {
+      "name": "Node2Vec",
+      "description": "Generate node embeddings",
+      "category": "cross_modal",
+      "status": "not_started",
+      "priority": 8,
+      "dependencies": [
+        "node2vec",
+        "gensim"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154512"
+    },
+    "T97": {
+      "name": "Graph2Vec",
+      "description": "Generate graph embeddings",
+      "category": "cross_modal",
+      "status": "not_started",
+      "priority": 7,
+      "dependencies": [
+        "graph2vec"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154514"
+    },
+    "T98": {
+      "name": "Edge Embedder",
+      "description": "Generate edge embeddings",
+      "category": "cross_modal",
+      "status": "not_started",
+      "priority": 6,
+      "dependencies": [
+        "numpy"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154517"
+    },
+    "T99": {
+      "name": "Subgraph Embedder",
+      "description": "Generate subgraph embeddings",
+      "category": "cross_modal",
+      "status": "not_started",
+      "priority": 6,
+      "dependencies": [
+        "torch-geometric"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154519"
+    },
+    "T100": {
+      "name": "Graph Similarity Vector",
+      "description": "Calculate graph similarity vectors",
+      "category": "cross_modal",
+      "status": "not_started",
+      "priority": 6,
+      "dependencies": [
+        "networkx"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154522"
+    },
+    "T101": {
+      "name": "Table Row Embedder",
+      "description": "Embed table rows as vectors",
+      "category": "cross_modal",
+      "status": "not_started",
+      "priority": 7,
+      "dependencies": [
+        "pandas",
+        "scikit-learn"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154526"
+    },
+    "T102": {
+      "name": "Column Embedder",
+      "description": "Embed table columns",
+      "category": "cross_modal",
+      "status": "not_started",
+      "priority": 6,
+      "dependencies": [
+        "pandas",
+        "numpy"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154528"
+    },
+    "T103": {
+      "name": "Feature Extractor",
+      "description": "Extract features from tables",
+      "category": "cross_modal",
+      "status": "not_started",
+      "priority": 7,
+      "dependencies": [
+        "pandas",
+        "scikit-learn"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154531"
+    },
+    "T104": {
+      "name": "Table Vectorizer",
+      "description": "Vectorize entire tables",
+      "category": "cross_modal",
+      "status": "not_started",
+      "priority": 6,
+      "dependencies": [
+        "pandas",
+        "numpy"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154533"
+    },
+    "T105": {
+      "name": "Schema Embedder",
+      "description": "Embed table schemas",
+      "category": "cross_modal",
+      "status": "not_started",
+      "priority": 5,
+      "dependencies": [
+        "pandas"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154537"
+    },
+    "T106": {
+      "name": "Format Detector",
+      "description": "Detect data format automatically",
+      "category": "cross_modal",
+      "status": "not_started",
+      "priority": 7,
+      "dependencies": [],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154539"
+    },
+    "T107": {
+      "name": "Identity Service Tool",
+      "description": "Entity identity resolution",
+      "category": "cross_modal",
+      "status": "implemented",
+      "priority": 9,
+      "dependencies": [
+        "identity_service"
+      ],
+      "file_path": "src/core/identity_service_tool.py",
+      "test_coverage": 95.0,
+      "unified_interface": false,
+      "mcp_exposed": true,
+      "last_updated": "2025-07-21T23:48:28.154543"
+    },
+    "T108": {
+      "name": "Provenance Tracker",
+      "description": "Track data provenance",
+      "category": "cross_modal",
+      "status": "not_started",
+      "priority": 8,
+      "dependencies": [
+        "provenance_service"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154546"
+    },
+    "T109": {
+      "name": "Quality Assessor",
+      "description": "Assess data quality",
+      "category": "cross_modal",
+      "status": "not_started",
+      "priority": 7,
+      "dependencies": [
+        "quality_service"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154548"
+    },
+    "T110": {
+      "name": "Provenance Service Tool",
+      "description": "Provenance management",
+      "category": "cross_modal",
+      "status": "implemented",
+      "priority": 9,
+      "dependencies": [
+        "provenance_service"
+      ],
+      "file_path": "src/core/provenance_service_tool.py",
+      "test_coverage": 93.0,
+      "unified_interface": false,
+      "mcp_exposed": true,
+      "last_updated": "2025-07-21T23:48:28.154552"
+    },
+    "T111": {
+      "name": "Quality Service Tool",
+      "description": "Quality assessment",
+      "category": "cross_modal",
+      "status": "implemented",
+      "priority": 9,
+      "dependencies": [
+        "quality_service"
+      ],
+      "file_path": "src/core/quality_service_tool.py",
+      "test_coverage": 91.0,
+      "unified_interface": false,
+      "mcp_exposed": true,
+      "last_updated": "2025-07-21T23:48:28.154555"
+    },
+    "T112": {
+      "name": "Pipeline Composer",
+      "description": "Compose analysis pipelines",
+      "category": "cross_modal",
+      "status": "not_started",
+      "priority": 8,
+      "dependencies": [
+        "pipeline_orchestrator"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154557"
+    },
+    "T113": {
+      "name": "Workflow Validator",
+      "description": "Validate analysis workflows",
+      "category": "cross_modal",
+      "status": "not_started",
+      "priority": 7,
+      "dependencies": [
+        "workflow_service"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154560"
+    },
+    "T114": {
+      "name": "Result Aggregator",
+      "description": "Aggregate multi-modal results",
+      "category": "cross_modal",
+      "status": "not_started",
+      "priority": 7,
+      "dependencies": [],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154563"
+    },
+    "T115": {
+      "name": "Error Handler",
+      "description": "Centralized error handling",
+      "category": "cross_modal",
+      "status": "not_started",
+      "priority": 8,
+      "dependencies": [],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154565"
+    },
+    "T116": {
+      "name": "Multi-modal Fusion",
+      "description": "Fuse multi-modal data",
+      "category": "cross_modal",
+      "status": "not_started",
+      "priority": 8,
+      "dependencies": [
+        "torch"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154568"
+    },
+    "T117": {
+      "name": "Cross-modal Aligner",
+      "description": "Align cross-modal representations",
+      "category": "cross_modal",
+      "status": "not_started",
+      "priority": 7,
+      "dependencies": [
+        "torch"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154570"
+    },
+    "T118": {
+      "name": "Modal Translator",
+      "description": "Translate between modalities",
+      "category": "cross_modal",
+      "status": "not_started",
+      "priority": 7,
+      "dependencies": [
+        "torch"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154573"
+    },
+    "T119": {
+      "name": "Consistency Checker",
+      "description": "Check cross-modal consistency",
+      "category": "cross_modal",
+      "status": "not_started",
+      "priority": 6,
+      "dependencies": [],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154575"
+    },
+    "T120": {
+      "name": "Performance Monitor",
+      "description": "Monitor tool performance",
+      "category": "cross_modal",
+      "status": "not_started",
+      "priority": 8,
+      "dependencies": [
+        "prometheus"
+      ],
+      "file_path": null,
+      "test_coverage": 0.0,
+      "unified_interface": false,
+      "mcp_exposed": false,
+      "last_updated": "2025-07-21T23:48:28.154578"
+    },
+    "T121": {
+      "name": "MCP Service Tool",
+      "description": "MCP protocol service",
+      "category": "cross_modal",
+      "status": "implemented",
+      "priority": 9,
+      "dependencies": [
+        "mcp_server"
+      ],
+      "file_path": "src/core/mcp_service_tool.py",
+      "test_coverage": 78.0,
+      "unified_interface": false,
+      "mcp_exposed": true,
+      "last_updated": "2025-07-21T23:48:28.154581"
+    }
+  }
+}

@@ -608,7 +608,7 @@ class EntityBuilder(BaseNeo4jTool):
                 "error": "No mentions provided for entity building"
             }
             
-        return self.build_entities(mention_refs, mentions, workflow_id)
+        return self.build_entities(mentions, mention_refs)
     
     def _execute_validation_test(self) -> Dict[str, Any]:
         """Execute with minimal test data for validation."""

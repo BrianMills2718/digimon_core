@@ -93,4 +93,4 @@ python -c "from src.tools.phase1.vertical_slice_workflow import VerticalSliceWor
 - [Gemini AI Architectural Review](../../external_tools/gemini-review-tool/gemini-review.md)
 - [Tool Factory Implementation](../../src/core/tool_factory.py)
 - [Pipeline Orchestrator Implementation](../../src/core/pipeline_orchestrator.py)-e 
-<br><sup>See `docs/planning/roadmap.md` for master plan.</sup>
+<br><sup>See `docs/roadmap/ROADMAP_OVERVIEW.md` for master plan.</sup>

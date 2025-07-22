@@ -6,10 +6,10 @@ The `docs/architecture/` directory contains the authoritative architectural docu
 ## Documentation Structure
 
 ### Core Architecture Documents
-- **`KGAS_ARCHITECTURE_V3.md`**: Single source of truth for system architecture
+- **`ARCHITECTURE_OVERVIEW.md`**: Single source of truth for system architecture
 - **`LIMITATIONS.md`**: Documented system limitations and constraints
 - **`cross-modal-analysis.md`**: Cross-modal analysis architecture details
-- **`architecture_overview.md`**: High-level system overview
+- **`agent-interface.md`**: Three-layer agent interface specification
 - **`project-structure.md`**: Project organization and structure
 
 ### Specialized Architecture Areas
@@ -75,7 +75,7 @@ The system enables fluid movement between three data representations:
 - **Purpose**: Document what is actually implemented and working
 - **Stability**: Updated as implementation progresses
 - **Content**: Working components, known issues, implementation status
-- **Location**: Should reference roadmap.md for current status
+- **Location**: Should reference [docs/roadmap/ROADMAP_OVERVIEW.md](../roadmap/ROADMAP_OVERVIEW.md) for current status
 
 #### **Implementation Guidance** (How to build it)
 - **Purpose**: Guide developers in implementing the target architecture
@@ -112,7 +112,7 @@ Clear statement of what this component does and why it exists.
 
 #### **Status and Progress Tracking**
 - **Do NOT include** in architecture documents
-- **Reference roadmap.md** for current implementation status
+- **Reference [docs/roadmap/ROADMAP_OVERVIEW.md](../roadmap/ROADMAP_OVERVIEW.md)** for current implementation status
 - **Focus on design** rather than progress toward design
 
 ## Key Architectural Concepts

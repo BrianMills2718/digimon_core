@@ -1,0 +1,30 @@
+project_name: "Focused Salience Calculator Validation"
+output_file: "focused_validation.md"
+
+include_patterns:
+  - "salience_calculator.py"
+
+custom_prompt: |
+  VALIDATION OBJECTIVE: Verify the Mitchell-Agle-Wood salience calculator implementation.
+
+  SPECIFIC CLAIMS TO VALIDATE:
+
+  **MITCHELL-AGLE-WOOD SALIENCE CALCULATOR** (salience_calculator.py):
+  - Geometric mean calculation implementation: (legitimacy × urgency × power)^(1/3)
+  - Edge case handling for zero inputs, boundary values, and floating point precision
+  - Comprehensive test cases with 100% success rate achievement
+  - Mitchell stakeholder categorization (definitive, dependent, dominant, etc.)
+  - Input validation and error handling
+
+  VALIDATION CRITERIA:
+  - **Implementation Present**: Does the geometric mean calculation exist?
+  - **Functionality Complete**: Is it fully implemented with edge case handling?
+  - **Requirements Met**: Does it satisfy mathematical and technical requirements?
+  - **Test Coverage**: Are comprehensive test cases implemented?
+
+  Please analyze the code and provide verdict:
+  - ✅ FULLY RESOLVED: Complete implementation with evidence
+  - ⚠️ PARTIALLY RESOLVED: Implementation present but with limitations  
+  - ❌ NOT RESOLVED: Missing or incomplete implementation
+
+  Focus on specific line numbers and code evidence.

@@ -1,0 +1,19 @@
+{
+  "review_date": "2025-07-22T01:40:07.212388",
+  "review_type": "roadmap_critique",
+  "files_reviewed": 10,
+  "file_list": [
+    "docs/architecture/ARCHITECTURE_OVERVIEW.md",
+    "docs/architecture/ARCHITECTURE_PHASES.md",
+    "docs/architecture/SCALABILITY_STRATEGY.md",
+    "docs/architecture/TOOL_GOVERNANCE.md",
+    "docs/architecture/adrs/ADR-001-Phase-Interface-Design.md",
+    "docs/architecture/adrs/ADR-003-Vector-Store-Consolidation.md",
+    "docs/architecture/concepts/cross-modal-philosophy.md",
+    "docs/architecture/concepts/uncertainty-architecture.md",
+    "docs/architecture/systems/COMPONENT_ARCHITECTURE_DETAILED.md",
+    "docs/roadmap/ROADMAP_OVERVIEW.md"
+  ],
+  "review_time_seconds": 47.67300081253052,
+  "output_file": "gemini-review-tool/roadmap-critique-results.md"
+}

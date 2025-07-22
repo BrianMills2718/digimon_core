@@ -62,4 +62,4 @@ See `docs/architecture/THEORETICAL_FRAMEWORK.md` for a worked example using Soci
 - Enhanced codegen support with auto-generated dataclasses
 - Updated schema location to v9.1
 - Improved validation and integration documentation
-<br><sup>See `docs/planning/roadmap.md` for master plan.</sup>
+<br><sup>See `docs/roadmap/ROADMAP_OVERVIEW.md` for master plan.</sup>

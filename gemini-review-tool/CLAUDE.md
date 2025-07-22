@@ -9,7 +9,7 @@ The Gemini Review Tool automates code validation by packaging codebases with rep
 **✅ DO**: Send precisely what's needed for each specific validation claim
 
 ### The Problem with Large Context
-- **API Limits**: Large files cause 500 errors and timeouts
+- **API Limits**: Large files cause 500 errors and timeouts. If you get a 500 error you must examine the context that you provided and trim it down to be more relevant o the request.
 - **Unfocused Analysis**: AI gets distracted by irrelevant code
 - **Poor Feedback**: Generic responses instead of actionable insights
 - **Cost Inefficiency**: Wastes tokens on irrelevant content

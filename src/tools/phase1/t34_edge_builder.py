@@ -713,7 +713,7 @@ class EdgeBuilder(BaseNeo4jTool):
                 "error": "No relationships provided for edge building"
             }
             
-        return self.build_edges(relationship_refs, relationships, workflow_id)
+        return self.build_edges(relationships, relationship_refs)
     
     def _execute_validation_test(self) -> Dict[str, Any]:
         """Execute with minimal test data for validation."""

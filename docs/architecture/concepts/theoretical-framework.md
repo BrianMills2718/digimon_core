@@ -52,4 +52,4 @@ Each theory includes a formal classification object:
 
 - Lasswell (1948), Druckman (2022), Eyster et al. (2022)
 
-<br><sup>See `docs/planning/roadmap.md` for master plan.</sup>
+<br><sup>See `docs/roadmap/ROADMAP_OVERVIEW.md` for master plan.</sup>

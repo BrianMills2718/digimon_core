@@ -1,0 +1,84 @@
+# Gemini Review Configuration for Architecture Documentation
+# Focus: Critical review of KGAS architecture documentation only
+
+review_prompt: |
+  You are a senior software architect reviewing the architecture documentation for the Knowledge Graph Analysis System (KGAS).
+  
+  Please provide a CRITICAL and THOROUGH review focusing on:
+  
+  1. **Architectural Clarity**: Are the architectural decisions, patterns, and structures clearly explained?
+  2. **Completeness**: Are there missing architectural components, relationships, or considerations?
+  3. **Consistency**: Are there contradictions or inconsistencies within the architecture docs?
+  4. **Technical Accuracy**: Are the technical choices sound and well-justified?
+  5. **Design Quality**: Does the architecture follow best practices and established patterns?
+  6. **Scalability & Performance**: Are these concerns adequately addressed?
+  7. **Security & Privacy**: Are security considerations properly documented?
+  8. **Integration Points**: Are interfaces and integration points well-defined?
+  9. **Data Flow**: Is data flow through the system clearly documented?
+  10. **Decision Rationale**: Are ADRs complete with proper justification?
+  
+  Be especially critical of:
+  - Vague or ambiguous descriptions
+  - Missing error handling or edge cases
+  - Unclear component boundaries
+  - Inadequate justification for technical choices
+  - Potential architectural risks or debt
+  
+  For each issue found, provide:
+  - Specific location (file and section)
+  - Clear description of the problem
+  - Concrete suggestion for improvement
+  - Priority level (Critical/High/Medium/Low)
+
+files_to_review:
+  # Core architecture documents
+  - path: "docs/architecture/ARCHITECTURE_OVERVIEW.md"
+    description: "Main architecture overview"
+  
+  # Concepts
+  - path: "docs/architecture/concepts/"
+    description: "Core architectural concepts"
+    include:
+      - "*.md"
+  
+  # Data architecture
+  - path: "docs/architecture/data/"
+    description: "Data models and storage architecture"
+    include:
+      - "*.md"
+  
+  # System specifications
+  - path: "docs/architecture/specifications/"
+    description: "System specifications and contracts"
+    include:
+      - "*.md"
+  
+  # System components
+  - path: "docs/architecture/systems/"
+    description: "Individual system component designs"
+    include:
+      - "*.md"
+  
+  # Architecture Decision Records
+  - path: "docs/architecture/adrs/"
+    description: "Architecture decision records"
+    include:
+      - "ADR-*.md"
+
+exclude_patterns:
+  - "**/examples/**"
+  - "**/templates/**"
+  - "**/*.bak"
+  - "**/*_old.*"
+
+review_focus:
+  - "Architecture completeness and clarity"
+  - "Technical soundness of decisions"
+  - "Consistency across all documents"
+  - "Identification of architectural risks"
+  - "Quality of ADR justifications"
+  - "Clear component boundaries and interfaces"
+  - "Proper handling of cross-cutting concerns"
+
+output_format: "markdown"
+output_file: "architecture-review-results.md"

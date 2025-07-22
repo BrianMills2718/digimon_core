@@ -47,7 +47,7 @@ This technical improvement directly nullifies the original reason for including 
 
 1.  **Data Stores**:
     -   **Neo4j**: Will store both the property graph and the vector embeddings for all entities. An `HNSW` index will be created on the `embedding` property of `:Entity` nodes.
-    -   **SQLite**: Will continue to be used for the encrypted PII vault. Workflow state will be managed by Redis as per ADR-002's findings.
+    -   **SQLite**: Will continue to be used for the encrypted PII vault and workflow state management, maintaining the bi-store architecture principle.
 
 2.  **Vector Store Abstraction**:
     -   An abstract `VectorStore` protocol (interface) will be defined in Python.
@@ -85,4 +85,93 @@ This technical improvement directly nullifies the original reason for including 
 
 ---
 
-**Related ADRs**: Supersedes the "Tri-Store Consistency" section of ADR-001/ADR-002 discussions. Complements the move to Redis for workflow state. 
+---
+
+## 🔄 **Trade-off Analysis**
+
+### Options Considered
+
+#### Option 1: Keep Tri-Store Architecture (Neo4j + SQLite + Qdrant)
+- **Pros**:
+  - Best-in-class vector search performance with Qdrant
+  - Independent scaling of vector operations
+  - Specialized vector database features (filtering, metadata)
+  - Proven architecture pattern for large-scale systems
+  
+- **Cons**:
+  - Complex consistency management across three stores
+  - Requires Transactional Outbox Pattern implementation
+  - Additional operational overhead (monitoring, backups, updates)
+  - Higher infrastructure costs
+  - Risk of data inconsistency during reconciliation windows
+
+#### Option 2: Single Neo4j Database (Graph + Vectors + Metadata)
+- **Pros**:
+  - Simplest possible architecture
+  - Perfect consistency (single ACID store)
+  - Minimal operational overhead
+  - Lowest cost
+  
+- **Cons**:
+  - Poor text/document storage capabilities
+  - Limited full-text search compared to dedicated solutions
+  - Would require complex JSON storage for metadata
+  - Performance concerns with mixed workloads
+
+#### Option 3: Bi-Store Architecture (Neo4j + SQLite) [SELECTED]
+- **Pros**:
+  - Balanced complexity - simpler than tri-store
+  - Strong consistency within each domain (graph+vectors atomic)
+  - Leverages Neo4j 5.13+ native vector capabilities
+  - SQLite excellent for metadata and workflow state
+  - Clean separation of concerns
+  - Future migration path via VectorStore abstraction
+  
+- **Cons**:
+  - Vector search may not scale beyond ~10M embeddings
+  - Still requires cross-database coordination for some operations
+  - Neo4j becomes more critical (single point of failure for core data)
+
+#### Option 4: Alternative Bi-Store (PostgreSQL with pgvector + Neo4j)
+- **Pros**:
+  - PostgreSQL more feature-rich than SQLite
+  - pgvector provides good vector search
+  - Could consolidate all non-graph data
+  - Better concurrent access than SQLite
+  
+- **Cons**:
+  - Adds PostgreSQL as new dependency
+  - More complex than SQLite for single-user research platform
+  - Overkill for current scale requirements
+  - Would still need consistency management
+
+### Decision Rationale
+
+The bi-store architecture (Option 3) was selected because:
+
+1. **Appropriate Complexity**: Eliminates the most complex aspect (tri-store consistency) while maintaining clean separation between graph and metadata storage.
+
+2. **Scale-Appropriate**: For a research platform processing thousands (not millions) of documents, Neo4j's native vector index is more than sufficient.
+
+3. **Consistency Benefits**: Atomic updates to graph + vectors eliminates entire classes of bugs and complexity.
+
+4. **Future Flexibility**: The VectorStore abstraction allows migration to Qdrant later if scale demands it, without major refactoring.
+
+5. **Operational Simplicity**: One less service to deploy, monitor, backup, and maintain.
+
+6. **Cost Efficiency**: Reduces infrastructure requirements while meeting all functional needs.
+
+### When to Reconsider
+
+This decision should be revisited if:
+- Vector corpus grows beyond 10M embeddings
+- Query latency for vector search exceeds 500ms consistently  
+- Need for advanced vector search features (hybrid search, filtering)
+- Moving from single-user to multi-tenant architecture
+- Require real-time vector index updates at high throughput
+
+The VectorStore abstraction ensures this future migration would be straightforward, involving only the implementation of a new concrete class without changes to application logic.
+
+---
+
+**Related ADRs**: Supersedes the "Tri-Store Consistency" section of ADR-001/ADR-002 discussions. Complements the workflow state management approach. 

@@ -54,4 +54,4 @@ Object-Role Modeling (ORM) is the conceptual backbone of KGAS's ontology and dat
 
 See `docs/architecture/ARCHITECTURE.md` for a summary and this file for full details.
 
-<br><sup>See `docs/planning/roadmap.md` for master plan.</sup>
+<br><sup>See `docs/roadmap/ROADMAP_OVERVIEW.md` for master plan.</sup>

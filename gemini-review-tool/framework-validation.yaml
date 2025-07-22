@@ -1,0 +1,29 @@
+project_name: "Stress Test Framework Validation"
+output_file: "framework_validation.md"
+
+include_patterns:
+  - "run_stress_test.py"
+
+custom_prompt: |
+  VALIDATION OBJECTIVE: Verify the comprehensive stress test framework implementation.
+
+  SPECIFIC CLAIMS TO VALIDATE:
+
+  **COMPREHENSIVE STRESS TEST FRAMEWORK** (run_stress_test.py):
+  - Complete end-to-end testing orchestrator implemented
+  - Four distinct test components: schema validation, algorithm validation, database integration, cross-modal analysis
+  - Real test execution with results saving and reporting
+  - Performance metrics and success rate calculation
+
+  VALIDATION CRITERIA:
+  - **Implementation Present**: Does the stress test orchestrator exist?
+  - **Functionality Complete**: Are all four test components implemented?
+  - **Requirements Met**: Does it provide real execution, results saving, and performance metrics?
+  - **Architecture Sound**: Is the testing framework well-structured?
+
+  Please analyze the code and provide verdict:
+  - ✅ FULLY RESOLVED: Complete implementation with evidence
+  - ⚠️ PARTIALLY RESOLVED: Implementation present but with limitations  
+  - ❌ NOT RESOLVED: Missing or incomplete implementation
+
+  Focus on specific line numbers and architectural evidence.

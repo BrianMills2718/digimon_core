@@ -1,0 +1,473 @@
+{
+  "theory_id": "stakeholder_theory",
+  "theory_name": "Stakeholder Theory",
+  "version": "1.0.0",
+  "authors": ["R. Edward Freeman", "Archie B. Carroll", "Ronald K. Mitchell", "Bradley R. Agle", "Donna J. Wood"],
+  "publication_year": 1984,
+  "description": "Theory that organizations should consider the interests of all stakeholders, not just shareholders, in decision-making processes. Stakeholder salience depends on legitimacy, urgency, and power.",
+  
+  "classification": {
+    "domain": {
+      "level": "Meso",
+      "component": "Who",
+      "metatheory": "Interdependent"
+    },
+    "complexity_tier": "heuristic"
+  },
+  
+  "ontology": {
+    "entities": [
+      {
+        "name": "Stakeholder",
+        "description": "Any group or individual who can affect or is affected by the achievement of the organization's objectives",
+        "mcl_id": "external_actor",
+        "dolce_parent": "http://www.loa.istc.cnr.it/dolce/SocialAgent",
+        "properties": [
+          {
+            "name": "legitimacy",
+            "type": "float",
+            "description": "Degree to which stakeholder claims are valid and appropriate",
+            "operationalization": {
+              "measurement_approach": "llm_assessment",
+              "boundary_rules": [
+                {"condition": "legal_right == true", "legitimacy": 0.8},
+                {"condition": "moral_claim == true", "legitimacy": 0.6},
+                {"condition": "contractual_relationship == true", "legitimacy": 0.9}
+              ],
+              "fuzzy_boundaries": true,
+              "validation_examples": [
+                {"text": "Employees demanding fair wages", "expected_legitimacy": 0.9},
+                {"text": "Competitors complaining about success", "expected_legitimacy": 0.1}
+              ]
+            }
+          },
+          {
+            "name": "urgency",
+            "type": "float",
+            "description": "Degree to which stakeholder claims call for immediate attention",
+            "operationalization": {
+              "measurement_approach": "temporal_analysis",
+              "boundary_rules": [
+                {"condition": "time_critical == true", "urgency": 0.8},
+                {"condition": "legal_deadline_exists == true", "urgency": 0.9},
+                {"condition": "public_pressure_mounting == true", "urgency": 0.7}
+              ],
+              "fuzzy_boundaries": true,
+              "validation_examples": [
+                {"text": "Environmental group threatening lawsuit next week", "expected_urgency": 0.9},
+                {"text": "Community requesting future consultation", "expected_urgency": 0.3}
+              ]
+            }
+          },
+          {
+            "name": "power",
+            "type": "float", 
+            "description": "Ability to influence organizational decisions and outcomes",
+            "operationalization": {
+              "measurement_approach": "network_centrality",
+              "boundary_rules": [
+                {"condition": "control_resources == true", "power": 0.8},
+                {"condition": "regulatory_authority == true", "power": 0.9},
+                {"condition": "media_influence == true", "power": 0.6}
+              ],
+              "fuzzy_boundaries": false,
+              "validation_examples": [
+                {"text": "Government regulator with enforcement power", "expected_power": 0.9},
+                {"text": "Individual customer with no special influence", "expected_power": 0.1}
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "name": "Organization",
+        "description": "Focal entity whose stakeholder relationships are being analyzed",
+        "mcl_id": "organization",
+        "dolce_parent": "http://www.loa.istc.cnr.it/dolce/SocialObject",
+        "properties": [
+          {
+            "name": "sector",
+            "type": "string",
+            "description": "Industry or organizational sector"
+          },
+          {
+            "name": "size",
+            "type": "string",
+            "description": "Organizational size category"
+          }
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "name": "HAS_STAKE_IN",
+        "description": "Stakeholder has interest in organizational decisions or outcomes",
+        "source_role": "Stakeholder",
+        "target_role": "Organization",
+        "dolce_parent": "http://www.loa.istc.cnr.it/dolce/Participation",
+        "properties": [
+          {
+            "name": "stake_type",
+            "type": "string",
+            "description": "Type of stakeholder interest (financial, operational, social, environmental)"
+          },
+          {
+            "name": "stake_strength",
+            "type": "float",
+            "description": "Intensity of stakeholder interest"
+          }
+        ]
+      },
+      {
+        "name": "INFLUENCES",
+        "description": "Stakeholder ability to affect organizational decisions",
+        "source_role": "Stakeholder", 
+        "target_role": "Organization",
+        "dolce_parent": "http://www.loa.istc.cnr.it/dolce/Causation",
+        "properties": [
+          {
+            "name": "influence_mechanism",
+            "type": "string",
+            "description": "How influence is exercised (economic, legal, social, political)"
+          },
+          {
+            "name": "influence_strength",
+            "type": "float",
+            "description": "Degree of influence capability"
+          }
+        ]
+      }
+    ]
+  },
+  
+  "execution": {
+    "process_type": "sequential",
+    "analysis_steps": [
+      {
+        "step_id": "identify_stakeholders",
+        "description": "Extract all stakeholder entities mentioned in documents",
+        "method": "llm_extraction",
+        "inputs": ["documents"],
+        "outputs": ["stakeholder_entities"],
+        
+        "llm_prompts": {
+          "extraction_prompt": "Identify all stakeholders mentioned in this text. Look for:\n- Employees and labor unions\n- Customers and consumer groups  \n- Shareholders and investors\n- Suppliers and business partners\n- Government agencies and regulators\n- Local communities and residents\n- Environmental groups and activists\n- Media organizations\n- Competitors\n- Any other groups that can affect or are affected by the organization.\n\nFor each stakeholder, extract:\n- Name/identifier\n- Type of stakeholder\n- Specific interests or concerns mentioned\n- Any indications of legitimacy, urgency, or power",
+          
+          "validation_prompt": "Review this extracted stakeholder: {stakeholder}\n\nDoes this entity qualify as a stakeholder according to Freeman's definition: 'any group or individual who can affect or is affected by the achievement of the organization's objectives'?\n\nConsider:\n- Can they affect the organization?\n- Are they affected by the organization? \n- Do they have a legitimate claim or interest?\n\nReturn YES if they qualify as a stakeholder, NO if they don't, with brief justification.",
+          
+          "context_instructions": "Focus on explicit mentions and clear implications. Avoid over-interpreting indirect references. When in doubt about stakeholder status, include the entity but flag uncertainty."
+        },
+        
+        "uncertainty_handling": {
+          "confidence_thresholds": {
+            "high_confidence": 0.8,
+            "medium_confidence": 0.6,
+            "low_confidence": 0.4
+          },
+          "fallback_strategy": "human_review_for_low_confidence",
+          "uncertainty_propagation": "maintain_entity_confidence_scores"
+        }
+      },
+      
+      {
+        "step_id": "assess_legitimacy",
+        "description": "Evaluate the legitimacy dimension for each stakeholder",
+        "method": "llm_extraction",
+        "inputs": ["stakeholder_entities", "documents"],
+        "outputs": ["legitimacy_scores"],
+        
+        "llm_prompts": {
+          "extraction_prompt": "Assess the legitimacy of this stakeholder's claims on the organization: {stakeholder}\n\nLegitimacy indicators:\n- Legal rights (contracts, regulations, laws)\n- Moral claims (ethical responsibilities, fairness)\n- Property rights (ownership, investment)\n- Reciprocal relationships (mutual dependencies)\n- At-risk status (potential harm from organizational actions)\n\nBased on the context provided, rate legitimacy on a 0-1 scale where:\n0.0 = No legitimate claim\n0.3 = Weak moral claim\n0.6 = Strong moral or weak legal claim  \n0.8 = Strong legal or contractual claim\n1.0 = Absolute legal right\n\nProvide score and justification.",
+          
+          "validation_prompt": "Is this legitimacy assessment reasonable given stakeholder theory principles? Score: {score}, Justification: {justification}\n\nCheck for:\n- Consistency with Freeman's legitimacy concept\n- Appropriate consideration of legal vs moral claims\n- Reasonable interpretation of evidence\n\nReturn VALID or suggest corrections."
+        }
+      },
+      
+      {
+        "step_id": "assess_urgency", 
+        "description": "Evaluate the urgency dimension for each stakeholder",
+        "method": "llm_extraction",
+        "inputs": ["stakeholder_entities", "documents"],
+        "outputs": ["urgency_scores"],
+        
+        "llm_prompts": {
+          "extraction_prompt": "Assess the urgency of this stakeholder's claims: {stakeholder}\n\nUrgency indicators:\n- Time-critical nature of claims\n- Deadlines or time constraints mentioned\n- Escalating situations or mounting pressure\n- Immediate consequences if ignored\n- Crisis or emergency situations\n- Legal deadlines or regulatory timeframes\n\nRate urgency on a 0-1 scale where:\n0.0 = No time pressure, can be delayed indefinitely\n0.3 = Moderate time sensitivity\n0.6 = Time-sensitive, should be addressed soon\n0.8 = Urgent, requires prompt attention\n1.0 = Crisis-level urgency, immediate action required\n\nProvide score and justification.",
+          
+          "validation_prompt": "Is this urgency assessment consistent with the temporal indicators in the text? Score: {score}, Evidence: {evidence}\n\nVerify that urgency reflects actual time pressure, not just stakeholder importance."
+        }
+      },
+      
+      {
+        "step_id": "assess_power",
+        "description": "Evaluate the power dimension for each stakeholder", 
+        "method": "hybrid",
+        "inputs": ["stakeholder_entities", "documents", "stakeholder_network"],
+        "outputs": ["power_scores"],
+        
+        "llm_prompts": {
+          "extraction_prompt": "Assess this stakeholder's power to influence the organization: {stakeholder}\n\nPower indicators:\n- Control over critical resources (capital, labor, materials)\n- Regulatory or legal authority\n- Market position or economic leverage\n- Media influence or public platform\n- Coalition building capability\n- Ability to disrupt operations\n- Access to decision-makers\n- Reputation or symbolic influence\n\nRate power on a 0-1 scale where:\n0.0 = No influence capability\n0.3 = Limited, indirect influence\n0.6 = Moderate influence on specific issues\n0.8 = Strong influence capability\n1.0 = Decisive control or veto power\n\nProvide score and justification."
+        },
+        
+        "tool_mapping": {
+          "preferred_tool": "graph_centrality_mcp",
+          "tool_parameters": {
+            "centrality_type": "pagerank",
+            "weight_property": "influence_strength"
+          },
+          "parameter_adaptation": {
+            "method": "network_power_calculation",
+            "adaptation_logic": "Combine LLM power assessment with network centrality metrics",
+            "wrapper_script": "final_power = 0.7 * llm_power_score + 0.3 * normalized_centrality"
+          }
+        }
+      },
+      
+      {
+        "step_id": "calculate_salience",
+        "description": "Compute stakeholder salience using Mitchell-Agle-Wood model",
+        "method": "custom_script",
+        "inputs": ["legitimacy_scores", "urgency_scores", "power_scores"],
+        "outputs": ["salience_scores", "stakeholder_categories"],
+        
+        "custom_script": {
+          "algorithm_name": "mitchell_agle_wood_salience",
+          "description": "Calculate stakeholder salience as geometric mean of legitimacy, urgency, and power dimensions",
+          "business_logic": "Salience represents the overall priority managers should give to each stakeholder based on their possession of legitimacy, urgency, and power attributes. Uses geometric mean to ensure balanced consideration of all three dimensions.",
+          "implementation_hint": "salience = (legitimacy * urgency * power) ^ (1/3)",
+          
+          "inputs": {
+            "legitimacy": {
+              "type": "float", 
+              "range": [0, 1],
+              "description": "Stakeholder legitimacy score",
+              "constraints": {"required": true}
+            },
+            "urgency": {
+              "type": "float",
+              "range": [0, 1], 
+              "description": "Stakeholder urgency score",
+              "constraints": {"required": true}
+            },
+            "power": {
+              "type": "float",
+              "range": [0, 1],
+              "description": "Stakeholder power score", 
+              "constraints": {"required": true}
+            }
+          },
+          
+          "outputs": {
+            "salience_score": {
+              "type": "float",
+              "range": [0, 1],
+              "description": "Overall stakeholder salience priority"
+            },
+            "stakeholder_category": {
+              "type": "string",
+              "description": "Mitchell typology category based on attribute possession"
+            }
+          },
+          
+          "test_cases": [
+            {
+              "inputs": {"legitimacy": 1.0, "urgency": 1.0, "power": 1.0},
+              "expected_output": 1.0,
+              "description": "Definitive stakeholder - maximum salience"
+            },
+            {
+              "inputs": {"legitimacy": 0.8, "urgency": 0.6, "power": 0.4},
+              "expected_output": 0.573,
+              "description": "Moderate salience stakeholder"
+            },
+            {
+              "inputs": {"legitimacy": 0.0, "urgency": 0.0, "power": 0.0},
+              "expected_output": 0.0,
+              "description": "Non-stakeholder - zero salience"
+            },
+            {
+              "inputs": {"legitimacy": 1.0, "urgency": 0.0, "power": 0.0},
+              "expected_output": 0.0,
+              "description": "Discretionary stakeholder - low urgency drags down salience"
+            }
+          ],
+          
+          "validation_rules": [
+            "all_inputs_required",
+            "output_bounds_check",
+            "geometric_mean_property_check"
+          ],
+          
+          "tool_contracts": [
+            "stakeholder_data_interface",
+            "salience_calculator_interface"
+          ]
+        }
+      },
+      
+      {
+        "step_id": "stakeholder_mapping",
+        "description": "Create stakeholder influence network and prioritization matrix",
+        "method": "predefined_tool",
+        "inputs": ["stakeholder_entities", "salience_scores", "influence_relationships"],
+        "outputs": ["stakeholder_network", "priority_matrix"],
+        
+        "tool_mapping": {
+          "preferred_tool": "network_builder_mcp",
+          "alternative_tools": ["graph_constructor_mcp"],
+          "tool_parameters": {
+            "node_size_property": "salience_score",
+            "edge_weight_property": "influence_strength",
+            "layout_algorithm": "force_directed"
+          }
+        }
+      },
+      
+      {
+        "step_id": "stakeholder_analysis",
+        "description": "Analyze stakeholder network patterns and generate insights",
+        "method": "hybrid", 
+        "inputs": ["stakeholder_network", "salience_scores"],
+        "outputs": ["network_insights", "management_recommendations"],
+        
+        "tool_mapping": {
+          "preferred_tool": "graph_analytics_mcp",
+          "tool_parameters": {
+            "centrality_measures": ["pagerank", "betweenness", "closeness"],
+            "community_detection": true,
+            "influence_path_analysis": true
+          }
+        },
+        
+        "llm_prompts": {
+          "extraction_prompt": "Analyze this stakeholder network and provide management insights:\n\nNetwork metrics: {network_metrics}\nHigh-salience stakeholders: {high_salience_list}\nInfluence patterns: {influence_patterns}\n\nProvide insights on:\n1. Most critical stakeholder relationships to manage\n2. Potential coalition risks (stakeholders that might align against organization)\n3. Opportunities for stakeholder engagement strategies\n4. Key influencers who could help manage other stakeholders\n5. Stakeholders requiring immediate attention vs long-term relationship building\n\nFormat as actionable management recommendations."
+        }
+      }
+    ],
+    
+    "cross_modal_mappings": {
+      "graph_representation": {
+        "nodes": "stakeholder_entities",
+        "edges": "influence_relationships",
+        "node_properties": ["salience_score", "legitimacy", "urgency", "power", "stakeholder_type"],
+        "edge_properties": ["influence_strength", "influence_mechanism"],
+        "layout_constraints": "salience_score determines node size"
+      },
+      
+      "table_representation": {
+        "primary_table": "stakeholder_analysis",
+        "key_columns": ["stakeholder_id", "stakeholder_name", "legitimacy", "urgency", "power", "salience_score", "priority_rank"],
+        "calculated_metrics": ["network_centrality", "influence_reach", "coalition_potential"],
+        "aggregation_views": ["by_stakeholder_type", "by_salience_tier", "by_urgency_level"]
+      },
+      
+      "vector_representation": {
+        "embedding_features": ["stakeholder_concerns", "communication_style", "historical_positions"],
+        "similarity_metrics": ["stakeholder_alignment", "interest_overlap"],
+        "clustering_approach": "stakeholder_type_similarity"
+      },
+      
+      "mode_conversions": [
+        {
+          "from": "graph",
+          "to": "table", 
+          "mapping": "Export node properties and centrality metrics to stakeholder table"
+        },
+        {
+          "from": "table",
+          "to": "graph",
+          "mapping": "Build network from stakeholder relationships and influence data"
+        }
+      ]
+    }
+  },
+  
+  "telos": {
+    "purpose": "Identify, prioritize, and analyze stakeholder relationships to inform organizational decision-making and stakeholder management strategies",
+    "output_format": "Stakeholder priority matrix, influence network visualization, management recommendations",
+    "success_criteria": [
+      "All relevant stakeholders identified and categorized",
+      "Salience scores calculated for prioritization", 
+      "Network influence patterns mapped",
+      "Actionable management recommendations provided"
+    ],
+    "analysis_tiers": ["descriptive", "explanatory", "predictive", "interventionary"]
+  },
+  
+  "validation": {
+    "operationalization_notes": [
+      "Legitimacy operationalized as combination of legal rights and moral claims (0-1 scale)",
+      "Urgency operationalized as time-critical nature requiring immediate attention (0-1 scale)",
+      "Power operationalized as ability to influence organizational decisions through various mechanisms (0-1 scale)",
+      "Salience calculated as geometric mean to ensure balanced weighting of all dimensions",
+      "Stakeholder identification follows Freeman's broad definition including affected and affecting parties"
+    ],
+    
+    "theory_tests": [
+      {
+        "test_name": "high_salience_identification",
+        "input_scenario": "Environmental group (Greenpeace) threatens lawsuit over oil spill, has strong legal standing, demands immediate cleanup, and has significant media influence",
+        "expected_theory_application": "High legitimacy (0.8+), high urgency (0.8+), high power (0.7+), resulting in high salience (0.75+)",
+        "validation_criteria": "All three dimensions rated highly, categorized as 'Definitive Stakeholder'"
+      },
+      {
+        "test_name": "low_salience_filtering",
+        "input_scenario": "Distant community with no legal relationship to company, no immediate concerns, and no influence mechanism",
+        "expected_theory_application": "Low legitimacy (0.2-), low urgency (0.2-), low power (0.2-), resulting in very low salience (0.2-)",
+        "validation_criteria": "Correctly identified as low-priority or non-stakeholder"
+      },
+      {
+        "test_name": "dimension_trade_offs", 
+        "input_scenario": "Employees have high legitimacy and urgency about workplace safety but limited power to force changes",
+        "expected_theory_application": "High legitimacy (0.8+), high urgency (0.8+), moderate power (0.4-0.6), moderate overall salience",
+        "validation_criteria": "Geometric mean appropriately balances dimensions, not dominated by single high score"
+      }
+    ],
+    
+    "boundary_cases": [
+      {
+        "case_description": "Future or potential stakeholders not yet affected by organization",
+        "theory_applicability": "Mitchell model applies to current stakeholders; future stakeholders require modified assessment",
+        "expected_behavior": "Flag as special case, use predictive legitimacy/urgency assessment"
+      },
+      {
+        "case_description": "Stakeholders with conflicting claims (different groups wanting opposite outcomes)",
+        "theory_applicability": "Each group assessed separately; conflict noted as management challenge",
+        "expected_behavior": "Individual salience scores for each group, conflict flagged in recommendations"
+      },
+      {
+        "case_description": "Stakeholders acting through intermediaries or representatives",
+        "theory_applicability": "Assess both direct stakeholder and their representative; consider representation relationship",
+        "expected_behavior": "Map representation relationship, assess combined influence pattern"
+      }
+    ]
+  },
+  
+  "configuration": {
+    "tracing_level": "standard",
+    "llm_models": {
+      "extraction": "gpt-4-turbo",
+      "reasoning": "claude-3-opus",
+      "validation": "gpt-3.5-turbo"
+    },
+    "performance_optimization": {
+      "enable_caching": true,
+      "batch_processing": true,
+      "parallel_execution": false
+    },
+    "fallback_strategies": {
+      "missing_tools": "llm_implementation_with_confidence_penalty",
+      "low_confidence": "human_review_flagging",
+      "edge_cases": "uncertainty_propagation_with_explanation"
+    }
+  },
+  
+  "metadata": {
+    "mcl_id": "stakeholder_theory_v1",
+    "created": "2025-07-21T00:00:00Z",
+    "modified": "2025-07-21T00:00:00Z", 
+    "contributors": ["theory_extraction_system", "domain_expert_validation"],
+    "validation_status": "schema_validated",
+    "implementation_status": "ready_for_testing",
+    "test_coverage": 0.85
+  }
+}

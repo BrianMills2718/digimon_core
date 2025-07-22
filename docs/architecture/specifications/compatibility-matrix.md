@@ -39,12 +39,23 @@ All data types inherit from BaseObject and include quality tracking:
 ```python
 {
     **BaseObject,
-    "surface_text": str,       # Exact text
-    "document_ref": str,       # Source document
-    "position": int,           # Character position
-    "context_window": str,     # Surrounding text
-    "entity_candidates": List[Tuple[str, float]],  # Possible entities
-    "selected_entity": str     # Resolved entity ID
+    "surface_text": str,       # Exact text as appears in document
+    "document_ref": str,       # Reference to source document
+    "chunk_ref": str,          # Reference to containing chunk
+    "position": {              # Precise location tracking
+        "char_start": int,     # Character position start
+        "char_end": int,       # Character position end
+        "sentence_idx": int,   # Sentence number in chunk
+        "token_idx": int       # Token position in sentence
+    },
+    "context_window": str,     # Surrounding text for disambiguation
+    "entity_candidates": List[{
+        "entity_id": str,      # Candidate entity reference
+        "confidence": float,   # Confidence score 0.0-1.0
+        "reason": str          # Why this candidate
+    }],
+    "selected_entity": str,    # Final resolved entity ID
+    "selection_confidence": float  # Confidence in selection
 }
 ```
 
@@ -52,11 +63,21 @@ All data types inherit from BaseObject and include quality tracking:
 ```python
 {
     **BaseObject,
-    "canonical_name": str,
-    "entity_type": str,
-    "surface_forms": List[str],    # All variations
-    "mention_refs": List[str],     # Links to mentions
-    "attributes": Dict[str, Any]   # Flexible properties
+    "canonical_name": str,         # Primary name for entity
+    "entity_type": str,            # Person, Organization, Location, etc.
+    "surface_forms": List[str],    # All textual variations seen
+    "mention_refs": List[str],     # Links to supporting mentions
+    "attributes": {                # Structured properties
+        "standard": Dict[str, Any],    # Common attributes
+        "domain_specific": Dict[str, Any],  # Theory-specific
+        "temporal": Dict[str, Any]     # Time-varying attributes
+    },
+    "mcl_mapping": {               # Master Concept Library alignment
+        "mcl_id": str,             # MCL primary key
+        "concept_type": str,       # MCL concept classification
+        "confidence": float        # Mapping confidence
+    },
+    "embedding": List[float]       # Optional: Vector representation
 }
 ```
 **ORM Alignment**: Represents an Object Type in the Object-Role Modeling conceptual framework, mapping to standardized concepts from the Master Concept Library.
@@ -80,12 +101,22 @@ All data types inherit from BaseObject and include quality tracking:
 ```python
 {
     **BaseObject,
-    "content": str,
-    "document_ref": str,
-    "position": int,
-    "entity_refs": List[str],
-    "relationship_refs": List[str],
-    "mention_refs": List[str]
+    "content": str,                # Text content of chunk
+    "document_ref": str,           # Parent document reference
+    "chunk_metadata": {
+        "position": int,           # Order in document
+        "start_char": int,         # Character position start
+        "end_char": int,           # Character position end
+        "chunk_type": str,         # Paragraph, section, etc.
+        "overlap_prev": int,       # Overlap with previous chunk
+        "overlap_next": int        # Overlap with next chunk
+    },
+    "extracted_refs": {
+        "mention_refs": List[str],      # Mentions found
+        "entity_refs": List[str],       # Entities referenced
+        "relationship_refs": List[str]  # Relationships found
+    },
+    "embedding": List[float]       # Optional: Chunk embedding
 }
 ```
 
@@ -93,10 +124,24 @@ All data types inherit from BaseObject and include quality tracking:
 ```python
 {
     **BaseObject,
-    "entity_refs": List[str],
-    "relationship_refs": List[str],
-    "name": str,
-    "description": str
+    "name": str,                   # Graph identifier
+    "description": str,            # Graph purpose/content
+    "graph_metadata": {
+        "node_count": int,         # Number of entities
+        "edge_count": int,         # Number of relationships
+        "graph_type": str,         # Directed, undirected, etc.
+        "created_from": str        # Source (document set, query, etc.)
+    },
+    "content_refs": {
+        "entity_refs": List[str],      # All entities in graph
+        "relationship_refs": List[str], # All relationships
+        "subgraph_refs": List[str]     # Optional: Named subgraphs
+    },
+    "analysis_metadata": {
+        "density": float,          # Graph density
+        "connected_components": int,  # Number of components
+        "avg_degree": float        # Average node degree
+    }
 }
 ```
 
@@ -104,9 +149,27 @@ All data types inherit from BaseObject and include quality tracking:
 ```python
 {
     **BaseObject,
-    "schema": Dict,
-    "row_refs": List[str],     # Reference-based rows
-    "source_graph_ref": str    # If converted from graph
+    "name": str,                   # Table identifier
+    "schema": {                    # Table structure
+        "columns": List[{
+            "name": str,           # Column name
+            "type": str,           # Data type
+            "description": str,    # Column purpose
+            "source_path": str     # Graph path if converted
+        }],
+        "primary_key": List[str],  # Primary key columns
+        "indexes": List[str]       # Indexed columns
+    },
+    "data_refs": {
+        "row_refs": List[str],     # Reference to row data
+        "row_count": int,          # Number of rows
+        "source_graph_ref": str    # If converted from graph
+    },
+    "conversion_metadata": {
+        "conversion_type": str,    # How graph was flattened
+        "loss_assessment": str,    # What was lost in conversion
+        "reversibility": bool      # Can recreate graph exactly
+    }
 }
 ```
 
@@ -435,4 +498,149 @@ Regular checks for:
 - Graph analysis (10K nodes): <30 seconds
 - Quality propagation (1000 objects): <5 seconds
 
-This matrix supersedes all previous compatibility documentation and aligns with the 121-tool architecture defined in SPECIFICATIONS.md.
+## Schema Validation and Consistency
+
+### Pydantic Models
+All data types are implemented as Pydantic models for runtime validation:
+
+```python
+# src/models/base.py
+from pydantic import BaseModel, Field, validator
+from typing import List, Dict, Any, Optional
+from datetime import datetime
+
+class BaseObject(BaseModel):
+    """Base model for all KGAS objects"""
+    id: str = Field(..., regex="^[a-zA-Z0-9_-]+$")
+    object_type: str
+    confidence: float = Field(..., ge=0.0, le=1.0)
+    quality_tier: str = Field(..., regex="^(high|medium|low)$")
+    created_by: str
+    created_at: datetime
+    workflow_id: str
+    version: int = Field(default=1, ge=1)
+    warnings: List[str] = Field(default_factory=list)
+    evidence: List[str] = Field(default_factory=list)
+    source_refs: List[str] = Field(default_factory=list)
+    
+    @validator('confidence')
+    def validate_confidence(cls, v):
+        if not 0.0 <= v <= 1.0:
+            raise ValueError('Confidence must be between 0.0 and 1.0')
+        return v
+
+    class Config:
+        json_encoders = {
+            datetime: lambda v: v.isoformat()
+        }
+```
+
+### Schema Registry
+Central registry ensures consistency across all tools:
+
+```python
+# src/core/schema_registry.py
+class SchemaRegistry:
+    """Central schema registry for data consistency"""
+    
+    def __init__(self):
+        self.schemas = {}
+        self._load_core_schemas()
+    
+    def register_schema(self, name: str, schema: Type[BaseModel]):
+        """Register a schema for validation"""
+        self.schemas[name] = schema
+    
+    def validate(self, object_type: str, data: Dict[str, Any]) -> BaseModel:
+        """Validate data against registered schema"""
+        if object_type not in self.schemas:
+            raise ValueError(f"Unknown object type: {object_type}")
+        
+        schema = self.schemas[object_type]
+        return schema(**data)  # Pydantic validation
+    
+    def get_schema_json(self, object_type: str) -> Dict:
+        """Get JSON schema for object type"""
+        schema = self.schemas[object_type]
+        return schema.schema()
+```
+
+### Cross-Schema Consistency Rules
+
+#### 1. Reference Integrity
+- All `*_ref` fields must reference existing objects
+- References use consistent format: `{store}://{type}/{id}`
+- Orphaned references are detected and reported
+
+#### 2. Confidence Propagation
+- Child objects cannot have higher confidence than parents
+- Aggregated confidence uses minimum of components
+- Confidence decay is monotonic through pipelines
+
+#### 3. MCL Alignment
+- All entity types map to Master Concept Library
+- New concepts require MCL review process
+- Mappings include confidence scores
+
+#### 4. Temporal Consistency
+- All timestamps use ISO 8601 format
+- Created_at < modified_at invariant
+- Version numbers increment monotonically
+
+### Schema Evolution Process
+
+1. **Backward Compatibility**
+   - New fields are optional with defaults
+   - Field removal requires deprecation period
+   - Type changes require migration scripts
+
+2. **Version Management**
+   ```python
+   class SchemaVersion:
+       version: str = "1.0.0"
+       compatible_versions: List[str] = ["0.9.0", "0.9.1"]
+       migration_required: List[str] = ["0.8.x"]
+   ```
+
+3. **Migration Support**
+   ```python
+   def migrate_v1_to_v2(old_data: Dict) -> Dict:
+       """Migrate schema from v1 to v2"""
+       new_data = old_data.copy()
+       # Add new required fields with defaults
+       new_data['mcl_mapping'] = {
+           'mcl_id': 'unknown',
+           'confidence': 0.5
+       }
+       return new_data
+   ```
+
+### Validation in CI/CD
+
+```yaml
+# .github/workflows/schema-validation.yml
+schema-validation:
+  steps:
+    - name: Validate Schema Consistency
+      run: |
+        python scripts/validate_schemas.py
+        
+    - name: Check Schema Coverage
+      run: |
+        python scripts/check_schema_coverage.py
+        
+    - name: Test Schema Migrations
+      run: |
+        pytest tests/schema/test_migrations.py
+```
+
+### Common Schema Violations and Fixes
+
+| Violation | Example | Fix |
+|-----------|---------|-----|
+| Missing confidence | `{"name": "Entity"}` | Add `"confidence": 0.95` |
+| Invalid reference | `"ref": "entity123"` | Use `"ref": "neo4j://entity/entity123"` |
+| Type mismatch | `"position": "5"` | Use `"position": 5` (integer) |
+| Missing provenance | No created_by | Add `"created_by": "T23a"` |
+
+This matrix supersedes all previous compatibility documentation and aligns with the 121-tool architecture defined in SPECIFICATIONS.md, with enhanced schema validation ensuring data consistency across all tools.
