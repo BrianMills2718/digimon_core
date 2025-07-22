@@ -1,0 +1,256 @@
+{
+  "scenario_start": "2025-07-21T19:10:00.325901",
+  "theory_framework": "Young (1996) - Cognitive Mapping Meets Semantic Networks",
+  "data_source": "Carter's 1977 Charleston Speech on Soviet-American Relations",
+  "integration_challenges": {
+    "meta_schema_execution": {
+      "tested": false,
+      "error": "No validation rules found in theory schema"
+    },
+    "mcl_concept_mediation": {
+      "tested": true,
+      "total_terms": 13,
+      "resolved_terms": 13,
+      "high_confidence_resolutions": 12,
+      "resolution_success_rate": 1.0,
+      "high_confidence_rate": 0.9230769230769231,
+      "concept_coherence": {
+        "coherent": true,
+        "issues": [],
+        "concept_distribution": {
+          "POLITICAL_LEADER": "UNKNOWN",
+          "LEGISLATIVE_BODY": "UNKNOWN",
+          "NATION_STATE": "UNKNOWN",
+          "DIPLOMATIC_STRATEGY": "UNKNOWN",
+          "ARMS_CONTROL_TREATY": "UNKNOWN",
+          "MILITARY_RESOURCE": "UNKNOWN",
+          "SECURITY_CONCEPT": "UNKNOWN",
+          "INTERESTED_PARTY": "UNKNOWN",
+          "AUTHORITY_ATTRIBUTE": "UNKNOWN",
+          "INFLUENCE_CAPACITY": "UNKNOWN",
+          "ESSENTIAL_INPUT": "UNKNOWN",
+          "RELIANCE_RELATIONSHIP": "UNKNOWN"
+        }
+      },
+      "mediation_results": [
+        {
+          "indigenous_term": "President",
+          "canonical_concept": "POLITICAL_LEADER",
+          "confidence": 0.95,
+          "dolce_category": "UNKNOWN",
+          "context": "Carter speech context",
+          "resolved": true
+        },
+        {
+          "indigenous_term": "Congress",
+          "canonical_concept": "LEGISLATIVE_BODY",
+          "confidence": 0.92,
+          "dolce_category": "UNKNOWN",
+          "context": "Carter speech context",
+          "resolved": true
+        },
+        {
+          "indigenous_term": "Soviet Union",
+          "canonical_concept": "NATION_STATE",
+          "confidence": 0.98,
+          "dolce_category": "UNKNOWN",
+          "context": "Carter speech context",
+          "resolved": true
+        },
+        {
+          "indigenous_term": "United States",
+          "canonical_concept": "NATION_STATE",
+          "confidence": 0.98,
+          "dolce_category": "UNKNOWN",
+          "context": "Carter speech context",
+          "resolved": true
+        },
+        {
+          "indigenous_term": "d\u00e9tente",
+          "canonical_concept": "DIPLOMATIC_STRATEGY",
+          "confidence": 0.85,
+          "dolce_category": "UNKNOWN",
+          "context": "Carter speech context",
+          "resolved": true
+        },
+        {
+          "indigenous_term": "SALT",
+          "canonical_concept": "ARMS_CONTROL_TREATY",
+          "confidence": 0.9,
+          "dolce_category": "UNKNOWN",
+          "context": "Carter speech context",
+          "resolved": true
+        },
+        {
+          "indigenous_term": "nuclear weapons",
+          "canonical_concept": "MILITARY_RESOURCE",
+          "confidence": 0.95,
+          "dolce_category": "UNKNOWN",
+          "context": "Carter speech context",
+          "resolved": true
+        },
+        {
+          "indigenous_term": "strategic balance",
+          "canonical_concept": "SECURITY_CONCEPT",
+          "confidence": 0.8,
+          "dolce_category": "UNKNOWN",
+          "context": "Carter speech context",
+          "resolved": true
+        },
+        {
+          "indigenous_term": "stakeholder",
+          "canonical_concept": "INTERESTED_PARTY",
+          "confidence": 0.9,
+          "dolce_category": "UNKNOWN",
+          "context": "Carter speech context",
+          "resolved": true
+        },
+        {
+          "indigenous_term": "legitimacy",
+          "canonical_concept": "AUTHORITY_ATTRIBUTE",
+          "confidence": 0.85,
+          "dolce_category": "UNKNOWN",
+          "context": "Carter speech context",
+          "resolved": true
+        },
+        {
+          "indigenous_term": "power",
+          "canonical_concept": "INFLUENCE_CAPACITY",
+          "confidence": 0.88,
+          "dolce_category": "UNKNOWN",
+          "context": "Carter speech context",
+          "resolved": true
+        },
+        {
+          "indigenous_term": "resource",
+          "canonical_concept": "ESSENTIAL_INPUT",
+          "confidence": 0.92,
+          "dolce_category": "UNKNOWN",
+          "context": "Carter speech context",
+          "resolved": true
+        },
+        {
+          "indigenous_term": "dependency",
+          "canonical_concept": "RELIANCE_RELATIONSHIP",
+          "confidence": 0.87,
+          "dolce_category": "UNKNOWN",
+          "context": "Carter speech context",
+          "resolved": true
+        }
+      ],
+      "mcl_mediation_working": true
+    },
+    "cross_modal_preservation": {
+      "tested": true,
+      "preservation_result": {
+        "original_graph_nodes": 5,
+        "table_rows": 5,
+        "vector_dimensions": 8,
+        "reconstructed_graph_nodes": 10,
+        "semantic_preservation_score": 0.6666666666666666,
+        "round_trip_successful": false,
+        "transformation_log": [
+          "Graph\u2192Table: 5 nodes, 5 edges \u2192 5 rows",
+          "Table\u2192Vector: 5 rows \u2192 5 vectors",
+          "Vector\u2192Table: 5 vectors \u2192 5 rows",
+          "Table\u2192Graph: 5 rows \u2192 10 nodes, 5 edges"
+        ]
+      },
+      "cross_modal_working": false
+    },
+    "tool_contract_validation": {
+      "tested": true,
+      "total_contracts_tested": 2,
+      "compatible_contracts": 2,
+      "compatibility_rate": 1.0,
+      "compatibility_results": [
+        {
+          "producer_tool": "text_analyzer",
+          "consumer_tool": "stakeholder_extractor",
+          "compatibility_results": [
+            {
+              "output_type": "TextChunk",
+              "input_type": "TextChunk",
+              "compatible": true,
+              "compatibility_score": 1.0,
+              "transformation_required": false
+            }
+          ],
+          "valid_matches": 1,
+          "best_match": {
+            "output_type": "TextChunk",
+            "input_type": "TextChunk",
+            "compatible": true,
+            "compatibility_score": 1.0,
+            "transformation_required": false
+          },
+          "overall_compatible": true
+        },
+        {
+          "producer_tool": "stakeholder_extractor",
+          "consumer_tool": "dependency_analyzer",
+          "compatibility_results": [
+            {
+              "output_type": "StakeholderEntity",
+              "input_type": "OrganizationEntity",
+              "compatible": true,
+              "compatibility_score": 0.7,
+              "transformation_required": true
+            }
+          ],
+          "valid_matches": 1,
+          "best_match": {
+            "output_type": "StakeholderEntity",
+            "input_type": "OrganizationEntity",
+            "compatible": true,
+            "compatibility_score": 0.7,
+            "transformation_required": true
+          },
+          "overall_compatible": true
+        }
+      ],
+      "contract_validation_working": true
+    },
+    "statistical_robustness": {
+      "tested": true,
+      "confidence_intervals": {
+        "mean": 1.0,
+        "standard_deviation": 0.0,
+        "sample_size": 20,
+        "confidence_level": 0.95,
+        "confidence_interval": [
+          1.0,
+          1.0
+        ],
+        "margin_of_error": 0.0,
+        "relative_error": 0.0
+      },
+      "robustness_testing": {
+        "error": "name 'statistics' is not defined",
+        "robust": false
+      },
+      "statistical_robustness_working": false
+    }
+  },
+  "overall_assessment": {
+    "total_challenges": 5,
+    "challenges_tested": 4,
+    "challenges_working": 2,
+    "integration_score": 0.4,
+    "readiness_level": "DEVELOPMENT_READY",
+    "recommendation": "Basic integration working - significant development needed for production",
+    "success_indicators": {
+      "meta_schema_execution": false,
+      "mcl_concept_mediation": true,
+      "cross_modal_preservation": false,
+      "tool_contract_validation": true,
+      "statistical_robustness": false
+    },
+    "failing_challenges": [
+      "meta_schema_execution",
+      "cross_modal_preservation",
+      "statistical_robustness"
+    ],
+    "scenario_duration": 0.001689
+  }
+}

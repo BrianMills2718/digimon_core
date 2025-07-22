@@ -1,0 +1,51 @@
+{
+  "schemas": {
+    "stakeholder_theory": {
+      "1.0.0": {
+        "schema_id": "stakeholder_theory",
+        "version": "1.0.0",
+        "theory_name": "Stakeholder Theory",
+        "author": "Unknown",
+        "description": "Theory that organizations should consider the interests of all stakeholders, not just shareholders, in decision-making processes. Stakeholder salience depends on legitimacy, urgency, and power.",
+        "created_at": "2025-07-21T18:48:43.262815",
+        "file_path": "/home/brian/projects/Digimons/stress_test_2025.07211755/theory/stakeholder_theory_v10.json",
+        "checksum": "4745fa9a2bc27e2537e1988b4da0f5f1866c8a4c56dae0e97b64b3b63b0752c2",
+        "dependencies": [],
+        "compatible_versions": []
+      }
+    },
+    "resource_dependency_theory": {
+      "1.0.0": {
+        "schema_id": "resource_dependency_theory",
+        "version": "1.0.0",
+        "theory_name": "Resource Dependency Theory",
+        "author": "Jeffrey Pfeffer and Gerald Salancik",
+        "description": "Organizations depend on external resources for survival and will take actions to reduce dependence and uncertainty",
+        "created_at": "2025-07-21T18:48:43.263852",
+        "file_path": "/home/brian/projects/Digimons/stress_test_2025.07211755/theory/resource_dependency_theory_v10.json",
+        "checksum": "0b5fb4caa3784f3fc8db582e57cc2cdeee1357a27f5e2d8681709778574047b7",
+        "dependencies": [],
+        "compatible_versions": []
+      }
+    }
+  },
+  "compatibility_matrix": {
+    "resource_dependency_theory:1.0.0|stakeholder_theory:1.0.0": {
+      "level": "incompatible",
+      "issues": [
+        "No integration points found"
+      ],
+      "migration_required": false,
+      "migration_path": null
+    },
+    "stakeholder_theory:1.0.0|resource_dependency_theory:1.0.0": {
+      "level": "incompatible",
+      "issues": [
+        "No integration points found"
+      ],
+      "migration_required": false,
+      "migration_path": null
+    }
+  },
+  "last_updated": "2025-07-21T18:48:43.264113"
+}

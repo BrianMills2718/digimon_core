@@ -1,0 +1,24 @@
+tool_id: dependency_analyzer
+tool_name: Resource Dependency Analysis Tool
+description: Analyzes resource dependencies using Resource Dependency Theory
+input_types:
+- type_name: OrganizationEntity
+  schema_class: schemas.resource_dependency_schemas.OrganizationEntity
+  required_attributes:
+  - canonical_name
+  - sector
+  optional_attributes:
+  - size
+output_types:
+- type_name: DependencyScore
+  schema_class: schemas.resource_dependency_schemas.DependencyScore
+  required_attributes:
+  - value
+  - dependency_level
+  optional_attributes: []
+theory_compatibility:
+- resource_dependency_theory
+performance_characteristics:
+  average_time: 1.8
+resource_requirements:
+  memory_mb: 256

@@ -1,0 +1,25 @@
+tool_id: stakeholder_analyzer
+tool_name: Stakeholder Analysis Tool
+description: Analyzes stakeholder salience using Mitchell-Agle-Wood framework
+input_types:
+- type_name: TextChunk
+  schema_class: schemas.base_schemas.TextChunk
+  required_attributes:
+  - text
+  - document_ref
+  optional_attributes:
+  - chunk_index
+output_types:
+- type_name: StakeholderEntity
+  schema_class: schemas.stakeholder_schemas.StakeholderEntity
+  required_attributes:
+  - canonical_name
+  - salience
+  optional_attributes:
+  - description
+theory_compatibility:
+- stakeholder_theory
+performance_characteristics:
+  average_time: 2.5
+resource_requirements:
+  memory_mb: 512

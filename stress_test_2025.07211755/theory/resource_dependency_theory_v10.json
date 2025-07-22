@@ -1,0 +1,168 @@
+{
+  "theory_meta_schema_version": "10.0",
+  "theory_name": "Resource Dependency Theory", 
+  "theory_version": "1.0.0",
+  "theory_author": "Jeffrey Pfeffer and Gerald Salancik",
+  "description": "Organizations depend on external resources for survival and will take actions to reduce dependence and uncertainty",
+  
+  "core_concepts": {
+    "resource_dependence": {
+      "definition": "The degree to which an organization relies on external entities for critical resources",
+      "measurement_method": "geometric_mean",
+      "dimensions": {
+        "resource_criticality": {
+          "type": "float",
+          "range": [0.0, 1.0],
+          "description": "How critical the resource is to organizational survival"
+        },
+        "resource_scarcity": {
+          "type": "float", 
+          "range": [0.0, 1.0],
+          "description": "How scarce or difficult to obtain the resource is"
+        },
+        "substitute_availability": {
+          "type": "float",
+          "range": [0.0, 1.0], 
+          "description": "Availability of substitute resources (inverse relationship)"
+        }
+      },
+      "calculation": "(resource_criticality * resource_scarcity * (1 - substitute_availability))^(1/3)",
+      "categories": {
+        "high_dependence": {"min": 0.7, "max": 1.0, "strategic_action": "diversification_required"},
+        "moderate_dependence": {"min": 0.4, "max": 0.7, "strategic_action": "monitoring_required"},
+        "low_dependence": {"min": 0.0, "max": 0.4, "strategic_action": "maintain_current"}
+      }
+    }
+  },
+
+  "entity_types": {
+    "organization": {
+      "required_attributes": ["canonical_name", "entity_type", "sector", "size"],
+      "optional_attributes": ["founding_year", "headquarters", "revenue"]
+    },
+    "resource": {
+      "required_attributes": ["canonical_name", "resource_type", "criticality_score"], 
+      "optional_attributes": ["market_value", "scarcity_indicators"]
+    },
+    "supplier": {
+      "required_attributes": ["canonical_name", "supplier_type", "reliability_score"],
+      "optional_attributes": ["market_share", "geographic_reach"]
+    }
+  },
+
+  "relationship_types": {
+    "depends_on": {
+      "source": "organization",
+      "target": "resource", 
+      "attributes": ["dependency_strength", "criticality", "substitutability"],
+      "measurement": "dependency_calculation"
+    },
+    "supplies": {
+      "source": "supplier",
+      "target": "resource",
+      "attributes": ["supply_capacity", "reliability", "exclusivity"],
+      "measurement": "supply_strength"
+    },
+    "competes_for": {
+      "source": "organization", 
+      "target": "resource",
+      "attributes": ["competition_intensity", "competitive_advantage"],
+      "measurement": "competition_strength"
+    }
+  },
+
+  "data_type_mappings": {
+    "OrganizationEntity": "stakeholder_schemas.OrganizationEntity",
+    "ResourceEntity": "stakeholder_schemas.ResourceEntity", 
+    "SupplierEntity": "stakeholder_schemas.SupplierEntity",
+    "DependencyRelationship": "stakeholder_schemas.DependencyRelationship",
+    "SupplyRelationship": "stakeholder_schemas.SupplyRelationship"
+  },
+
+  "cross_modal_mappings": {
+    "graph_to_table": {
+      "entity_table": "organizations_resources_flat",
+      "preserved_semantics": ["dependency_strength", "resource_criticality", "supplier_reliability"],
+      "aggregation_methods": {
+        "total_dependency": "sum",
+        "average_criticality": "mean", 
+        "max_scarcity": "max"
+      }
+    },
+    "table_to_vector": {
+      "embedding_dimensions": ["dependency_strength", "resource_criticality", "substitute_availability"],
+      "similarity_metric": "cosine",
+      "cluster_method": "hierarchical"
+    }
+  },
+
+  "validation_rules": {
+    "dependency_consistency": {
+      "rule": "high_criticality_resources_should_have_high_dependency",
+      "implementation": "if resource_criticality > 0.8 then dependency_strength > 0.6"
+    },
+    "scarcity_substitution": {
+      "rule": "scarce_resources_should_have_low_substitutability",
+      "implementation": "if resource_scarcity > 0.7 then substitute_availability < 0.4"
+    }
+  },
+
+  "custom_scripts": {
+    "dependency_calculator": {
+      "file": "scripts/dependency_calculator.py",
+      "class": "ResourceDependencyCalculator",
+      "method": "calculate_dependency",
+      "test_cases": [
+        {
+          "inputs": {"resource_criticality": 0.9, "resource_scarcity": 0.8, "substitute_availability": 0.2},
+          "expected_output": 0.832,
+          "description": "High dependency scenario"
+        },
+        {
+          "inputs": {"resource_criticality": 0.5, "resource_scarcity": 0.3, "substitute_availability": 0.8},
+          "expected_output": 0.311,
+          "description": "Low dependency scenario"
+        }
+      ]
+    }
+  },
+
+  "llm_prompts": {
+    "extract_dependencies": {
+      "template": "Analyze the following text for resource dependency relationships. Identify: 1) Organizations mentioned, 2) Resources they depend on, 3) Suppliers of those resources, 4) Indicators of dependency strength. Text: {input_text}",
+      "output_format": "structured_json",
+      "required_fields": ["organizations", "resources", "dependencies", "suppliers"]
+    }
+  },
+
+  "mcl_integration": {
+    "required_concepts": ["ORGANIZATION", "RESOURCE", "SUPPLIER", "DEPENDENCY_RELATIONSHIP"],
+    "concept_mappings": {
+      "indigenous_terms": ["vendor", "provider", "contractor"],
+      "canonical_concepts": ["SUPPLIER", "SUPPLIER", "SUPPLIER"]
+    }
+  },
+
+  "theory_compatibility": {
+    "compatible_with": ["stakeholder_theory", "institutional_theory"],
+    "conflicts_with": [],
+    "integration_points": {
+      "stakeholder_theory": {
+        "shared_entities": ["organization"],
+        "complementary_analysis": "stakeholders_as_resource_providers",
+        "combined_metrics": "stakeholder_salience_weighted_by_resource_dependency"
+      }
+    }
+  },
+
+  "edge_cases": {
+    "zero_substitutes": {
+      "condition": "substitute_availability == 0.0",
+      "handling": "maximum_dependency_regardless_of_other_factors"
+    },
+    "critical_monopoly": {
+      "condition": "resource_criticality > 0.9 AND supplier_count == 1",
+      "handling": "dependency_score_minimum_0.8"
+    }
+  }
+}

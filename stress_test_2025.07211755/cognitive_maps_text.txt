@@ -1,0 +1,756 @@
+ 
+ 
+Cognitive Mapping Meets Semantic Networks 
+Author(s): Michael D. Young 
+Source: The Journal of Conflict Resolution,  Vol. 40, No. 3 (Sep., 1996), pp. 395-414 
+Published by: Sage Publications, Inc. 
+Stable URL: https://www.jstor.org/stable/174312 
+Accessed: 17-06-2025 05:49 UTC 
+ 
+JSTOR is a not-for-profit service that helps scholars, researchers, and students discover, use, and build upon a wide 
+range of content in a trusted digital archive. We use information technology and tools to increase productivity and 
+facilitate new forms of scholarship. For more information about JSTOR, please contact support@jstor.org. 
+ 
+Your use of the JSTOR archive indicates your acceptance of the Terms & Conditions of Use, available at 
+https://about.jstor.org/terms 
+Sage Publications, Inc.  is collaborating with JSTOR to digitize, preserve and extend access to 
+The Journal of Conflict Resolution 
+This content downloaded from 199.83.221.44 on Tue, 17 Jun 2025 05:49:30 UTC 
+All use subject to https://about.jstor.org/terms 
+Cognitive Mapping Meets 
+Semantic Networks 
+MICHAEL D. YOUNG 
+Department of Political Science 
+Ohio University 
+Cognitive mapping has been a valuable tool in understanding how individuals view their external environment. It has been used successfully to investigate crisis decision making, juror decision making, and international negotiation, and may find furtheruse as a support tool in negotiation and mediation. This article presents a method for enhanced cognitive mapping-WorldView, which uses the symbol-based formalism of semantic networks. WorldView provides important advantages over more traditional cognitive mapping and assists in the systematic study of belief system content and decision process. WorldView eliminates constraints on represented relationships and captures more information than previous content analysis systems for belief structures, provides aggregation over texts or subject responses, provides a synonym facility for collapsing similar concepts, incorporates structural and comparative measures for analysis, and constructs manipulable cognitive maps that provide a basis forprocess models of belief change and decision making. 
+As Charles Kegley (1994, 35) notes, to understand international processes we 
+need to map the cognitive terrain of the actors in the process first.... External factors alone do not determine how states act, even if they limit the range of viable choice and 
+serve as a stimulus for modifying core foreign policy assumptions when national officials 
+believe an accommodation to perceived new realities is required. The source for change ultimately resides in how leaders view their external environment and their nation's 
+interests in it. 
+Since its introduction in the early 1970s (Axelrod 1972a, 1972b; Shapiro and 
+Bonham 1973; Axelrod 1976), cognitive mapping has been available to model and 
+study the beliefs and decision processes that ultimately lead to state behavior. Cogni- 
+tive mapping has been a valuable tool in understanding how individuals view their 
+external environment and has been used successfully to investigate crisis decision 
+making (Levi and Tetlock 1980; Sergeev et al. 1990), juror decision making (Pennington 
+and Hastie 1991), and international negotiation (Axelrod 1977; Bonham et al. 1987) 
+AUTHOR'S NOTE: This article has benefited from helpful comments and advice given by Neal Carter, Charles Hermann, Margaret Hermann, Donald Sylvan, Charles Taber, Robert Woyach, Michelle Young, and four anonymous reviewers. All errors and omissions are the responsibility of the author. This research was supported in part by the Research Training Grant on the Role of Cognition in Collective Political Decision Making at The Mershon Center, The Ohio State University, National Science Foundation Grant (DIR-9113599). 
+JOURNAL OF CONFLICT RESOLUTION, Vol. 40 No. 3, September 1996 395-414 ( 1996 Sage Publications, Inc. 
+395
+This content downloaded from 199.83.221.44 on Tue, 17 Jun 2025 05:49:30 UTC 
+All use subject to https://about.jstor.org/terms 
+396 JOURNAL OF CONFLICTRESOLUTION 
+and may find further use as a support tool in negotiation and mediation (Bonham 1993). 
+In developing cognitive mapping, Robert Axelrod built on five earlier bodies of work: 
+psycho-logic (Abelson and Rosenberg 1958), causal inference (Simon 1957; Blalock 
+1964), graph theory (Maruyama 1963; Cartwright and Harary 1965; Harary, Norman, 
+and Cartwright 1965), evaluative assertion analysis (Osgood, Saporta, and Nunnally 
+1956), and decision theory (Luce and Raiffa 1957). In particular, cognitive mapping 
+was developed to take advantage of a correspondence between directed graph theory 
+and matrix mathematics (Shapiro and Bonham 1973; Axelrod 1976). Each cognitive 
+map is represented by an adjacency matrix, a square matrix with a row and column for 
+each concept in the cognitive map. If two concepts (e.g., concept and concept2) are 
+adjacent, then the matrix entry conceptt, concept2) will be 1, otherwise 0. Although 
+this provides some powerful tools for manipulating cognitive maps, the use of matrices 
+limits the underlying conceptualization and constrains the information that can be 
+extracted from text; noncausal relationships between concepts, for example, cannot be 
+represented in this formulation (Alker 1975). 
+The purpose of this article is to present a new computer-based tool for enhanced 
+cognitive mapping-WorldView, which uses the symbol-based formalism of semantic 
+networks. Semantic networks were introduced by Ross Quillian (1968) and share with 
+cognitive mapping a representation of knowledge as concepts and the relationships 
+that connect them. However, whereas cognitive maps use mathematical relationships, 
+such as 1 or 0, semantic networks use symbols, such as is-a or part-of. (The essential 
+ideas behind semantic networks have also been attributed to U.S. philosopher Charles 
+S. Peirce, who developed a logic of existential graphs in 1896; see Roberts 1973. For 
+a comprehensive review of the major semantic network projects, see Lehman 1992. 
+For a critique of semantic networks, see Johnson-Laird, Herrmann, and Chaffin 1984.) 
+By incorporating aspects of semantic networks, WorldView provides important ad- 
+vantages over more traditional cognitive mapping and assists in the systematic study 
+of belief system content and decision process. WorldView 
+* eliminates constraints on represented relationships and captures more information than 
+previous content analysis systems for belief structures, 
+* provides aggregation over texts or subject responses, 
+* provides a synonym facility for collapsing similar concepts, 
+* incorporates structural and comparative measures for analysis, 
+* constructs manipulable cognitive maps that provide a basis for process models of belief 
+change and decision making. 
+FUNCTIONS OF WORLDVIEW 
+WorldView is designed to fulfill two main functions necessary for modeling belief 
+structures and supporting process models of decision making: (1) identifying beliefs 
+that comprise belief structures and (2) representing belief structures in an accessible 
+format that can be dynamically manipulated by models of reasoning. In addition, 
+WorldView incorporates several measures of change in belief structures. Each of these 
+two main functions of WorldView and the change measures are discussed. 
+This content downloaded from 199.83.221.44 on Tue, 17 Jun 2025 05:49:30 UTC 
+All use subject to https://about.jstor.org/terms 
+Young / COGNITIVE MAPPING 397 
+IDENTIFYING BELIEFS 
+The first function of WorldView, identifying component beliefs of belief structures, 
+is accomplished with a human-coded content analysis system. In broad terms, the 
+content analysis system seeks to identify beliefs that take the familiar subject- 
+relationship-object format often found in English and are used in creating causal 
+cognitive maps (Shapiro and Bonham 1973; Axelrod 1976). Cognitive mapping 
+procedures treat concepts as nodes in a network with either positive (+) or negative 
+(-) causal relationships as the connections between them. For example, "oil pollution 
+threatens seabirds" becomes 
+oil-pollution - -> sea-birds, 
+where oil-pollution is the subject, - -* is a negative causal relationship, and sea-birds 
+is the object. However, cognitive mapping loses information in many texts because of 
+(1) the inability to handle compound statements and (2) the use of only two types of 
+relationships between concepts. This lost information limits the usefulness of these 
+techniques for modeling political choices by restricting the information about beliefs 
+that can be extracted from a text. 
+The inability of cognitive mapping to handle compound statements can be illus- 
+trated by using a quote from President Jimmy Carter (Carter 1977, 1067): "If SALT 
+[the Strategic Arms Limitation Treaty] becomes only the lowest common denominator 
+that can be agreed upon easily, this will produce a backlash against the entire arms 
+control process and the illusion of progress." As illustrated in Figure 1, the information 
+"SALT becomes the lowest common denominator . . . " is coded as (SALT + -> 
+lowest-common-denominator). But because this is the object concept for the rest of 
+the statement, this information is encapsulated and becomes a single concept. This 
+prevents the component concepts in the encapsulated concept from being individually 
+integrated into the cognitive map; in other words, they become hidden. Hidden 
+information, like missing information, is unavailable to reasoning processes and limits 
+the analysis of the cognitive map. Encapsulated concepts, such as "SALT" in the 
+example, cannot be located in the map or accessed independently. For example, if we 
+wanted to determine whether the cognitive map in Figure 1 contained the concept 
+"SALT," the result would be negative. Only the encapsulated concept (SALT + .- 
+lowest-common-denominator) exists in the map; "SALT" is not accessible. In other 
+words, encapsulated concepts cannot be used except as an opaque chunk. This dif- 
+ficulty can be resolved if relationships are elevated from labeled connections to nodes 
+in their own right (Duffy and Tucker 1995). (See Figure 2.) When relationships are 
+also treated as nodes in the cognitive map, then, like concepts, they can become the 
+subject or object of other relationships, and the example compound statement can be 
+represented as shown in Figure 2, in which each relationship between concepts is a 
+node in the cognitive map. 
+Representing relationships as nodes in the cognitive map solves the problem of 
+encapsulation by making each component part of the compound statements accessible. 
+However, it highlights the loss of information produced by limiting the possible 
+This content downloaded from 199.83.221.44 on Tue, 17 Jun 2025 05:49:30 UTC 
+All use subject to https://about.jstor.org/terms 
+398 JOURNAL OF CONFLICT RESOLUTION 
+arms-control-process 
+SALT ~lowest-comnmon-denominator SAL -tat-can-beagreed-upon-easily 
+illusion-of-progress 
+Figure 1: Example Cognitive Map 
+ORIGINAL TEXT: "If SALT becomes only the lowest common denominator that can be agreed upon easily, this will produce only the illusion of progress and a backlash against the entire arms control process." 
+pan ~ \ diat-can-beagreed-upon-easilyI 
+Figure 2: Illustration of a Compound Relationship 
+ORIGINAL TEXT: "If SALT becomes only the lowest common denominator that can be agreed upon easily, this will produce only the illusion of progress and a backlash against the entire arms control process." Within the text, the clause "If SALT becomes only the lowest common denominator that can be agreed upon easily" is the subject of "this will produce only the illusion of progress" and "a backlash against the entire arms control process." 
+relationships to either positive cause (+) or negative cause (-). For example, Figure 2 
+can be read as "SALT is positively related (+) to lowest-common-denominator-that- 
+can-be-agreed-upon-easily, and this increases (+) the illusion-of-progress and hinders 
+(-) the arms-control-process." The conditional nature of the influence of SALT explicit 
+in the original statement is lost. Traditional cognitive mapping limits the relationships 
+between concepts to causal associations, even though people recognize and use many 
+more types of associations. WorldView retains this information by differentiating 
+relationships between concepts beyond purely causal associations and by introducing 
+truth-values and modifiers to represent other aspects of relationships, such as condi- 
+tionality or falsehood. 
+The starting point for differentiating relationships beyond positive and negative 
+causes was to ask what types of relationships adults use to associate concepts and 
+understand the world. Answers to this question can be found in developmental 
+psychology and in advances in cognitive development that build on the legacy of Piaget 
+(1982; Carey 1985; Daehler 1985; Hothersall 1985; Keil 1989; Mayer 1992). Accord- 
+ing to the observations of Piaget and his successors, children acquire the ability to 
+recognize and use different relationships between concepts as they develop. These 
+relationships include causal, goal, instrumental, and property (attribute) relational 
+abilities acquired between birth and 2 years of age; classification, temporal, and spatial 
+This content downloaded from 199.83.221.44 on Tue, 17 Jun 2025 05:49:30 UTC 
+All use subject to https://about.jstor.org/terms 
+Young /COGNITIVE MAPPING 399 
+TABLE 1 
+WorldView Coding Categories 
+Relationships 
+equal = condition component 
+preference/greater-than > if-then possess 
+positive-cause + is-a strategy 
+negative-cause - know warrant-for 
+attribute location 
+Actions 
+accept feel purchase 
+allow honor ratify 
+assert ignore reduce 
+assist influence release 
+attack intervene restore 
+cause invade share 
+lose lead sign 
+confront limit stop consider maintain support 
+consult meet threaten 
+control monitor use 
+cooperate negotiate verify 
+decide open visit 
+defend order vote-on 
+delay organize withdraw 
+enforce perform yield-to 
+enhance propose 
+relational abilities acquired between 7 and 11 years of age; and hypothetico-deductive 
+and idealized relational abilities acquired in adolescence. 
+The WorldView content analysis system has categories for coding each of these 
+relationships as well as others that correspond to actions, which are often thought of 
+as events, such as those developed for the World Events Interaction Survey (WEIS) 
+(McClelland 1976) and used in the Kansas Events Data System (KEDS) (Gerner et al. 
+1994). These categories can be broadly divided into two types: (1) relationships 
+between concepts and (2) actions of agents. A complete list of these categories is given 
+in Table 1 and a full discussion can be found in Young (1994). 
+The advantage of differentiated relationships can be illustrated by reconsidering 
+our previous example. In Figure 3, the rather ambiguous + relationship between SALT 
+and lowest-common-denominator can now be replaced with the attribute relation- 
+ship, indicating that SALT, rather than being positively related to lowest-common- 
+denominator, has the property of being the lowest-common-denominator. This property, 
+in turn, is a negative cause of the arms control process and a positive cause of an illusion 
+of progress. However, the original statement is a conditional statement-that is, it is 
+only hypothetical. This information about when the statement holds true is not captured 
+This content downloaded from 199.83.221.44 on Tue, 17 Jun 2025 05:49:30 UTC 
+All use subject to https://about.jstor.org/terms 
+400 JOURNAL OF CONFLICTRESOLUTION 
+SALT attrbut - __O lowest-conumon-denonuinator- '-I SK - Shatcansbeagreed-upon-easily 
+Figure 3: Illustration of a Differentiated Relationship 
+ORIGINAL TEXT: "If SALT becomes only the lowest common denominator that can be agreed upon easily, this will produce only the illusion of progress and a backlash against the entire arms control process." 
+by the differentiated relationship but requires the addition of truth-values and modifi- 
+ers to the relationships. 
+To capture information about when a statement holds true, six relationship modifiers- 
+past, present, future, goal, hypothetical, and normative-were developed (Young 
+1994). Apast relationship modifier indicates that the relationship referred to is in the 
+past. If the relationship is an action, then the action is now complete. A present 
+relationship modifier indicates that the action is ongoing or that the indicated relation- 
+ship currently holds. The future relationship modifier is used to represent statements 
+that the actor believes will be true at some future point in time. 
+The goal relationship modifier is included in the coding scheme based on both 
+the observations of Piaget and the information-processing view of policy actors, 
+which has benefited from the work of Herbert A. Simon and his numerous 
+colleagues and collaborators (Newell and Simon 1972, 1976; Simon 1980, 1985, 1990). 
+This information-processing perspective assumes that policy actors are goal driven and 
+are at some level aware of their goals, although they may not be aware of the conflicts 
+between goals until presented with a conflict situation. A goal relationship modifier 
+indicates that the author of the text wants the statement to become true. The goal 
+relationship modifier, combined with the strategy relationship, provides a means for 
+capturing goal hierarchies expressed in the text, because goal relationships can be both 
+the subject and object of strategy relationships. As shown in Figure 4, for example, 
+the desire for the United States to reduce the nuclear threat is subordinate to (and a 
+means for) the desire for the world to be safer. 
+The hypothetical relationship modifier is used to capture hypothetico-deductive 
+reasoning (Piaget 1982, 394-98, 434-44, 461-77; Hothersall 1985; Mayer 1992) and 
+indicates that the statement may become true-for example, "if SALT becomes only 
+the lowest common denominator that can be easily agreed upon." 
+The normative relationship modifier indicates that the relationship is normatively 
+valued or that there is a sense of responsibility or obligation. The normative relation- 
+ship modifier is included because policy actors often express normative preferences 
+about the state of the world. However, these statements are made in an ideal sense and 
+are distinguished from goals, which are to be acted on and striven for-for example, 
+"Ideally, the world should be free of nuclear weapons." Support for this modifier 
+This content downloaded from 199.83.221.44 on Tue, 17 Jun 2025 05:49:30 UTC 
+All use subject to https://about.jstor.org/terms 
+Young / COGNITIVE MAPPING 401 
+1
+[strategy (true present) 
+Figure 4: Illustration of Goal Relationships as Both Subject and Object of a Strategy 
+Relationship 
+ORIGINAL TEXT: "The world must be safer; perhaps the best way to do this is for the United States to reduce the nuclear threat." 
+comes from studies that record the acquisition of an idealized reasoning ability during 
+adolescence (Piaget 1982; Hothersall 1985; Mayer 1992). 
+Combining modifiers with differentiated relationships further reduces information 
+loss in content analysis by capturing information about when statements are true, but 
+it does not remove the limitation of traditional cognitive mapping of coding only 
+statements that are believed to be true. However, assertions of falsehood-for example, 
+"I have never committed fraud"-occur with some frequency in political texts, and it 
+is important that this information be captured in the content analysis system. To capture 
+these negations, truth-values were developed (Young 1994). Atruth-value can be either 
+true, false, possible, impossible, or partial. 
+* True. The true truth-value indicates that the statement is true, and if either the subject or 
+object is a class of instances, the statement is true of all instances of the class(es). For example, "All humans are animals, I am human, therefore I am an animal." 
+* False. Thefalse truth-value indicates that the statement is not true, and if either the subject 
+or object is a class of instances, the statement is not true of all instances of the class(es). 
+For example, "No human is a giraffe, I am human, therefore I am not a giraffe." 
+* Partial. The partial truth-value is a qualified indication of truth. It is used when either 
+the subject or object concept is a class of instances, but the statement applies to only some 
+of the instances in the class(es). For example, "Not all politicians have committed fraud, 
+but some have." * Possible. A possible truth-value indicates that the statement could become true at some 
+unspecified time, but it is not necessarily expected to become true, including statements 
+of capabilities. For example, "The United States can fight two wars simultaneously." 
+* Impossible. An impossible truth-value indicates that the statement cannot become true at any time. For example, "The Soviet Union can never be resurrected." 
+True and partial truth-values take logical precedent over possible truth-values, and 
+impossible truth-values take logical precedent over false ones. If a statement cannot 
+be true, it is false; if it is true, it is also possible. 
+Figure 5 illustrates the use of both truth-values and modifiers to map the example 
+compound statement. Almost the entire meaning of the original statement can now be 
+This content downloaded from 199.83.221.44 on Tue, 17 Jun 2025 05:49:30 UTC 
+All use subject to https://about.jstor.org/terms 
+402 JOURNAL OF CONFLICTRESOLUTION 
+T ant(t lowest-common-denominator- SALT]-- (true hypothe t-ca-be-agreed-upon-easily 
+\-(possible p resent) 4 aE n ----ro 
+Esbl preusion-of-progrs 
+Figure 5: Illustration of Differentiated Relationships with Truth-Values and Modifiers 
+ORIGINAL TEXT: "If SALT becomes only the lowest common denominator that can be agreed upon easily, this will produce only the illusion of progress and a backlash against the entire arms control process." 
+soviet-ninworld attribute (true oa jiii l unitd ~~~~~~~~~~stratesy (tu p 
+Figure 6: Illustration of a Conjunction 
+ORIGINAL TEXT: "Both the United States and the Soviet Union want to make the world safer; perhaps the best way to do this is for them to reduce the nuclear threat." 
+retained in the cognitive model-a great improvement over previous cognitive map- 
+ping efforts. 
+In addition to previously discussed coding items, the WorldView system also 
+recognizes two conjunctions, and and or, which are used with specific types of 
+compound concepts. The and conjunction is used when two or more actors are engaged 
+in joint action. The or conjunction is used primarily to indicate a set of alternatives to 
+a decision. Figure 6 illustrates the use of a conjunction in a complex statement. 
+As is true for all human-coded content analysis, in this system the coder acts as the 
+observer and interpreter of the text, bringing to the text her or his own understandings 
+of the world. Control over the impact of the natural interpretive role of the coder is 
+gained by generating coding rules that are (1) specific enough to be understood 
+commonly by coders, analysts, and the general readership (a detailed coding manual 
+is available from the author) and (2) produce a high degree of reproducibility between 
+coders (interceder reliability scores above .80 have been achieved with limited 
+training). Figure 7 illustrates the type of content analysis performed. 
+This content downloaded from 199.83.221.44 on Tue, 17 Jun 2025 05:49:30 UTC 
+All use subject to https://about.jstor.org/terms 
+Young / COGNITIVE MAPPING 403 
+Subject; use and 
+Indicates a goal conjunction because of "at 
+statement the same time" and "both" 
+Our government must at the same time be both competent an compassionate. 
+Indicates two conceptually separate 
+Subject; replace pronoun with the items author's nation-state Relationship; "be" indicates attribute 
+Figure 7: Example of Content Analysis 
+ORIGINAL TEXT: "Our government must at the same time be both competent and compassionate" produces the data statement "united-states attribute true goal (and competent compassionate)." 
+REPRESENTATION OF BELIEFS 
+The second function of WorldView is to represent belief structures in a format 
+suitable for analysis and modeling. In another departure from previous cognitive 
+mapping enterprises, WorldView represents belief structures as semantic networks 
+rather than as adjacency matrices. The move from a mathematically based formalism 
+(adjacency matrices) to a symbol-based formalism (semantic networks) is required to 
+accommodate the additional information associated with each relationship. The symbol- 
+based formalism accommodates the differentiation of relationships and the addition 
+of truth-values and modifiers. However, the greatest advantage of moving to a 
+symbol-based system is that it allows sophisticated reasoning models to use the more 
+complete information extracted from the text. (For some examples, see Young 1994, 
+forthcoming.) 
+Techniques from semantic network research were chosen to implement the model 
+because the structure of semantic networks is complementary to the associative 
+network model of memory (Estes 1991) in which each concept is a node in a memory 
+network. WorldView creates a unique node for each unique concept, conjunction, and 
+relationship identified during content analysis. Each node has associated with it both 
+a list of the relationships of which it is the subject and a list of the relationships of 
+which it is an object. In addition, conjunction and relationship nodes have associated 
+lists of their subjects and objects. Last, relationship nodes have truth-value, modifier, 
+and salience values (salience is a count of how often a unique relationship occurs in 
+the data set). 
+The compilation of individual data statements into a cognitive map model of belief 
+structure is performed by a computer program written in Macintosh Common Lisp 
+(the code for an early version can be found in Young 1994). The program takes as input 
+the data statements generated by using the content analysis rules and reading the items 
+from text files, which are then compiled into nodes (concepts, relationships, and 
+conjunctions) in the cognitive map. This structure provides a manipulable map of 
+This content downloaded from 199.83.221.44 on Tue, 17 Jun 2025 05:49:30 UTC 
+All use subject to https://about.jstor.org/terms 
+404 JOURNAL OF CONFLICTRESOLUTION 
+derived belief structures that can be viewed on screen (or printed). In addition, 
+WorldView can combine the information from several texts consisting of hundreds of 
+data statements to provide a composite and complex structure that is not readily 
+amenable to manual analysis. A small extract from a composite cognitive map is shown 
+in Figure 8. 
+Reading from left to right and top to bottom, the propositions in Figure 8 include 
+the following: 
+* The United States and the Soviet Union have deep differences in values and ideas. 
+* The United States and the Soviet Union share a relationship. 
+* Both the United States and the Soviet Union want to make the world a safer place; perhaps 
+the best way to do this is by reducing the nuclear threat. 
+* Both the United States and the Soviet Union want to limit elements in the strategic posture 
+of both sides that threaten to destabilize the balance that now exists. 
+* Both the United States and the Soviet Union want to reduce arsenals. 
+* The United States and the Soviet Union are negotiating the level of military forces in 
+Europe. 
+One of the most important aspects of WorldView for representing beliefs is a 
+synonym facility that allows concepts to be replaced with a synonym when the cog- 
+nitive map is created, without changing the data. To assist in the creation of the 
+synonym facility, a concept list maker produces a list of all the concepts in a data set. 
+This list can be used to identify thought-to-be synonymous concepts. The synonym 
+facility allows analysis to determine whether varying the inclusiveness of synonyms 
+will result in different political choices. This can provide insight into the coarseness 
+of memory by varying the level of specificity of concepts in the belief system and 
+comparing predicted political choices with actual choices. The synonym facility also 
+can be used to test mappings between one cognitive map and another. 
+MEASURES FOR COGNITIVE MAPS 
+In addition to tools for identifying and representing beliefs in cognitive maps, 
+WorldView incorporates seven measures of change within cognitive maps over time 
+and between cognitive maps. This set of measures comprises four structural measures 
+(dependency, connectedness, size, and uniformity of salience) that characterize indi- 
+vidual cognitive maps and three comparative measures (concept comparison, trans- 
+formation cost, and incongruence) that characterize differences between maps. 
+Dependency reflects the number of pathways (concept-relationship-concept) over 
+which it is possible to travel to concepts in the cognitive map. If only one relationship 
+leads to a concept, that relationship is defined as a bridge. Dependency is calculated 
+by dividing the number of bridges by the total number of relationships and then 
+dividing that result by the number of structures in a cognitive map. The number of 
+structures in the cognitive map always will be ? 1. Greater numbers occur when two 
+or more sets of concepts in the cognitive map are not connected to each other. 
+Dependency has a range of 0 to 1 and is defined for a cognitive map, G, as 
+This content downloaded from 199.83.221.44 on Tue, 17 Jun 2025 05:49:30 UTC 
+All use subject to https://about.jstor.org/terms 
+1) (V~~~~~~~~~4- 
+0'~~~
+44 ~ 1 0 N0) (I) H~~~~~~~U u i4-i-
+0
+-~~~~ -~~~~~~ 4J _ ~~~~~~~~1( 4-i 
+a) 0 *HrO(0 
+u ~ ~ ~ ~ ~~~ 0 ~~~~~~4-1 rI 4-)- + + I + -H 
+(1) 0~~~~4 4 -H ci~~~~~~~~~~~~~~l4)0 - 
+44 44i4J4 IC 
+.rA 4.)~~ (1 C Ci) 0 4) H 4- 1 I) (V *H ~~~~~ ~~~~~~~~Ir H UH Co
+H 4-~~ 0 A4IU 0 ci 43 0 
+4.) H -H a 
+4) 0 0 W W0 b)0 
+04 0 0 
+4.)
+Izz
+Id 0
+4)~~~~~~a 
+405
+This content downloaded from 199.83.221.44 on Tue, 17 Jun 2025 05:49:30 UTC 
+All use subject to https://about.jstor.org/terms 
+406 JOURNAL OF CONFLICT RESOLUTION 
+I bridges WI relationshipsG 
+DG = _ I, structuresG 
+This formula captures the extent to which concepts are organized vertically. If all the 
+relationships in a cognitive map with a single structure are bridges, then D = 1. In such 
+a completely dependent cognitive map there would be a single superordinate concept. 
+High dependency suggests that concepts are not laterally connected and are relatively 
+distinct from each other, and this also should be true for policy areas. For example, a 
+policy maker with a dependent cognitive map might be expected to view policy actions 
+in domestic and international contexts as distinct from one another. Figure 9 illus- 
+trates two belief structures with dependency equal to 1. 
+Connectedness reflects the number of relationships between concepts in the cogni- 
+tive map and is similar to -Maoz and Shayer's (1987) measure of the same name. It is 
+also similar to Bonham, Shapiro, and Trumble's (1979) measure, which they refer to 
+as complexity, and Levi and Tetlock's (1980) causal integration, both of which are 
+considered indicators of cognitive complexity. Connectedness captures how interre- 
+lated the concepts and, therefore, the lines of reasoning are in the cognitive map. 
+Connectedness has a range of 0 to 1 (asymptotic) and is defined as 
+IC relationships0 
+CG =E conceptsG + E relationship& 
+This measure captures the extent to which concepts are associated with other concepts. 
+If there are no relationships between concepts, then C = 0. If only relationships exist 
+in the cognitive map, then C = 1. (Neither condition is expected to occur.) In contrast 
+to more dependent cognitive maps, changes in highly connected cognitive maps will 
+be reflected across larger numbers of concepts because of the larger number of 
+connections between concepts. Policy makers with connected cognitive maps also are 
+expected to have an integrating outlook and broadly based policies, with changes in 
+the cognitive map reflected across several policy areas. This is because of the greater 
+number of lateral connections that are expected to exist in more connected belief 
+structures, and, in particular, lateral connections are expected between concepts on the 
+edge of the belief structure(s). Figure 10 illustrates a belief structure with connected- 
+ness equal to .66. 
+Size is the number of concepts in the cognitive map. For example, the size of the 
+cognitive map in Figure 10 is 4. The number of concepts in the cognitive map is 
+expected to be correlated with expertise in which those more expert in a particular area 
+are expected to have more concepts in a cognitive map and to relate these concepts 
+more easily to other concepts that are more distant in their cognitive map for that area. 
+Size also should be related to factors such as stress and learning. 
+Uniformity of salience reflects the firmness with which each component belief is 
+held in the cognitive map and also reflects the proposition that the relationships 
+This content downloaded from 199.83.221.44 on Tue, 17 Jun 2025 05:49:30 UTC 
+All use subject to https://about.jstor.org/terms 
+Young / COGNITIVE MAPPING 407 
+Figure 9: Two Cognitive Maps with Dependency Equal to 1 
+NOTE: Each concept has only one relationship leading to it; therefore, all the relationships are bridges. For illustration purposes, concepts are depicted as circles, and relationships are depicted as arrows. 
+Figure 10: A Cognitive Map with Connectedness Equal to .66 
+NOTE: Eight relationships/(8 relationships + 4 concepts). For illustration purposes, concepts are depicted as circles, and relationships are depicted as arrows. 
+between concepts have a strength associated with them that increases with experience. 
+Salience is measured by counting how often a belief is expressed, and uniformity of 
+salience is measured with the standard deviation in salience. If the statement "Oil 
+pollution threatens seabirds" appears twice in the text, the relationship "oil-pollution- 
+true present sea-birds" would have a salience of 2. Uniform salience indicates that all 
+relationships in the cognitive map are equally resistant to change and equally likely to 
+be used in reasoning. Relatively high-salience relationships should be more resistant 
+to change and more likely to be used in reasoning than other relatively low-salience 
+relationships. A standard deviation of zero indicates perfect uniformity of salience. 
+The salience of any particular concept is indicated both by the strength of its relation- 
+ships with other concepts-for example, how "hot" it is-and by the number of 
+This content downloaded from 199.83.221.44 on Tue, 17 Jun 2025 05:49:30 UTC 
+All use subject to https://about.jstor.org/terms 
+408 JOURNAL OF CONFLICT RESOLUTION 
+relationships it has with other concepts-for example, the variety of its connections 
+and the frequency of its use in reasoning. 
+Uniformity of salience in a cognitive map is important as an indicator of whether 
+an individual's reasoning always leads to the same set of conclusions. Policy makers 
+with a large deviation in the uniformity of salience are expected to be more consistent 
+in their thinking and policy behavior. It is expected, for example, that an analysis of 
+John Foster Dulles's speeches and comments would reveal a cognitive map with 
+respect to the Soviet Union that has a few highly salient pathways prompting the 
+rejection of other lines of reasoning. See, for example, the inherent bad-faith model 
+illustrated by Holsti (1962). 
+Concept comparison is the first of the three comparative measures and indicates 
+which particular concepts are in both maps and have identical relationships leading 
+from them, which concepts are in both maps but have different relationships, and which 
+concepts are unique to each structure. Concept comparison is intended as an aid to the 
+analyst in determining why political behavior may have changed by listing the specific 
+areas of qualitative change in the cognitive map. Concept comparisons include 
+checking for the presence of the same concept and relationship structure in each of the 
+represented cognitive maps and changes in the inferences that follow from each 
+cognitive map. 
+Transformation cost provides an indicator of change in cognitive maps that meas- 
+ures the amount of change (in a manner analogous to the amount of cognitive work 
+required) between two cognitive maps. Transformation cost is similar to a Levenshtein 
+measure of difference (Kruskal 1983) and is based on the number of additions and 
+deletions required to transform one sequence into another. For example, "Michael" is 
+changed to "Michelle" by using the following equally weighted steps: 
+Michael (1) Delete "a" 
+Michel (2) Delete "e" 
+Mich_1 (3) Add "e" 
+Miche_1 (4) Add "1" 
+Michell (5) Add "e" 
+Michelle 
+This results in a transformation cost of 5. 
+For cognitive maps, the transformation cost between two maps is the minimum 
+number of discrete changes required to make the second map a duplicate of the first. 
+Each of the five types of discrete change to cognitive maps is assigned a cost of 1: 
+(a) Relationship-addition: the creation of a relational link between two concepts. 
+(b) Relationship-deletion: the removal of a relational link between two concepts. 
+(c) Relationship salience increase or decrease: a unit change in the strength of a 
+relationship between two concepts. 
+(d) Concept-deletion: the removal of a concept. Concept-deletion requires that all con- 
+necting relationships are deleted. 
+(e) Concept-addition: the creation of a new node that reflects the addition of new 
+information into the cognitive map. Concept-additions are expected to be accompanied by one 
+or more relationship-additions linking the new concept to at least one other concept. 
+This content downloaded from 199.83.221.44 on Tue, 17 Jun 2025 05:49:30 UTC 
+All use subject to https://about.jstor.org/terms 
+Young / COGNITIVE MAPPING 409 
+Both concept comparison and transformation cost are rather blunt instruments best 
+used to compare the cognitive maps of two or more different people on the same topic 
+rather than to look at a cognitive map over time. For time series, the third comparative 
+measure, incongruence, combines transformation cost and concept comparison and 
+compares changes in relationships between concepts common to both maps, thus 
+minimizing problems from incomplete overlap in source text content. Incongruence 
+is expected to have a relatively high value for maps that precede large changes in 
+behavior. For example, relatively large incongruence values would be expected for 
+President Nixon if we were to compare his cognitive map of communism as vice 
+president and then again as president, reflecting his reassessment of China prior to his 
+initiation of contact. Incongruence is of particular interest, because although it is 
+possible for a modeled cognitive map to change substantially yet still have the same 
+values for the structural measures, incongruence is only zero for identical structures. 
+WORLDVIEW IN ACTION 
+Thus far, one study has been completed using WorldView-a study of President 
+Jimmy Carter (Young 1994, forthcoming)-that provides a limited basis for evalu- 
+ation. Two examples from this study illustrate the types of results that can be obtained 
+using WorldView. The first example looks at one of the structural measures, depend- 
+ency, following the Soviet entry into Afghanistan. The second example illustrates a 
+different type of analysis, a reasoning model that uses WorldView's semantic network 
+data structure as its "memory." 
+Overall, no statistically significant relationship exists between dependency and 
+days in office. However, the pattern of dependency scores following the Soviet entry 
+into Afghanistan is quite striking. Carter's short and very direct speech of January 4, 
+1980, has the highest dependency score recorded in the study and corresponds to the 
+focused and linear nature of the speech. In four subsequent foreign policy or national 
+security speeches, dependency declines rapidly and stabilizes by the last two speeches 
+(May 6 and August 21, 1980), with scores in the range of pre-Afghanistan foreign 
+policy or national security speeches (.021-.057). 
+This dramatic spike and decline is mirrored by connectedness scores for the same 
+speeches that dip sharply to the lowest recorded score before recovering in the last two 
+speeches. These results correspond nicely with Carter's statement on New Year's Eve, 
+1979 (Sick 1986, 242) that " 'this action of the Soviets has made a more dramatic 
+change in my own opinion of what the Soviets' ultimate goals are than anything they've 
+done in the previous time I've been in office.' " This suggests that national security 
+policy, if not foreign policy in general, was restructured following some temporary 
+confusion (see also Sick 1986; Rosati 1993). However, the nature of this change, as 
+shown by the second example, may not be a straightforward "change" of beliefs. 
+In addition to structural and comparative analysis, analysis can be performed with 
+reasoning models that use the rich data structure of WorldView as their memory. One 
+such model, directed-walk, is modeled on the cognitive process model of Bonham and 
+his colleagues (Bonham et al. 1978; Bonham, Shapiro, and Trumble 1979). Directed- 
+This content downloaded from 199.83.221.44 on Tue, 17 Jun 2025 05:49:30 UTC 
+All use subject to https://about.jstor.org/terms 
+410 JOURNAL OF CONFLICTRESOLUTION 
+0.15Afghanistan 
+0.10National Security 
+84 _Mean for 22 
+0.05 Foreign Policy speeches 0.05 /
+National Security 
+0 -A
+1000 1500 
+Days in Office 
+Figure 11: Dependency by Days In Office 
+walk uses spreading activation to generate the definition of the situation and an 
+explanation-based style of reasoning with a salience heuristic. The salience heuristic 
+uses the strength of a proposition in a belief system to direct memory search. The 
+search procedure selects the proposition with the highest salience to activate, carries 
+out any indicated processing, then selects the most salient proposition leading from 
+the conclusion of the just-processed proposition and repeats the process until no further 
+progress can be made. For example, a policy is output or new information is fully 
+integrated into the cognitive map. Figure 12 shows the output from directed-walk using 
+Carter's March 17, 1978, speech at Annapolis and additional assumptions that identify 
+the Soviet Union and Afghanistan as sovereign nations as the data set. In Figure 12, 
+directed-walk (1) repeats the input statement, (2) fails to find any directly applicable 
+beliefs and recognizes that the Soviet Union is a sovereign nation, (3) substitutes 
+sovereign-nation for soviet-union, (4) fails to find any directly applicable beliefs and 
+recognizes that the Afghanistan is a sovereign nation, (5) substitutes sovereign-nation 
+for Afghanistan, (6) finds a directly applicable belief, (7) expresses the conclusion of 
+the belief, and (8) ends the run. Based on the 1978 speech, directed-walk predicts U.S. 
+resistance to the Soviet entry into Afghanistan (see also Dumbrell 1993, 14). 
+The result of this simulation is both plausible and unremarkable in that only beliefs 
+already expressed by Carter are reproduced. However, the results contrast with Carter's 
+New Year's Eve statement and may surprise those who believe that Carter radically 
+changed his position in response to the Soviet invasion of Afghanistan. (For a more 
+complete discussion of these results and their implications, see Young 1994.) The result 
+suggests that rather than a change in the content of Carter's beliefs per se-that is, 
+from "the Soviets are bad" to the "Soviets are good"-change may have occurred in 
+This content downloaded from 199.83.221.44 on Tue, 17 Jun 2025 05:49:30 UTC 
+All use subject to https://about.jstor.org/terms 
+Young/ COGNITIVE MAPPING 411 
+(1) (soviet-union invade true present afghanistan) 
+(2) (soviet-union is-a true present sovereign-nation) 
+(3) (sovereign-nation invade true afghanistan) 
+(4) (afghanistan is-a true present sovereign-nation) 
+(5) (sovereign-nation invade true present sovereign-nation) 
+(6) (sovereign-nation invade true present sovereign-nation) 
+if-then true present 
+(united-states resist true hypothetical (sovereign-nation invade true present sovereign-nation)) 
+(7) (united-states resist true hypothetical (sovereign-nation invade true present sovereign-nation)) 
+(8) End of Walk. 
+Figure 12: Output from Directed-Walk 
+NOTE: Output based on the input (soviet-union invade true present afghanistan) using Carter's 17 March 1978 speech at Annapolis as the data set. 
+the relationship of his beliefs to one another and in his estimates of their truthfulness- 
+what Rosati (1987/91) refers to as a change from optimism to pessimism. The results 
+of the Carter study indicate that four types of change in beliefs could have produced 
+the observed behavioral change: (1) a change in an unexpressed assumption already 
+in the belief system, (2) change in the relative salience of beliefs, (3) change in 
+probabilities attached to beliefs, or (4) the addition of a few new propositions to the 
+belief system. For example, the change Carter expresses in his beliefs about Soviet 
+goals could produce dramatic behavioral change with very limited change in his 
+complex belief system (see Young 1994). 
+CONCLUSION 
+The cognitive mapping techniques developed by Axelrod and by Bonham and 
+Shapiro have been used to build and test theoretical propositions about foreign policy 
+decision making in crisis situations (Levi and Tetlock 1980), predict policy behavior 
+(Axelrod 1976; Bonham and Shapiro 1976; Bonham et al. 1978; Cutler 1982), and 
+predict the responses to officials to unexpected events or ambiguous information 
+(Bonham and Shapiro 1976; Bonham, Shapiro, and Trumble 1979). The success of 
+these techniques, which capture relatively limited information from texts, suggests 
+that the symbol-based techniques embodied in WorldView will produce similar 
+success. As shown, WorldView provides important advantages over earlier ap- 
+proaches. WorldView 
+* eliminates constraints and captures more information than did previous content analysis systems for cognitive maps, 
+* constructs manipulable cognitive maps that provide a basis for process models of belief change and decision making, 
+* provides aggregation over texts or subject responses, 
+* incorporates structural and comparative measures for cognitive maps. 
+This content downloaded from 199.83.221.44 on Tue, 17 Jun 2025 05:49:30 UTC 
+All use subject to https://about.jstor.org/terms 
+412 JOURNAL OF CONFLICT RESOLUTION 
+The combination of a descriptive modeling capability and the ability to support generic 
+models of reasoning routines makes WorldView very useful for the study of political 
+cognition and the impact of both belief content and decision-making process on 
+political choices. To date, WorldView has been used to refine our understanding of 
+President Jimmy Carter's foreign policy decision making (Young 1994, forthcoming) 
+and the development of new operational code indexes (Walker, Schafer, and Young 
+1996). Other projects that are under way study the 1996 U.S. presidential candidates 
+and the rhetoric of separatism in Canada and Belgium. If we seek to understand and 
+explain political behavior, then, as Kegley (1994) suggests, we must understand the 
+beliefs and decision processes of participants in international affairs. By enhancing 
+proven cognitive mapping techniques, WorldView increases our ability to understand 
+participants in international affairs. 
+REFERENCES 
+Abelson, Robert P., and Milton J. Rosenberg. 1958. Symbolic psychologic: A model of attitudinal cognition. Behavioral Science 3:1-13. 
+Alker, Hayward R. 1975. Polimetrics: Its descriptive foundations. In Handbook of political science, vol. 7, 
+edited by F. Greenstein and N. Polsby. Reading, MA: Addison-Wesley. 
+Axelrod, Robert. 1972a. Framework for a general theory of cognition. Berkeley, CA: Institute of Interna- 
+tional Studies. 
+-1972b. Psycho-algebra: A mathematical theory of cognition and choice with an application to the 
+British Eastern Committee in 1918. Papers of the Peace Research Society (International) 18:113-131. 
+ed. 1976. The structure of decision: The cognitive maps of political elites. Princeton, NJ: Princeton 
+University Press. 
+. 1977. Argument in foreign policy settings: Britain in 1918, Munich in 1938, and Japan in 1970. 
+Journal of Conflict Resolution 21:727-44. 
+Blalock, IHerbertM. 1964. Causal inferences in non-experimental research. Chapel Hill: University of North 
+Carolina Press. 
+Bonham, G. Matthew. 1993. Cognitive mapping as a technique for supporting international negotiation. Theory and Decision 34:255-73. 
+Bonham, G. Matthew, Daniel Heradstveit, Ove Narvessen, and Michael J. Shapiro. 1978. A cognitive model 
+of decision-making: Application to Norwegian oil policy. Cooperation and Conflict 13:93-108. Bonham, G. Matthew, Christer Jonsson, Stefan Persson, and Michael J. Shapiro. 1987. Cognition and 
+international negotiation: The historical recovery of discursive space. Cooperation and Conflict 22:1-19. 
+Bonham, G. Matthew, and Michael J. Shapiro. 1976. Explanation of the unexpected: The Syrian 
+intervention in Jordan in 1970. In Structure of decision, edited by Robert Axelrod, 113-41. Princeton, 
+NJ: Princeton University Press. 
+Bonham, G. Matthew, Michael J. Shapiro, and Thomas L. Trumble. 1979. The October war. International Studies Quarterly 23:3-44. 
+Carey, Susan. 1985. Conceptual change in childhood. Cambridge, MA: MIT Press. 
+Carter, Jimmy. 1977. Remarks at the 31st Annual Meeting of the Southern Legislative Conference, July 21. Weekly Compilation of Presidential Documents 13:1063-9. 
+Cartwright, Dorwin, and Frank Harary. 1965. Structural balance: A generalization of Heider's theory. Psychological Review 63:277-93. 
+This content downloaded from 199.83.221.44 on Tue, 17 Jun 2025 05:49:30 UTC 
+All use subject to https://about.jstor.org/terms 
+Young / COGNITIVE MAPPING 413 
+Cutler, Robert M. 1982. Unifying the cognitive map and operational code approaches: An integrative 
+framework with an illustrative example. In Cognitive dynamics and international politics, edited by 
+Christer Jonsson, 91-121. London: Frances Pinter. 
+Daehler, Marvin W. 1985. Cognitive development. New York: Knopf. 
+Duffy, Gavan, and Seth A. Tucker. 1995. Political science: Artificial intelligence applications. Social Science 
+Computer Review 13:1-20. 
+Dumbrell, John. 1993. The Carter presidency: A re-evaluation. Manchester, UK: Manchester University 
+Press.
+Estes, William K. 1991. Cognitive architectures from the standpoint of an experimental psychologist. Annual Review of Psychology 42:1-28. 
+Gerner, Deborah J., Philip A. Schrodt, Ronald A. Francisco, and Judith L. Weddle. 1994. Machine coding 
+of event data using regional and international sources. International Studies Quarterly 38:91-119. 
+Harary, Frank, Robert Z. Norman, and Dorwin Cartwright. 1965. Structural models: An introduction to the 
+theory of directed graphs. New York: John Wiley. 
+Holsti, Ole R. 1962. The belief system and national images: A case study. Journal of Conflict Resolution 
+6:3.
+Hothersall, David. 1985. Psychology. Columbus, OH: Merrill. 
+Johnson-Laird, Philip N., Douglas Herrmann, and Roger Chaffin. 1984. Only connections: A critique of 
+semantic networks. Psychological Bulletin 96:292-315. 
+Kegley, Charles, Jr. 1994. How did the cold war die? Principles for an autopsy. Mershon International Studies Review 38:11-41. 
+Keil, Frank C. 1989. Concepts, kinds, and cognitive development. Cambridge, MA: MIT Press. 
+Kruskal, Joseph B. 1983. An overview of sequence comparison. In Time warps, string edits and macro- 
+molecules: The theory and practice of sequence comparison, edited by David Sankoff and Joseph B. Kruskal, 1-44. Reading, MA: Addison-Wesley. 
+Lehman, Fritz, ed. 1992. Semantic networks in artificial intelligence. New York: Pergamon. Levi, Ariel, & Philip Tetlock. 1980. A cognitive analysis of Japan's 1941 decision for war. Journal of Conflict 
+Resolution 24:195-211. 
+Luce, Duncan R., and Howard Raiffa. 1957. Games and decisions. New York: John Wiley. 
+Maoz, Zeev, & Anat Shayer. 1987. The cognitive structure of peace and war argumentation: Israeli prime 
+ministers versus the Knesset. Political Psychology 8:575-604. 
+Maruyama, Magoroh. 1963. The second cybernetics: Deviation-amplifying mutual causal processes. American Scientist 51:164-79. 
+Mayer, Richard E. 1992. Thinking, problem solving, cognition. New York: Freeman. 
+McClelland, Charles A. 1976. World event/interaction survey codebook (ICPSR 5211). Ann Arbor, MI: 
+Inter-University Consortium for Political and Social Research. 
+Newell, Allen, and Herbert A. Simon. 1972. Human problem solving. Englewood Cliffs, NJ: Prentice Hall. =. 1976. Computer science as empirical enquiry: Symbols and search. Communications of the Association 
+for Computing Machinery 19:113-26. 
+Osgood, Charles E., Sol Saporta, and Jum C. Nunnally. 1956. Evaluative assertion analysis. Litera 3:47-102. 
+Pennington, Nancy, and Reid Hastie. 1991. A cognitive theory of juror decision-making: The story model. Cardozo Law Review 13:519-57. 
+Piaget, Jean. 1982. The essential Piaget. Howard E. Gruber & Jacques J. Voneche. London: Routledge & 
+Kegan Paul. 
+Quillian, M. Ross. 1968. Semantic memory. In Semantic informationprocessing, edited by Marvin Minsky, 
+216-70. Cambridge, MA: MIT Press. 
+Roberts, Don D. 1973. The existential graphs of Charles S. Peirce. The Hague, The Netherlands: Mouton. Rosati, Jerel A. 1987/91. The Carter administration s questfor global community. Columbia: University of 
+South Carolina Press. 
+=. 1993. Jimmy Carter, a man before his time? The emergence and collapse of the first post-cold war 
+presidency. Presidential Studies Quarterly 23:459-75. 
+This content downloaded from 199.83.221.44 on Tue, 17 Jun 2025 05:49:30 UTC 
+All use subject to https://about.jstor.org/terms 
+414 JOURNAL OF CONFLICTRESOLUTION 
+Sergeev, VictorM., V. P. Akimov, V. B. Lukov, and Pavel B. Parshin. 1990. Acognitive approach to modeling 
+the Caribbean crisis. Journal of Conflict Resolution 34:179-207. 
+Sick, Gary. 1986. Allfall down: America's tragic encounter with Iran. New York: Penguin. 
+Shapiro, Michael J., and G. Matthew Bonham. 1973. Cognitive process and foreign policy decision-making. 
+Journal of Conflict Resolution 17:147-74. 
+Simon, Herbert A. 1957. Models of man. New York: John Wiley. 
+1980. Cognitive science: The newest science of the artificial. Cognitive Science 4:33-46. 
+1985 Human nature in politics: The dialogue of psychology with political science. American 
+Political Science Review 79:293-304. 
+1990. Invariants of human behavior. Annual Review of Psychology 41:1-19. 
+Walker, Stephen G., Mark Schafer, and Michael D. Young. 1996. Operational code analysis and the role 
+identities of political leaders. Prepared for presentation at the Annual Meeting of the International Studies 
+Association, San Diego, CA. Young, Michael D. 1994. The foreign policy problem representation of President Carter. Ph.D. diss., 
+The Ohio State University. 
+. Forthcoming. Primitive language of foreign policy. In Problem representation andpolitical decision 
+making, edited by Donald A. Sylvan and James Voss. Cambridge, MA: Cambridge University Press. 
+The Foundation for the Promotion of Social Science Research on 
+World Society-World Society Foundation-funds selected proposals 
+for research on the structure of and changes in world society. The next 
+deadline for applications is June 30, 1997. Selected projects may start 
+in January 1998. 
+The funding activity of the Foundation also results from the contri- 
+butions contained in the three volumes of the series World Society 
+Studies, published by Campus (Frankfurt 1990) resp. Transaction 
+Publishers (New Brunswick, NJ, 1992 and 1994). 
+Further detailed information, including the application form, is 
+available at the following Web site: http:H/www.unizh.ch/wsf. Printed 
+documentation may be ordered at the following address: World 
+Society Foundation, c/o Sociological Institute, University of Zurich, 
+Ramistr. 69, CH-8001 Zurich, Switzerland; fax +41 1 252 10 54. 
+This content downloaded from 199.83.221.44 on Tue, 17 Jun 2025 05:49:30 UTC 
+All use subject to https://about.jstor.org/terms 

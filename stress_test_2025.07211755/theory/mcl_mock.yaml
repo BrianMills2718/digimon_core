@@ -1,0 +1,254 @@
+# Mock Master Concept Library (MCL)
+# Universal concepts for cross-theory compatibility
+
+version: "1.0"
+created: "2025-07-21"
+description: "Mock MCL for stakeholder theory stress testing"
+
+# Core entity concepts
+entity_concepts:
+  external_actor:
+    definition: "Any individual or group outside the focal organization"
+    operationalizations:
+      - entity_extraction
+      - role_classification
+      - boundary_detection
+    subtypes:
+      - individual_actor
+      - group_actor
+      - institutional_actor
+    properties:
+      - canonical_name
+      - actor_type
+      - boundary_status
+    
+  organization:
+    definition: "Structured entity with defined goals and governance"
+    operationalizations:
+      - entity_extraction
+      - structure_analysis
+      - goal_identification
+    subtypes:
+      - corporation
+      - government_agency
+      - non_profit
+      - institution
+    properties:
+      - organization_type
+      - size_category
+      - governance_structure
+  
+  person:
+    definition: "Individual human actor"
+    operationalizations:
+      - named_entity_recognition
+      - role_identification
+      - position_extraction
+    properties:
+      - full_name
+      - position_title
+      - organizational_affiliation
+
+# Relationship concepts  
+relationship_concepts:
+  power_relationship:
+    definition: "Asymmetric relationship involving ability to influence"
+    operationalizations:
+      - influence_detection
+      - power_assessment
+      - asymmetry_measurement
+    properties:
+      - power_direction
+      - power_strength
+      - power_mechanism
+    
+  legitimacy_claim:
+    definition: "Assertion of valid interest or right"
+    operationalizations:
+      - claim_extraction
+      - validity_assessment
+      - evidence_analysis
+    properties:
+      - claim_type
+      - validity_score
+      - evidence_basis
+      
+  stakeholder_relationship:
+    definition: "Relationship involving stake in organizational outcomes"
+    operationalizations:
+      - stake_identification
+      - relationship_mapping
+      - impact_assessment
+    properties:
+      - stake_type
+      - stake_strength
+      - bidirectional_impact
+
+# Attribute concepts
+attribute_concepts:
+  confidence_scoring:
+    definition: "Assessment of certainty in extracted information"
+    operationalizations:
+      - confidence_calculation
+      - uncertainty_quantification
+      - quality_assessment
+    range: [0.0, 1.0]
+    default_method: "weighted_evidence"
+    
+  temporal_scope:
+    definition: "Time dimension of concepts or relationships"
+    operationalizations:
+      - temporal_extraction
+      - duration_analysis
+      - sequence_detection
+    properties:
+      - start_time
+      - end_time
+      - duration
+      - temporal_context
+      
+  influence_strength:
+    definition: "Magnitude of one entity's effect on another"
+    operationalizations:
+      - influence_measurement
+      - impact_quantification
+      - network_analysis
+    range: [0.0, 1.0]
+    measurement_methods:
+      - network_centrality
+      - outcome_correlation
+      - direct_assessment
+
+# Operationalization mappings
+operationalizations:
+  entity_extraction:
+    description: "Identify and extract entity mentions from text"
+    input_types: ["text_chunk", "document"]
+    output_types: ["entity_mention", "standard_entity"]
+    quality_requirements:
+      min_confidence: 0.6
+      coverage_threshold: 0.8
+    tools_supporting:
+      - "T23A_SPACY_NER"
+      - "T23C_LLM_ENTITY_EXTRACTOR"
+      - "T31_ENTITY_BUILDER"
+      
+  confidence_calculation:
+    description: "Calculate confidence scores for extracted information"
+    input_types: ["entity_mention", "relationship", "any_object"]
+    output_types: ["confidence_score"]
+    methods:
+      - "evidence_aggregation"
+      - "consensus_scoring" 
+      - "probabilistic_assessment"
+    tools_supporting:
+      - "T111_QUALITY_SERVICE"
+      
+  relationship_extraction:
+    description: "Identify relationships between entities"
+    input_types: ["entity_mention", "text_chunk"]
+    output_types: ["standard_relationship"]
+    relationship_types:
+      - "influences"
+      - "part_of"
+      - "controls"
+      - "conflicts_with"
+    tools_supporting:
+      - "T27_RELATIONSHIP_EXTRACTOR"
+      - "T34_EDGE_BUILDER"
+
+# Theory compatibility matrix
+theory_compatibility:
+  stakeholder_theory:
+    required_concepts:
+      - external_actor
+      - organization
+      - power_relationship
+      - legitimacy_claim
+      - stakeholder_relationship
+    required_operationalizations:
+      - entity_extraction
+      - confidence_calculation
+      - relationship_extraction
+    custom_concepts:
+      - stakeholder_salience
+      - mitchell_category
+    validation_requirements:
+      - geometric_mean_salience
+      - three_dimensional_assessment
+      
+  social_network_theory:
+    required_concepts:
+      - external_actor
+      - power_relationship
+      - influence_strength
+    required_operationalizations:
+      - entity_extraction
+      - relationship_extraction
+      - network_analysis
+    custom_concepts:
+      - centrality_measures
+      - network_structure
+      
+  institutional_theory:
+    required_concepts:
+      - organization
+      - external_actor
+      - legitimacy_claim
+    required_operationalizations:
+      - entity_extraction
+      - legitimacy_assessment
+      - institutional_analysis
+    custom_concepts:
+      - institutional_field
+      - isomorphic_pressure
+
+# Data type mappings
+data_type_mappings:
+  concepts_to_schemas:
+    external_actor: "StandardEntity"
+    organization: "StandardEntity"  
+    person: "StandardEntity"
+    power_relationship: "StandardRelationship"
+    legitimacy_claim: "LegitimacyScore"
+    stakeholder_relationship: "StakeholderInfluence"
+    
+  operationalizations_to_tools:
+    entity_extraction:
+      - tool_id: "T23A_SPACY_NER"
+        input_schema: "TextChunk"
+        output_schema: "EntityMention"
+      - tool_id: "T31_ENTITY_BUILDER"
+        input_schema: "EntityMention"
+        output_schema: "StandardEntity"
+    
+    confidence_calculation:
+      - tool_id: "T111_QUALITY_SERVICE"
+        input_schema: "BaseObject"
+        output_schema: "BaseObject"  # adds confidence fields
+        
+    relationship_extraction:
+      - tool_id: "T27_RELATIONSHIP_EXTRACTOR"
+        input_schema: "EntityMention"
+        output_schema: "StandardRelationship"
+
+# Validation rules
+validation_rules:
+  concept_consistency:
+    - rule: "entity_mentions_resolve_to_entities"
+      check: "All EntityMention.selected_entity values exist as StandardEntity.id"
+    - rule: "relationships_reference_valid_entities"
+      check: "All relationship source_id and target_id reference existing entities"
+      
+  operationalization_compliance:
+    - rule: "confidence_scores_present"
+      check: "All objects have confidence scores in range [0.0, 1.0]"
+    - rule: "provenance_maintained"
+      check: "All objects have created_by and workflow_id fields"
+      
+  theory_specific:
+    stakeholder_theory:
+      - rule: "salience_geometric_mean"
+        check: "SalienceScore.value equals geometric mean of components"
+      - rule: "mitchell_categories_consistent"
+        check: "Mitchell categories match dimension combinations"

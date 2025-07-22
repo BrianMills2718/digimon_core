@@ -1,0 +1,55 @@
+api:
+  anthropic_api_key: ''
+  batch_processing_size: 10
+  gemini_model: gemini-2.0-flash-exp
+  google_api_key: ''
+  max_retries: 3
+  openai_api_key: ''
+  openai_model: text-embedding-3-small
+  timeout: 30
+database:
+  connection_acquisition_timeout: 30.0
+  database: neo4j
+  host: localhost
+  keep_alive: true
+  max_connection_pool_size: 50
+  password: ''
+  port: 7687
+  username: neo4j
+entity_processing:
+  chunk_overlap_size: 50
+  confidence_threshold: 0.7
+  embedding_batch_size: 100
+  max_entities_per_chunk: 20
+graph_construction:
+  graph_pruning_threshold: 0.1
+  max_relationships_per_entity: 50
+  pagerank_damping_factor: 0.85
+  pagerank_iterations: 100
+  pagerank_min_score: 0.0001
+  pagerank_tolerance: 1.0e-06
+system:
+  backup_enabled: true
+  debug: false
+  encryption_enabled: true
+  environment: development
+  health_check_interval: 60
+  log_level: INFO
+  max_workers: 4
+  metrics_enabled: true
+text_processing:
+  chunk_overlap_size: 50
+  chunk_size: 512
+  max_chunks_per_document: 100
+  semantic_similarity_threshold: 0.85
+theory:
+  concept_library_path: src/ontology_library/master_concepts.py
+  enabled: false
+  enhancement_boost: 0.1
+  schema_type: MASTER_CONCEPTS
+  validation_enabled: true
+workflow:
+  checkpoint_interval: 10
+  max_retries: 3
+  storage_dir: ./data/workflows
+  timeout_seconds: 300
