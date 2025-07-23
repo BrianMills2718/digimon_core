@@ -394,8 +394,109 @@ The system will have:
 - [ ] Update documentation
 - [ ] Prepare for phase completion
 
+## Post-Phase RELIABILITY: Architecture Maintenance Tasks
+
+After completing Phase RELIABILITY, the following architecture maintenance tasks should be addressed to ensure long-term system quality:
+
+### Week 7-8: Architecture Cleanup (Phase ARCHITECTURE-MAINTENANCE)
+
+#### Task AM-1: ADR Documentation Standardization (Week 7)
+**Issue**: Inconsistent ADR numbering and referencing patterns
+- **Problem**: Mixed formats (ADR-007 vs adr-004) causing confusion
+- **Solution**: Standardize all ADRs to ADR-XXX format
+- **Files to Review**:
+  - All files in `/docs/architecture/adrs/` directory
+  - References in other documentation files
+  - Cross-references in contract system and specifications
+- **Action Items**:
+  - [ ] Audit all ADR files for consistent naming
+  - [ ] Update file references throughout documentation
+  - [ ] Create ADR naming standard document
+  - [ ] Validate all cross-references work correctly
+
+#### Task AM-2: Import Path Consistency Monitoring (Week 7)
+**Issue**: Risk of import path inconsistencies during Service Locator migration
+- **Solution**: Implement systematic import path validation
+- **Action Items**:
+  - [ ] Create import path validation script
+  - [ ] Establish import path conventions document
+  - [ ] Add pre-commit hooks for import validation
+  - [ ] Document standard import patterns for services
+- **Monitoring Script**:
+```python
+# tools/validate_imports.py
+def validate_service_imports():
+    """Ensure consistent import patterns for service locator"""
+    # Check for old ServiceManager direct imports
+    # Validate IService interface imports
+    # Ensure consistent container access patterns
+```
+
+#### Task AM-3: Error Handling Standardization (Week 8)
+**Issue**: Ensure all new services use consistent error patterns
+- **Solution**: Create and enforce error handling contracts
+- **Action Items**:
+  - [ ] Create standard error response classes
+  - [ ] Update all services to use standard error formats
+  - [ ] Create error handling validation tests
+  - [ ] Document error handling patterns
+- **Standard Error Pattern**:
+```python
+# src/core/standard_errors.py
+class StandardErrorResponse:
+    """Standardized error response for all KGAS services"""
+    status: Literal["error"]
+    error_code: str
+    error_message: str
+    recovery_guidance: List[str]
+    debug_info: Dict[str, Any]
+```
+
+#### Task AM-4: Service Locator Migration Planning (Week 8)
+**Issue**: Gradual migration to Service Locator pattern needs coordination
+- **Solution**: Create migration plan and timeline
+- **Action Items**:
+  - [ ] Audit existing service dependencies
+  - [ ] Create migration priority list
+  - [ ] Develop migration testing strategy
+  - [ ] Create rollback procedures
+- **Migration Strategy**:
+```python
+# Migration phases:
+# Phase 1: Core services (IdentityService, QualityService)
+# Phase 2: Infrastructure services (Neo4jManager, SQLiteManager)
+# Phase 3: Tool integrations
+# Phase 4: Workflow services
+```
+
+### Week 9: Architecture Validation (Phase ARCHITECTURE-VALIDATION)
+
+#### Task AV-1: Architecture Pattern Compliance Testing
+**Action Items**:
+- [ ] Create integration tests for Service Locator pattern
+- [ ] Validate schema transformation roundtrips
+- [ ] Test Tool Registry lifecycle management
+- [ ] Verify service dependency resolution
+
+#### Task AV-2: Documentation Consistency Validation
+**Action Items**:
+- [ ] Cross-reference validation between architecture docs
+- [ ] Verify all ADR links work correctly
+- [ ] Validate code examples in documentation
+- [ ] Ensure roadmap reflects current architecture decisions
+
+### Success Criteria for Architecture Maintenance
+
+- **ADR Consistency**: All ADRs follow standard naming (ADR-XXX format)
+- **Import Path Validation**: Automated checking prevents inconsistencies
+- **Error Handling**: All services use standardized error response patterns
+- **Migration Readiness**: Clear plan and tools for Service Locator migration
+- **Documentation Quality**: All architecture documentation is consistent and current
+
 ## Conclusion
 
 Phase RELIABILITY is critical for the KGAS system's viability. Without these fixes, the system cannot be trusted for academic research. This phase establishes the foundation for all future development and must be completed before any other work proceeds.
 
-The focus is exclusively on reliability - no new features, no architectural changes beyond what's needed for stability. Once complete, KGAS will have the solid foundation needed for its ambitious academic research goals.
+The architecture maintenance tasks ensure that the improved patterns we've documented are properly implemented and maintained over time. This systematic approach prevents architectural drift and maintains code quality as the system evolves.
+
+The focus is exclusively on reliability first, then architectural consistency - no new features, no scope creep. Once complete, KGAS will have both a solid technical foundation and maintainable architectural patterns for its ambitious academic research goals.

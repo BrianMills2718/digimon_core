@@ -268,6 +268,13 @@ Following comprehensive architectural review, **31 critical failure points** hav
   - All 27 critical issues resolved with tests
   - Zero data corruption incidents
   - 99%+ uptime capability
+- **Post-Phase Tasks**: Architecture maintenance (Weeks 7-9)
+  - **Task AM-1**: ADR documentation standardization (ADR-007 vs adr-004 inconsistencies)
+  - **Task AM-2**: Import path consistency monitoring during Service Locator migration
+  - **Task AM-3**: Error handling standardization across all services
+  - **Task AM-4**: Service Locator migration planning and execution
+  - **Task AV-1**: Architecture pattern compliance testing
+  - **Task AV-2**: Documentation consistency validation
 - **Blocks**: ALL other development phases until completion
 
 #### **Phase 2.1: Advanced Graph Analytics Tools** 🚧 **PAUSED - 63% COMPLETE**
