@@ -23,7 +23,7 @@ KGAS uses a programmatic contract system to ensure all tools, data models, and w
 
 The contract validator ensures all phase interfaces comply with the standardized contract format.
 
-## Example Contract (Phase Interface v9)
+## Example Contract (Phase Interface v10)
 
 ```python
 @dataclass(frozen=True)
@@ -60,7 +60,7 @@ class GraphRAGPhase(ABC):
 
 ## Implementation
 
-- **Schema Location:** `/_schemas/theory_meta_schema_v9.1.json`
+- **Schema Location:** `/_schemas/theory_meta_schema_v10.json`
 - **Validation:** Pydantic-based runtime checks
 - **Testing:** Dedicated contract tests in CI/CD
 

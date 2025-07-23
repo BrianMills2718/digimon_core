@@ -350,7 +350,7 @@ All tool contracts are defined in structured, machine-readable formats (YAML/JSO
 
 4. **Dedicated Contract Tests**: A dedicated suite of tests verifies each tool's adherence to its input/output contracts and state changes.
 
-**Implementation Location**: See `/_schemas/theory_meta_schema_v9.jsontool_contract_schema.yaml` for the formal contract schema definition.
+**Implementation Location**: See `/_schemas/theory_meta_schema_v10.json` for the formal contract schema definition.
 
 ### Contract-Based Tool Selection
 

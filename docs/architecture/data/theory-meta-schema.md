@@ -46,7 +46,7 @@ Each Theory Meta-Schema instance is a structured document with the following com
 
 ## Implementation
 
-- **Schema Location:** `/_schemas/theory_meta_schema_v9.1.json`
+- **Schema Location:** `/_schemas/theory_meta_schema_v10.json`
 - **Validation:** Pydantic models with runtime verification
 - **Integration:** CI/CD enforced contract compliance
 - **Codegen**: dataclasses auto-generated into /src/contracts/generated/

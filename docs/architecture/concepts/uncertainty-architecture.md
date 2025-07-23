@@ -45,14 +45,33 @@ The uncertainty system employs a hybrid architecture with four specialized layer
 - **Format**: `⟨subject, predicate, object, [start_time, end_time], [confidence_lower, confidence_upper]⟩`
 - **Handles**: Time-bounded facts, missing vs measured absence distinction
 
-#### Layer 3: Bayesian Aggregation for Multiple Sources
-- **Technology**: LLM-based Bayesian parameter estimation with programmatic updating
-- **Function**: Aggregate confidence from multiple sources reporting same claim
+#### Layer 3: Bayesian Aggregation with IC-Inspired Analytical Techniques
+- **Technology**: LLM-based Bayesian parameter estimation with IC analytical methods
+- **Function**: Aggregate confidence from multiple sources using proven IC techniques
+- **Core Components**:
+  1. **Information Value Assessment** (Heuer's 4 Types)
+     - Diagnostic: Evidence that distinguishes between hypotheses
+     - Consistent: Supports multiple hypotheses equally
+     - Anomalous: Contradicts all hypotheses (signals need for new theory)
+     - Irrelevant: No bearing on hypothesis evaluation
+  2. **Analysis of Competing Hypotheses (ACH)**
+     - Systematic comparison focusing on disconfirmation
+     - Evidence diagnosticity calculation
+     - Hypothesis ranking by resistance to disconfirmation
+  3. **Collection Stopping Rules**
+     - Diminishing returns detection
+     - Confidence plateau identification
+     - Cost-benefit thresholds
+  4. **Calibration System**
+     - Personal confidence calibration tracking
+     - Domain-specific adjustments
+     - Overconfidence/underconfidence correction
 - **Process**: 
-  - LLM estimates prior P(H) and joint likelihoods P(E₁,...,Eₙ|H)
-  - Proper handling of source dependencies (citation networks, temporal cascades)
-  - Programmatic Bayesian update using estimated parameters
-- **Handles**: Evidence accumulation, dependent sources, theory-aware priors
+  - Information value assessment filters sources
+  - ACH structures hypothesis competition
+  - LLM estimates Bayesian parameters with IC-informed priors
+  - Calibration adjusts final confidence estimates
+- **Handles**: Evidence quality assessment, source dependencies, competing theories, analyst calibration
 
 #### Layer 4: Distribution-Preserving Aggregation
 - **Technology**: Mixture Models + Bayesian Hierarchical Models
@@ -806,7 +825,203 @@ Enhanced integration with uncertainty quantification research:
 
 ---
 
-## 11. Architectural Patterns
+## 11. IC-Inspired Analytical Features
+
+### Intelligence Community Techniques Adapted for Academic Research
+
+Based on extensive validation (see ADR-017), KGAS integrates proven analytical techniques from the Intelligence Community, adapted for academic research contexts:
+
+#### Information Value Assessment Framework
+
+```python
+class InformationValueAssessor:
+    """Implements Heuer's 4-type information categorization"""
+    
+    def categorize_information(self, 
+                             info: Information, 
+                             hypotheses: List[Hypothesis]) -> InformationType:
+        """
+        Categorize information by its value for hypothesis discrimination
+        
+        Returns:
+            - DIAGNOSTIC: Supports one hypothesis, contradicts others (highest value)
+            - CONSISTENT: Supports multiple hypotheses equally (low value)
+            - ANOMALOUS: Contradicts all hypotheses (signals need for new theory)
+            - IRRELEVANT: No bearing on hypotheses (lowest value)
+        """
+        support_pattern = self.analyze_hypothesis_support(info, hypotheses)
+        
+        if support_pattern.is_discriminating:
+            return InformationType.DIAGNOSTIC
+        elif support_pattern.is_anomalous:
+            return InformationType.ANOMALOUS
+        elif support_pattern.is_consistent:
+            return InformationType.CONSISTENT
+        else:
+            return InformationType.IRRELEVANT
+```
+
+#### Analysis of Competing Hypotheses (ACH)
+
+```python
+class ACHAnalyzer:
+    """
+    Systematic theory comparison focusing on disconfirmation
+    Adapted from CIA methodology for academic theory evaluation
+    """
+    
+    def analyze_theories(self, 
+                        theories: List[Theory], 
+                        evidence: List[Evidence]) -> TheoryRanking:
+        # Build evidence-theory consistency matrix
+        matrix = self.build_consistency_matrix(theories, evidence)
+        
+        # Focus on disconfirming evidence (IC insight)
+        disconfirmation_scores = self.calculate_disconfirmation_resistance(matrix)
+        
+        # Rank theories by resistance to disconfirmation
+        return self.rank_by_survivability(theories, disconfirmation_scores)
+```
+
+#### Collection Stopping Rules
+
+```python
+class CollectionStoppingRules:
+    """Know when to stop collecting information"""
+    
+    def should_stop_collecting(self, collection_state: CollectionState) -> Tuple[bool, str]:
+        rules = [
+            self.check_diminishing_returns(),      # Information not changing conclusions
+            self.check_confidence_plateau(),       # Confidence stabilized
+            self.check_discrimination_sufficient(), # Can distinguish between theories
+            self.check_cost_benefit(),             # Cost exceeds expected value
+            self.check_time_constraints(),         # Deadline approaching
+            self.check_convergence()               # Multiple indicators agree
+        ]
+        
+        # Configurable combination strategy
+        if self.strategy == "conservative":
+            return self.all_rules_satisfied(rules)
+        elif self.strategy == "balanced":
+            return self.majority_rules_satisfied(rules)
+        else:  # "aggressive"
+            return self.any_rule_satisfied(rules)
+```
+
+#### Calibration System Integration
+
+```python
+class CalibratedUncertaintyService:
+    """Track and correct systematic confidence biases"""
+    
+    def __init__(self):
+        self.calibration_history = CalibrationHistory()
+        self.domain_corrections = {}
+        
+    def get_calibrated_confidence(self, 
+                                raw_confidence: float,
+                                domain: str,
+                                analyst_id: str) -> float:
+        # Apply personal calibration correction
+        personal_correction = self.calibration_history.get_correction_factor(analyst_id)
+        
+        # Apply domain-specific adjustment
+        domain_adjustment = self.domain_corrections.get(domain, 1.0)
+        
+        # Heuer's insight: more information increases overconfidence
+        info_count_penalty = self.calculate_information_overconfidence_penalty()
+        
+        calibrated = raw_confidence * personal_correction * domain_adjustment * info_count_penalty
+        
+        return np.clip(calibrated, 0.0, 1.0)
+```
+
+### Mental Model Auditing (Phase 3)
+
+```python
+class MentalModelAuditor:
+    """
+    Detect cognitive biases while respecting domain expertise
+    Requires advanced LLM capabilities - planned for Phase 3
+    """
+    
+    def audit_reasoning(self, reasoning_chain: List[ReasoningStep]) -> BiasAssessment:
+        # Distinguish between bias and expertise
+        if self.is_thermodynamics_violation(reasoning_chain):
+            # This is justified skepticism, not bias
+            return BiasAssessment(
+                has_bias=False,
+                reasoning="Correct application of physical laws"
+            )
+        
+        # Check for actual cognitive biases
+        biases_detected = []
+        for step in reasoning_chain:
+            if self.exhibits_confirmation_bias(step) and not self.has_justification(step):
+                biases_detected.append(("confirmation_bias", step))
+                
+        return BiasAssessment(
+            has_bias=len(biases_detected) > 0,
+            biases=biases_detected,
+            recommendations=self.generate_debiasing_strategies(biases_detected)
+        )
+```
+
+### Integration with Agentic Interface
+
+The IC-inspired features are deployed intelligently by the agentic chatbot:
+
+```python
+class AgenticUncertaintyOrchestrator:
+    """Intelligently applies IC techniques when valuable"""
+    
+    def assess_analytical_needs(self, research_context: ResearchContext) -> List[Technique]:
+        recommendations = []
+        
+        # Multiple competing theories? Suggest ACH
+        if len(research_context.theories) > 2:
+            recommendations.append(ACHAnalysis(
+                reason="You have {} competing theories - ACH can help systematically compare them"
+            ))
+        
+        # Large literature review? Suggest information value assessment
+        if research_context.source_count > 50:
+            recommendations.append(InformationValueAssessment(
+                reason="With {} sources, prioritizing diagnostic information will improve efficiency"
+            ))
+        
+        # Long collection phase? Check stopping rules
+        if research_context.collection_duration > timedelta(weeks=2):
+            recommendations.append(StoppingRulesCheck(
+                reason="You've been collecting for {} weeks - let's check if you have sufficient information"
+            ))
+        
+        # History of overconfident predictions? Suggest calibration
+        if self.detect_overconfidence_pattern(research_context.user_history):
+            recommendations.append(CalibrationTracking(
+                reason="Historical analysis shows 22% overconfidence - calibration can improve accuracy"
+            ))
+        
+        return recommendations
+```
+
+### Practical Benefits for Academic Research
+
+1. **Literature Review Efficiency**: Information value assessment prevents reading redundant papers
+2. **Theory Development**: ACH provides systematic framework for theory comparison
+3. **Research Planning**: Calibration improves timeline and resource estimates
+4. **Quality Improvement**: Bias detection catches issues before publication
+5. **Decision Support**: Stopping rules prevent both premature and excessive data collection
+
+### Implementation Timeline
+
+- **Phase 2.1**: Information Value Assessment, Stopping Rules, Basic Calibration
+- **Phase 2.2**: Full ACH implementation (Tool T91), Enhanced Calibration
+- **Phase 3.0**: Mental Model Auditing (pending LLM advancement)
+
+---
+
+## 12. Architectural Patterns
 
 ### Uncertainty-First Design Pattern
 

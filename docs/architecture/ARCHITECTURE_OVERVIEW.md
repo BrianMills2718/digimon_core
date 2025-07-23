@@ -160,7 +160,14 @@ KGAS implements a sophisticated uncertainty management framework that handles bo
    - Evidence accumulation from multiple sources
    - Theory-aware prior estimation
 
-3. **Multi-Modal Uncertainty Representation**
+3. **IC-Inspired Analytical Techniques** ([ADR-017](adrs/ADR-017-IC-Analytical-Techniques-Integration.md))
+   - Information Value Assessment (Heuer's 4 types)
+   - Analysis of Competing Hypotheses (ACH) for theory comparison
+   - Collection Stopping Rules for optimal information gathering
+   - Calibration System for confidence accuracy
+   - Mental Model Auditing (planned Phase 3)
+
+4. **Multi-Modal Uncertainty Representation**
    - Probability distributions for quantitative uncertainty
    - Confidence intervals for avoiding false precision
    - Process metadata for qualitative assessment
@@ -316,6 +323,8 @@ Key architectural decisions are documented in ADRs:
 - **[ADR-004](adrs/ADR-004-Normative-Confidence-Score-Ontology.md)**: Confidence score ontology (superseded by ADR-007)
 - **[ADR-005](adrs/ADR-005-buy-vs-build-strategy.md)**: Strategic buy vs build decisions for external services
 - **[ADR-007](adrs/adr-004-uncertainty-metrics.md)**: Comprehensive uncertainty metrics framework
+- **[ADR-016](adrs/ADR-016-Bayesian-Uncertainty-Aggregation.md)**: Bayesian aggregation for multiple sources
+- **[ADR-017](adrs/ADR-017-IC-Analytical-Techniques-Integration.md)**: Intelligence Community analytical techniques for academic research
 
 ## Related Documentation
 
