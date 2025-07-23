@@ -2,11 +2,29 @@
 
 **Status**: IN PROGRESS  
 **Last Updated**: 2025-07-22  
-**Progress**: 19/121 tools (16%) implemented, 8 with unified interface
+**Progress**: See [ROADMAP_OVERVIEW.md](../../ROADMAP_OVERVIEW.md) for current tool implementation status
 
 ## Executive Summary
 
-The Test-Driven Development (TDD) implementation is progressing systematically through all 121 KGAS tools. Days 1-6 have successfully migrated 8 tools (T01, T02, T03, T04, T05, T06, T07, T15A) to the unified interface with comprehensive test coverage. Additionally, integration and end-to-end testing infrastructure has been completed with 14 integration tests and 4 end-to-end tests all passing. T15A Text Chunker integration tests validate compatibility with all document loaders.
+The Test-Driven Development (TDD) implementation is progressing systematically through all 121 KGAS tools. For current tool migration status and counts, see [ROADMAP_OVERVIEW.md](../../ROADMAP_OVERVIEW.md). Days 1-7 have successfully established the TDD pattern and migrated multiple tools to the unified interface with comprehensive test coverage. Additionally, integration and end-to-end testing infrastructure has been completed with comprehensive test coverage across tool interactions.
+
+## Schema Migration Strategy
+
+**Current Status**: Tools built on v9 schema foundation  
+**Planned Migration**: Week 3 of Phase TDD
+
+### v10 Schema Migration Plan
+- **Week 3, Day 1-2**: Schema Infrastructure Migration
+  - Keep eval() with DebuggableEvaluator wrapper for maximum flexibility and debugging
+  - Migrate `process` → `execution` field in existing schema files
+  - Update schema documentation and references
+- **Week 3, Day 3**: Tool Migration
+  - Update 8 existing unified tools to use v10 schema format
+  - Run comprehensive test suite to ensure compatibility
+  - Update tool documentation
+- **Week 4+**: All new TDD tools use v10 foundation from start
+
+**Benefit**: Prevents major rework later, all future tools built on correct schema foundation
 
 ## Implementation Timeline
 
@@ -97,12 +115,17 @@ The Test-Driven Development (TDD) implementation is progressing systematically t
   - Fixed tokenization to use proper word boundaries
   - Validated provenance and quality propagation
 
-### 📋 Day 7: T23A spaCy NER (Next)
+### ✅ Day 7: T23A spaCy NER (Complete)
 - **Tool**: T23A spaCy Named Entity Recognition
-- **Objectives**:
-  - Migrate to unified interface
-  - Add entity type validation
-  - Implement confidence scoring
+- **Test File**: `tests/unit/test_t23a_spacy_ner_unified.py`
+- **Implementation**: `src/tools/phase1/t23a_spacy_ner_unified.py`
+- **Test Coverage**: TBD (pending test execution)
+- **Key Achievements**:
+  - Migrated to unified interface with full service integration
+  - Created comprehensive test suite with 20 tests
+  - Implemented entity type validation and confidence scoring
+  - Integrated with identity and quality services
+  - Added support for entity type filtering
 
 ### 📋 Day 8: T27 Relationship Extractor (Planned)
 - **Tool**: T27 Relationship Extractor

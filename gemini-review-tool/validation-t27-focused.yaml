@@ -1,0 +1,51 @@
+project_name: "T27 Implementation Validation"
+project_path: ".."
+output_format: "markdown"
+keep_repomix: false
+
+include_patterns:
+  - "src/tools/phase1/t27_relationship_extractor_unified.py"
+  - "tests/unit/test_t27_relationship_extractor_unified.py"
+  - "src/tools/base_tool.py"
+
+claims_of_success: |
+  T27 RELATIONSHIP EXTRACTOR IMPLEMENTATION VALIDATION:
+  
+  1. **T27 Unified BaseTool Interface**: Complete implementation with real spaCy processing
+     - File: src/tools/phase1/t27_relationship_extractor_unified.py
+     - Expected: Class T27RelationshipExtractorUnified inheriting from BaseTool
+     - Expected: execute() method returning ToolResult, get_contract() method
+     - Expected: Real spaCy nlp initialization and processing (not mocked)
+  
+  2. **T27 Mock-Free Test Suite**: Comprehensive testing with zero mocking
+     - File: tests/unit/test_t27_relationship_extractor_unified.py
+     - Expected: TestT27RelationshipExtractorUnifiedMockFree class
+     - Expected: Real ServiceManager usage, no Mock imports
+     - Expected: 15+ test methods with real functionality testing
+
+custom_prompt: |
+  VALIDATE T27 RELATIONSHIP EXTRACTOR IMPLEMENTATION
+  
+  Check the following specific criteria:
+  
+  1. **BaseTool Interface Compliance**:
+     - T27RelationshipExtractorUnified inherits from BaseTool
+     - Implements execute(request: ToolRequest) -> ToolResult
+     - Implements get_contract() method
+     - Uses ToolErrorCode for error handling
+  
+  2. **Real spaCy Integration**:
+     - Uses real spacy.load("en_core_web_sm") initialization
+     - Has dependency parsing functionality
+     - Not using mocked spaCy components
+  
+  3. **Mock-Free Testing**:
+     - Test class named TestT27RelationshipExtractorUnifiedMockFree
+     - No unittest.mock imports
+     - Uses real ServiceManager instances
+     - Tests actual relationship extraction functionality
+  
+  For each criteria, provide:
+  - ✅ FULLY RESOLVED with line numbers and code examples
+  - ⚠️ PARTIALLY RESOLVED with specific issues
+  - ❌ NOT RESOLVED with clear problems

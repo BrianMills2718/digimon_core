@@ -1,0 +1,75 @@
+# System Contracts and Integration Analysis
+# Purpose: Evaluate component contracts, interfaces, and integration patterns
+
+validation_type: integration_architecture_analysis
+claim: "The system components have well-defined contracts enabling reliable integration"
+
+target_files:
+  - "docs/architecture/systems/contract-system.md"
+  - "docs/architecture/systems/tool-contract-validation-specification.md"
+  - "docs/architecture/systems/COMPONENT_ARCHITECTURE_DETAILED.md"
+  - "docs/architecture/systems/mcp-integration-architecture.md"
+  - "docs/architecture/systems/external-mcp-orchestration.md"
+  - "docs/architecture/specifications/capability-registry.md"
+
+prompt: |
+  Critically analyze the system integration architecture and component contracts:
+  
+  **1. CONTRACT DESIGN QUALITY**
+  - Are component contracts well-defined and complete?
+  - Do they specify all necessary preconditions and postconditions?
+  - Are error conditions and edge cases properly handled?
+  - How enforceable are the contracts at runtime?
+  
+  **2. INTERFACE DESIGN**
+  - Are interfaces cohesive and focused?
+  - Is there appropriate abstraction without over-engineering?
+  - Do interfaces follow consistent patterns?
+  - How well do they hide implementation details?
+  
+  **3. INTEGRATION PATTERNS**
+  - Are integration patterns consistent across the system?
+  - Is the coupling between components appropriate?
+  - How are cross-cutting concerns handled?
+  - Are there any integration anti-patterns?
+  
+  **4. MCP PROTOCOL INTEGRATION**
+  - Is the MCP integration well-conceived?
+  - Are the boundaries between MCP and core system clear?
+  - How are MCP limitations addressed?
+  - What are the risks of external protocol dependency?
+  
+  **5. TOOL ORCHESTRATION**
+  - How well does the tool contract system work?
+  - Are tools properly isolated and composable?
+  - Is the orchestration logic maintainable?
+  - Can new tools be easily integrated?
+  
+  **6. CRITICAL WEAKNESSES**
+  - What are the most fragile integration points?
+  - Where are contracts likely to be violated?
+  - What happens when components fail?
+  - Are there any architectural smells?
+  
+  Identify:
+  - Top 3 integration risks
+  - Most poorly defined contracts
+  - Missing but essential interfaces
+  - Recommended refactoring priorities
+  
+  Assessment: Is this integration architecture production-ready? Why/why not?
+  What would it take to make this system reliable at scale?
+
+evaluation_criteria:
+  - Contract completeness
+  - Interface clarity
+  - Coupling and cohesion
+  - Error handling robustness
+  - Evolution flexibility
+
+integration_anti_patterns:
+  - Chatty interfaces
+  - Leaky abstractions
+  - Circular dependencies
+  - Shared mutable state
+  - Synchronous bottlenecks

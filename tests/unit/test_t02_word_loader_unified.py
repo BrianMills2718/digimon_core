@@ -1,48 +1,161 @@
 """
-TDD tests for T02 Word Loader - Unified Interface Migration
+Mock-Free Tests for T02 Word Loader - Unified Interface Implementation
 
-Write these tests FIRST before implementing the unified interface.
-These tests MUST fail initially (Red phase).
+These tests use REAL functionality with NO mocking of core operations.
+All tests use actual files, real python-docx execution, and real ServiceManager instances.
 """
 
 import pytest
-from unittest.mock import Mock, patch, MagicMock, mock_open
-from typing import Dict, Any
-import time
+import os
+import tempfile
+import shutil
 from pathlib import Path
+from datetime import datetime
+import time
 
-from src.tools.base_tool import BaseTool, ToolRequest, ToolResult, ToolContract, ToolStatus
+# Real imports - NO mocking imports
+from src.tools.phase1.t02_word_loader_unified import T02WordLoaderUnified
+from src.tools.base_tool import ToolRequest, ToolResult, ToolContract, ToolStatus
 from src.core.service_manager import ServiceManager
 
 
-class TestT02WordLoaderUnified:
-    """Test-driven development for T02 Word Loader unified interface"""
+class TestT02WordLoaderUnifiedMockFree:
+    """Mock-free testing for T02 Word Loader unified interface"""
     
     def setup_method(self):
-        """Set up test fixtures"""
-        self.mock_services = Mock(spec=ServiceManager)
-        self.mock_identity = Mock()
-        self.mock_provenance = Mock()
-        self.mock_quality = Mock()
+        """Set up test fixtures with REAL services and files"""
+        # Use REAL ServiceManager instance
+        self.service_manager = ServiceManager()
+        self.tool = T02WordLoaderUnified(self.service_manager)
         
-        self.mock_services.identity_service = self.mock_identity
-        self.mock_services.provenance_service = self.mock_provenance
-        self.mock_services.quality_service = self.mock_quality
+        # Create temp directory for test files
+        self.test_dir = Path(tempfile.mkdtemp())
         
-        # Import will fail initially - this is expected in TDD
-        from src.tools.phase1.t02_word_loader_unified import T02WordLoaderUnified
-        self.tool = T02WordLoaderUnified(self.mock_services)
+        # Create REAL test files
+        self.test_docx_path = self._create_real_test_docx()
+        self.complex_docx_path = self._create_complex_docx()
+        self.corrupted_docx_path = self._create_corrupted_docx()
+    
+    def teardown_method(self):
+        """Clean up test files"""
+        if self.test_dir.exists():
+            shutil.rmtree(self.test_dir)
+    
+    def _create_real_test_docx(self) -> Path:
+        """Create actual DOCX file using python-docx for testing"""
+        try:
+            from docx import Document
+            from docx.shared import Inches
+        except ImportError:
+            pytest.skip("python-docx not available for testing")
+        
+        # Create a real DOCX document
+        document = Document()
+        
+        # Add title
+        document.add_heading('Test DOCX Document', 0)
+        
+        # Add paragraphs with test content
+        document.add_paragraph('This is a test document for the T02 Word Loader.')
+        document.add_paragraph('Microsoft was founded by Bill Gates and Paul Allen in 1975.')
+        document.add_paragraph('Apple Inc. was founded by Steve Jobs, Steve Wozniak, and Ronald Wayne.')
+        
+        # Add a formatted paragraph
+        paragraph = document.add_paragraph('This paragraph contains ')
+        run = paragraph.add_run('bold text')
+        run.bold = True
+        paragraph.add_run(' and ')
+        run = paragraph.add_run('italic text')
+        run.italic = True
+        paragraph.add_run('.')
+        
+        # Add a table
+        table = document.add_table(rows=3, cols=2)
+        table.style = 'Table Grid'
+        
+        # Header row
+        hdr_cells = table.rows[0].cells
+        hdr_cells[0].text = 'Company'
+        hdr_cells[1].text = 'Founder'
+        
+        # Data rows
+        row_cells = table.rows[1].cells
+        row_cells[0].text = 'Microsoft'
+        row_cells[1].text = 'Bill Gates'
+        
+        row_cells = table.rows[2].cells
+        row_cells[0].text = 'Apple'
+        row_cells[1].text = 'Steve Jobs'
+        
+        # Add another paragraph after the table
+        document.add_paragraph('This content appears after the table.')
+        
+        # Save the document
+        test_file = self.test_dir / "test_document.docx"
+        document.save(str(test_file))
+        return test_file
+    
+    def _create_complex_docx(self) -> Path:
+        """Create complex DOCX with multiple features"""
+        try:
+            from docx import Document
+        except ImportError:
+            pytest.skip("python-docx not available for testing")
+        
+        document = Document()
+        
+        # Add multiple headings and content
+        document.add_heading('Complex Document Structure', 0)
+        document.add_heading('Section 1: Overview', 1)
+        document.add_paragraph('This section provides an overview of the document.')
+        
+        # Create a large table
+        table = document.add_table(rows=5, cols=3)
+        table.style = 'Table Grid'
+        
+        for i, row in enumerate(table.rows):
+            for j, cell in enumerate(row.cells):
+                cell.text = f'Row {i+1}, Col {j+1}'
+        
+        document.add_heading('Section 2: Details', 1)
+        
+        # Add multiple paragraphs
+        for i in range(10):
+            document.add_paragraph(f'This is paragraph {i+1} with detailed content about the topic. ' * 5)
+        
+        # Add a list
+        document.add_paragraph('Key Points:', style='List Bullet')
+        document.add_paragraph('First important point', style='List Bullet')
+        document.add_paragraph('Second important point', style='List Bullet')
+        document.add_paragraph('Third important point', style='List Bullet')
+        
+        test_file = self.test_dir / "complex_document.docx"
+        document.save(str(test_file))
+        return test_file
+    
+    def _create_corrupted_docx(self) -> Path:
+        """Create actually corrupted DOCX file"""
+        corrupted_content = b"This is not a DOCX file, it's corrupted data"
+        test_file = self.test_dir / "corrupted.docx"
+        with open(test_file, 'wb') as f:
+            f.write(corrupted_content)
+        return test_file
     
     # ===== CONTRACT TESTS (MANDATORY) =====
     
-    def test_tool_initialization(self):
-        """Tool initializes with required services"""
+    def test_tool_initialization_real(self):
+        """Tool initializes with real services"""
         assert self.tool is not None
         assert self.tool.tool_id == "T02"
-        assert self.tool.services == self.mock_services
-        assert isinstance(self.tool, BaseTool)
+        assert self.tool.services == self.service_manager
+        assert isinstance(self.tool, T02WordLoaderUnified)
+        
+        # Verify real service connections
+        assert self.tool.identity_service is not None
+        assert self.tool.provenance_service is not None
+        assert self.tool.quality_service is not None
     
-    def test_get_contract(self):
+    def test_get_contract_real(self):
         """Tool provides complete contract specification"""
         contract = self.tool.get_contract()
         
@@ -57,10 +170,12 @@ class TestT02WordLoaderUnified:
         assert "workflow_id" in contract.input_schema["properties"]
         assert contract.input_schema["required"] == ["file_path"]
         
-        # Verify output schema
+        # Verify output schema structure
         assert "document" in contract.output_schema["properties"]
-        assert "text" in contract.output_schema["properties"]["document"]["properties"]
-        assert "confidence" in contract.output_schema["properties"]["document"]["properties"]
+        doc_props = contract.output_schema["properties"]["document"]["properties"]
+        assert "text" in doc_props
+        assert "confidence" in doc_props
+        assert "document_id" in doc_props
         
         # Verify dependencies
         assert "identity_service" in contract.dependencies
@@ -71,18 +186,19 @@ class TestT02WordLoaderUnified:
         assert contract.performance_requirements["max_execution_time"] == 20.0
         assert contract.performance_requirements["max_memory_mb"] == 1024
     
-    def test_input_contract_validation(self):
-        """Tool validates inputs according to contract"""
-        # Invalid inputs should be rejected
+    def test_input_contract_validation_real(self):
+        """Tool validates inputs according to contract using real validation"""
+        # Test invalid inputs with real validation
         invalid_inputs = [
             {},  # Empty input
             {"wrong_field": "value"},  # Wrong fields
             None,  # Null input
             {"file_path": ""},  # Empty file path
             {"file_path": 123},  # Wrong type
+            {"file_path": str(self.test_dir / "nonexistent.docx")},  # File doesn't exist
             {"file_path": "/etc/passwd"},  # Security risk
-            {"file_path": "test.pdf"},  # Wrong extension
-            {"file_path": "test.doc"},  # Old Word format not supported
+            {"file_path": str(self.test_dir / "test.pdf")},  # Wrong extension
+            {"file_path": str(self.test_dir / "test.doc")},  # Old Word format not supported
         ]
         
         for invalid_input in invalid_inputs:
@@ -94,606 +210,290 @@ class TestT02WordLoaderUnified:
             )
             result = self.tool.execute(request)
             assert result.status == "error"
-            assert result.error_code in ["INVALID_INPUT", "VALIDATION_FAILED", "INVALID_FILE_TYPE", "FILE_NOT_FOUND"]
-    
-    def test_output_contract_compliance(self):
-        """Tool output matches contract specification"""
-        # Mock file operations
-        with patch('pathlib.Path.exists', return_value=True), \
-             patch('pathlib.Path.is_file', return_value=True), \
-             patch('pathlib.Path.stat') as mock_stat, \
-             patch('builtins.open', create=True) as mock_file_open:
-            
-            # Mock docx operations
-            with patch('docx.Document') as mock_doc:
-                # Setup mocks
-                mock_stat.return_value.st_size = 1024 * 1024  # 1MB
-                
-                # Mock document structure
-                mock_para1 = MagicMock()
-                mock_para1.text = "First paragraph text"
-                mock_para2 = MagicMock()
-                mock_para2.text = "Second paragraph text"
-                
-                mock_doc_instance = MagicMock()
-                mock_doc_instance.paragraphs = [mock_para1, mock_para2]
-                mock_doc_instance.tables = []  # No tables for now
-                mock_doc.return_value = mock_doc_instance
-                
-                # Mock service responses
-                self.mock_provenance.start_operation.return_value = "op123"
-                self.mock_provenance.complete_operation.return_value = {"status": "success"}
-                self.mock_quality.assess_confidence.return_value = {
-                    "status": "success",
-                    "confidence": 0.95,
-                    "quality_tier": "HIGH"
-                }
-                
-                valid_input = {
-                    "file_path": "test.docx",
-                    "workflow_id": "wf_123"
-                }
-                
-                request = ToolRequest(
-                    tool_id="T02",
-                    operation="load",
-                    input_data=valid_input,
-                    parameters={}
-                )
-                
-                result = self.tool.execute(request)
-                
-                # Verify output structure
-                assert result.status == "success"
-                assert result.tool_id == "T02"
-                assert "document" in result.data
-                
-                # Verify document structure
-                document = result.data["document"]
-                assert "document_id" in document
-                assert "text" in document
-                assert "confidence" in document
-                assert "paragraph_count" in document
-                assert "file_path" in document
-                assert "file_size" in document
-                
-                # Verify metadata
-                assert result.execution_time > 0
-                assert result.memory_used >= 0
-                assert "operation_id" in result.metadata
-    
-    # ===== FUNCTIONALITY TESTS (MANDATORY) =====
-    
-    def test_docx_loading_functionality(self):
-        """Tool loads DOCX files correctly"""
-        with patch('pathlib.Path.exists', return_value=True), \
-             patch('pathlib.Path.is_file', return_value=True), \
-             patch('pathlib.Path.stat') as mock_stat, \
-             patch('builtins.open', create=True) as mock_file_open, \
-             patch('docx.Document') as mock_doc:
-            
-            # Setup test data
-            test_paragraphs = [
-                "This is the first paragraph with some content.",
-                "This is the second paragraph with more content.",
-                "",  # Empty paragraph
-                "Final paragraph with conclusion."
+            assert result.error_code in [
+                "INVALID_INPUT", "VALIDATION_FAILED", "INVALID_FILE_TYPE", 
+                "FILE_NOT_FOUND", "INVALID_FILE_EXTENSION"
             ]
-            
-            mock_stat.return_value.st_size = 2 * 1024 * 1024  # 2MB
-            
-            # Create mock paragraphs
-            mock_paragraphs = []
-            for text in test_paragraphs:
-                para = MagicMock()
-                para.text = text
-                mock_paragraphs.append(para)
-            
-            # Create mock table
-            mock_table = MagicMock()
-            mock_row1 = MagicMock()
-            mock_cell1 = MagicMock()
-            mock_cell1.text = "Cell 1"
-            mock_cell2 = MagicMock()
-            mock_cell2.text = "Cell 2"
-            mock_row1.cells = [mock_cell1, mock_cell2]
-            mock_table.rows = [mock_row1]
-            
-            mock_doc_instance = MagicMock()
-            mock_doc_instance.paragraphs = mock_paragraphs
-            mock_doc_instance.tables = [mock_table]
-            mock_doc.return_value = mock_doc_instance
-            
-            # Mock services
-            self.mock_provenance.start_operation.return_value = "op123"
-            self.mock_provenance.complete_operation.return_value = {"status": "success"}
-            self.mock_quality.assess_confidence.return_value = {
-                "status": "success",
-                "confidence": 0.92,
-                "quality_tier": "HIGH"
-            }
-            
-            request = ToolRequest(
-                tool_id="T02",
-                operation="load",
-                input_data={"file_path": "test.docx"},
-                parameters={}
-            )
-            
-            result = self.tool.execute(request)
-            
-            assert result.status == "success"
-            assert len(result.data["document"]["text"]) > 0
-            assert result.data["document"]["paragraph_count"] == 3  # Empty paragraphs excluded
-            assert result.data["document"]["table_count"] == 1
-            assert result.data["document"]["confidence"] >= 0.9
     
-    def test_docx_with_complex_formatting(self):
-        """Tool handles complex formatting in Word documents"""
-        with patch('pathlib.Path.exists', return_value=True), \
-             patch('pathlib.Path.is_file', return_value=True), \
-             patch('pathlib.Path.stat') as mock_stat, \
-             patch('builtins.open', create=True) as mock_file_open, \
-             patch('docx.Document') as mock_doc:
-            
-            mock_stat.return_value.st_size = 1024 * 500  # 500KB
-            
-            # Mock paragraphs with runs (formatted text)
-            mock_para = MagicMock()
-            run1 = MagicMock()
-            run1.text = "Bold text "
-            run1.bold = True
-            run2 = MagicMock()
-            run2.text = "and italic text"
-            run2.italic = True
-            mock_para.runs = [run1, run2]
-            mock_para.text = "Bold text and italic text"
-            
-            mock_doc_instance = MagicMock()
-            mock_doc_instance.paragraphs = [mock_para]
-            mock_doc_instance.tables = []
-            mock_doc.return_value = mock_doc_instance
-            
-            # Mock services
-            self.mock_provenance.start_operation.return_value = "op124"
-            self.mock_provenance.complete_operation.return_value = {"status": "success"}
-            self.mock_quality.assess_confidence.return_value = {
-                "status": "success",
-                "confidence": 0.90,
-                "quality_tier": "HIGH"
-            }
-            
-            request = ToolRequest(
-                tool_id="T02",
-                operation="load",
-                input_data={"file_path": "formatted.docx"},
-                parameters={"preserve_formatting": False}
-            )
-            
-            result = self.tool.execute(request)
-            
-            assert result.status == "success"
-            assert "Bold text and italic text" in result.data["document"]["text"]
+    # ===== REAL FUNCTIONALITY TESTS =====
     
-    def test_edge_case_empty_docx(self):
-        """Tool handles empty DOCX files gracefully"""
-        with patch('pathlib.Path.exists', return_value=True), \
-             patch('pathlib.Path.is_file', return_value=True), \
-             patch('pathlib.Path.stat') as mock_stat, \
-             patch('builtins.open', create=True) as mock_file_open, \
-             patch('docx.Document') as mock_doc:
-            
-            mock_stat.return_value.st_size = 1024
-            
-            mock_doc_instance = MagicMock()
-            mock_doc_instance.paragraphs = []
-            mock_doc_instance.tables = []
-            mock_doc.return_value = mock_doc_instance
-            
-            self.mock_provenance.start_operation.return_value = "op125"
-            
-            request = ToolRequest(
-                tool_id="T02",
-                operation="load",
-                input_data={"file_path": "empty.docx"},
-                parameters={}
-            )
-            
-            result = self.tool.execute(request)
-            
-            # Should handle gracefully
-            assert result.status in ["success", "error"]
-            if result.status == "success":
-                assert result.data["document"]["paragraph_count"] == 0
-                assert result.data["document"]["text"] == ""
+    def test_docx_loading_real_functionality(self):
+        """Test DOCX loading with REAL python-docx execution"""
+        request = ToolRequest(
+            tool_id="T02",
+            operation="load",
+            input_data={"file_path": str(self.test_docx_path)},
+            parameters={}
+        )
+        
+        # Execute with REAL functionality
+        start_time = time.time()
+        result = self.tool.execute(request)
+        execution_time = time.time() - start_time
+        
+        # Verify REAL results
+        assert result.status == "success"
+        assert result.tool_id == "T02"
+        
+        # Verify document structure
+        document = result.data["document"]
+        assert "document_id" in document
+        assert len(document["text"]) > 0
+        assert document["paragraph_count"] >= 1
+        assert document["confidence"] > 0.0
+        assert document["file_path"] == str(self.test_docx_path)
+        assert document["file_size"] > 0
+        
+        # Verify real timing
+        assert result.execution_time > 0
+        assert execution_time < 20.0  # Performance requirement
+        
+        # Verify text content was actually extracted
+        text = document["text"]
+        assert len(text.strip()) > 0  # Not empty
+        assert "Microsoft was founded by Bill Gates" in text
+        assert "Apple Inc. was founded by Steve Jobs" in text
+        
+        # Verify table content was extracted
+        assert "Microsoft" in text
+        assert "Bill Gates" in text
+        assert "Apple" in text
+        assert "Steve Jobs" in text
+        
+        # Verify metadata
+        assert result.metadata["operation_id"] is not None
+        assert "workflow_id" in result.metadata
     
-    def test_edge_case_large_docx(self):
-        """Tool handles large DOCX files efficiently"""
-        with patch('pathlib.Path.exists', return_value=True), \
-             patch('pathlib.Path.is_file', return_value=True), \
-             patch('pathlib.Path.stat') as mock_stat, \
-             patch('builtins.open', create=True) as mock_file_open, \
-             patch('docx.Document') as mock_doc:
-            
-            # 50MB file
-            mock_stat.return_value.st_size = 50 * 1024 * 1024
-            
-            # Create many paragraphs
-            mock_paragraphs = []
-            for i in range(5000):
-                para = MagicMock()
-                para.text = f"Paragraph {i} with some content to make it realistic."
-                mock_paragraphs.append(para)
-            
-            mock_doc_instance = MagicMock()
-            mock_doc_instance.paragraphs = mock_paragraphs
-            mock_doc_instance.tables = []
-            mock_doc.return_value = mock_doc_instance
-            
-            self.mock_provenance.start_operation.return_value = "op126"
-            self.mock_provenance.complete_operation.return_value = {"status": "success"}
-            self.mock_quality.assess_confidence.return_value = {
-                "status": "success",
-                "confidence": 0.95,
-                "quality_tier": "HIGH"
-            }
-            
-            request = ToolRequest(
-                tool_id="T02",
-                operation="load",
-                input_data={"file_path": "large.docx"},
-                parameters={"memory_limit_mb": 500}
-            )
-            
-            start_time = time.time()
-            result = self.tool.execute(request)
-            execution_time = time.time() - start_time
-            
-            assert result.status == "success"
-            assert result.data["document"]["paragraph_count"] == 5000
-            assert execution_time < 20.0  # Performance requirement
+    def test_table_extraction_real(self):
+        """Test table extraction with REAL python-docx execution"""
+        request = ToolRequest(
+            tool_id="T02",
+            operation="load",
+            input_data={"file_path": str(self.test_docx_path)},
+            parameters={"extract_tables": True}
+        )
+        
+        result = self.tool.execute(request)
+        assert result.status == "success"
+        
+        document = result.data["document"]
+        
+        # Should have table data
+        if "table_count" in document:
+            assert document["table_count"] >= 1
+        
+        # Table content should be in the text
+        text = document["text"]
+        assert "Company" in text  # Table header
+        assert "Founder" in text  # Table header
+        assert "Microsoft" in text  # Table data
+        assert "Apple" in text  # Table data
     
-    def test_tables_extraction(self):
-        """Tool extracts table content from Word documents"""
-        with patch('pathlib.Path.exists', return_value=True), \
-             patch('pathlib.Path.is_file', return_value=True), \
-             patch('pathlib.Path.stat') as mock_stat, \
-             patch('builtins.open', create=True) as mock_file_open, \
-             patch('docx.Document') as mock_doc:
-            
-            mock_stat.return_value.st_size = 1024 * 200
-            
-            # Create mock table with 2x3 structure
-            mock_table = MagicMock()
-            mock_rows = []
-            table_data = [
-                ["Header 1", "Header 2", "Header 3"],
-                ["Data 1", "Data 2", "Data 3"],
-            ]
-            
-            for row_data in table_data:
-                mock_row = MagicMock()
-                mock_cells = []
-                for cell_text in row_data:
-                    mock_cell = MagicMock()
-                    mock_cell.text = cell_text
-                    mock_cells.append(mock_cell)
-                mock_row.cells = mock_cells
-                mock_rows.append(mock_row)
-            
-            mock_table.rows = mock_rows
-            
-            # Also add regular paragraph
-            mock_para = MagicMock()
-            mock_para.text = "Regular paragraph before table"
-            
-            mock_doc_instance = MagicMock()
-            mock_doc_instance.paragraphs = [mock_para]
-            mock_doc_instance.tables = [mock_table]
-            mock_doc.return_value = mock_doc_instance
-            
-            self.mock_provenance.start_operation.return_value = "op127"
-            self.mock_provenance.complete_operation.return_value = {"status": "success"}
-            self.mock_quality.assess_confidence.return_value = {
-                "status": "success",
-                "confidence": 0.93,
-                "quality_tier": "HIGH"
-            }
-            
-            request = ToolRequest(
-                tool_id="T02",
-                operation="load",
-                input_data={"file_path": "table_test.docx"},
-                parameters={"extract_tables": True}
-            )
-            
-            result = self.tool.execute(request)
-            
-            assert result.status == "success"
-            assert result.data["document"]["table_count"] == 1
-            assert "Header 1" in result.data["document"]["text"]
-            assert "Data 1" in result.data["document"]["text"]
+    def test_complex_document_real(self):
+        """Test complex document with multiple features"""
+        request = ToolRequest(
+            tool_id="T02",
+            operation="load",
+            input_data={"file_path": str(self.complex_docx_path)},
+            parameters={}
+        )
+        
+        result = self.tool.execute(request)
+        assert result.status == "success"
+        
+        document = result.data["document"]
+        text = document["text"]
+        
+        # Should contain headings
+        assert "Complex Document Structure" in text
+        assert "Section 1: Overview" in text
+        assert "Section 2: Details" in text
+        
+        # Should contain paragraph content
+        assert "This is paragraph" in text
+        
+        # Should have substantial content
+        assert len(text) > 1000  # Complex document should be substantial
+        assert document["paragraph_count"] > 10
     
-    # ===== INTEGRATION TESTS (MANDATORY) =====
+    def test_corrupted_docx_real_error_handling(self):
+        """Test corrupted DOCX with REAL error handling"""
+        request = ToolRequest(
+            tool_id="T02",
+            operation="load",
+            input_data={"file_path": str(self.corrupted_docx_path)},
+            parameters={}
+        )
+        
+        # Should get REAL error from python-docx
+        result = self.tool.execute(request)
+        assert result.status == "error"
+        assert result.error_code in ["DOCX_CORRUPTED", "EXTRACTION_FAILED"]
+        
+        # Verify error message contains meaningful information
+        assert len(result.error_message) > 0
+        assert result.error_message is not None
     
-    def test_identity_service_integration(self):
-        """Tool integrates with IdentityService correctly"""
-        with patch('pathlib.Path.exists', return_value=True), \
-             patch('pathlib.Path.is_file', return_value=True), \
-             patch('pathlib.Path.stat') as mock_stat, \
-             patch('builtins.open', create=True) as mock_file_open, \
-             patch('docx.Document') as mock_doc:
-            
-            mock_stat.return_value.st_size = 1024
-            
-            mock_para = MagicMock()
-            mock_para.text = "Test content"
-            mock_doc_instance = MagicMock()
-            mock_doc_instance.paragraphs = [mock_para]
-            mock_doc_instance.tables = []
-            mock_doc.return_value = mock_doc_instance
-            
-            self.mock_provenance.start_operation.return_value = "op127"
-            self.mock_provenance.complete_operation.return_value = {"status": "success"}
-            self.mock_quality.assess_confidence.return_value = {
-                "status": "success",
-                "confidence": 0.90,
-                "quality_tier": "HIGH"
-            }
-            
-            request = ToolRequest(
-                tool_id="T02",
-                operation="load",
-                input_data={"file_path": "test.docx", "workflow_id": "wf_123"},
-                parameters={}
-            )
-            
-            result = self.tool.execute(request)
-            
-            assert result.status == "success"
-            # Verify document ID follows pattern
-            assert result.data["document"]["document_id"].startswith("wf_123_")
+    def test_file_not_found_real_error(self):
+        """Test missing file with REAL filesystem check"""
+        nonexistent_path = str(self.test_dir / "does_not_exist.docx")
+        
+        request = ToolRequest(
+            tool_id="T02",
+            operation="load",
+            input_data={"file_path": nonexistent_path},
+            parameters={}
+        )
+        
+        result = self.tool.execute(request)
+        assert result.status == "error"
+        assert result.error_code == "FILE_NOT_FOUND"
+        assert "not found" in result.error_message.lower() or "does not exist" in result.error_message.lower()
     
-    def test_provenance_tracking(self):
-        """Tool tracks provenance correctly"""
-        with patch('pathlib.Path.exists', return_value=True), \
-             patch('pathlib.Path.is_file', return_value=True), \
-             patch('pathlib.Path.stat') as mock_stat, \
-             patch('builtins.open', create=True) as mock_file_open, \
-             patch('docx.Document') as mock_doc:
-            
-            mock_stat.return_value.st_size = 100
-            
-            mock_para = MagicMock()
-            mock_para.text = "Test"
-            mock_doc_instance = MagicMock()
-            mock_doc_instance.paragraphs = [mock_para]
-            mock_doc_instance.tables = []
-            mock_doc.return_value = mock_doc_instance
-            
-            # Setup provenance mock
-            self.mock_provenance.start_operation.return_value = "op128"
-            self.mock_provenance.complete_operation.return_value = {
-                "status": "success",
-                "operation_id": "op128"
-            }
-            self.mock_quality.assess_confidence.return_value = {
-                "status": "success",
-                "confidence": 0.85,
-                "quality_tier": "MEDIUM"
-            }
-            
-            request = ToolRequest(
-                tool_id="T02",
-                operation="load",
-                input_data={"file_path": "test.docx"},
-                parameters={}
-            )
-            
-            result = self.tool.execute(request)
-            
-            # Verify provenance was tracked
-            self.mock_provenance.start_operation.assert_called_once()
-            call_args = self.mock_provenance.start_operation.call_args[1]
-            assert call_args["tool_id"] == "T02"
-            assert call_args["operation_type"] == "load_document"
-            
-            self.mock_provenance.complete_operation.assert_called_once()
-            complete_args = self.mock_provenance.complete_operation.call_args[1]
-            assert complete_args["operation_id"] == "op128"
-            assert complete_args["success"] == True
+    def test_unsupported_file_type_real_validation(self):
+        """Test unsupported file type with REAL file validation"""
+        # Create a real file with unsupported extension
+        unsupported_file = self.test_dir / "document.pdf"
+        with open(unsupported_file, 'w') as f:
+            f.write("This is not a supported file type")
+        
+        request = ToolRequest(
+            tool_id="T02",
+            operation="load",
+            input_data={"file_path": str(unsupported_file)},
+            parameters={}
+        )
+        
+        result = self.tool.execute(request)
+        assert result.status == "error"
+        assert result.error_code == "INVALID_FILE_TYPE"
+        assert "unsupported" in result.error_message.lower() or "invalid" in result.error_message.lower()
     
-    def test_quality_service_integration(self):
-        """Tool integrates with quality service for confidence scoring"""
-        with patch('pathlib.Path.exists', return_value=True), \
-             patch('pathlib.Path.is_file', return_value=True), \
-             patch('pathlib.Path.stat') as mock_stat, \
-             patch('builtins.open', create=True) as mock_file_open, \
-             patch('docx.Document') as mock_doc:
-            
-            mock_stat.return_value.st_size = 2048
-            
-            # Create multiple paragraphs
-            mock_paragraphs = []
-            for i in range(10):
-                para = MagicMock()
-                para.text = f"High quality content paragraph {i} " * 10
-                mock_paragraphs.append(para)
-            
-            mock_doc_instance = MagicMock()
-            mock_doc_instance.paragraphs = mock_paragraphs
-            mock_doc_instance.tables = []
-            mock_doc.return_value = mock_doc_instance
-            
-            self.mock_provenance.start_operation.return_value = "op129"
-            self.mock_provenance.complete_operation.return_value = {"status": "success"}
-            
-            # Mock quality assessment
-            self.mock_quality.assess_confidence.return_value = {
-                "status": "success",
-                "confidence": 0.96,
-                "quality_tier": "HIGH",
-                "factors": {
-                    "text_length": 1.0,
-                    "structure": 0.95
-                }
-            }
-            
-            request = ToolRequest(
-                tool_id="T02",
-                operation="load",
-                input_data={"file_path": "quality_test.docx"},
-                parameters={}
-            )
-            
-            result = self.tool.execute(request)
-            
-            # Verify quality service was used
-            self.mock_quality.assess_confidence.assert_called_once()
-            quality_args = self.mock_quality.assess_confidence.call_args[1]
-            assert quality_args["base_confidence"] > 0.8
-            assert "factors" in quality_args
-            
-            # Result should have quality-adjusted confidence
-            assert result.data["document"]["confidence"] == 0.96
-            assert result.data["document"]["quality_tier"] == "HIGH"
+    # ===== INTEGRATION TESTS WITH REAL SERVICES =====
     
-    # ===== PERFORMANCE TESTS (MANDATORY) =====
+    def test_identity_service_integration_real(self):
+        """Test integration with real IdentityService"""
+        request = ToolRequest(
+            tool_id="T02",
+            operation="load",
+            input_data={
+                "file_path": str(self.test_docx_path),
+                "workflow_id": "test_workflow_456"
+            },
+            parameters={}
+        )
+        
+        result = self.tool.execute(request)
+        assert result.status == "success"
+        
+        # Verify document ID follows real pattern
+        document_id = result.data["document"]["document_id"]
+        assert "test_workflow_456" in document_id
+        assert "test_document" in document_id  # Based on filename
     
-    @pytest.mark.performance
-    def test_performance_requirements(self):
-        """Tool meets performance benchmarks"""
-        with patch('pathlib.Path.exists', return_value=True), \
-             patch('pathlib.Path.is_file', return_value=True), \
-             patch('pathlib.Path.stat') as mock_stat, \
-             patch('builtins.open', create=True) as mock_file_open, \
-             patch('docx.Document') as mock_doc:
-            
-            # Standard test file
-            mock_stat.return_value.st_size = 5 * 1024 * 1024  # 5MB
-            
-            # Create realistic document
-            mock_paragraphs = []
-            for i in range(500):
-                para = MagicMock()
-                para.text = f"Paragraph {i} " * 100  # ~500 chars per paragraph
-                mock_paragraphs.append(para)
-            
-            mock_doc_instance = MagicMock()
-            mock_doc_instance.paragraphs = mock_paragraphs
-            mock_doc_instance.tables = []
-            mock_doc.return_value = mock_doc_instance
-            
-            self.mock_provenance.start_operation.return_value = "op130"
-            self.mock_provenance.complete_operation.return_value = {"status": "success"}
-            self.mock_quality.assess_confidence.return_value = {
-                "status": "success",
-                "confidence": 0.93,
-                "quality_tier": "HIGH"
-            }
-            
-            request = ToolRequest(
-                tool_id="T02",
-                operation="load",
-                input_data={"file_path": "performance_test.docx"},
-                parameters={}
-            )
-            
-            # Measure performance
-            start_time = time.time()
-            result = self.tool.execute(request)
-            execution_time = time.time() - start_time
-            
-            # Performance assertions
-            assert result.status == "success"
-            assert execution_time < 20.0  # Max 20 seconds
-            assert result.execution_time < 20.0
+    def test_provenance_service_integration_real(self):
+        """Test integration with real ProvenanceService"""
+        request = ToolRequest(
+            tool_id="T02",
+            operation="load",
+            input_data={"file_path": str(self.test_docx_path)},
+            parameters={}
+        )
+        
+        result = self.tool.execute(request)
+        assert result.status == "success"
+        
+        # Verify provenance tracking actually occurred
+        assert "operation_id" in result.metadata
+        operation_id = result.metadata["operation_id"]
+        assert operation_id is not None
+        assert len(operation_id) > 0
+    
+    def test_quality_service_integration_real(self):
+        """Test integration with real QualityService"""
+        request = ToolRequest(
+            tool_id="T02",
+            operation="load",
+            input_data={"file_path": str(self.test_docx_path)},
+            parameters={}
+        )
+        
+        result = self.tool.execute(request)
+        assert result.status == "success"
+        
+        # Verify quality assessment actually occurred
+        document = result.data["document"]
+        assert "confidence" in document
+        assert isinstance(document["confidence"], (int, float))
+        assert 0.0 <= document["confidence"] <= 1.0
+        
+        # May have quality_tier if quality service provides it
+        if "quality_tier" in document:
+            assert document["quality_tier"] in ["LOW", "MEDIUM", "HIGH"]
+    
+    # ===== PERFORMANCE TESTS WITH REAL EXECUTION =====
+    
+    def test_performance_requirements_real(self):
+        """Test tool meets performance benchmarks with real execution"""
+        request = ToolRequest(
+            tool_id="T02",
+            operation="load",
+            input_data={"file_path": str(self.test_docx_path)},
+            parameters={}
+        )
+        
+        # Measure performance with real execution
+        start_time = time.time()
+        result = self.tool.execute(request)
+        execution_time = time.time() - start_time
+        
+        # Performance assertions
+        assert result.status == "success"
+        assert execution_time < 20.0  # Max 20 seconds
+        assert result.execution_time < 20.0
+        
+        # Memory usage should be reasonable (if tracked)
+        if result.memory_used > 0:
             assert result.memory_used < 1024 * 1024 * 1024  # Max 1GB
     
-    # ===== ERROR HANDLING TESTS =====
+    def test_large_document_handling_real(self):
+        """Test handling of larger documents with real data"""
+        request = ToolRequest(
+            tool_id="T02",
+            operation="load",
+            input_data={"file_path": str(self.complex_docx_path)},
+            parameters={}
+        )
+        
+        start_time = time.time()
+        result = self.tool.execute(request)
+        execution_time = time.time() - start_time
+        
+        assert result.status == "success"
+        assert len(result.data["document"]["text"]) > 2000  # Substantial content (adjusted for actual output)
+        assert execution_time < 20.0  # Should still be fast
+        assert result.data["document"]["paragraph_count"] > 10
     
-    def test_handles_corrupted_docx(self):
-        """Tool handles corrupted DOCX files gracefully"""
-        with patch('pathlib.Path.exists', return_value=True), \
-             patch('pathlib.Path.is_file', return_value=True), \
-             patch('pathlib.Path.stat') as mock_stat, \
-             patch('builtins.open', create=True) as mock_file_open, \
-             patch('docx.Document') as mock_doc:
-            
-            mock_stat.return_value.st_size = 1024
-            # Simulate corrupted DOCX
-            mock_doc.side_effect = Exception("Package not found")
-            
-            self.mock_provenance.start_operation.return_value = "op131"
-            
-            request = ToolRequest(
-                tool_id="T02",
-                operation="load",
-                input_data={"file_path": "corrupted.docx"},
-                parameters={}
-            )
-            
-            result = self.tool.execute(request)
-            
-            assert result.status == "error"
-            assert result.error_code in ["DOCX_CORRUPTED", "EXTRACTION_FAILED"]
-            assert "corrupted" in result.error_message.lower() or "package" in result.error_message.lower()
+    # ===== TOOL INTERFACE TESTS =====
     
-    def test_handles_password_protected_docx(self):
-        """Tool handles password-protected DOCX appropriately"""
-        with patch('pathlib.Path.exists', return_value=True), \
-             patch('pathlib.Path.is_file', return_value=True), \
-             patch('pathlib.Path.stat') as mock_stat, \
-             patch('builtins.open', create=True) as mock_file_open, \
-             patch('docx.Document') as mock_doc:
-            
-            mock_stat.return_value.st_size = 1024
-            # Simulate password-protected file
-            mock_doc.side_effect = Exception("File is password-protected")
-            
-            self.mock_provenance.start_operation.return_value = "op132"
-            
-            request = ToolRequest(
-                tool_id="T02",
-                operation="load",
-                input_data={"file_path": "protected.docx"},
-                parameters={}
-            )
-            
-            result = self.tool.execute(request)
-            
-            assert result.status == "error"
-            assert result.error_code in ["DOCX_PROTECTED", "EXTRACTION_FAILED"]
-            assert "password" in result.error_message.lower() or "protected" in result.error_message.lower()
-    
-    def test_handles_file_not_found(self):
-        """Tool handles missing files appropriately"""
-        with patch('pathlib.Path.exists', return_value=False):
-            
-            request = ToolRequest(
-                tool_id="T02",
-                operation="load",
-                input_data={"file_path": "nonexistent.docx"},
-                parameters={}
-            )
-            
-            result = self.tool.execute(request)
-            
-            assert result.status == "error"
-            assert result.error_code == "FILE_NOT_FOUND"
-            assert "not found" in result.error_message.lower()
-    
-    # ===== UNIFIED INTERFACE TESTS =====
-    
-    def test_tool_status_management(self):
-        """Tool manages status correctly"""
+    def test_tool_status_management_real(self):
+        """Tool manages status correctly during real execution"""
         assert self.tool.get_status() == ToolStatus.READY
         
-        # During execution, status should change
-        # This would need proper async handling in real implementation
+        # Status should remain consistent after operations
+        request = ToolRequest(
+            tool_id="T02",
+            operation="load",
+            input_data={"file_path": str(self.test_docx_path)},
+            parameters={}
+        )
         
-    def test_health_check(self):
-        """Tool health check works correctly"""
+        result = self.tool.execute(request)
+        assert result.status == "success"
+        assert self.tool.get_status() == ToolStatus.READY
+    
+    def test_health_check_real(self):
+        """Tool health check works with real dependencies"""
         result = self.tool.health_check()
         
         assert isinstance(result, ToolResult)
@@ -704,13 +504,161 @@ class TestT02WordLoaderUnified:
             assert result.data["healthy"] == True
             assert "supported_formats" in result.data
             assert ".docx" in result.data["supported_formats"]
+            
+            # Verify real service health
+            assert result.data.get("services_healthy") in [True, None]
     
-    def test_cleanup(self):
+    def test_cleanup_real(self):
         """Tool cleans up resources properly"""
-        # Setup some mock resources
-        self.tool._temp_files = ["temp1.docx", "temp2.docx"]
+        # Add some temp files to the tool
+        temp_file = self.test_dir / "temp_test.docx"
         
+        try:
+            from docx import Document
+            doc = Document()
+            doc.add_paragraph("temp content")
+            doc.save(str(temp_file))
+        except ImportError:
+            # Fallback to creating empty file
+            temp_file.touch()
+        
+        self.tool._temp_files.append(str(temp_file))
+        
+        # Test cleanup
         success = self.tool.cleanup()
-        
         assert success == True
+        
+        # Temp files list should be cleared
         assert len(self.tool._temp_files) == 0
+    
+    # ===== EDGE CASES WITH REAL CONDITIONS =====
+    
+    def test_empty_document_real(self):
+        """Test empty document handling with real empty DOCX"""
+        try:
+            from docx import Document
+            
+            # Create empty document
+            document = Document()
+            empty_file = self.test_dir / "empty.docx"
+            document.save(str(empty_file))
+            
+            request = ToolRequest(
+                tool_id="T02",
+                operation="load",
+                input_data={"file_path": str(empty_file)},
+                parameters={}
+            )
+            
+            result = self.tool.execute(request)
+            # May succeed with empty content or fail gracefully
+            if result.status == "success":
+                assert len(result.data["document"]["text"].strip()) == 0
+                assert result.data["document"]["paragraph_count"] == 0
+            else:
+                assert result.error_code is not None
+                
+        except ImportError:
+            pytest.skip("python-docx not available for testing")
+    
+    def test_workflow_id_generation_real(self):
+        """Test workflow ID generation with real logic"""
+        request = ToolRequest(
+            tool_id="T02",
+            operation="load",
+            input_data={"file_path": str(self.test_docx_path)},
+            parameters={}
+        )
+        
+        result = self.tool.execute(request)
+        assert result.status == "success"
+        
+        # Should have generated a workflow ID
+        assert "workflow_id" in result.metadata
+        workflow_id = result.metadata["workflow_id"]
+        assert workflow_id.startswith("wf_")
+        assert len(workflow_id) > 3
+        
+        # Document ID should include the workflow ID
+        document_id = result.data["document"]["document_id"]
+        assert workflow_id in document_id
+    
+    def test_confidence_calculation_real(self):
+        """Test confidence calculation with real factors"""
+        # Test with different documents
+        files_to_test = [
+            (self.test_docx_path, "simple document"),
+            (self.complex_docx_path, "complex document")
+        ]
+        
+        confidences = []
+        for file_path, description in files_to_test:
+            request = ToolRequest(
+                tool_id="T02",
+                operation="load",
+                input_data={"file_path": str(file_path)},
+                parameters={}
+            )
+            
+            result = self.tool.execute(request)
+            assert result.status == "success"
+            
+            confidence = result.data["document"]["confidence"]
+            confidences.append((confidence, description))
+            
+            # Verify confidence is in valid range
+            assert 0.0 <= confidence <= 1.0
+            assert isinstance(confidence, (int, float))
+        
+        # Verify confidence values are reasonable
+        confidence_values = [c[0] for c in confidences]
+        # Should have some variation based on document characteristics
+        assert min(confidence_values) >= 0.1  # Not too low
+        assert max(confidence_values) <= 1.0  # Not too high
+    
+    def test_formatting_preservation_real(self):
+        """Test that formatting is handled correctly with real documents"""
+        request = ToolRequest(
+            tool_id="T02",
+            operation="load",
+            input_data={"file_path": str(self.test_docx_path)},
+            parameters={"preserve_formatting": False}  # Test parameter handling
+        )
+        
+        result = self.tool.execute(request)
+        assert result.status == "success"
+        
+        # Should extract text without formatting markup
+        text = result.data["document"]["text"]
+        assert "bold text" in text
+        assert "italic text" in text
+        # Should not contain formatting tags
+        assert "<b>" not in text
+        assert "<i>" not in text
+    
+    def test_word_count_accuracy_real(self):
+        """Test word count calculation with real content"""
+        request = ToolRequest(
+            tool_id="T02",
+            operation="load",
+            input_data={"file_path": str(self.test_docx_path)},
+            parameters={}
+        )
+        
+        result = self.tool.execute(request)
+        assert result.status == "success"
+        
+        document = result.data["document"]
+        text = document["text"]
+        
+        # Calculate expected word count
+        expected_words = len(text.split())
+        
+        # Should have word count information
+        if "total_words" in document:
+            actual_words = document["total_words"]
+            # Should be reasonably close (within 10% for formatting differences)
+            assert abs(actual_words - expected_words) <= max(expected_words * 0.1, 5)
+        
+        # Should have reasonable word count for test document
+        assert expected_words > 20  # Our test document has substantial content

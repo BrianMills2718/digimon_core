@@ -27,136 +27,102 @@ Phase 8 implements strategic external service integrations to accelerate KGAS de
 
 ## Implementation Phases
 
-### **Phase 8.1: High-Value Quick Wins** (Weeks 1-2)
+### **Phase 8.1: Core Infrastructure** (Weeks 1-4)
 
-#### Immediate External MCP Integrations
-**Quick deployment of proven external MCP servers**
+#### Production Infrastructure Foundation
+**Essential infrastructure services that academic APIs and integrations depend on**
 
 **Tasks**:
-- **Task 8.1.1**: ArXiv MCP Server Integration
-  - Command: `claude mcp add arxiv-server npx blazickjp/arxiv-mcp-server`
-  - Impact: Automated paper discovery for research
-  - Time Savings: 3-4 weeks of API development
+- **Task 8.1.1**: Monitoring & Observability Stack
+  - Options: DataDog or Prometheus + Grafana
+  - Impact: Production monitoring and alerting for all integrations
+  - Time Savings: 4-6 weeks of monitoring infrastructure
   
-- **Task 8.1.2**: MarkItDown Document Processing  
-  - Command: `claude mcp add markitdown npx microsoft/markitdown`
-  - Impact: 40% reduction in document processing code
-  - Time Savings: 2-3 weeks of format conversion development
+- **Task 8.1.2**: Caching Infrastructure  
+  - Service: Redis for API response caching
+  - Impact: Essential for academic API rate limit management
+  - Time Savings: 2-3 weeks of caching system development
   
-- **Task 8.1.3**: Chroma Vector Database Integration
-  - Command: `claude mcp add chroma npx chroma-core/chroma-mcp`  
-  - Impact: Multi-vector database flexibility
-  - Time Savings: 1-2 weeks of vector store development
+- **Task 8.1.3**: Authentication & Security Services
+  - Options: Auth0 or Keycloak integration
+  - Impact: Required for secure academic API access
+  - Time Savings: 6-8 weeks of authentication system development
 
 **Deliverables**:
-- [ ] ArXiv integration with theory-guided query enhancement
-- [ ] Document format conversion pipeline (20+ formats)
-- [ ] Multi-vector database orchestration system
-- [ ] Integration health monitoring and fallback systems
+- [ ] Comprehensive system monitoring with custom KGAS metrics
+- [ ] Redis caching infrastructure for API responses
+- [ ] Production authentication system with role-based access
+- [ ] Security scanning and vulnerability management
 
-### **Phase 8.2: Academic Research Infrastructure** (Weeks 3-6)
+### **Phase 8.2: Academic APIs** (Weeks 5-10)
 
-#### Comprehensive Academic Data Pipeline
-**Integration with major academic data sources**
+#### Academic Data Sources Integration
+**Integration with major academic data sources, enabled by infrastructure foundation**
 
 **Tasks**:
-- **Task 8.2.1**: PubMed/Biomedical Integration
+- **Task 8.2.1**: ArXiv MCP Server Integration
+  - Command: `claude mcp add arxiv-server npx blazickjp/arxiv-mcp-server`
+  - Impact: Automated paper discovery for research (with caching and monitoring)
+  - Time Savings: 3-4 weeks of API development
+  
+- **Task 8.2.2**: PubMed/Biomedical Integration
   - Service: `npx genomoncology/biomcp` (PubMed + ClinicalTrials)
   - Impact: Medical/life sciences research corpus access
   - Time Savings: 4-5 weeks of biomedical API development
   
-- **Task 8.2.2**: Semantic Scholar API Integration  
+- **Task 8.2.3**: Semantic Scholar API Integration  
   - Impact: Citation network analysis and paper relationships
   - Time Savings: 3-4 weeks of citation analysis development
+
+**Deliverables**:
+- [ ] ArXiv integration with theory-guided query enhancement
+- [ ] Unified academic search across ArXiv, PubMed, Semantic Scholar
+- [ ] Citation network analysis integrated with KGAS graph analysis
+- [ ] Academic metadata quality validation framework
+
+### **Phase 8.3: Advanced Integrations** (Weeks 11-16)
+
+#### Complex ML Pipelines and Advanced Analytics
+**Advanced integrations that require mature infrastructure foundation**
+
+**Tasks**:
+- **Task 8.3.1**: MarkItDown Document Processing  
+  - Command: `claude mcp add markitdown npx microsoft/markitdown`
+  - Impact: 40% reduction in document processing code
+  - Time Savings: 2-3 weeks of format conversion development
   
-- **Task 8.2.3**: Content Extraction Pipeline
+- **Task 8.3.2**: Advanced Analytics Integration
+  - Service: dbt-mcp integration for data transformation
+  - Service: Vizro-mcp integration for visualization
+  - Impact: Advanced research visualization and data modeling
+  - Time Savings: 8-10 weeks of analytics development
+  
+- **Task 8.3.3**: Chroma Vector Database Integration
+  - Command: `claude mcp add chroma npx chroma-core/chroma-mcp`  
+  - Impact: Multi-vector database flexibility
+  - Time Savings: 1-2 weeks of vector store development
+  
+- **Task 8.3.4**: Content Extraction Pipeline
   - Service: `npx lfnovo/content-core` 
   - Impact: Advanced content extraction and structure analysis
   - Time Savings: 2-3 weeks of content processing development
+  
+- **Task 8.3.5**: Cloud Deployment & Scaling
+  - Neo4j Aura managed database
+  - AWS Lambda serverless MCP tools
+  - Multi-cloud deployment strategy
+  - Impact: Production-grade scalability and reliability
+  - Time Savings: 8-10 weeks of cloud infrastructure development
 
 **Deliverables**:
-- [ ] Unified academic search across ArXiv, PubMed, Semantic Scholar
-- [ ] Citation network analysis integrated with KGAS graph analysis
-- [ ] Advanced content extraction with theory-aware post-processing
-- [ ] Academic metadata quality validation framework
-
-### **Phase 8.3: Development Infrastructure** (Weeks 7-10)
-
-#### Operational Excellence and Developer Experience
-**Infrastructure services for production-grade deployment**
-
-**Tasks**:
-- **Task 8.3.1**: Authentication & Security Services
-  - Options: Auth0 or Keycloak integration
-  - Impact: Production-grade security compliance
-  - Time Savings: 6-8 weeks of authentication system development
-  
-- **Task 8.3.2**: Monitoring & Observability Stack
-  - Options: DataDog or Prometheus + Grafana
-  - Impact: Production monitoring and alerting
-  - Time Savings: 4-6 weeks of monitoring infrastructure
-  
-- **Task 8.3.3**: CI/CD Pipeline Automation
-  - Implementation: GitHub Actions + Docker
-  - Impact: Automated testing and deployment
-  - Time Savings: 2-3 weeks of pipeline development
-
-**Deliverables**:
-- [ ] Production authentication system with role-based access
-- [ ] Comprehensive system monitoring with custom KGAS metrics
-- [ ] Automated CI/CD pipeline with quality gates
-- [ ] Security scanning and vulnerability management
-
-### **Phase 8.4: Advanced Analytics Integration** (Weeks 11-14)
-
-#### Data Pipeline and Analytics Enhancement  
-**Advanced analytics and data processing capabilities**
-
-**Tasks**:
-- **Task 8.4.1**: dbt Data Pipeline Integration
-  - Service: dbt-mcp integration
-  - Impact: Advanced data transformation and modeling
-  - Time Savings: 5-6 weeks of data pipeline development
-  
-- **Task 8.4.2**: Vizro Visualization Framework
-  - Service: Vizro-mcp integration  
-  - Impact: Advanced research visualization capabilities
-  - Time Savings: 4-5 weeks of visualization development
-  
-- **Task 8.4.3**: Optuna Optimization Integration
-  - Service: Optuna-mcp integration
-  - Impact: Automated hyperparameter tuning for research
-  - Time Savings: 3-4 weeks of optimization framework development
-
-**Deliverables**:
+- [ ] Document format conversion pipeline (20+ formats)
 - [ ] Advanced data transformation pipeline with dbt
 - [ ] Interactive research visualization with Vizro
-- [ ] Automated optimization for research parameters
-- [ ] Performance analytics and research metrics dashboard
-
-### **Phase 8.5: Cloud Deployment & Scaling** (Weeks 15-16)
-
-#### Production Deployment Architecture
-**Multi-cloud deployment for research scalability**
-
-**Tasks**:
-- **Task 8.5.1**: Neo4j Aura Managed Database
-  - Impact: Managed graph database with automatic scaling
-  - Time Savings: 3-4 weeks of database operations setup
-  
-- **Task 8.5.2**: AWS Lambda Serverless MCP Tools
-  - Impact: Serverless execution for variable research workloads  
-  - Time Savings: 2-3 weeks of serverless architecture development
-  
-- **Task 8.5.3**: Multi-Cloud Deployment Strategy
-  - Impact: High availability and geographic distribution
-  - Time Savings: 4-5 weeks of cloud infrastructure development
-
-**Deliverables**:
+- [ ] Multi-vector database orchestration system
+- [ ] Advanced content extraction with theory-aware post-processing
 - [ ] Managed cloud database deployment
 - [ ] Serverless MCP tool execution environment
 - [ ] Multi-cloud deployment with failover capabilities
-- [ ] Cost optimization and resource management
 
 ## Cost-Benefit Analysis
 

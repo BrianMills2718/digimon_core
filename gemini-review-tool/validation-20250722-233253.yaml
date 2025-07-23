@@ -1,0 +1,42 @@
+project_name: "Phase 2.1 Graph Analytics Tools Implementation Validation"
+
+include_patterns:
+  - "src/tools/phase2/t50_community_detection_unified.py"
+  - "src/tools/phase2/t51_centrality_analysis_unified.py"
+  - "tests/unit/test_t50_community_detection_unified.py"
+  - "tests/unit/test_t51_centrality_analysis_unified.py"
+
+ignore_patterns:
+  - "**/*.md"
+  - "**/Evidence*.md"
+  - "**/*log*"
+  - "**/.git/**"
+  - "**/archived/**"
+  - "**/outputs/**"
+
+custom_prompt: |
+  VALIDATION OBJECTIVE: Verify implementation claims for Phase 2.1 Graph Analytics Tools (T50 Community Detection and T51 Centrality Analysis)
+  
+  VALIDATION CRITERIA FOR EACH CLAIM:
+  1. **Implementation Present**: Does the method/feature exist where claimed?
+  2. **Functionality Complete**: Is it fully implemented (not stub/placeholder)?
+  3. **Requirements Met**: Does it satisfy the specific requirements mentioned?
+  
+  For each claim below, provide a verdict of FULLY RESOLVED, PARTIALLY RESOLVED, or NOT RESOLVED with specific line number references.
+
+claims_of_success: |
+  T50 Community Detection implements real Louvain algorithm using NetworkX
+  T50 supports multiple community detection algorithms: Louvain, Leiden, Label Propagation, Greedy Modularity, Fluid Communities
+  T50 calculates modularity scores and comprehensive community statistics
+  T50 loads graph data from multiple sources: Neo4j, NetworkX, edge lists, adjacency matrices
+  T50 provides academic-quality confidence scoring based on modularity and algorithm reliability
+  T50 achieves 71% test coverage through real functionality testing (22 tests passing)
+  T51 Centrality Analysis implements 12 real centrality metrics including degree, betweenness, closeness, eigenvector, PageRank
+  T51 includes advanced metrics: Katz, harmonic, load, information, current flow betweenness/closeness, subgraph centrality
+  T51 calculates correlation matrix between different centrality metrics using numpy
+  T51 provides PageRank fallback implementations for scipy compatibility issues
+  T51 supports comprehensive graph statistics calculation including connectivity and path length analysis
+  T51 achieves 65% test coverage through real functionality testing (22 tests passing)
+  Both tools follow BaseTool interface with standardized ToolRequest/ToolResult patterns
+  Both tools implement academic-quality output formatting with publication-ready statistics
+  Both tools include comprehensive error handling with specific error codes and fallback mechanisms

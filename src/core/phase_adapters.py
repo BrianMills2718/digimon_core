@@ -888,8 +888,8 @@ if __name__ == "__main__":
     success = initialize_phase_adapters()
     if success:
         from .graphrag_phase_interface import get_available_phases
-from src.core.config_manager import get_config
-
+        from src.core.config_manager import get_config
+        
         logger = get_logger("core.phase_adapters")
         logger.info("\nAvailable phases: %s", get_available_phases())
         

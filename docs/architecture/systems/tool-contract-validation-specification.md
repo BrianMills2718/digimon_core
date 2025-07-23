@@ -33,7 +33,7 @@
 ### Tool Contract Framework (ADR-001)
 - **Contract Implementation**: All tools implement standardized KGASTool interface
 - **Theory Integration**: Built-in support for theory schemas and concept library
-- **Confidence Scoring**: Mandatory ConfidenceScore integration per ADR-004
+- **Confidence Scoring**: Mandatory ConfidenceScore integration per ADR-007 (uncertainty metrics)
 
 ### Pipeline Orchestrator Integration
 - **Automatic Validation**: All tool chains validated before execution

@@ -17,37 +17,136 @@ This document establishes mandatory Test-Driven Development (TDD) practices for 
 1. **Red-Green-Refactor**: Write failing test → Make it pass → Improve code
 2. **Test First, Always**: No production code without a failing test
 3. **One Test, One Behavior**: Each test validates exactly one behavior
-4. **Fast Feedback**: Tests must run quickly to maintain flow
-5. **Evidence-Based**: All claims backed by passing tests
+4. **REAL FUNCTIONALITY ONLY**: Tests must use actual implementations, not mocks
+5. **NO MOCKS UNLESS ABSOLUTELY NECESSARY**: External dependencies only (APIs, databases)
+6. **Fast Feedback**: Tests must run quickly to maintain flow
+7. **Evidence-Based**: All claims backed by passing tests with real functionality
+
+## 🚫 NO MOCKS POLICY
+
+### Why We Reject Mocking in TDD
+
+**PROBLEM**: Mocks create a false sense of security and hide integration issues until production.
+
+**SOLUTION**: Use real implementations with lightweight test configurations.
+
+#### ❌ **BANNED PRACTICES**
+```python
+# ❌ DON'T DO THIS - Mocking core functionality
+def test_entity_extraction_mocked():
+    mock_service = Mock()
+    mock_service.create_mention.return_value = {"entity_id": "fake"}
+    
+    tool = SpacyNER(mock_service)  # Testing against fake behavior!
+    result = tool.extract_entities("text")
+    
+    mock_service.create_mention.assert_called_once()  # Meaningless assertion
+```
+
+#### ✅ **REQUIRED PRACTICES**  
+```python
+# ✅ DO THIS - Real functionality with test configuration
+def test_entity_extraction_real():
+    # Real ServiceManager with lightweight test setup
+    service_manager = ServiceManager(test_mode=True)
+    tool = SpacyNER(service_manager)  # Uses REAL services!
+    
+    # Test with actual spaCy execution
+    result = tool.extract_entities(
+        chunk_ref="storage://chunk/test123",
+        text="Apple Inc. was founded by Steve Jobs.",
+        chunk_confidence=0.8
+    )
+    
+    # Assert REAL behavior
+    assert result["status"] == "success"
+    assert len(result["entities"]) >= 2  # Actually found entities
+    entity_names = [e["surface_form"] for e in result["entities"]]
+    assert any("Apple" in name for name in entity_names)
+    assert any("Steve Jobs" in name for name in entity_names)
+```
+
+### When Mocks Are Allowed (Rare Cases)
+
+**ONLY** mock external systems that are:
+1. **Expensive to run** (cloud APIs costing money per call)
+2. **Unreliable in tests** (external services that may be down)
+3. **Impossible to test** (destructive operations)
+
+```python
+# ✅ Acceptable mocking - External API calls
+@patch('requests.post')  # Mock HTTP call to external service
+def test_external_api_integration(mock_post):
+    mock_post.return_value.json.return_value = {"status": "processed"}
+    
+    # Rest of the test uses REAL internal functionality
+    service_manager = ServiceManager(test_mode=True)
+    processor = ExternalProcessor(service_manager)
+    result = processor.process_with_api(data)
+```
+
+### Test Service Configuration
+
+Instead of mocks, use **real services with test configuration**:
+
+```python
+# src/core/service_manager.py - Add test mode support
+class ServiceManager:
+    def __init__(self, test_mode: bool = False):
+        self.test_mode = test_mode
+        
+        if test_mode:
+            # Use in-memory databases, temp files, etc.
+            self.identity_service = IdentityService(
+                storage_backend="memory"  # Real service, test storage
+            )
+            self.provenance_service = ProvenanceService(
+                database_url="sqlite:///:memory:"  # Real service, memory DB
+            )
+        else:
+            # Production configuration
+            self.identity_service = IdentityService()
+            self.provenance_service = ProvenanceService()
+```
 
 ## TDD Workflow for KGAS Tools
 
 ### Standard TDD Cycle for New Tools
 
 ```python
-# Step 1: Write Contract Test (RED)
+# Step 1: Write Contract Test (RED) - NO MOCKS!
 class TestT123NewTool:
     """Contract tests for T123 - must be written FIRST"""
     
+    def setup_method(self):
+        """Set up REAL services for testing"""
+        # Use real ServiceManager with lightweight test configuration
+        self.service_manager = ServiceManager(test_mode=True)
+        self.tool = T123NewTool(self.service_manager)
+    
     def test_contract_compliance(self):
-        """Test tool complies with its contract"""
-        tool = T123NewTool(mock_services())
-        
+        """Test tool complies with its contract - REAL EXECUTION"""
         # Contract defines expected input/output
         input_data = {
             "entities": [{"id": "e1", "name": "Test"}],
             "confidence_threshold": 0.8
         }
         
-        result = tool.execute(input_data)
+        # Execute tool with REAL services
+        result = self.tool.execute(ToolRequest(
+            tool_id="T123",
+            operation="process",
+            input_data=input_data,
+            parameters={}
+        ))
         
         # Contract validation
-        assert result["status"] in ["success", "error"]
-        assert "data" in result or "error" in result
-        assert result.get("tool_id") == "T123"
+        assert result.status in ["success", "error"]
+        assert hasattr(result, 'data') or hasattr(result, 'error_message')
+        assert result.tool_id == "T123"
         
     def test_required_functionality(self):
-        """Test core functionality - write BEFORE implementation"""
+        """Test core functionality - REAL FUNCTIONALITY ONLY"""
         tool = T123NewTool(mock_services())
         
         # This test MUST fail initially

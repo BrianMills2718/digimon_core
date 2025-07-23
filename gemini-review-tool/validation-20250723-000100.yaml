@@ -1,0 +1,36 @@
+project_name: "T52 Graph Clustering Implementation Validation"
+
+custom_prompt: |
+  CRITICAL VALIDATION: T52 Graph Clustering Implementation
+
+  **CONTEXT**: Verify that T52 Graph Clustering tool is fully implemented with real algorithms and comprehensive functionality as claimed.
+
+  **SPECIFIC VALIDATION REQUIRED**:
+  1. T52 implements real spectral clustering with graph Laplacian computation (lines 511-612)
+  2. T52 supports 6 clustering algorithms: Spectral, K-means, Hierarchical, DBSCAN, Louvain, Leiden (lines 80-86, 466-511)
+  3. T52 calculates academic-quality confidence scoring with modularity and silhouette metrics (lines 1075-1132)
+  4. T52 loads graph data from 4 sources: Neo4j, NetworkX, edge lists, adjacency matrices (lines 298-410)
+  5. T52 implements BaseTool interface with get_contract() method and proper execution flow (lines 154-214, 216-295)
+
+  **EVIDENCE REQUIRED**:
+  - ✅ FULLY RESOLVED / ⚠️ PARTIALLY RESOLVED / ❌ NOT RESOLVED for each claim
+  - Specific code examples with line references where implementations exist
+  - Assessment of algorithm completeness (real vs stub implementations)
+  - Verification of academic-quality output with confidence scoring
+  - Score 1-10 for overall implementation completeness
+
+  **FOCUS**: Only T52 implementation - ignore imports, dependency issues, or test files.
+
+claims_of_success: |
+  T52 Graph Clustering implements real spectral clustering with graph Laplacian computation
+  T52 supports 6 clustering algorithms with real NetworkX and scikit-learn implementations
+  T52 calculates academic-quality confidence scoring based on modularity and cluster quality metrics
+  T52 loads graph data from multiple sources: Neo4j, NetworkX, edge lists, adjacency matrices
+  T52 implements complete BaseTool interface with contract specification and proper execution flow
+
+include_patterns:
+  - "src/tools/phase2/t52_graph_clustering_unified.py"
+
+remove_empty_lines: true
+show_line_numbers: true
+output_format: "xml"

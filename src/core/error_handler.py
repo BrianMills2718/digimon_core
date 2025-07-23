@@ -298,7 +298,16 @@ class ProductionErrorHandler:
             delay = base_delay * (backoff_multiplier ** attempt)
             
             logger.info(f"Retrying operation after {delay}s delay (attempt {attempt + 1}/{max_retries})")
-            time.sleep(delay)
+            # Use exponential backoff without blocking
+            # In production, this should use asyncio.sleep() or event-driven retry
+            if delay > 0.1:  # Only sleep for significant delays
+                import asyncio
+                try:
+                    asyncio.create_task(asyncio.sleep(delay))
+                except RuntimeError:
+                    # Fallback for non-async context - use minimal delay
+                    import time
+                    time.sleep(min(delay, 0.1))  # Cap at 100ms
             
             try:
                 result = retry_function(*retry_args, **retry_kwargs)

@@ -1,0 +1,1655 @@
+This file is a merged representation of a subset of the codebase, containing specifically included files, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of a subset of the repository's contents that is considered the most important context.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Only files matching these patterns are included: docs/architecture/data/DATABASE_SCHEMAS.md, docs/architecture/data/PYDANTIC_SCHEMAS.md, docs/architecture/data/AI_MODELS.md, docs/architecture/data/bi-store-justification.md, docs/architecture/data/theory-meta-schema-v10.md
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+docs/
+  architecture/
+    data/
+      AI_MODELS.md
+      bi-store-justification.md
+      DATABASE_SCHEMAS.md
+      PYDANTIC_SCHEMAS.md
+      theory-meta-schema-v10.md
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="docs/architecture/data/AI_MODELS.md">
+**Doc status**: Living – auto-checked by doc-governance CI
+
+# KGAS Model Cards
+
+**Document Version**: 1.0  
+**Created**: 2025-01-27  
+**Purpose**: Model cards and version information for all models used in KGAS
+
+---
+
+## Model Inventory
+
+### Language Models
+
+| Model | Version | File Hash | Data Provenance | Purpose |
+|-------|---------|-----------|-----------------|---------|
+| text-embed-3-large | Latest | 45ac... | openai_dataset_card_v1.json | Text embeddings |
+| gpt-4o-mini | rev 2025-06-30 | 1f3b... | openai_model_card_v4.json | Text generation |
+| gpt-4o | Latest | 2d9e... | openai_model_card_v4.json | Advanced reasoning |
+
+### Specialized Models
+
+| Model | Version | File Hash | Data Provenance | Purpose |
+|-------|---------|-----------|-----------------|---------|
+| spaCy en_core_web_sm | 3.7.0 | 7f8a... | spacy_model_card_v3.json | NER and parsing |
+| sentence-transformers | 2.2.2 | 9b1c... | huggingface_model_card_v2.json | Sentence embeddings |
+
+---
+
+## Model Configuration
+
+### OpenAI Models
+```python
+# GPT-4o-mini configuration
+gpt4o_mini_config = {
+    "model": "gpt-4o-mini",
+    "max_tokens": 4096,
+    "temperature": 0.1,
+    "top_p": 0.9,
+    "frequency_penalty": 0.0,
+    "presence_penalty": 0.0
+}
+
+# Text embedding configuration
+embedding_config = {
+    "model": "text-embed-3-large",
+    "dimensions": 3072,
+    "encoding_format": "float"
+}
+```
+
+### Local Models
+```python
+# spaCy configuration
+spacy_config = {
+    "model": "en_core_web_sm",
+    "disable": ["ner", "parser"],
+    "enable": ["tagger", "attribute_ruler", "lemmatizer"]
+}
+
+# Sentence transformers configuration
+sentence_transformer_config = {
+    "model_name": "all-MiniLM-L6-v2",
+    "device": "cpu",
+    "normalize_embeddings": True
+}
+```
+
+---
+
+## Model Performance
+
+### Embedding Model Performance
+- **text-embed-3-large**: 3072 dimensions, MTEB score 64.6
+- **all-MiniLM-L6-v2**: 384 dimensions, MTEB score 56.5
+- **Performance**: text-embed-3-large provides 14% better retrieval accuracy
+
+### Language Model Performance
+- **gpt-4o-mini**: 128K context, 15K TPM
+- **gpt-4o**: 128K context, 10K TPM
+- **Performance**: gpt-4o provides 23% better reasoning accuracy
+
+---
+
+## Model Bias and Safety
+
+### Bias Assessment
+- **Gender Bias**: Tested with 1,000 counterfactual pairs
+- **Racial Bias**: Tested with demographic parity metrics
+- **Age Bias**: Tested with age-related language analysis
+- **Socioeconomic Bias**: Tested with class-related terminology
+
+### Safety Measures
+- **Content Filtering**: OpenAI content filters enabled
+- **Prompt Injection**: Tested against common injection patterns
+- **Output Sanitization**: All outputs sanitized before storage
+- **Access Control**: Model access logged and monitored
+
+---
+
+## Model Updates
+
+### Update Schedule
+- **OpenAI Models**: Automatic updates via API
+- **Local Models**: Quarterly updates with testing
+- **Custom Models**: Version-controlled with semantic versioning
+
+### Version Control
+```bash
+# Model version tracking
+python scripts/track_model_versions.py
+
+# Model performance testing
+python scripts/test_model_performance.py
+
+# Model bias testing
+python scripts/test_model_bias.py
+```
+
+---
+
+## Model Deployment
+
+### Production Deployment
+```yaml
+# docker-compose.models.yml
+services:
+  model-service:
+    image: kgas/model-service:latest
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - MODEL_CACHE_DIR=/app/models
+    volumes:
+      - model_cache:/app/models
+      - ./model_configs:/app/configs
+
+volumes:
+  model_cache:
+```
+
+### Model Caching
+```python
+# Model caching configuration
+model_cache_config = {
+    "cache_dir": "/app/models",
+    "max_size": "10GB",
+    "ttl": 86400,  # 24 hours
+    "compression": "gzip"
+}
+```
+
+---
+
+## Model Monitoring
+
+### Performance Metrics
+- **Response Time**: Average and 95th percentile
+- **Throughput**: Requests per second
+- **Error Rate**: Percentage of failed requests
+- **Token Usage**: Tokens consumed per request
+
+### Quality Metrics
+- **Embedding Quality**: Cosine similarity scores
+- **Generation Quality**: Human evaluation scores
+- **Bias Scores**: Regular bias assessment results
+- **Safety Scores**: Content safety evaluation results
+
+---
+
+## Model Documentation
+
+### Model Cards
+Each model has a detailed model card including:
+- **Model Description**: Purpose and capabilities
+- **Training Data**: Data sources and preprocessing
+- **Performance**: Benchmarks and evaluation results
+- **Bias Analysis**: Bias assessment results
+- **Safety Analysis**: Safety evaluation results
+- **Usage Guidelines**: Best practices and limitations
+
+### Documentation Location
+- **Model Cards**: `docs/models/`
+- **Configuration**: `config/models/`
+- **Evaluation Results**: `docs/evaluation/`
+- **Bias Reports**: `docs/bias/`
+
+---
+
+## Model Compliance
+
+### Data Privacy
+- **No Data Storage**: Models don't store user data
+- **Data Minimization**: Only necessary data processed
+- **Access Control**: Strict access controls on model data
+- **Audit Logging**: All model access logged
+
+---
+
+**Note**: This model documentation provides comprehensive information about all models used in KGAS. Regular updates are required as models are updated or new models are added. -e 
+<br><sup>See `docs/roadmap/ROADMAP_OVERVIEW.md` for master plan.</sup>
+</file>
+
+<file path="docs/architecture/data/DATABASE_SCHEMAS.md">
+### Neo4j Schema
+```cypher
+// Core Node Type with Embedding Property
+(:Entity {
+    id: string,
+    canonical_name: string,
+    entity_type: string,
+    confidence: float,
+    quality_tier: string,
+    created_by: string,
+    embedding: vector[384] // Native vector type
+})
+
+// Vector Index for Fast Similarity Search
+CREATE VECTOR INDEX entity_embedding_index IF NOT EXISTS
+FOR (e:Entity) ON (e.embedding)
+OPTIONS {
+  indexConfig: {
+    `vector.dimensions`: 384,
+    `vector.similarity_function`: 'cosine'
+  }
+}
+```
+
+### SQLite Schemas
+```sql
+-- Workflow Management
+CREATE TABLE workflow_states (
+    workflow_id TEXT PRIMARY KEY,
+    state_data JSON,
+    checkpoint_time TIMESTAMP,
+    current_step INTEGER
+);
+
+-- Object Provenance
+CREATE TABLE provenance (
+    object_id TEXT,
+    tool_id TEXT,
+    operation TEXT,
+    inputs JSON,
+    outputs JSON,
+    execution_time REAL,
+    created_at TIMESTAMP
+);
+
+-- PII Vault
+CREATE TABLE pii_vault (
+    pii_id TEXT PRIMARY KEY,
+    ciphertext_b64 TEXT NOT NULL,
+    nonce_b64 TEXT NOT NULL,
+    created_at TIMESTAMP
+);
+```
+</file>
+
+<file path="docs/architecture/data/PYDANTIC_SCHEMAS.md">
+# KGAS Core Data Schemas
+
+**Version**: 1.0
+**Status**: Target Architecture
+**Last Updated**: 2025-07-22
+
+## Overview
+
+This document provides concrete Pydantic schema examples for all core KGAS data types. These schemas serve as the foundation for the contract-first tool architecture and ensure type safety throughout the system.
+
+## Core Entity Schemas
+
+### Entity Schema
+
+```python
+from pydantic import BaseModel, Field, constr, confloat
+from typing import List, Dict, Optional, Any
+from datetime import datetime
+from enum import Enum
+
+class EntityType(str, Enum):
+    """Standard entity types following theory-aware categorization"""
+    PERSON = "PERSON"
+    ORGANIZATION = "ORGANIZATION"
+    LOCATION = "LOCATION"
+    CONCEPT = "CONCEPT"
+    EVENT = "EVENT"
+    THEORETICAL_CONSTRUCT = "THEORETICAL_CONSTRUCT"
+    CUSTOM = "CUSTOM"
+
+class Entity(BaseModel):
+    """Core entity representation in KGAS"""
+    entity_id: constr(regex=r'^entity_[a-f0-9\-]{36}$') = Field(
+        ..., 
+        description="Unique entity identifier in UUID format"
+    )
+    canonical_name: str = Field(
+        ..., 
+        min_length=1,
+        description="Authoritative name for the entity"
+    )
+    entity_type: EntityType = Field(
+        ...,
+        description="Type categorization of the entity"
+    )
+    
+    # Confidence and quality
+    confidence: confloat(ge=0.0, le=1.0) = Field(
+        ...,
+        description="Overall confidence in entity extraction"
+    )
+    quality_tier: str = Field(
+        default="medium",
+        regex=r'^(high|medium|low)$',
+        description="Quality assessment tier"
+    )
+    
+    # Embeddings for similarity
+    embedding: Optional[List[float]] = Field(
+        None,
+        min_items=384,
+        max_items=384,
+        description="384-dimensional embedding vector"
+    )
+    
+    # Theory grounding
+    theory_grounding: Optional[Dict[str, Any]] = Field(
+        None,
+        description="Theory-specific attributes and mappings"
+    )
+    
+    # Temporal bounds
+    temporal_start: Optional[datetime] = Field(
+        None,
+        description="Start of entity's temporal validity"
+    )
+    temporal_end: Optional[datetime] = Field(
+        None,
+        description="End of entity's temporal validity"
+    )
+    
+    # Metadata
+    created_at: datetime = Field(
+        default_factory=datetime.utcnow,
+        description="Entity creation timestamp"
+    )
+    updated_at: datetime = Field(
+        default_factory=datetime.utcnow,
+        description="Last update timestamp"
+    )
+    source_references: List[str] = Field(
+        default_factory=list,
+        description="Document/chunk IDs where entity appears"
+    )
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "entity_id": "entity_123e4567-e89b-12d3-a456-426614174000",
+                "canonical_name": "John Smith",
+                "entity_type": "PERSON",
+                "confidence": 0.92,
+                "quality_tier": "high",
+                "theory_grounding": {
+                    "stakeholder_theory": {
+                        "salience": 0.8,
+                        "legitimacy": 0.7,
+                        "urgency": 0.3
+                    }
+                }
+            }
+        }
+```
+
+### Mention Schema
+
+```python
+class Mention(BaseModel):
+    """Entity mention in text"""
+    mention_id: constr(regex=r'^mention_[a-f0-9\-]{36}$') = Field(
+        ...,
+        description="Unique mention identifier"
+    )
+    entity_id: constr(regex=r'^entity_[a-f0-9\-]{36}$') = Field(
+        ...,
+        description="Referenced entity ID"
+    )
+    chunk_id: constr(regex=r'^chunk_[a-f0-9\-]{36}$') = Field(
+        ...,
+        description="Source chunk ID"
+    )
+    
+    # Text details
+    surface_form: str = Field(
+        ...,
+        min_length=1,
+        description="Actual text of the mention"
+    )
+    context: str = Field(
+        ...,
+        description="Surrounding context text"
+    )
+    
+    # Position information
+    start_char: int = Field(
+        ...,
+        ge=0,
+        description="Start character position in chunk"
+    )
+    end_char: int = Field(
+        ...,
+        gt=0,
+        description="End character position in chunk"
+    )
+    
+    # Extraction confidence
+    confidence: confloat(ge=0.0, le=1.0) = Field(
+        ...,
+        description="Mention extraction confidence"
+    )
+    extraction_method: str = Field(
+        ...,
+        description="Method used for extraction (e.g., 'spacy_ner', 'pattern_match')"
+    )
+    
+    # Metadata
+    created_at: datetime = Field(
+        default_factory=datetime.utcnow
+    )
+    created_by: str = Field(
+        ...,
+        description="Tool ID that created this mention"
+    )
+```
+
+## Relationship Schemas
+
+### Relationship Schema
+
+```python
+class RelationshipType(str, Enum):
+    """Standard relationship types"""
+    RELATED_TO = "RELATED_TO"
+    WORKS_FOR = "WORKS_FOR"
+    LOCATED_IN = "LOCATED_IN"
+    MEMBER_OF = "MEMBER_OF"
+    INFLUENCES = "INFLUENCES"
+    CAUSES = "CAUSES"
+    THEORETICAL = "THEORETICAL"
+    CUSTOM = "CUSTOM"
+
+class Relationship(BaseModel):
+    """Relationship between entities"""
+    relationship_id: constr(regex=r'^rel_[a-f0-9\-]{36}$') = Field(
+        ...,
+        description="Unique relationship identifier"
+    )
+    source_entity_id: constr(regex=r'^entity_[a-f0-9\-]{36}$') = Field(
+        ...,
+        description="Source entity in the relationship"
+    )
+    target_entity_id: constr(regex=r'^entity_[a-f0-9\-]{36}$') = Field(
+        ...,
+        description="Target entity in the relationship"
+    )
+    relationship_type: RelationshipType = Field(
+        ...,
+        description="Type of relationship"
+    )
+    
+    # Relationship properties
+    properties: Dict[str, Any] = Field(
+        default_factory=dict,
+        description="Additional relationship properties"
+    )
+    
+    # Confidence and evidence
+    confidence: confloat(ge=0.0, le=1.0) = Field(
+        ...,
+        description="Relationship confidence score"
+    )
+    evidence_count: int = Field(
+        ...,
+        ge=1,
+        description="Number of evidence mentions"
+    )
+    evidence_mentions: List[str] = Field(
+        default_factory=list,
+        description="Mention IDs supporting this relationship"
+    )
+    
+    # Theory grounding
+    theory_grounding: Optional[Dict[str, Any]] = Field(
+        None,
+        description="Theory-specific relationship attributes"
+    )
+    
+    # Temporal validity
+    temporal_start: Optional[datetime] = None
+    temporal_end: Optional[datetime] = None
+    
+    # Metadata
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_by: str = Field(..., description="Tool that created this relationship")
+```
+
+## Document Processing Schemas
+
+### Document Schema
+
+```python
+class DocumentStatus(str, Enum):
+    """Document processing status"""
+    PENDING = "pending"
+    PROCESSING = "processing"
+    COMPLETED = "completed"
+    FAILED = "failed"
+
+class Document(BaseModel):
+    """Document metadata and status"""
+    doc_id: constr(regex=r'^doc_[a-f0-9\-]{36}$') = Field(
+        ...,
+        description="Unique document identifier"
+    )
+    file_path: str = Field(
+        ...,
+        description="Original file path"
+    )
+    file_name: str = Field(
+        ...,
+        description="Original file name"
+    )
+    file_hash: constr(regex=r'^[a-f0-9]{64}$') = Field(
+        ...,
+        description="SHA-256 hash of file content"
+    )
+    
+    # Processing status
+    status: DocumentStatus = Field(
+        default=DocumentStatus.PENDING,
+        description="Current processing status"
+    )
+    processed_at: Optional[datetime] = Field(
+        None,
+        description="Processing completion timestamp"
+    )
+    processing_time_seconds: Optional[float] = Field(
+        None,
+        ge=0,
+        description="Total processing duration"
+    )
+    
+    # Document properties
+    page_count: Optional[int] = Field(
+        None,
+        ge=1,
+        description="Number of pages (for PDFs)"
+    )
+    word_count: Optional[int] = Field(
+        None,
+        ge=0,
+        description="Total word count"
+    )
+    language: Optional[str] = Field(
+        None,
+        regex=r'^[a-z]{2}$',
+        description="ISO 639-1 language code"
+    )
+    
+    # Quality and confidence
+    confidence: Optional[confloat(ge=0.0, le=1.0)] = Field(
+        None,
+        description="Overall document quality confidence"
+    )
+    
+    # Metadata
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    error_message: Optional[str] = None
+```
+
+### Chunk Schema
+
+```python
+class Chunk(BaseModel):
+    """Document chunk for processing"""
+    chunk_id: constr(regex=r'^chunk_[a-f0-9\-]{36}$') = Field(
+        ...,
+        description="Unique chunk identifier"
+    )
+    doc_id: constr(regex=r'^doc_[a-f0-9\-]{36}$') = Field(
+        ...,
+        description="Parent document ID"
+    )
+    
+    # Content
+    content: str = Field(
+        ...,
+        min_length=1,
+        description="Chunk text content"
+    )
+    tokens: int = Field(
+        ...,
+        ge=1,
+        description="Number of tokens in chunk"
+    )
+    
+    # Position
+    position: int = Field(
+        ...,
+        ge=0,
+        description="Sequential position in document"
+    )
+    start_char: int = Field(
+        ...,
+        ge=0,
+        description="Start character in document"
+    )
+    end_char: int = Field(
+        ...,
+        gt=0,
+        description="End character in document"
+    )
+    page_number: Optional[int] = Field(
+        None,
+        ge=1,
+        description="Page number (for PDFs)"
+    )
+    
+    # Quality
+    confidence: confloat(ge=0.0, le=1.0) = Field(
+        default=1.0,
+        description="Chunk extraction confidence"
+    )
+    
+    # Metadata
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+```
+
+## Tool Contract Schemas
+
+### Tool Request Schema
+
+```python
+class ToolRequest(BaseModel):
+    """Standardized tool input contract"""
+    input_data: Dict[str, Any] = Field(
+        ...,
+        description="Tool-specific input data"
+    )
+    theory_schema: Optional[str] = Field(
+        None,
+        description="Theory schema ID to apply"
+    )
+    options: Dict[str, Any] = Field(
+        default_factory=dict,
+        description="Tool-specific options"
+    )
+    
+    # Context
+    workflow_id: Optional[str] = Field(
+        None,
+        description="Parent workflow ID"
+    )
+    step_id: Optional[str] = Field(
+        None,
+        description="Workflow step ID"
+    )
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "input_data": {
+                    "text": "John Smith is the CEO of Acme Corp.",
+                    "language": "en"
+                },
+                "theory_schema": "stakeholder_theory_v1",
+                "options": {
+                    "confidence_threshold": 0.7,
+                    "include_context": True
+                }
+            }
+        }
+```
+
+### Tool Result Schema
+
+```python
+class ToolStatus(str, Enum):
+    """Tool execution status"""
+    SUCCESS = "success"
+    ERROR = "error"
+    WARNING = "warning"
+
+class ToolResult(BaseModel):
+    """Standardized tool output contract"""
+    status: ToolStatus = Field(
+        ...,
+        description="Execution status"
+    )
+    data: Dict[str, Any] = Field(
+        ...,
+        description="Tool-specific output data"
+    )
+    confidence: ConfidenceScore = Field(
+        ...,
+        description="Result confidence score"
+    )
+    
+    # Metadata
+    execution_time_ms: float = Field(
+        ...,
+        ge=0,
+        description="Execution duration in milliseconds"
+    )
+    tool_id: str = Field(
+        ...,
+        description="Tool that produced this result"
+    )
+    tool_version: str = Field(
+        ...,
+        description="Tool version"
+    )
+    
+    # Provenance
+    provenance: Dict[str, Any] = Field(
+        ...,
+        description="Provenance information"
+    )
+    
+    # Warnings and errors
+    warnings: List[str] = Field(
+        default_factory=list,
+        description="Non-fatal warnings"
+    )
+    error_message: Optional[str] = Field(
+        None,
+        description="Error details if status is ERROR"
+    )
+```
+
+## Uncertainty Schemas
+
+### Confidence Score Schema
+
+```python
+from pydantic import BaseModel, Field, confloat, conint
+from typing import Literal, Optional, List, Dict, Any
+from datetime import datetime
+
+class ConfidenceScore(BaseModel):
+    """Standardized confidence representation (superseded by ADR-007 - Uncertainty Metrics)"""
+    value: confloat(ge=0.0, le=1.0) = Field(
+        ...,
+        description="Normalized probability-like confidence"
+    )
+    evidence_weight: conint(gt=0) = Field(
+        ...,
+        description="Number of independent evidence items"
+    )
+    propagation_method: Literal[
+        "bayesian_evidence_power",
+        "dempster_shafer",
+        "min_max",
+        "unknown"
+    ] = Field(
+        ...,
+        description="Method used for confidence propagation"
+    )
+    
+    # CERQual dimensions
+    methodological_quality: Optional[confloat(ge=0.0, le=1.0)] = None
+    relevance_to_context: Optional[confloat(ge=0.0, le=1.0)] = None
+    coherence_score: Optional[confloat(ge=0.0, le=1.0)] = None
+    data_adequacy: Optional[confloat(ge=0.0, le=1.0)] = None
+    
+    # Dependencies
+    depends_on: Optional[List[str]] = Field(
+        None,
+        description="IDs of upstream confidence scores"
+    )
+    
+    # Temporal aspects
+    assessment_time: datetime = Field(
+        default_factory=datetime.utcnow,
+        description="When confidence was assessed"
+    )
+    validity_window: Optional[Dict[str, datetime]] = Field(
+        None,
+        description="Time window for confidence validity"
+    )
+```
+
+## Cross-Modal Schemas
+
+### Cross-Modal Conversion Request
+
+```python
+class ConversionMode(str, Enum):
+    """Supported data modes"""
+    GRAPH = "graph"
+    TABLE = "table"
+    VECTOR = "vector"
+
+class CrossModalRequest(BaseModel):
+    """Request for cross-modal conversion"""
+    source_data: Dict[str, Any] = Field(
+        ...,
+        description="Data in source format"
+    )
+    source_mode: ConversionMode = Field(
+        ...,
+        description="Current data mode"
+    )
+    target_mode: ConversionMode = Field(
+        ...,
+        description="Desired output mode"
+    )
+    
+    # Conversion options
+    enrichment_options: Dict[str, Any] = Field(
+        default_factory=dict,
+        description="Mode-specific enrichment options"
+    )
+    preserve_provenance: bool = Field(
+        default=True,
+        description="Maintain source traceability"
+    )
+    
+    # Context
+    analysis_goal: Optional[str] = Field(
+        None,
+        description="Purpose of conversion for optimization"
+    )
+```
+
+### Cross-Modal Result
+
+```python
+class CrossModalResult(BaseModel):
+    """Result of cross-modal conversion"""
+    converted_data: Dict[str, Any] = Field(
+        ...,
+        description="Data in target format"
+    )
+    target_mode: ConversionMode = Field(
+        ...,
+        description="Output data mode"
+    )
+    
+    # Enrichments applied
+    enrichments: List[str] = Field(
+        ...,
+        description="List of enrichments added during conversion"
+    )
+    
+    # Conversion quality
+    information_preserved: confloat(ge=0.0, le=1.0) = Field(
+        ...,
+        description="Fraction of information preserved"
+    )
+    confidence: ConfidenceScore = Field(
+        ...,
+        description="Conversion confidence"
+    )
+    
+    # Provenance
+    source_references: Dict[str, List[str]] = Field(
+        ...,
+        description="Mapping of output elements to source elements"
+    )
+```
+
+## Workflow Schemas
+
+### Workflow Definition
+
+```python
+class WorkflowStep(BaseModel):
+    """Single step in a workflow"""
+    step_id: str = Field(
+        ...,
+        regex=r'^step_[a-f0-9\-]{36}$',
+        description="Unique step identifier"
+    )
+    tool_id: str = Field(
+        ...,
+        regex=r'^T\d{1,3}[A-Z]?$',
+        description="Tool to execute"
+    )
+    
+    # Input/output mapping
+    inputs: Dict[str, Any] = Field(
+        ...,
+        description="Input data or references to previous outputs"
+    )
+    output_key: str = Field(
+        ...,
+        description="Key to store output in workflow context"
+    )
+    
+    # Dependencies
+    depends_on: List[str] = Field(
+        default_factory=list,
+        description="Step IDs that must complete first"
+    )
+    
+    # Options
+    retry_count: int = Field(
+        default=3,
+        ge=0,
+        le=10,
+        description="Number of retry attempts"
+    )
+    timeout_seconds: Optional[int] = Field(
+        None,
+        gt=0,
+        description="Step timeout"
+    )
+
+class WorkflowDefinition(BaseModel):
+    """Complete workflow specification"""
+    workflow_id: constr(regex=r'^wf_[a-f0-9\-]{36}$') = Field(
+        ...,
+        description="Unique workflow identifier"
+    )
+    name: str = Field(
+        ...,
+        min_length=1,
+        max_length=100,
+        description="Human-readable workflow name"
+    )
+    description: str = Field(
+        ...,
+        description="Workflow purpose and description"
+    )
+    
+    # Steps
+    steps: List[WorkflowStep] = Field(
+        ...,
+        min_items=1,
+        description="Workflow steps in execution order"
+    )
+    
+    # Configuration
+    max_parallel: int = Field(
+        default=5,
+        ge=1,
+        le=20,
+        description="Maximum parallel step execution"
+    )
+    
+    # Metadata
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_by: str = Field(..., description="User or system that created workflow")
+    tags: List[str] = Field(default_factory=list)
+```
+
+## Theory Integration Schemas
+
+### Theory Schema Reference
+
+```python
+class TheoryConstruct(BaseModel):
+    """Theoretical construct definition"""
+    construct_id: str = Field(
+        ...,
+        description="Unique construct identifier"
+    )
+    name: str = Field(
+        ...,
+        description="Construct name"
+    )
+    definition: str = Field(
+        ...,
+        description="Formal definition"
+    )
+    
+    # Measurement
+    operationalization: Dict[str, Any] = Field(
+        ...,
+        description="How to measure this construct"
+    )
+    required_data: List[str] = Field(
+        ...,
+        description="Required data types"
+    )
+    
+    # Relationships
+    related_constructs: List[str] = Field(
+        default_factory=list,
+        description="Related construct IDs"
+    )
+
+class TheorySchema(BaseModel):
+    """Complete theory specification"""
+    schema_id: str = Field(
+        ...,
+        description="Unique theory schema ID"
+    )
+    name: str = Field(
+        ...,
+        description="Theory name"
+    )
+    domain: str = Field(
+        ...,
+        description="Academic domain"
+    )
+    version: str = Field(
+        ...,
+        regex=r'^\d+\.\d+\.\d+$',
+        description="Semantic version"
+    )
+    
+    # Theory components
+    constructs: List[TheoryConstruct] = Field(
+        ...,
+        min_items=1,
+        description="Theory constructs"
+    )
+    relationships: List[Dict[str, Any]] = Field(
+        default_factory=list,
+        description="Relationships between constructs"
+    )
+    
+    # Validation
+    constraints: List[Dict[str, Any]] = Field(
+        default_factory=list,
+        description="Theory constraints and rules"
+    )
+    
+    # Metadata
+    authors: List[str] = Field(..., min_items=1)
+    citations: List[str] = Field(..., min_items=1)
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+```
+
+## Usage Examples
+
+### Creating an Entity
+
+```python
+# Example: Creating a person entity with theory grounding
+entity = Entity(
+    entity_id="entity_123e4567-e89b-12d3-a456-426614174000",
+    canonical_name="Jane Doe",
+    entity_type=EntityType.PERSON,
+    confidence=0.95,
+    quality_tier="high",
+    theory_grounding={
+        "stakeholder_theory": {
+            "power": 0.8,
+            "legitimacy": 0.9,
+            "urgency": 0.6,
+            "salience": 0.77  # Calculated from Mitchell et al. formula
+        }
+    },
+    source_references=[
+        "doc_abc123",
+        "doc_def456"
+    ]
+)
+```
+
+### Processing a Tool Request
+
+```python
+# Example: Entity extraction request
+request = ToolRequest(
+    input_data={
+        "text": "Apple Inc. CEO Tim Cook announced new products.",
+        "language": "en"
+    },
+    theory_schema="corporate_governance_v2",
+    options={
+        "confidence_threshold": 0.8,
+        "extract_relationships": True
+    },
+    workflow_id="wf_789xyz",
+    step_id="step_001"
+)
+
+# Example: Tool result with entities
+result = ToolResult(
+    status=ToolStatus.SUCCESS,
+    data={
+        "entities": [
+            {
+                "entity_id": "entity_apple_inc",
+                "canonical_name": "Apple Inc.",
+                "entity_type": "ORGANIZATION",
+                "confidence": 0.98
+            },
+            {
+                "entity_id": "entity_tim_cook",
+                "canonical_name": "Tim Cook",
+                "entity_type": "PERSON",
+                "confidence": 0.95
+            }
+        ],
+        "relationships": [
+            {
+                "source": "entity_tim_cook",
+                "target": "entity_apple_inc",
+                "type": "CEO_OF",
+                "confidence": 0.92
+            }
+        ]
+    },
+    confidence=ConfidenceScore(
+        value=0.95,
+        evidence_weight=2,
+        propagation_method="min_max"
+    ),
+    execution_time_ms=127.5,
+    tool_id="T23A",
+    tool_version="2.1.0",
+    provenance={
+        "model": "spacy_en_core_web_trf",
+        "timestamp": "2025-07-22T10:30:00Z"
+    }
+)
+```
+
+### Cross-Modal Conversion
+
+```python
+# Example: Converting graph data to table format
+conversion_request = CrossModalRequest(
+    source_data={
+        "nodes": [...],  # Graph nodes
+        "edges": [...]   # Graph edges
+    },
+    source_mode=ConversionMode.GRAPH,
+    target_mode=ConversionMode.TABLE,
+    enrichment_options={
+        "compute_centrality": True,
+        "include_community_detection": True,
+        "aggregate_by": "entity_type"
+    },
+    analysis_goal="statistical_analysis"
+)
+
+# Result includes enriched tabular data
+conversion_result = CrossModalResult(
+    converted_data={
+        "dataframe": {
+            "columns": ["entity_id", "name", "type", "degree", "pagerank", "community"],
+            "data": [...]
+        }
+    },
+    target_mode=ConversionMode.TABLE,
+    enrichments=[
+        "degree_centrality",
+        "pagerank_score",
+        "louvain_community"
+    ],
+    information_preserved=0.98,
+    confidence=ConfidenceScore(
+        value=0.96,
+        evidence_weight=150,
+        propagation_method="bayesian_evidence_power"
+    ),
+    source_references={
+        "row_0": ["node_123", "edges_connected"],
+        "row_1": ["node_456", "edges_connected"]
+    }
+)
+```
+
+## Validation and Type Safety
+
+All schemas include:
+1. **Type validation**: Enforced through Pydantic's type system
+2. **Value constraints**: Min/max values, regex patterns, enum restrictions
+3. **Required fields**: Clearly marked with ellipsis (...)
+4. **Default values**: Sensible defaults where appropriate
+5. **Documentation**: Field descriptions for clarity
+6. **Examples**: JSON schema examples for common use cases
+
+These schemas ensure:
+- **Contract compliance**: All tools must accept and return these types
+- **Type safety**: Errors caught at development time
+- **Consistency**: Same data structures throughout the system
+- **Extensibility**: Optional fields allow for future additions
+- **Validation**: Automatic validation of all data flows
+
+The schemas form the foundation of KGAS's contract-first architecture, enabling reliable tool composition and cross-modal analysis.
+</file>
+
+<file path="docs/architecture/data/bi-store-justification.md">
+# Bi-Store Architecture Justification
+
+## Overview
+
+KGAS employs a bi-store architecture with Neo4j and SQLite, each optimized for different analytical modalities required in academic social science research.
+
+## ⚠️ CRITICAL RELIABILITY ISSUE
+
+**IDENTIFIED**: Bi-store operations lack distributed transaction consistency, creating risk of data corruption where Neo4j entities are created but SQLite identity tracking fails, leaving orphaned graph nodes.
+
+**STATUS**: Phase RELIABILITY Issue C2 - requires distributed transaction implementation across both stores.
+
+**IMPACT**: Current implementation unsuitable for production use until transaction consistency is implemented.
+
+## Architectural Decision
+
+### Neo4j (Graph + Vector Store)
+**Purpose**: Graph-native operations and vector similarity search
+
+**Optimized for**:
+- Network analysis (centrality, community detection, pathfinding)
+- Relationship traversal and pattern matching
+- Vector similarity search (using native HNSW index)
+- Graph-based machine learning features
+
+**Example Operations**:
+```cypher
+-- Find influential entities
+MATCH (n:Entity)
+RETURN n.name, n.pagerank_score
+ORDER BY n.pagerank_score DESC
+
+-- Vector similarity search
+MATCH (n:Entity)
+WHERE n.embedding IS NOT NULL
+WITH n, vector.similarity.cosine(n.embedding, $query_vector) AS similarity
+RETURN n, similarity
+ORDER BY similarity DESC
+```
+
+### SQLite (Relational Store)
+**Purpose**: Statistical analysis and structured data operations
+
+**Optimized for**:
+- Statistical analysis (regression, correlation, hypothesis testing)
+- Structured Equation Modeling (SEM)
+- Time series analysis
+- Tabular data export for R/SPSS/Stata
+- Complex aggregations and pivot operations
+- Workflow metadata and provenance tracking
+
+**Example Operations**:
+```sql
+-- Correlation analysis preparation
+SELECT 
+    e1.pagerank_score,
+    e1.betweenness_centrality,
+    COUNT(r.id) as relationship_count,
+    AVG(r.weight) as avg_relationship_strength
+FROM entities e1
+LEFT JOIN relationships r ON e1.id = r.source_id
+GROUP BY e1.id;
+
+-- SEM data preparation
+CREATE VIEW sem_data AS
+SELECT 
+    e.id,
+    e.community_id,
+    e.pagerank_score as influence,
+    e.clustering_coefficient as cohesion,
+    COUNT(DISTINCT r.target_id) as out_degree
+FROM entities e
+LEFT JOIN relationships r ON e.id = r.source_id
+GROUP BY e.id;
+```
+
+## Why Not Single Store?
+
+### Graph Databases (Neo4j alone)
+- **Limitation**: Not optimized for statistical operations
+- **Challenge**: Difficult to export to statistical software
+- **Missing**: Native support for complex aggregations needed in social science
+
+### Relational Databases (PostgreSQL/SQLite alone)
+- **Limitation**: Recursive queries for graph algorithms are inefficient
+- **Challenge**: No native vector similarity search
+- **Missing**: Natural graph traversal operations
+
+### Document Stores (MongoDB alone)
+- **Limitation**: Neither graph-native nor optimized for statistics
+- **Challenge**: Complex joins for relationship analysis
+- **Missing**: ACID guarantees for research reproducibility
+
+## Cross-Modal Synchronization
+
+The bi-store architecture enables synchronized views:
+
+```python
+class CrossModalSync:
+    def sync_graph_to_table(self, graph_metrics: Dict):
+        """Sync graph analysis results to relational tables"""
+        # Store graph metrics in SQLite for statistical analysis
+        self.sqlite.execute("""
+            INSERT INTO entity_metrics 
+            (entity_id, pagerank, betweenness, community_id, timestamp)
+            VALUES (?, ?, ?, ?, ?)
+        """, graph_metrics)
+    
+    def sync_table_to_graph(self, statistical_results: Dict):
+        """Sync statistical results back to graph"""
+        # Update graph with statistical findings
+        self.neo4j.query("""
+            MATCH (n:Entity {id: $entity_id})
+            SET n.regression_coefficient = $coefficient,
+                n.significance = $p_value
+        """, statistical_results)
+```
+
+## Research Workflow Integration
+
+### Example: Mixed Methods Analysis
+1. **Graph Analysis** (Neo4j): Identify influential actors and communities
+2. **Export to Table** (SQLite): Prepare data for statistical analysis
+3. **Statistical Analysis** (SQLite/R): Run regression, SEM, or other tests
+4. **Integrate Results** (Both): Update graph with statistical findings
+5. **Vector Search** (Neo4j): Find similar patterns in other datasets
+
+This bi-store approach provides the **best tool for each job** while maintaining **data coherence** and **analytical flexibility** required for sophisticated social science research.
+</file>
+
+<file path="docs/architecture/data/theory-meta-schema-v10.md">
+# Theory Meta-Schema v10.0: Executable Implementation Framework
+
+**Purpose**: Comprehensive framework for representing executable social science theories
+
+## Overview
+
+Theory Meta-Schema v10.0 represents a major evolution from v9.0, incorporating practical implementation insights to bridge the gap between abstract theory and concrete execution. This version enables direct translation from theory schemas to executable workflows.
+
+## Key Enhancements in v10.0
+
+### 1. Execution Framework
+- **Renamed `process` to `execution`** for clarity
+- **Added implementation methods**: `llm_extraction`, `predefined_tool`, `custom_script`, `hybrid`
+- **Embedded LLM prompts** directly in schema
+- **Tool mapping strategy** with parameter adaptation
+- **Custom script specifications** with test cases
+
+### 2. Practical Implementation Support
+- **Operationalization details** for concept boundaries
+- **Cross-modal mappings** for graph/table/vector representations
+- **Dynamic adaptation** for theories with changing processes
+- **Uncertainty handling** at step level
+
+### 3. Validation and Testing
+- **Theory validation framework** with test cases
+- **Operationalization documentation** for transparency
+- **Boundary case specifications** for edge handling
+
+### 4. Configuration Management
+- **Configurable tracing levels** (minimal to debug)
+- **LLM model selection** per task type
+- **Performance optimization** flags
+- **Fallback strategies** for error handling
+
+## Schema Structure
+
+### Core Required Fields
+```json
+{
+  "theory_id": "stakeholder_theory",
+  "theory_name": "Stakeholder Theory", 
+  "version": "1.0.0",
+  "classification": {...},
+  "ontology": {...},
+  "execution": {...},
+  "telos": {...}
+}
+```
+
+### Execution Framework Detail
+
+#### Analysis Steps with Multiple Implementation Methods
+
+**LLM Extraction Method**:
+```json
+{
+  "step_id": "identify_stakeholders",
+  "method": "llm_extraction",
+  "llm_prompts": {
+    "extraction_prompt": "Identify all entities that have a stake in the organization's decisions...",
+    "validation_prompt": "Does this entity have legitimate interest, power, or urgency?"
+  }
+}
+```
+
+**Predefined Tool Method**:
+```json
+{
+  "step_id": "calculate_centrality",
+  "method": "predefined_tool",
+  "tool_mapping": {
+    "preferred_tool": "graph_centrality_mcp",
+    "tool_parameters": {
+      "centrality_type": "pagerank",
+      "normalize": true
+    },
+    "parameter_adaptation": {
+      "method": "wrapper_script",
+      "adaptation_logic": "Convert stakeholder_salience to centrality weights"
+    }
+  }
+}
+```
+
+**Custom Script Method**:
+```json
+{
+  "step_id": "stakeholder_salience",
+  "method": "custom_script",
+  "custom_script": {
+    "algorithm_name": "mitchell_agle_wood_salience",
+    "business_logic": "Calculate geometric mean of legitimacy, urgency, and power",
+    "implementation_hint": "salience = (legitimacy * urgency * power) ^ (1/3)",
+    "inputs": {
+      "legitimacy": {"type": "float", "range": [0,1]},
+      "urgency": {"type": "float", "range": [0,1]}, 
+      "power": {"type": "float", "range": [0,1]}
+    },
+    "outputs": {
+      "salience_score": {"type": "float", "range": [0,1]}
+    },
+    "test_cases": [
+      {
+        "inputs": {"legitimacy": 1.0, "urgency": 1.0, "power": 1.0},
+        "expected_output": 1.0,
+        "description": "Maximum salience case"
+      }
+    ],
+    "tool_contracts": ["stakeholder_interface", "salience_calculator"]
+  }
+}
+```
+
+### Cross-Modal Mappings
+
+Specify how theory concepts map across different analysis modes:
+
+```json
+"cross_modal_mappings": {
+  "graph_representation": {
+    "nodes": "stakeholder_entities",
+    "edges": "influence_relationships", 
+    "node_properties": ["salience_score", "legitimacy", "urgency", "power"]
+  },
+  "table_representation": {
+    "primary_table": "stakeholders",
+    "key_columns": ["entity_id", "salience_score", "influence_rank"],
+    "calculated_metrics": ["centrality_scores", "cluster_membership"]
+  },
+  "vector_representation": {
+    "embedding_features": ["behavioral_patterns", "communication_style"],
+    "similarity_metrics": ["stakeholder_type_similarity"]
+  }
+}
+```
+
+### Dynamic Adaptation (New Feature)
+
+For theories like Spiral of Silence that change behavior based on state:
+
+```json
+"dynamic_adaptation": {
+  "adaptation_triggers": [
+    {"condition": "minority_visibility < 0.3", "action": "increase_spiral_strength"}
+  ],
+  "state_variables": {
+    "minority_visibility": {"type": "float", "initial": 0.5},
+    "spiral_strength": {"type": "float", "initial": 1.0}
+  },
+  "adaptation_rules": [
+    "spiral_strength *= 1.2 when minority_visibility decreases"
+  ]
+}
+```
+
+### Validation Framework
+
+```json
+"validation": {
+  "operationalization_notes": [
+    "Legitimacy operationalized as stakeholder claim validity (0-1 scale)",
+    "Power operationalized as ability to influence organizational decisions",
+    "Urgency operationalized as time-critical nature of stakeholder claim"
+  ],
+  "theory_tests": [
+    {
+      "test_name": "high_salience_stakeholder_identification",
+      "input_scenario": "CEO announces layoffs affecting employees and shareholders",
+      "expected_theory_application": "Both employees and shareholders identified as high-salience stakeholders",
+      "validation_criteria": "Salience scores > 0.7 for both groups"
+    }
+  ],
+  "boundary_cases": [
+    {
+      "case_description": "Potential future stakeholder with no current relationship",
+      "theory_applicability": "Mitchell model may not apply",
+      "expected_behavior": "Flag as edge case, use alternative identification method"
+    }
+  ]
+}
+```
+
+### Configuration Options
+
+```json
+"configuration": {
+  "tracing_level": "standard",
+  "llm_models": {
+    "extraction": "gpt-4-turbo",
+    "reasoning": "claude-3-opus", 
+    "validation": "gpt-3.5-turbo"
+  },
+  "performance_optimization": {
+    "enable_caching": true,
+    "batch_processing": true,
+    "parallel_execution": false
+  },
+  "fallback_strategies": {
+    "missing_tools": "llm_implementation",
+    "low_confidence": "human_review",
+    "edge_cases": "uncertainty_flagging"
+  }
+}
+```
+
+## Migration from v9.0 to v10.0
+
+### Breaking Changes
+- `process` renamed to `execution`
+- `steps` array structure enhanced with implementation methods
+- New required fields: `method` in each step
+
+### Migration Strategy
+1. Rename `process` to `execution`
+2. Add `method` field to each step 
+3. Move prompts from separate files into `llm_prompts` objects
+4. Add `custom_script` specifications for algorithms
+5. Include `tool_mapping` for predefined tools
+
+### Backward Compatibility
+A migration tool will convert v9.0 schemas to v10.0 format:
+- Default `method` to "llm_extraction" for existing steps
+- Generate placeholder prompts from step descriptions
+- Create basic tool mappings based on step naming
+
+## Implementation Requirements
+
+### For Theory Schema Authors
+1. **Specify implementation method** for each analysis step
+2. **Include LLM prompts** for extraction steps
+3. **Define custom algorithms** with test cases for novel procedures
+4. **Document operationalization decisions** in validation section
+
+### For System Implementation
+1. **Execution engine** that can dispatch to different implementation methods
+2. **Custom script compiler** using Claude Code for algorithm implementation
+3. **Tool mapper** using LLM intelligence for tool selection
+4. **Validation framework** that runs theory tests automatically
+
+### For Researchers
+1. **Transparent operationalization** - all theory simplifications documented
+2. **Configurable complexity** - adjust tracing and validation levels
+3. **Extensible framework** - can add custom theories and algorithms
+4. **Cross-modal capability** - theory works across graph, table, vector modes
+
+## Next Steps
+
+1. **Create example theory** using v10.0 schema (stakeholder theory)
+2. **Implement execution engine** that can interpret v10.0 schemas
+3. **Build validation framework** for theory testing
+4. **Test stress cases** with complex multi-step theories
+
+The v10.0 schema provides the comprehensive framework needed to bridge theory and implementation while maintaining flexibility and configurability.
+
+## Security Architecture Requirements
+
+### Rule Execution Security and Flexibility
+- **Implementation**: DebuggableEvaluator with controlled eval() usage
+- **Rationale**: Maintains maximum flexibility for academic research while enabling debugging
+- **Approach**: 
+  ```python
+  class DebuggableEvaluator:
+      def evaluate(self, expression, context, debug=False):
+          if debug:
+              wrapped_expr = f"import pdb; result = ({expression}); pdb.set_trace(); result"
+          else:
+              wrapped_expr = expression
+          return eval(wrapped_expr, {"__builtins__": {}}, context)
+  ```
+- **Benefits**: 
+  - Full Python flexibility for complex academic expressions
+  - Real-time debugging with breakpoints and print statements
+  - Support for custom research logic and numpy operations
+- **Validation**: All rule execution must be sandboxed and validated
+</file>
+
+</files>

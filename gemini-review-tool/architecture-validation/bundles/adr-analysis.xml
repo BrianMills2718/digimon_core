@@ -1,0 +1,1616 @@
+This file is a merged representation of a subset of the codebase, containing specifically included files, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of a subset of the repository's contents that is considered the most important context.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Only files matching these patterns are included: docs/architecture/adrs/ADR-001-Phase-Interface-Design.md, docs/architecture/adrs/ADR-002-Pipeline-Orchestrator-Architecture.md, docs/architecture/adrs/ADR-008-Core-Service-Architecture.md, docs/architecture/adrs/ADR-009-Bi-Store-Database-Strategy.md, docs/architecture/adrs/ADR-010-Quality-System-Design.md, docs/architecture/adrs/ADR-011-Academic-Research-Focus.md, docs/architecture/adrs/ADR-014-Error-Handling-Strategy.md
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+docs/
+  architecture/
+    adrs/
+      ADR-001-Phase-Interface-Design.md
+      ADR-002-Pipeline-Orchestrator-Architecture.md
+      ADR-008-Core-Service-Architecture.md
+      ADR-009-Bi-Store-Database-Strategy.md
+      ADR-010-Quality-System-Design.md
+      ADR-011-Academic-Research-Focus.md
+      ADR-014-Error-Handling-Strategy.md
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="docs/architecture/adrs/ADR-008-Core-Service-Architecture.md">
+# ADR-008: Core Service Architecture
+
+**Status**: Accepted  
+**Date**: 2025-07-23  
+**Context**: System requires coordinated services for identity management, provenance tracking, quality assessment, and workflow state management.
+
+## Decision
+
+We will implement a **Service Manager pattern** with dependency injection to coordinate four core services:
+
+1. **IdentityService (T107)**: Entity mention management and resolution
+2. **ProvenanceService (T110)**: Operation tracking and lineage  
+3. **QualityService (T111)**: Confidence assessment and propagation
+4. **WorkflowStateService (T121)**: Workflow checkpoints and recovery
+
+```python
+class ServiceManager:
+    """Singleton service coordinator with dependency injection"""
+    
+    @property
+    def identity_service(self) -> IdentityService:
+        return self._get_service('identity', IdentityService)
+    
+    @property
+    def provenance_service(self) -> ProvenanceService:
+        return self._get_service('provenance', ProvenanceService)
+```
+
+## Rationale
+
+### **Why Service Manager Pattern?**
+
+**1. Academic Research Complexity**: Research workflows require coordinated services that must maintain consistency across entity resolution, provenance tracking, and quality assessment.
+
+**2. Cross-Service Dependencies**: 
+- Identity service needs provenance for entity tracking
+- Quality service needs provenance for confidence history
+- Workflow state needs all services for checkpoint recovery
+
+**3. Configuration Management**: Single point for service configuration and lifecycle management.
+
+**4. Testing Isolation**: Services can be individually tested while maintaining integration capabilities.
+
+### **Why These Four Services?**
+
+**Identity Service**: Academic research requires consistent entity resolution across documents. Without this, "John Smith" in document A and "J. Smith" in document B may be treated as different entities, corrupting analysis.
+
+**Provenance Service**: Academic integrity demands complete audit trails. Every extracted fact must be traceable to its source for citation verification and reproducibility.
+
+**Quality Service**: Research requires confidence assessment that propagates through analysis pipelines. Quality degradation must be tracked to maintain result validity.
+
+**Workflow State Service**: Long-running research workflows need checkpointing and recovery. Academic projects often process hundreds of documents over days/weeks.
+
+## Alternatives Considered
+
+### **1. Monolithic Service Architecture**
+- **Rejected**: Creates tight coupling, difficult testing, and massive service complexity
+- **Problem**: Single service would handle identity, provenance, quality, and state - violating separation of concerns
+
+### **2. Direct Service Instantiation (No Manager)**
+- **Rejected**: Creates circular dependencies and configuration fragmentation
+- **Problem**: Each component would need to instantiate its own service dependencies
+
+### **3. Event-Driven Service Architecture**
+- **Rejected**: Over-engineering for academic research tool requirements
+- **Problem**: Adds complexity without matching the academic workflow patterns
+
+### **4. Microservices Architecture**
+- **Rejected**: Academic research tools need local, single-node execution
+- **Problem**: Network boundaries incompatible with local research environment
+
+## Consequences
+
+### **Positive**
+- **Consistent Service Access**: All components access services through same interface
+- **Dependency Injection**: Services can be mocked/replaced for testing
+- **Configuration Centralization**: Single point for service configuration
+- **Resource Management**: Controlled service lifecycle and cleanup
+
+### **Negative**
+- **Singleton Complexity**: Service manager must handle thread safety
+- **Service Interdependencies**: Changes to one service may affect others
+- **Initialization Ordering**: Services must be initialized in correct dependency order
+
+## Implementation Requirements
+
+### **Service Protocol Compliance**
+All services must implement the standard `CoreService` interface:
+
+```python
+class CoreService(ABC):
+    @abstractmethod
+    def initialize(self, config: Dict[str, Any]) -> ServiceResponse:
+        pass
+    
+    @abstractmethod
+    def health_check(self) -> ServiceResponse:
+        pass
+    
+    @abstractmethod
+    def cleanup(self) -> ServiceResponse:
+        pass
+```
+
+### **Thread Safety**
+Service manager must be thread-safe using proper locking mechanisms for concurrent access.
+
+### **Error Handling**
+Service failures must propagate clearly with recovery guidance rather than silent degradation.
+
+### **Configuration Integration**
+Services must integrate with the centralized configuration system (ADR-009 dependency).
+
+## Validation Criteria
+
+- [ ] All four core services implement `CoreService` interface
+- [ ] Service manager provides thread-safe singleton access
+- [ ] Service dependencies are properly injected
+- [ ] Service health checks work independently and collectively
+- [ ] Service cleanup prevents resource leaks
+- [ ] Error propagation works correctly across service boundaries
+
+## Related ADRs
+
+- **ADR-009**: Bi-Store Database Strategy (services use both Neo4j and SQLite)
+- **ADR-010**: Quality System Design (quality service implementation details)
+- **ADR-014**: Error Handling Strategy (service error propagation)
+
+This service architecture provides the foundation for coordinated, reliable academic research capabilities while maintaining the simplicity appropriate for single-node research environments.
+</file>
+
+<file path="docs/architecture/adrs/ADR-009-Bi-Store-Database-Strategy.md">
+# ADR-009: Bi-Store Database Strategy
+
+**Status**: Accepted  
+**Date**: 2025-07-23  
+**Context**: System requires both graph analysis capabilities and operational metadata storage for academic research workflows.
+
+## Decision
+
+We will implement a **bi-store architecture** using:
+
+1. **Neo4j (v5.13+)**: Primary graph database for entities, relationships, and vector embeddings
+2. **SQLite**: Operational metadata database for provenance, workflow state, and PII vault
+
+```python
+# Unified access pattern
+class DataManager:
+    def __init__(self):
+        self.neo4j = Neo4jManager()      # Graph operations
+        self.sqlite = SQLiteManager()    # Metadata operations
+    
+    def store_entity(self, entity_data):
+        # Store graph data in Neo4j
+        entity_id = self.neo4j.create_entity(entity_data)
+        
+        # Store operational metadata in SQLite
+        self.sqlite.log_provenance(entity_id, "entity_creation", entity_data)
+        
+        return entity_id
+```
+
+## Rationale
+
+### **Why Two Databases Instead of One?**
+
+**1. Graph Analysis Requirements**: Academic research requires complex graph operations:
+- **Entity relationship analysis**: "Find all researchers influenced by Foucault"
+- **Community detection**: Identify research clusters and schools of thought
+- **Path analysis**: "How is theory A connected to theory B?"
+- **Centrality analysis**: Identify most influential concepts/researchers
+
+**Neo4j excels at these operations with Cypher queries like:**
+```cypher
+MATCH (a:Entity {name: "Foucault"})-[:INFLUENCES*1..3]->(influenced)
+RETURN influenced.name, length(path) as degrees_of_separation
+```
+
+**2. Operational Metadata Requirements**: Academic integrity requires detailed operational tracking:
+- **Provenance tracking**: Complete audit trail of every operation
+- **Workflow state**: Long-running research workflow checkpoints
+- **PII protection**: Encrypted storage of sensitive personal information
+- **Configuration state**: Tool settings and parameter tracking
+
+**SQLite excels at these operations with relational queries and ACID transactions.**
+
+**3. Performance Optimization**: 
+- **Graph queries** on Neo4j: Optimized for traversal and pattern matching
+- **Metadata queries** on SQLite: Optimized for joins, aggregations, and transactional consistency
+
+### **Why Not Single Database Solutions?**
+
+**Neo4j Only**:
+- ❌ **Poor relational operations**: Complex joins and aggregations are inefficient
+- ❌ **Metadata bloat**: Operational metadata clutters graph with non-analytical data
+- ❌ **ACID limitations**: Neo4j transactions less robust for operational metadata
+- ❌ **PII security**: Graph databases not optimized for encrypted key-value storage
+
+**SQLite Only**:
+- ❌ **Graph operations**: Recursive CTEs cannot match Neo4j's graph algorithm performance
+- ❌ **Vector operations**: No native vector similarity search capabilities
+- ❌ **Scalability**: Graph traversals become exponentially slow with data growth
+- ❌ **Cypher equivalent**: No domain-specific query language for graph patterns
+
+**PostgreSQL Only**:
+- ❌ **Local deployment**: Requires server setup incompatible with academic research environments
+- ❌ **Graph extensions**: Extensions like AGE add complexity without matching Neo4j performance
+- ❌ **Vector search**: Extensions available but not as mature as Neo4j's native support
+
+## Alternatives Considered
+
+### **1. Neo4j + PostgreSQL**
+- **Rejected**: PostgreSQL server requirement incompatible with single-node academic research
+- **Problem**: Requires database server administration and configuration
+
+### **2. Pure Neo4j with Metadata as Graph Nodes**
+- **Rejected**: Creates graph pollution and performance degradation
+- **Problem**: Provenance metadata would create millions of nodes unrelated to research analysis
+
+### **3. Pure SQLite with Graph Tables**
+- **Rejected**: Recursive graph queries become prohibitively slow
+- **Problem**: Academic research requires complex graph analysis not feasible in pure SQL
+
+### **4. In-Memory Graph (NetworkX) + SQLite**
+- **Rejected**: Memory limitations prevent analysis of large research corpora
+- **Problem**: Cannot handle 1000+ document research projects
+
+## Consequences
+
+### **Positive**
+- **Optimal Performance**: Each database handles operations it's designed for
+- **Data Separation**: Analytical data separate from operational metadata
+- **Local Deployment**: Both databases support single-node academic environments
+- **Specialized Tooling**: Can use Neo4j Browser for graph exploration, SQL tools for metadata
+- **Vector Integration**: Neo4j v5.13+ native vector support for embeddings
+
+### **Negative**
+- **Complexity**: Two database systems to maintain and coordinate
+- **Transaction Coordination**: Cross-database transactions require careful coordination
+- **Data Synchronization**: Entity IDs must remain consistent across both stores
+- **Backup Complexity**: Two separate backup and recovery procedures required
+
+## Data Distribution Strategy
+
+### **Neo4j Store**
+```cypher
+// Entities with vector embeddings
+(:Entity {
+    id: string,
+    canonical_name: string,
+    entity_type: string,
+    confidence: float,
+    embedding: vector[384]
+})
+
+// Relationships
+(:Entity)-[:INFLUENCES {confidence: float, source: string}]->(:Entity)
+
+// Documents
+(:Document {id: string, title: string, source: string})
+
+// Vector indexes for similarity search
+CREATE VECTOR INDEX entity_embedding_index 
+FOR (e:Entity) ON (e.embedding)
+```
+
+### **SQLite Store**
+```sql
+-- Complete provenance tracking
+CREATE TABLE provenance (
+    object_id TEXT,
+    tool_id TEXT,
+    operation TEXT,
+    inputs JSON,
+    outputs JSON,
+    execution_time REAL,
+    created_at TIMESTAMP
+);
+
+-- Workflow state for long-running processes
+CREATE TABLE workflow_states (
+    workflow_id TEXT PRIMARY KEY,
+    state_data JSON,
+    checkpoint_time TIMESTAMP
+);
+
+-- Encrypted PII storage
+CREATE TABLE pii_vault (
+    pii_id TEXT PRIMARY KEY,
+    ciphertext_b64 TEXT NOT NULL,
+    nonce_b64 TEXT NOT NULL
+);
+```
+
+## Transaction Coordination
+
+For operations affecting both databases:
+
+```python
+@contextmanager
+def distributed_transaction():
+    """Coordinate transactions across Neo4j and SQLite"""
+    neo4j_tx = None
+    sqlite_tx = None
+    
+    try:
+        # Start both transactions
+        neo4j_session = neo4j_driver.session()
+        neo4j_tx = neo4j_session.begin_transaction()
+        sqlite_tx = sqlite_conn.begin()
+        
+        yield (neo4j_tx, sqlite_tx)
+        
+        # Commit both if successful
+        neo4j_tx.commit()
+        sqlite_tx.commit()
+        
+    except Exception as e:
+        # Rollback both on any failure
+        if neo4j_tx:
+            neo4j_tx.rollback()
+        if sqlite_tx:
+            sqlite_tx.rollback()
+        raise DistributedTransactionError(f"Transaction failed: {e}")
+```
+
+## Implementation Requirements
+
+### **Consistency Guarantees**
+- Entity IDs must be identical across both databases
+- All graph operations must have corresponding provenance entries
+- Transaction failures must rollback both databases
+
+### **Performance Requirements**
+- Graph queries: < 2 seconds for typical academic research patterns
+- Metadata queries: < 500ms for provenance and workflow operations
+- Cross-database coordination: < 100ms overhead
+
+### **Backup and Recovery**
+- Neo4j: Graph database dumps with entity/relationship preservation
+- SQLite: File-based backups with transaction log consistency
+- Coordinated restoration ensuring ID consistency
+
+## Validation Criteria
+
+- [ ] Graph analysis queries perform within academic research requirements
+- [ ] Metadata operations maintain ACID properties
+- [ ] Cross-database entity ID consistency maintained
+- [ ] Transaction coordination prevents partial failures
+- [ ] Backup/recovery maintains data integrity across both stores
+- [ ] Vector similarity search performs effectively on research corpora
+
+## Related ADRs
+
+- **ADR-008**: Core Service Architecture (services use both databases)
+- **ADR-006**: Cross-Modal Analysis (requires graph and metadata coordination)
+- **ADR-003**: Vector Store Consolidation (Neo4j vector capabilities)
+
+This bi-store strategy optimizes for both analytical capabilities and operational reliability required for rigorous academic research while maintaining the simplicity appropriate for single-node research environments.
+</file>
+
+<file path="docs/architecture/adrs/ADR-010-Quality-System-Design.md">
+# ADR-010: Quality System Design
+
+**Status**: Accepted  
+**Date**: 2025-07-23  
+**Context**: Academic research requires systematic confidence tracking through multi-step processing pipelines while maintaining epistemic humility about extraction quality.
+
+## Decision
+
+We will implement a **confidence degradation system** that models uncertainty accumulation through processing pipelines:
+
+```python
+class QualityService:
+    def __init__(self):
+        self.quality_rules = {
+            "pdf_loader": QualityRule(degradation_factor=0.95),
+            "spacy_ner": QualityRule(degradation_factor=0.90),
+            "relationship_extractor": QualityRule(degradation_factor=0.85),
+            "entity_builder": QualityRule(degradation_factor=0.90)
+        }
+    
+    def propagate_confidence(self, base_confidence: float, operation: str) -> float:
+        """Apply degradation factor for processing step"""
+        rule = self.quality_rules.get(operation)
+        return base_confidence * rule.degradation_factor if rule else base_confidence
+```
+
+### **Core Principles**
+
+1. **Epistemic Humility**: Each processing step introduces some uncertainty
+2. **Degradation Modeling**: Confidence can only decrease or remain stable, never increase
+3. **Quality Tiers**: HIGH (≥0.8), MEDIUM (≥0.5), LOW (<0.5) for filtering
+4. **Provenance Integration**: Confidence tracked with complete processing history
+
+## Rationale
+
+### **Why Confidence Degradation?**
+
+**1. Academic Epistemic Standards**: 
+Research requires acknowledging uncertainty accumulation. Each processing step (PDF extraction → NLP → entity linking) introduces potential errors that compound.
+
+**2. Processing Pipeline Reality**:
+- **PDF extraction**: OCR errors, formatting issues (5% confidence loss)
+- **NLP processing**: Language model limitations (10% confidence loss)  
+- **Relationship extraction**: Context interpretation errors (15% confidence loss)
+- **Entity building**: Identity resolution mistakes (10% confidence loss)
+
+**3. Conservative Research Approach**:
+Academic integrity demands conservative confidence estimates. Better to underestimate confidence than overestimate and produce false research conclusions.
+
+**4. Filtering and Quality Control**:
+Degraded confidence enables quality-based filtering. Researchers can choose to work only with HIGH confidence extractions (≥0.8) for critical analysis.
+
+### **Why Not Bayesian Updates/Confidence Increases?**
+
+**Current Decision Rationale**:
+
+**1. Complexity vs. Benefit**: Bayesian updating requires:
+- Prior probability distributions for each operation type
+- Likelihood functions for evidence integration  
+- Posterior calculation frameworks
+- Extensive calibration on academic research data
+
+**Academic research tool complexity tradeoff**: Simple degradation model provides adequate uncertainty tracking without the engineering complexity of full Bayesian inference.
+
+**2. Evidence Integration Challenges**:
+- **Different evidence types**: How do you combine NER confidence, relationship extraction confidence, and external validation?
+- **Correlation issues**: Multiple extractions from same document are not independent evidence
+- **Calibration requirements**: Bayesian updates require well-calibrated probability estimates
+
+**3. Academic Use Case Alignment**:
+Academic researchers primarily need to:
+- Identify high-confidence extractions for analysis
+- Understand uncertainty accumulation through pipelines  
+- Filter low-confidence results from critical research
+
+Simple degradation model serves these needs effectively.
+
+## Current Implementation
+
+### **Quality Rules**
+```python
+QualityRule(
+    rule_id="nlp_processing",
+    source_type="spacy_ner", 
+    degradation_factor=0.9,   # 10% degradation
+    min_confidence=0.1,
+    description="NLP entity extraction"
+)
+```
+
+### **Confidence Assessment**
+```python
+def assess_confidence(
+    self,
+    object_ref: str,
+    base_confidence: float,
+    factors: Dict[str, float] = None
+) -> Dict[str, Any]:
+    # Input validation (0.0-1.0 range)
+    # Factor application (multiplicative degradation)
+    # Quality tier determination (HIGH/MEDIUM/LOW)
+    # Assessment storage with timestamp
+```
+
+### **Quality Tiers**
+- **HIGH**: confidence ≥ 0.8 (suitable for critical research analysis)
+- **MEDIUM**: confidence ≥ 0.5 (suitable for exploratory research)  
+- **LOW**: confidence < 0.5 (flagged for manual review)
+
+## Alternatives Considered
+
+### **1. Bayesian Confidence Updates**
+```python
+# Rejected approach
+def bayesian_update(prior_confidence, evidence_likelihood, evidence_strength):
+    posterior = (evidence_likelihood * prior_confidence) / normalization_factor
+    return min(1.0, posterior * evidence_strength)
+```
+
+**Rejected because**:
+- **Calibration complexity**: Requires extensive calibration data for each operation type
+- **Evidence correlation**: Multiple extractions from same source are not independent
+- **Engineering overhead**: Significant complexity for uncertain academic research benefit
+- **Domain expertise required**: Requires deep understanding of Bayesian inference for maintenance
+
+### **2. Machine Learning Confidence Models**
+```python
+# Rejected approach  
+class MLConfidencePredictor:
+    def predict_confidence(self, extraction_features, context_features):
+        return self.trained_model.predict([extraction_features, context_features])
+```
+
+**Rejected because**:
+- **Training data requirements**: Requires large labeled dataset of extraction quality
+- **Model maintenance**: ML models require retraining and performance monitoring
+- **Explainability**: Academic researchers need interpretable confidence estimates
+- **Generalization**: Models may not generalize across different research domains
+
+### **3. Static Confidence (No Degradation)**
+```python
+# Rejected approach
+def static_confidence(base_confidence):
+    return base_confidence  # No change through pipeline
+```
+
+**Rejected because**:
+- **Unrealistic**: Ignores error accumulation through processing pipelines
+- **Academic standards**: Fails to acknowledge uncertainty introduction
+- **Quality control**: Cannot distinguish between high-quality and degraded extractions
+
+### **4. Expert-Defined Confidence Rules**
+```python
+# Rejected approach
+def expert_confidence_rules(extraction_type, source_quality, context_factors):
+    # Complex rule-based system with expert knowledge
+    return calculate_confidence_from_rules(extraction_type, source_quality, context_factors)
+```
+
+**Rejected because**:
+- **Maintenance complexity**: Requires domain expert involvement for rule updates
+- **Rule interaction**: Complex interactions between rules difficult to predict
+- **Scalability**: Cannot scale across different research domains and use cases
+
+## Consequences
+
+### **Positive**
+- **Simple and interpretable**: Researchers can understand confidence degradation
+- **Conservative approach**: Prevents overconfidence in automated extractions
+- **Quality filtering**: Enables researchers to work with high-confidence data only
+- **Minimal maintenance**: Simple degradation factors require minimal tuning
+
+### **Negative**  
+- **No confidence recovery**: Cannot account for confirming evidence from multiple sources
+- **Linear degradation**: May not accurately model non-linear uncertainty interactions
+- **Domain agnostic**: Same degradation factors across different research domains
+- **Static factors**: Degradation factors not adaptive to actual extraction quality
+
+## Future Evolution Considerations
+
+**Note**: This ADR documents the current approach. Future enhancements could include:
+
+1. **Evidence-based confidence adjustment**: Allow confidence increases with multiple confirming sources
+2. **Domain-specific degradation**: Different factors for different research domains
+3. **Adaptive factors**: Degradation factors based on actual extraction performance
+4. **Hybrid approaches**: Combine degradation with limited Bayesian updates for specific cases
+
+**However, any changes require**:
+- Careful analysis of academic research requirements
+- Validation that complexity increase provides meaningful research value
+- Preservation of interpretability and maintainability
+- Extensive testing to prevent confidence inflation
+
+## Implementation Requirements
+
+### **Degradation Factor Calibration**
+- Factors based on empirical analysis of processing step error rates
+- Regular validation against manual quality assessment
+- Domain-specific adjustment capabilities
+
+### **Quality Tier Thresholds**
+- HIGH (≥0.8): Suitable for publication-quality research analysis
+- MEDIUM (≥0.5): Suitable for exploratory research and hypothesis generation
+- LOW (<0.5): Requires manual review before use in research
+
+### **Confidence History Tracking**
+- Complete audit trail of confidence changes through pipeline
+- Integration with provenance service for full traceability
+- Support for confidence-based filtering in research workflows
+
+## Validation Criteria
+
+- [ ] Confidence values remain within 0.0-1.0 range through all operations
+- [ ] Quality tiers correctly classify extraction reliability for research use
+- [ ] Degradation factors reflect empirical processing step error rates
+- [ ] Confidence history provides complete audit trail
+- [ ] Quality-based filtering enables reliable research workflows
+- [ ] System prevents confidence inflation while acknowledging uncertainty
+
+## Related ADRs
+
+- **ADR-008**: Core Service Architecture (quality service integration)
+- **ADR-009**: Bi-Store Database Strategy (confidence storage in SQLite)
+- **ADR-004**: Normative Confidence Score Ontology (confidence score implementation)
+
+**Important Note**: This ADR documents the current confidence degradation approach. The design decision to use degradation vs. Bayesian updates remains open for future reconsideration based on academic research requirements and complexity/benefit analysis.
+</file>
+
+<file path="docs/architecture/adrs/ADR-011-Academic-Research-Focus.md">
+# ADR-011: Academic Research Focus
+
+**Status**: Accepted  
+**Date**: 2025-07-23  
+**Context**: System design must align with either academic research requirements or enterprise production requirements, as these have fundamentally different priorities and constraints.
+
+## Decision
+
+We will design KGAS as an **academic research tool** optimized for:
+
+1. **Correctness over performance**: Prioritize accurate results and reproducibility
+2. **Flexibility over optimization**: Support diverse research methods and theories  
+3. **Transparency over efficiency**: Full provenance and explainable processing
+4. **Local deployment over scalability**: Single-node research environment focus
+
+```python
+# Academic research design principles in code
+class AcademicResearchTool:
+    def __init__(self):
+        self.priority_order = [
+            "correctness",      # Accurate results for publication
+            "reproducibility",  # Complete audit trails
+            "flexibility",      # Support diverse research approaches
+            "transparency",     # Explainable processing steps
+            "local_deployment", # Single researcher environment
+            "performance"       # Optimize only after above requirements met
+        ]
+```
+
+## Rationale
+
+### **Why Academic Research Focus?**
+
+**1. Research Requirements Are Unique**:
+- **Methodological rigor**: Every processing step must be documented and justifiable
+- **Reproducibility**: Complete workflows must be repeatable by other researchers
+- **Domain flexibility**: Must support diverse social science theories and approaches
+- **Citation integrity**: Every extracted fact must be traceable to original sources
+- **Epistemic humility**: Must acknowledge and track uncertainty appropriately
+
+**2. Academic vs. Enterprise Trade-offs**:
+
+| Requirement | Academic Research | Enterprise Production |
+|-------------|-------------------|----------------------|
+| **Correctness** | Critical - wrong results invalidate months of work | Important - but can be iterated |
+| **Performance** | Secondary - researchers work with smaller datasets | Critical - must handle high throughput |
+| **Scalability** | Local - single researcher, 10-1000 documents | Enterprise - thousands of users, millions of documents |
+| **Flexibility** | Critical - must support novel research approaches | Secondary - standardized business processes |
+| **Security** | Appropriate - local research environment | Critical - enterprise security requirements |
+| **Monitoring** | Academic - research validation focus | Enterprise - uptime and performance focus |
+
+**3. Research Environment Constraints**:
+- **Local deployment**: Researchers work on personal/institutional computers
+- **Single-node processing**: No distributed infrastructure available
+- **Limited technical expertise**: Researchers are domain experts, not DevOps engineers
+- **Intermittent usage**: Used for specific research projects, not 24/7 operations
+
+### **Why Not Enterprise Production Focus?**
+
+**Enterprise production requirements would force compromises incompatible with research**:
+
+**1. Performance over correctness**: Enterprise systems optimize for throughput, potentially sacrificing accuracy for speed
+**2. Standardization over flexibility**: Enterprise systems standardize processes, limiting research methodology innovation
+**3. Infrastructure complexity**: Enterprise scalability requires distributed systems expertise beyond typical research environments
+**4. Security overhead**: Enterprise security adds complexity inappropriate for local research use
+
+## Alternatives Considered
+
+### **1. Enterprise Production Tool**
+**Rejected because**:
+- **Performance focus**: Would prioritize speed over research accuracy requirements
+- **Infrastructure requirements**: Would require database servers, distributed systems, DevOps expertise
+- **Standardized workflows**: Would limit research methodology flexibility
+- **Security complexity**: Would add inappropriate complexity for local research environments
+
+### **2. Hybrid Academic/Enterprise Tool**
+**Rejected because**:
+- **Conflicting priorities**: Cannot optimize for both research correctness and enterprise performance
+- **Feature complexity**: Would create confusing interfaces trying to serve both audiences
+- **Maintenance overhead**: Would require maintaining two different optimization paths
+- **Focus dilution**: Would compromise excellence in either domain
+
+### **3. Enterprise Tool with Academic Add-ons**
+**Rejected because**:
+- **Core architecture mismatch**: Enterprise foundations incompatible with research transparency needs
+- **Academic features as afterthought**: Research requirements become secondary considerations
+- **Deployment complexity**: Enterprise infrastructure requirements inappropriate for research
+
+## Consequences
+
+### **Positive**
+- **Research excellence**: Optimized for academic research requirements and workflows
+- **Methodological integrity**: Supports rigorous research methodologies and citation practices
+- **Local deployment**: Simple setup for individual researchers
+- **Flexibility**: Can adapt to diverse research approaches and novel theories
+- **Transparency**: Complete processing transparency for research validation
+
+### **Negative**
+- **Performance limitations**: Not optimized for high-throughput enterprise use cases
+- **Scalability constraints**: Single-node design limits to researcher-scale datasets
+- **Enterprise features**: Lacks enterprise monitoring, security, and infrastructure features
+- **Market limitations**: Narrower user base than general-purpose enterprise tools
+
+## Academic Research Design Implications
+
+### **Development Priorities**
+1. **Correctness validation**: Extensive testing to ensure accurate research results
+2. **Provenance completeness**: Every operation fully documented for reproducibility
+3. **Methodological flexibility**: Support for diverse research theories and approaches
+4. **Citation integrity**: Complete source attribution for academic integrity
+5. **Local deployment simplicity**: Easy setup on researcher personal/institutional computers
+
+### **Non-Priorities (Explicitly Deprioritized)**
+1. **Enterprise scalability**: High-throughput, multi-tenant architecture
+2. **Production monitoring**: 24/7 uptime monitoring and alerting
+3. **Enterprise security**: Complex authentication, authorization, audit systems
+4. **Distributed processing**: Multi-node processing and coordination
+5. **Performance optimization**: Micro-optimizations at expense of clarity
+
+### **Feature Decisions Based on Academic Focus**
+
+**Configuration**:
+- Simple, file-based configuration over complex management systems
+- Sensible defaults for academic use cases
+- Clear documentation over automated configuration management
+
+**Error Handling**:
+- Fail-fast with clear error messages over graceful degradation
+- Complete error context for debugging over user-friendly error hiding
+- Research workflow recovery over automated error recovery
+
+**Data Management**:
+- Complete audit trails over storage optimization
+- Local file-based storage over distributed database systems
+- Research data retention policies over automated cleanup
+
+**User Interface**:
+- Research workflow optimization over general business process optimization
+- Academic terminology and concepts over business terminology
+- Research-specific visualizations over general-purpose dashboards
+
+## Implementation Requirements
+
+### **Research Workflow Support**
+- **Document processing**: Support for academic document formats (PDF, Word, LaTeX)
+- **Theory integration**: Support for social science theory application
+- **Citation management**: Automatic citation generation and source tracking
+- **Export formats**: Academic publication formats (LaTeX, BibTeX, etc.)
+
+### **Methodological Rigor**
+- **Complete provenance**: Every processing step documented and traceable
+- **Reproducible workflows**: Same inputs produce identical outputs
+- **Uncertainty tracking**: Appropriate confidence modeling for research use
+- **Quality assessment**: Research-appropriate quality metrics and filtering
+
+### **Local Environment Optimization**
+- **Simple installation**: Single-command setup on researcher computers
+- **Minimal dependencies**: Avoid complex infrastructure requirements
+- **Resource efficiency**: Optimize for typical researcher hardware constraints
+- **Offline capability**: Function without constant internet connectivity
+
+## Success Metrics for Academic Focus
+
+### **Research Quality Metrics**
+- **Reproducibility**: Independent researchers can replicate results
+- **Citation accuracy**: All extracted claims traceable to original sources
+- **Methodological validity**: Processing steps align with academic research standards
+- **Domain flexibility**: Supports diverse social science research approaches
+
+### **Usability Metrics for Researchers**
+- **Setup time**: < 30 minutes from download to first analysis
+- **Learning curve**: Researchers can perform basic analysis within 2 hours
+- **Documentation quality**: Complete research workflow documentation
+- **Theory integration**: Researchers can apply domain-specific theories
+
+### **Technical Quality Metrics**
+- **Correctness**: High accuracy on academic research tasks
+- **Transparency**: All processing steps explainable and verifiable
+- **Local performance**: Efficient on typical researcher hardware
+- **Reliability**: Stable operation in single-user research environments
+
+## Validation Criteria
+
+- [ ] System optimizes for research correctness over enterprise performance
+- [ ] Local deployment requires minimal technical expertise
+- [ ] Research workflows supported with appropriate academic features
+- [ ] Complete transparency and auditability for research validation
+- [ ] Flexibility supports diverse research methodologies and theories
+- [ ] Academic integrity features (citation, provenance) fully implemented
+- [ ] Performance adequate for typical academic research dataset sizes
+
+## Related ADRs
+
+- **ADR-012**: Single-Node Design (consequences of academic research focus)
+- **ADR-010**: Quality System Design (research-appropriate confidence modeling)
+- **ADR-009**: Bi-Store Database Strategy (academic research data requirements)
+- **ADR-014**: Error Handling Strategy (research-appropriate error handling)
+
+This academic research focus enables KGAS to excel at supporting rigorous social science research while maintaining the simplicity and transparency essential for academic validation and reproducibility.
+</file>
+
+<file path="docs/architecture/adrs/ADR-014-Error-Handling-Strategy.md">
+# ADR-014: Error Handling Strategy
+
+**Status**: Accepted  
+**Date**: 2025-07-23  
+**Context**: System requires consistent error handling approach that aligns with academic research requirements for transparency, debuggability, and reliability.
+
+## Decision
+
+We will implement a **fail-fast error handling strategy** with comprehensive error context and recovery guidance:
+
+```python
+class AcademicErrorHandler:
+    """Error handling optimized for academic research transparency"""
+    
+    def handle_operation_error(self, operation: str, error: Exception, context: Dict) -> Dict[str, Any]:
+        return {
+            "status": "error",
+            "error_type": self._classify_error(error),
+            "error_message": str(error),
+            "operation": operation,
+            "context": context,
+            "recovery_guidance": self._generate_recovery_guidance(error, operation),
+            "debug_info": self._extract_debug_info(error),
+            "timestamp": datetime.now().isoformat(),
+            "stack_trace": traceback.format_exc() if self.debug_mode else None
+        }
+```
+
+### **Core Error Handling Principles**
+1. **Fail-fast**: Errors cause immediate, clear failures rather than silent degradation
+2. **Complete context**: All error information preserved for research debugging
+3. **Recovery guidance**: Specific instructions for researchers to resolve issues  
+4. **Transparency**: No error masking or information hiding
+5. **Academic workflow preservation**: Error handling supports research workflow recovery
+
+## Rationale
+
+### **Why Fail-Fast Strategy?**
+
+**1. Academic Research Requirements**:
+- **Data integrity**: Research cannot proceed with corrupted or uncertain data
+- **Reproducibility**: Silent errors make research results non-reproducible
+- **Debugging necessity**: Researchers need complete error information to resolve issues
+- **Methodological rigor**: Academic standards require transparent error acknowledgment
+
+**2. Research Workflow Characteristics**:
+- **Iterative development**: Researchers experiment with different approaches, need clear error feedback
+- **Long-running analyses**: Multi-hour processing cannot fail silently and waste research time
+- **Data sensitivity**: Academic data often irreplaceable, cannot risk silent corruption
+- **Individual operation**: Single researcher can investigate and resolve errors immediately
+
+**3. Academic vs. Enterprise Error Handling**:
+
+| Aspect | Academic Research | Enterprise Production |
+|--------|-------------------|----------------------|
+| **Error tolerance** | Zero tolerance - research integrity critical | Some tolerance - business continuity important |
+| **Silent failures** | Unacceptable - corrupts research validity | Sometimes acceptable - graceful degradation |
+| **Debug information** | Essential - researchers must understand failures | Limited - security and complexity concerns |
+| **Recovery approach** | Manual with guidance - researcher investigates | Automated - system attempts self-recovery |
+| **Error transparency** | Complete - academic rigor demands full disclosure | Filtered - user-friendly error messages |
+
+### **Why Not Graceful Degradation?**
+
+**Graceful degradation would undermine academic research**:
+
+**1. Research Integrity Issues**:
+- **Silent data loss**: Partial processing results appear complete but miss critical information
+- **Confidence corruption**: System continues with degraded confidence but doesn't clearly indicate impact  
+- **Reproducibility failure**: Different error conditions produce different results unpredictably
+- **Citation problems**: Incomplete processing creates inaccurate source attribution
+
+**2. Academic Workflow Problems**:
+- **Debugging difficulty**: Masked errors make it impossible to identify and fix root causes
+- **Wasted research time**: Researchers continue analysis on corrupted data for hours/days
+- **Publication risks**: Research results based on silently failed processing cannot be trusted
+- **Methodology questions**: Reviewers cannot validate research with hidden processing failures
+
+## Alternatives Considered
+
+### **1. Graceful Degradation Strategy**
+```python
+# Rejected approach
+def graceful_degradation_handler(error, context):
+    logger.warning(f"Operation failed: {error}")
+    return {
+        "status": "partial_success",
+        "data": incomplete_results,
+        "warnings": ["Some processing failed"]
+    }
+```
+
+**Rejected because**:
+- **Research integrity**: Partial results without clear error indication corrupt research validity
+- **Silent failure**: Researchers may not notice processing problems until much later
+- **Reproducibility issues**: Different failure modes produce different "partial" results
+- **Academic standards**: Research requires acknowledging and addressing all processing issues
+
+### **2. Exception Swallowing (Silent Failure)**
+```python
+# Rejected approach - common anti-pattern found in existing code
+try:
+    critical_operation()
+except Exception as e:
+    logger.info(f"WARNING: Operation failed: {e}")
+    logger.info("Continuing without result - some features may be limited")
+    return None  # Silent failure
+```
+
+**Rejected because**:
+- **Data corruption risk**: Continuing with None/partial data corrupts downstream analysis
+- **Debugging impossibility**: Silent failures make error diagnosis extremely difficult
+- **Academic integrity violation**: Research cannot proceed with unknown processing failures
+- **Time waste**: Researchers may spend hours analyzing results from failed processing
+
+### **3. User-Friendly Error Messages Only**
+```python
+# Rejected approach
+def user_friendly_errors(error):
+    return {
+        "status": "error",
+        "message": "Something went wrong. Please try again."
+    }
+```
+
+**Rejected because**:
+- **Insufficient debugging information**: Researchers need technical details to resolve issues
+- **Academic transparency**: Research requires complete error disclosure
+- **Problem resolution**: Generic messages don't provide guidance for fixing issues
+- **Research workflow**: Academics can handle technical error information
+
+### **4. Retry-Based Error Recovery**
+```python
+# Rejected approach
+def retry_handler(operation, max_retries=3):
+    for attempt in range(max_retries):
+        try:
+            return operation()
+        except Exception as e:
+            if attempt == max_retries - 1:
+                raise
+            time.sleep(2 ** attempt)  # Exponential backoff
+```
+
+**Rejected because**:
+- **Academic workflow mismatch**: Research errors usually require human investigation, not retries
+- **Resource waste**: Academic hardware may not handle multiple retry attempts efficiently
+- **Error masking**: Successful retries after failures hide potential systematic issues
+- **Time sensitivity**: Long retry sequences inappropriate for interactive research workflows
+
+## Fail-Fast Implementation
+
+### **Error Classification System**
+```python
+class ErrorType(Enum):
+    VALIDATION_ERROR = "validation_error"      # Input validation failures
+    PROCESSING_ERROR = "processing_error"      # Core operation failures  
+    RESOURCE_ERROR = "resource_error"          # Memory/disk/CPU constraints
+    INTEGRATION_ERROR = "integration_error"    # Service/database failures
+    CONFIGURATION_ERROR = "configuration_error" # Setup/config issues
+    DATA_ERROR = "data_error"                  # Input data problems
+
+class AcademicErrorResponse:
+    def __init__(self, error: Exception, operation: str, context: Dict):
+        self.error_type = self._classify_error(error)
+        self.error_message = str(error)
+        self.operation = operation
+        self.context = self._sanitize_context(context)
+        self.recovery_guidance = self._generate_recovery_guidance()
+        self.debug_info = self._extract_debug_info(error)
+        self.timestamp = datetime.now().isoformat()
+```
+
+### **Recovery Guidance System**
+```python
+class RecoveryGuidanceGenerator:
+    """Generate specific recovery instructions for researchers"""
+    
+    def generate_guidance(self, error_type: ErrorType, operation: str, context: Dict) -> List[str]:
+        guidance_map = {
+            ErrorType.VALIDATION_ERROR: [
+                "Check input data format matches expected schema",
+                "Verify required fields are present and correctly typed",
+                "Review tool documentation for input requirements"
+            ],
+            ErrorType.PROCESSING_ERROR: [
+                "Check system resources (memory, disk space)",
+                "Verify input data is not corrupted",
+                "Review processing logs for specific failure points",
+                "Consider reducing batch size for large datasets"
+            ],
+            ErrorType.RESOURCE_ERROR: [
+                "Check available memory and disk space",
+                "Reduce processing batch size",
+                "Close other applications to free resources",
+                "Consider processing documents in smaller groups"
+            ],
+            ErrorType.INTEGRATION_ERROR: [
+                "Verify database services are running (Neo4j)",
+                "Check database connectivity and credentials",
+                "Review service logs for connection issues",
+                "Restart database services if necessary"
+            ]
+        }
+        
+        base_guidance = guidance_map.get(error_type, ["Contact system administrator"])
+        return base_guidance + self._operation_specific_guidance(operation, context)
+```
+
+### **Academic Research Error Patterns**
+```python
+class AcademicToolBase:
+    """Base class implementing fail-fast error handling for research tools"""
+    
+    def execute(self, request: ToolRequest) -> ToolResult:
+        try:
+            # Input validation - fail fast on invalid inputs
+            self._validate_inputs(request.input_data)
+            
+            # Core processing with comprehensive error context
+            result = self._process_with_context(request)
+            
+            # Result validation - ensure output quality
+            self._validate_results(result)
+            
+            return ToolResult(
+                status="success",
+                data=result,
+                metadata=self._generate_success_metadata()
+            )
+            
+        except ValidationError as e:
+            return self._create_error_result(
+                error_type=ErrorType.VALIDATION_ERROR,
+                error=e,
+                operation=f"{self.tool_id}_execute",
+                context={"input_data": request.input_data}
+            )
+            
+        except ProcessingError as e:
+            return self._create_error_result(
+                error_type=ErrorType.PROCESSING_ERROR,
+                error=e,
+                operation=f"{self.tool_id}_process",
+                context={"processing_stage": e.processing_stage}
+            )
+            
+        except Exception as e:
+            # Unexpected errors - maximum information preservation
+            return self._create_error_result(
+                error_type=ErrorType.PROCESSING_ERROR,
+                error=e,
+                operation=f"{self.tool_id}_unexpected",
+                context={
+                    "input_data": request.input_data,
+                    "stack_trace": traceback.format_exc(),
+                    "system_info": self._get_system_info()
+                }
+            )
+    
+    def _create_error_result(
+        self, 
+        error_type: ErrorType, 
+        error: Exception, 
+        operation: str, 
+        context: Dict
+    ) -> ToolResult:
+        """Create comprehensive error result for academic research"""
+        return ToolResult(
+            status="error",
+            error_code=error_type.value,
+            error_message=str(error),
+            metadata={
+                "operation": operation,
+                "context": context,
+                "recovery_guidance": self._generate_recovery_guidance(error_type, operation),
+                "debug_info": self._extract_debug_info(error),
+                "timestamp": datetime.now().isoformat(),
+                "tool_id": self.tool_id,
+                "system_state": self._capture_system_state()
+            }
+        )
+```
+
+## Consequences
+
+### **Positive**
+- **Research integrity**: Immediate error detection prevents corrupted research results
+- **Debugging capability**: Complete error information enables rapid problem resolution
+- **Transparency**: Researchers have complete visibility into processing failures
+- **Academic standards**: Error handling meets rigorous academic research requirements
+- **Time efficiency**: Clear errors save researcher time compared to debugging silent failures
+- **Reproducibility**: Consistent error handling ensures reproducible research workflows
+
+### **Negative**
+- **Less fault tolerance**: System stops on errors that enterprise systems might handle gracefully
+- **Researcher burden**: Researchers must understand and resolve technical errors
+- **Workflow interruption**: Research workflows stop completely on errors
+- **Technical exposure**: Researchers see technical error details rather than user-friendly messages
+
+## Academic Research Benefits
+
+### **Research Workflow Preservation**
+```python
+# Example: Research workflow with proper error handling
+def research_analysis_workflow(documents: List[str]) -> ResearchResults:
+    try:
+        # Each step fails fast with complete error information
+        loaded_docs = load_documents(documents)  # Fails immediately if PDF corrupted
+        entities = extract_entities(loaded_docs)  # Fails immediately if NLP model unavailable
+        graph = build_graph(entities)           # Fails immediately if Neo4j unavailable
+        analysis = analyze_graph(graph)         # Fails immediately if insufficient memory
+        
+        return ResearchResults(analysis)
+        
+    except ValidationError as e:
+        # Researcher gets complete error context and specific recovery guidance
+        print(f"Input validation failed: {e}")
+        print(f"Recovery guidance: {e.recovery_guidance}")
+        raise  # Research cannot proceed with invalid inputs
+        
+    except ProcessingError as e:
+        # Researcher understands exactly what failed and how to fix it
+        print(f"Processing failed at stage: {e.processing_stage}")
+        print(f"Error details: {e.debug_info}")
+        print(f"Recovery guidance: {e.recovery_guidance}")
+        raise  # Research cannot proceed with failed processing
+```
+
+### **Academic Integrity Protection**
+- **No silent data loss**: All processing failures immediately apparent
+- **Complete audit trail**: All errors logged with full context for research validation
+- **Reproducibility assurance**: Error conditions produce consistent, documented failures
+- **Method validation**: Reviewers can verify that error handling meets research standards
+
+### **Research Efficiency**
+- **Immediate feedback**: Researchers know immediately when something goes wrong
+- **Specific guidance**: Recovery instructions help researchers resolve issues quickly
+- **Complete information**: Debug information enables efficient problem resolution
+- **Workflow clarity**: Clear success/failure states for each research step
+
+## Implementation Requirements
+
+### **Error Response Standardization**
+All system components must return standardized error responses:
+```python
+{
+    "status": "error",
+    "error_code": "validation_error",
+    "error_message": "Entity type 'INVALID_TYPE' not supported",
+    "operation": "extract_entities",
+    "context": {"input_entity_types": ["PERSON", "INVALID_TYPE"]},
+    "recovery_guidance": [
+        "Use supported entity types: PERSON, ORG, CONCEPT, THEORY",
+        "Check tool documentation for complete entity type list",
+        "Verify entity type spelling and capitalization"
+    ],
+    "debug_info": {
+        "available_entity_types": ["PERSON", "ORG", "CONCEPT", "THEORY"],
+        "spacy_model": "en_core_web_sm",
+        "model_version": "3.4.0"
+    },
+    "timestamp": "2025-07-23T10:30:00Z"
+}
+```
+
+### **Logging Integration**
+All errors must integrate with structured logging:
+```python
+logger.error(
+    "Tool execution failed",
+    extra={
+        "tool_id": self.tool_id,
+        "operation": operation,
+        "error_type": error_type.value,
+        "error_message": str(error),
+        "context": context,
+        "recovery_guidance": recovery_guidance
+    }
+)
+```
+
+### **Service Integration**
+Error handling must integrate with core services:
+- **Provenance service**: Log all errors for complete research audit trail
+- **Quality service**: Mark failed operations with zero confidence
+- **Workflow service**: Enable workflow recovery from error checkpoints
+
+## Validation Criteria
+
+- [ ] All system components implement fail-fast error handling
+- [ ] Error responses include complete context and recovery guidance
+- [ ] No silent failures or error masking anywhere in system
+- [ ] Error information sufficient for researchers to resolve issues
+- [ ] Error handling preserves research workflow integrity
+- [ ] Logging captures all error information for research audit trails
+- [ ] Error responses are consistent across all system components
+
+## Related ADRs
+
+- **ADR-011**: Academic Research Focus (error handling optimized for research requirements)
+- **ADR-008**: Core Service Architecture (services implement consistent error handling)
+- **ADR-010**: Quality System Design (error handling integrates with confidence tracking)
+
+This fail-fast error handling strategy ensures that KGAS maintains the transparency, debuggability, and reliability essential for rigorous academic research while providing researchers with the information they need to resolve issues efficiently.
+</file>
+
+<file path="docs/architecture/adrs/ADR-001-Phase-Interface-Design.md">
+**Doc status**: Living – auto-checked by doc-governance CI
+
+# ADR-001: Contract-First Tool Interface Design
+
+**Date**: 2025-01-27  
+**Status**: Partially Implemented - 10 tools use legacy interfaces, 9 tools have unified interface, contract-first design remains architectural goal  
+**Deciders**: Development Team  
+**Context**: Tool integration failures due to incompatible interfaces
+
+---
+
+## 🎯 **Decision**
+
+**Use contract-first design for all tool interfaces with theory schema integration**
+
+All tools must implement standardized contracts with theory schema support to enable agent-orchestrated workflows and cross-modal analysis.
+
+---
+
+## 🚨 **Problem**
+
+### **Current Issues**
+- **API Incompatibility**: Tools have different calling signatures and return formats
+- **Integration Failures**: Tools tested in isolation, breaks discovered at agent runtime
+- **No Theory Integration**: Theoretical concepts defined but not consistently used in processing
+- **Agent Complexity**: Agent needs complex logic to handle different tool interfaces
+
+### **Root Cause**
+- **"Build First, Integrate Later"**: Tools built independently without shared contracts
+- **No Interface Standards**: Each tool evolved its own API without coordination
+- **Missing Theory Awareness**: Processing pipeline doesn't consistently use theoretical foundations
+
+---
+
+## 💡 **Trade-off Analysis**
+
+### Options Considered
+
+#### Option 1: Keep Status Quo (Tool-Specific Interfaces)
+- **Pros**:
+  - No migration effort required
+  - Tools remain independent and specialized
+  - Developers familiar with existing patterns
+  - Quick to add new tools without constraints
+  
+- **Cons**:
+  - Integration complexity grows exponentially with tool count
+  - Agent orchestration requires complex adapter logic
+  - No consistent error handling or confidence tracking
+  - Theory integration would require per-tool implementation
+  - Testing each tool combination separately
+
+#### Option 2: Retrofit with Adapters
+- **Pros**:
+  - Preserve existing tool implementations
+  - Gradual migration possible
+  - Lower initial development effort
+  - Can maintain backward compatibility
+  
+- **Cons**:
+  - Adapter layer adds performance overhead
+  - Theory integration still difficult
+  - Two patterns to maintain (native + adapted)
+  - Technical debt accumulates
+  - Doesn't solve root cause of integration issues
+
+#### Option 3: Contract-First Design [SELECTED]
+- **Pros**:
+  - Clean, consistent interfaces across all tools
+  - Theory integration built into contract
+  - Enables intelligent agent orchestration
+  - Simplified testing and validation
+  - Future tools automatically compatible
+  - Cross-modal analysis becomes straightforward
+  
+- **Cons**:
+  - Significant refactoring of existing tools
+  - Higher upfront design effort
+  - Team learning curve for new patterns
+  - Risk of over-engineering contracts
+
+#### Option 4: Microservice Architecture
+- **Pros**:
+  - Tools completely decoupled
+  - Independent scaling and deployment
+  - Technology agnostic (tools in any language)
+  - Industry-standard pattern
+  
+- **Cons**:
+  - Massive complexity increase for research platform
+  - Network overhead for local processing
+  - Distributed system challenges
+  - Overkill for single-user academic use case
+
+### Decision Rationale
+
+Contract-First Design (Option 3) was selected because:
+
+1. **Agent Enablement**: Standardized interfaces are essential for intelligent agent orchestration of tool workflows.
+
+2. **Theory Integration**: Built-in support for theory schemas ensures consistent application of domain knowledge.
+
+3. **Cross-Modal Requirements**: Consistent interfaces enable seamless conversion between graph, table, and vector representations.
+
+4. **Research Quality**: Standardized confidence scoring and provenance tracking improve research reproducibility.
+
+5. **Long-term Maintenance**: While initial effort is higher, the reduced integration complexity pays dividends over time.
+
+6. **Testing Efficiency**: Integration tests can validate tool combinations systematically rather than ad-hoc.
+
+### When to Reconsider
+
+This decision should be revisited if:
+- Moving from research platform to production service
+- Need to integrate external tools not under our control
+- Performance overhead of contracts exceeds 10%
+- Team size grows beyond 5 developers
+- Requirements shift from batch to real-time processing
+
+The contract abstraction provides flexibility to evolve the implementation while maintaining interface stability.
+
+---
+
+## ✅ **Selected Solution**
+
+### **Contract-First Tool Interface**
+```python
+@dataclass(frozen=True)
+class ToolRequest:
+    """Immutable contract for ALL tool inputs"""
+    input_data: Any
+    theory_schema: Optional[TheorySchema] = None
+    concept_library: Optional[MasterConceptLibrary] = None
+    options: Dict[str, Any] = field(default_factory=dict)
+    
+@dataclass(frozen=True)  
+class ToolResult:
+    """Immutable contract for ALL tool outputs"""
+    status: Literal["success", "error"]
+    data: Any
+    confidence: ConfidenceScore  # From ADR-004
+    metadata: Dict[str, Any]
+    provenance: ProvenanceRecord
+
+class KGASTool(ABC):
+    """Contract all tools MUST implement"""
+    @abstractmethod
+    def execute(self, request: ToolRequest) -> ToolResult:
+        pass
+    
+    @abstractmethod
+    def get_theory_compatibility(self) -> List[str]:
+        """Return list of theory schema names this tool supports"""
+        
+    @abstractmethod 
+    def get_input_schema(self) -> Dict[str, Any]:
+        """Return JSON schema for expected input_data format"""
+        
+    @abstractmethod
+    def get_output_schema(self) -> Dict[str, Any]:
+        """Return JSON schema for returned data format"""
+```
+
+### **Implementation Strategy**
+1. **Phase A**: Define tool contracts and create wrappers for existing tools
+2. **Phase B**: Implement theory integration and confidence scoring (ADR-004)
+3. **Phase C**: Migrate tools to native contract implementation
+4. **Phase D**: Enable agent orchestration and cross-modal workflows
+
+---
+
+## 🎯 **Consequences**
+
+### **Positive**
+- **Agent Integration**: Standardized interfaces enable intelligent agent orchestration
+- **Theory Integration**: Built-in support for theory schemas and concept library
+- **Cross-Modal Analysis**: Consistent interfaces enable seamless format conversion
+- **Future-Proof**: New tools automatically compatible with agent workflows
+- **Testing**: Integration tests can validate tool combinations
+- **Confidence Tracking**: Standardized confidence scoring (ADR-004) for research quality
+
+### **Negative**
+- **Migration Effort**: Requires refactoring existing tool implementations
+- **Learning Curve**: Team needs to understand contract-first approach
+- **Initial Complexity**: More upfront design work required
+
+### **Risks**
+- **Scope Creep**: Contract design could become over-engineered
+- **Performance**: Wrapper layers could add overhead
+- **Timeline**: Contract design could delay MVRT delivery
+
+---
+
+## 🔧 **Implementation Plan**
+
+### **UPDATED: Aligned with MVRT Roadmap**
+
+### **Phase A: Tool Contracts (Days 1-3)**
+- [ ] Define `ToolRequest` and `ToolResult` contracts  
+- [ ] Create `KGASTool` abstract base class
+- [ ] Implement `ConfidenceScore` integration (ADR-004)
+- [ ] Create wrappers for existing MVRT tools (~20 tools)
+
+### **Phase B: Agent Integration (Days 4-7)**
+- [ ] Implement theory schema integration in tool contracts
+- [ ] Create agent orchestration layer using standardized interfaces
+- [ ] Implement cross-modal conversion using consistent tool contracts
+- [ ] Create integration test framework for agent workflows
+
+### **Phase C: Native Implementation (Days 8-14)**
+- [ ] Migrate priority MVRT tools to native contract implementation
+- [ ] Remove wrapper layers for performance
+- [ ] Implement multi-layer UI using standardized tool interfaces
+- [ ] Validate agent workflow with native tool implementations
+
+---
+
+## 📊 **Success Metrics**
+
+### **Integration Success**
+- [ ] All tools pass standardized integration tests
+- [ ] Agent can orchestrate workflows without interface errors
+- [ ] Theory schemas properly integrated into all tool processing
+- [ ] Cross-modal conversions work seamlessly through tool contracts
+
+### **Performance Impact**
+- Performance targets are defined and tracked in `docs/planning/performance-targets.md`.
+- The contract-first approach is not expected to introduce significant overhead.
+
+### **Developer Experience**
+- [ ] New tools can be added without integration issues
+- [ ] Theory schemas can be easily integrated into any tool
+- [ ] Agent can automatically discover and use new tools
+- [ ] Testing framework catches integration problems early
+
+---
+
+## 🔄 **Review and Updates**
+
+### **Review Schedule**
+- **Week 2**: Review contract design and initial implementation
+- **Week 4**: Review integration success and performance impact
+- **Week 6**: Review overall success and lessons learned
+
+### **Update Triggers**
+- Performance degradation >20%
+- Integration issues discovered
+- Theory integration requirements change
+- New phase requirements emerge
+
+---
+
+**Related ADRs**: None (first ADR)  
+**Related Documentation**: `ROADMAP_v2.md`, `ARCHITECTURE.md`, `KGAS_EVERGREEN_DOCUMENTATION.md` -e 
+<br><sup>See `docs/roadmap/ROADMAP_OVERVIEW.md` for master plan.</sup>
+</file>
+
+<file path="docs/architecture/adrs/ADR-002-Pipeline-Orchestrator-Architecture.md">
+**Doc status**: Living – auto-checked by doc-governance CI
+
+# ADR-002: PipelineOrchestrator Architecture
+
+## Status
+**ACCEPTED** - Implemented 2025-01-15
+
+## Context
+The GraphRAG system suffered from massive code duplication across workflow implementations. Each phase (Phase 1, Phase 2, Phase 3) had separate workflow files with 70-95% duplicate execution logic, making maintenance impossible and introducing bugs.
+
+### Problems Identified
+- **95% code duplication** in Phase 1 workflows (400+ lines duplicated)
+- **70% code duplication** in Phase 2 workflows  
+- **No unified interface** between tools and workflows
+- **Print statement chaos** instead of proper logging
+- **Import path hacks** (`sys.path.insert`) throughout codebase
+- **Inconsistent error handling** across phases
+
+### Gemini AI Validation
+External review by Gemini AI confirmed these issues as "**the largest technical debt**" requiring immediate architectural intervention.
+
+## Decision
+Implement a unified **PipelineOrchestrator** architecture with the following components:
+
+### 1. Tool Protocol Standardization
+```python
+class Tool(Protocol):
+    def execute(self, input_data: Any) -> Any:
+        ...
+```
+
+### 2. Tool Adapter Pattern
+- `PDFLoaderAdapter`, `TextChunkerAdapter`, `SpacyNERAdapter`
+- `RelationshipExtractorAdapter`, `EntityBuilderAdapter`, `EdgeBuilderAdapter`  
+- `PageRankAdapter`, `MultiHopQueryAdapter`
+- Bridges existing tools to unified protocol
+
+### 3. Configurable Pipeline Factory
+- `create_unified_workflow_config(phase, optimization_level)`
+- Supports: PHASE1/PHASE2/PHASE3 × STANDARD/OPTIMIZED/ENHANCED
+- Single source of truth for tool chains
+
+### 4. Unified Execution Engine
+- `PipelineOrchestrator.execute(document_paths, queries)`
+- Consistent error handling and logging
+- Replaces all duplicate workflow logic
+
+## Consequences
+
+### Positive
+- ✅ **95% reduction** in Phase 1 workflow duplication
+- ✅ **70% reduction** in Phase 2 workflow duplication  
+- ✅ **Single source of truth** for all pipeline execution
+- ✅ **Type-safe interfaces** between components
+- ✅ **Proper logging** throughout system
+- ✅ **Backward compatibility** maintained
+
+### Negative
+- Requires adapter layer for existing tools
+- Initial implementation complexity
+- Learning curve for new unified interface
+
+## Implementation Evidence
+```bash
+# Verification commands
+python -c "from src.core.pipeline_orchestrator import PipelineOrchestrator; print('✅ Available')"
+python -c "from src.core.tool_adapters import PDFLoaderAdapter; print('✅ Tool adapters working')"
+python -c "from src.tools.phase1.vertical_slice_workflow import VerticalSliceWorkflow; w=VerticalSliceWorkflow(); print(f'✅ Uses orchestrator: {hasattr(w, \"orchestrator\")}')"
+```
+
+**Results:** All verification tests pass ✅
+
+## Alternatives Considered
+
+### 1. Incremental Refactoring
+- **Rejected:** Would not address root cause of duplication
+- **Issue:** Technical debt would continue accumulating
+
+### 2. Complete Rewrite
+- **Rejected:** Too risky, would break existing functionality
+- **Issue:** No backward compatibility guarantee
+
+### 3. Plugin Architecture
+- **Rejected:** Overly complex for current needs
+- **Issue:** Would introduce unnecessary abstraction layers
+
+## Related Decisions
+- [ADR-002: Logging Standardization](ADR-002-Logging-Standardization.md)
+- [ADR-003: Quality Gate Enforcement](ADR-003-Quality-Gate-Enforcement.md)
+
+## References
+- [CLAUDE.md Priority 2 Implementation Plan](../../CLAUDE.md)
+- [Gemini AI Architectural Review](../../external_tools/gemini-review-tool/gemini-review.md)
+- [Tool Factory Implementation](../../src/core/tool_factory.py)
+- [Pipeline Orchestrator Implementation](../../src/core/pipeline_orchestrator.py)-e 
+<br><sup>See `docs/roadmap/ROADMAP_OVERVIEW.md` for master plan.</sup>
+</file>
+
+</files>

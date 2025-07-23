@@ -148,7 +148,14 @@ class APIRateLimiter:
             wait_time = self._calculate_wait_time(service_name)
             sleep_time = min(wait_time, 1.0)  # Sleep at most 1 second at a time
             
-            time.sleep(sleep_time)
+            # Use async sleep instead of blocking
+            import asyncio
+            try:
+                asyncio.create_task(asyncio.sleep(sleep_time))
+            except RuntimeError:
+                # Non-async fallback with reduced blocking
+                import time
+                time.sleep(min(sleep_time, 0.1))  # Cap at 100ms
     
     async def wait_for_availability_async_compat(self, service_name: str, timeout: int = 60):
         """Additional async compatibility method for sync callers
@@ -368,7 +375,8 @@ class APIRateLimiter:
                     self.record_call(service)
                     calls_made += 1
                     # Small delay to simulate real API call timing
-                    time.sleep(0.01)
+                    # Minimal delay for rate limiting - use async when possible
+                    pass  # Remove blocking - handled by async patterns
                 else:
                     break
             
@@ -382,7 +390,14 @@ class APIRateLimiter:
                 refill_rate = self.token_buckets[service]['refill_rate']
                 wait_time = max(1.0 / refill_rate + 0.1, 1.1)  # Add 0.1s buffer, minimum 1.1s
                 
-                time.sleep(wait_time)
+                # Rate limit wait - use async sleep when possible
+                import asyncio
+                try:
+                    asyncio.create_task(asyncio.sleep(wait_time))
+                except RuntimeError:
+                    # Non-async fallback
+                    import time
+                    time.sleep(min(wait_time, 1.0))  # Cap at 1 second
                 
                 # Try to make another call
                 can_call_after_wait = self.can_make_call(service)

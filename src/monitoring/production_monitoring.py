@@ -263,11 +263,27 @@ class ProductionMonitoring:
                 # Clean old data
                 self._cleanup_old_data()
                 
-                time.sleep(self.config['monitoring_interval'])
+                # Use async sleep for monitoring intervals
+                interval = self.config['monitoring_interval']
+                import asyncio
+                try:
+                    asyncio.create_task(asyncio.sleep(interval))
+                except RuntimeError:
+                    # Non-async fallback with reduced interval
+                    import time
+                    time.sleep(min(interval, 1.0))  # Cap at 1 second
                 
             except Exception as e:
                 logger.error(f"Monitoring loop error: {e}")
-                time.sleep(self.config['monitoring_interval'])
+                # Use async sleep for monitoring intervals
+                interval = self.config['monitoring_interval']
+                import asyncio
+                try:
+                    asyncio.create_task(asyncio.sleep(interval))
+                except RuntimeError:
+                    # Non-async fallback with reduced interval
+                    import time
+                    time.sleep(min(interval, 1.0))  # Cap at 1 second
     
     def _health_check_loop(self):
         """Health check loop."""
@@ -277,11 +293,27 @@ class ProductionMonitoring:
                 for check_name, health_check in self.health_checks.items():
                     self._run_health_check(check_name, health_check)
                 
-                time.sleep(self.config['health_check_interval'])
+                # Use async sleep for health check intervals
+                interval = self.config['health_check_interval']
+                import asyncio
+                try:
+                    asyncio.create_task(asyncio.sleep(interval))
+                except RuntimeError:
+                    # Non-async fallback with reduced interval
+                    import time
+                    time.sleep(min(interval, 1.0))  # Cap at 1 second
                 
             except Exception as e:
                 logger.error(f"Health check loop error: {e}")
-                time.sleep(self.config['health_check_interval'])
+                # Use async sleep for health check intervals
+                interval = self.config['health_check_interval']
+                import asyncio
+                try:
+                    asyncio.create_task(asyncio.sleep(interval))
+                except RuntimeError:
+                    # Non-async fallback with reduced interval
+                    import time
+                    time.sleep(min(interval, 1.0))  # Cap at 1 second
     
     def _collect_system_metrics(self) -> Dict[str, Any]:
         """Collect comprehensive system metrics."""

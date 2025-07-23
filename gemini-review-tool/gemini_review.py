@@ -1009,6 +1009,9 @@ Be thorough and skeptical. Look for discrepancies between the claims and the act
 
 def main():
     """CLI entry point."""
+    # Load environment variables from .env file
+    load_dotenv()
+    
     parser = argparse.ArgumentParser(
         description="Automated code review using Gemini AI",
         formatter_class=argparse.RawDescriptionHelpFormatter,

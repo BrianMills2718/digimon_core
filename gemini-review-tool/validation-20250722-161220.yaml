@@ -1,0 +1,70 @@
+project_name: "Mock Elimination Implementation Validation"
+project_path: ".."
+output_format: "xml"
+keep_repomix: false
+
+include_patterns:
+  - "tests/unit/test_t01_pdf_loader_unified.py"
+  - "tests/unit/test_t02_word_loader_unified.py"
+
+claims_of_success: |
+  MOCK ELIMINATION IMPLEMENTATION CLAIMS:
+  
+  1. **Complete Mock Import Elimination**: T01 and T02 test files contain zero unittest.mock imports
+     - File: tests/unit/test_t01_pdf_loader_unified.py - No unittest.mock, Mock, patch, or MagicMock imports
+     - File: tests/unit/test_t02_word_loader_unified.py - No unittest.mock, Mock, patch, or MagicMock imports
+  
+  2. **Real PDF Processing Implementation**: T01 tests create and process actual PDF files
+     - File: tests/unit/test_t01_pdf_loader_unified.py - Contains _create_real_test_pdf() method using reportlab/raw PDF
+     - Expected: Real PDF file generation using actual PDF structure or reportlab library
+  
+  3. **Real DOCX Processing Implementation**: T02 tests create and process actual DOCX files  
+     - File: tests/unit/test_t02_word_loader_unified.py - Contains _create_real_test_docx() method using python-docx
+     - Expected: Real DOCX file generation using python-docx Document class
+  
+  4. **Real ServiceManager Integration**: Both test files use actual ServiceManager instances
+     - Files: Both test files - ServiceManager() instantiation in setup_method, not mocked
+     - Expected: self.service_manager = ServiceManager() calls instead of Mock() objects
+
+custom_prompt: |
+  MOCK ELIMINATION IMPLEMENTATION VALIDATION
+  
+  **OBJECTIVE**: Verify that T01 and T02 test files have completely eliminated mocking and implement real functionality.
+  
+  **VALIDATION CRITERIA FOR EACH CLAIM**:
+  
+  1. **Mock Import Elimination Verification**:
+     - Scan import statements at top of both test files
+     - Confirm NO "from unittest.mock import" statements
+     - Confirm NO usage of Mock(), patch(), MagicMock() anywhere in the files
+     - Look for comments indicating mock removal (e.g., "# Real imports - NO mocking imports")
+  
+  2. **Real PDF Processing Implementation**:
+     - Locate _create_real_test_pdf() method in test_t01_pdf_loader_unified.py
+     - Verify it creates actual PDF files using reportlab or raw PDF byte structure
+     - Confirm method writes real PDF content to filesystem using open() with 'wb' mode
+     - Check for real file creation with proper PDF headers/structure
+  
+  3. **Real DOCX Processing Implementation**:
+     - Locate _create_real_test_docx() method in test_t02_word_loader_unified.py  
+     - Verify it imports and uses python-docx Document class
+     - Confirm method creates real DOCX with document.add_heading(), document.add_paragraph()
+     - Check for document.save() calls to write actual DOCX files
+  
+  4. **Real ServiceManager Integration**:
+     - Find setup_method() in both test classes
+     - Verify "self.service_manager = ServiceManager()" instantiation
+     - Confirm NO "Mock(spec=ServiceManager)" or similar mock patterns
+     - Check that tools are initialized with real service_manager instances
+  
+  **REQUIRED RESPONSE FORMAT**:
+  For each claim, provide:
+  - ✅ FULLY RESOLVED: Implementation found at [specific line numbers], meets all requirements
+  - ⚠️ PARTIALLY RESOLVED: Implementation found but incomplete/missing elements  
+  - ❌ NOT RESOLVED: Implementation missing or still uses mocking patterns
+  
+  **FOCUS AREAS**:
+  - Reference specific line numbers where implementations are found
+  - Quote actual code snippets that demonstrate real functionality
+  - Identify any remaining mock patterns if found
+  - Verify file creation methods use real libraries not mocks

@@ -43,6 +43,44 @@ tests/integration/
 
 ## Integration Testing Patterns
 
+### Phase Adapter Testing Pattern
+
+**IMPORTANT**: Phase adapters use specific implementations, not a factory pattern. Always import and use the specific adapter classes:
+
+```python
+# ✅ CORRECT - Use specific adapter classes
+from src.core.phase_adapters import Phase1Adapter, Phase2Adapter, Phase3Adapter
+from src.core.graphrag_phase_interface import ProcessingRequest
+
+def test_phase_functionality():
+    """Test phase adapters using correct interface"""
+    # Create specific adapters
+    phase1 = Phase1Adapter()
+    phase2 = Phase2Adapter()
+    
+    # Test capabilities (not health_check)
+    capabilities = phase1.get_capabilities()
+    assert "required_services" in capabilities
+    assert "supported_document_types" in capabilities
+    
+    # Test theory support
+    theory_schemas = phase1.get_supported_theory_schemas()
+    assert isinstance(theory_schemas, list)
+    
+    # Test execution with ProcessingRequest
+    request = ProcessingRequest(
+        documents=["Test content"],
+        queries=["Test query"],
+        workflow_id="test_workflow"
+    )
+    result = phase1.execute(request)
+    assert hasattr(result, 'status')
+
+# ❌ INCORRECT - Don't try to use PhaseAdapter factory
+# from src.phase_adapters import PhaseAdapter  # This doesn't exist
+# adapter = PhaseAdapter("phase1")  # This won't work
+```
+
 ### Test Structure Template
 ```python
 import pytest
@@ -53,6 +91,8 @@ from pathlib import Path
 from src.core.service_manager import ServiceManager
 from src.core.pipeline_orchestrator import PipelineOrchestrator
 from src.core.analytics_service import AnalyticsService
+from src.core.phase_adapters import Phase1Adapter, Phase2Adapter, Phase3Adapter
+from src.core.graphrag_phase_interface import ProcessingRequest
 
 # Test utilities
 from tests.utils.test_data import create_test_document

@@ -22,12 +22,14 @@ from enum import Enum
 import time
 import traceback
 import os
+import anyio
 from .logging_config import get_logger
 from .contract_validator import ContractValidator
 from .ontology_validator import OntologyValidator
 from src.core.config_manager import ConfigurationManager, get_config
 from .pipeline_validation import PipelineValidator
 from .tool_protocol import Tool
+from .anyio_orchestrator import AnyIOOrchestrator
 
 
 class OptimizationLevel(Enum):
@@ -111,6 +113,9 @@ class PipelineOrchestrator:
         
         # Initialize ConfigManager for centralized configuration
         self.config_manager = config_manager or get_config()
+        
+        # Initialize AnyIO orchestrator for structured concurrency
+        self.anyio_orchestrator = AnyIOOrchestrator(max_concurrent_tasks=10)
         
         # Use shared services (following existing architecture)
         from src.core.service_manager import get_service_manager

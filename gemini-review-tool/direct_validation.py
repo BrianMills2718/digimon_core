@@ -1,105 +1,109 @@
 #!/usr/bin/env python3
 """
-Direct Gemini validation for AsyncAPIClient unit testing claims
+Direct validation using the existing gemini review infrastructure
 """
 
+import sys
 import os
-import google.generativeai as genai
-from pathlib import Path
+sys.path.append(os.path.dirname(__file__))
 
-# Configure Gemini
-api_key = os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")
-if not api_key:
-    print("❌ No GOOGLE_API_KEY or GEMINI_API_KEY environment variable found")
-    exit(1)
+from gemini_review import GeminiReviewer
+from gemini_review_config import ReviewConfig
 
-genai.configure(api_key=api_key)
-model = genai.GenerativeModel("gemini-2.5-flash")
+def main():
+    # Create a custom config for validation
+    config = ReviewConfig(
+        project_name="Development Standards Documentation Validation",
+        custom_prompt="""
+**VALIDATION OBJECTIVE**: Verify the implementation claims for the comprehensive development standards documentation suite.
 
-# Read the bundle
-bundle_path = Path("async-api-test-bundle.xml")
-with open(bundle_path, "r") as f:
-    codebase_content = f.read()
+**VALIDATION CRITERIA**: For each claim below, verify:
+1. **Implementation Present**: Does the documentation file exist with the claimed content?
+2. **Comprehensive Coverage**: Does it cover all the claimed areas and use cases?  
+3. **Academic Research Focus**: Does it specifically address academic research requirements?
+4. **Integration Consistency**: Does it integrate properly with the overall system architecture?
+5. **Practical Completeness**: Is it actionable and complete rather than just theoretical?
 
-# Create validation prompt
-prompt = f"""Please validate the specific AsyncAPIClient unit testing implementation claims by carefully reviewing the provided codebase.
+**CLAIMS TO VALIDATE**:
 
-**CONTEXT**: AsyncAPIClient unit testing has been implemented using a systematic 4-step approach to achieve 75% coverage with 62 comprehensive tests.
+1. **Code Documentation Standards**: Complete comprehensive code documentation framework with academic research requirements
+2. **System Behavior Recording Protocols**: Complete operational knowledge capture framework for knowledge transfer  
+3. **Knowledge Transfer Protocols**: Complete systematic developer transition processes with academic domain knowledge preservation
+4. **Comprehensive Configuration Documentation**: Complete centralized configuration management with academic optimization
+5. **Development Workflow Documentation**: Complete systematic development processes with academic integration
+6. **Testing Strategy Documentation**: Complete mock-free testing methodology with academic validation frameworks
+7. **Deployment Procedures Documentation**: Complete safe deployment processes with academic data protection
+8. **Monitoring and Observability Documentation**: Complete academic research-focused monitoring frameworks
 
-FOCUS ON VALIDATING THESE 4 SPECIFIC CLAIMS:
+**SUCCESS CRITERIA**:
+Each claim should be rated as:
+- ✅ FULLY RESOLVED: Complete implementation with all claimed features and academic focus
+- ⚠️ PARTIALLY RESOLVED: Implementation present but missing some claimed elements  
+- ❌ NOT RESOLVED: Implementation incomplete, missing, or not meeting claims
 
-1. **AsyncAPIClient Comprehensive Unit Testing**: Verify 75% coverage achieved with 62 comprehensive tests
-2. **Systematic 4-Step Testing Approach**: Verify organized test structure across multiple test files  
-3. **Real Functionality Validation**: Verify tests use actual AsyncAPIClient methods, not mocked core functionality
-4. **Comprehensive Error Handling**: Verify error scenarios and edge cases are thoroughly tested
+**VALIDATION INSTRUCTIONS**:
+1. Examine each documentation file for completeness and practical applicability
+2. Verify academic research focus is maintained throughout
+3. Check integration between different standards documents
+4. Assess whether implementations address the specific architectural issues they claim to solve
+5. Determine if the documentation provides actionable guidance rather than just theoretical frameworks
 
-VALIDATION CRITERIA - Each claim must be validated with:
-- **Implementation Present**: Does the claimed testing implementation actually exist in the test files?
-- **Requirements Met**: Does the implementation satisfy the specific testing requirements?
-- **Quality Standards**: Are the tests comprehensive and production-ready?
-- **Evidence Consistency**: Do the test files support the claims made about coverage and approach?
-
-For each claim, provide verdict:
-- ✅ **FULLY RESOLVED**: Implementation present, complete, meets all requirements with evidence
-- ⚠️ **PARTIALLY RESOLVED**: Implementation present but incomplete or doesn't fully meet requirements
-- ❌ **NOT RESOLVED**: Implementation missing, inadequate, or claims not supported by code
-
-**DETAILED VALIDATION REQUIREMENTS**:
-
-**CLAIM 1 - AsyncAPIClient Comprehensive Unit Testing**:
-- Must verify: Test files contain comprehensive coverage of AsyncAPIClient functionality
-- Must verify: Tests are systematic and well-organized across multiple test classes
-- Must verify: Test count approaches 62 tests across all test files
-- Evidence required: Actual test methods covering initialization, caching, performance, request processing
-
-**CLAIM 2 - Systematic 4-Step Testing Approach**:
-- Must verify: test_async_api_client.py contains basic setup and initialization tests
-- Must verify: test_async_api_client_step3.py contains caching and performance tests
-- Must verify: test_async_api_client_step4.py contains request processing and error handling tests
-- Evidence required: Clear organization with each step focusing on specific functionality areas
-
-**CLAIM 3 - Real Functionality Validation**:
-- Must verify: Tests instantiate actual AsyncAPIClient instances
-- Must verify: Tests call real methods like _make_actual_request, get_performance_metrics, process_concurrent_requests
-- Must verify: Core functionality is not mocked (external dependencies like OpenAI/Gemini clients may be mocked)
-- Evidence required: Test methods show direct calls to AsyncAPIClient methods with real assertions
-
-**CLAIM 4 - Comprehensive Error Handling**:
-- Must verify: TestErrorHandling class exists with tests for client exceptions and service failures
-- Must verify: TestEdgeCases class exists with tests for edge scenarios
-- Must verify: Tests cover empty requests, resource cleanup, multiple close calls
-- Evidence required: Error testing methods with realistic failure conditions and proper exception handling
-
-**CRITICAL VALIDATION REQUIREMENTS**:
-1. Are the unit tests comprehensive and systematic across multiple organized test files?
-2. Do the tests call actual AsyncAPIClient methods rather than mocking core functionality?
-3. Is error handling and edge case testing thorough and realistic?
-4. Does the testing approach demonstrate 4-step systematic organization?
-
-Reference specific line numbers and test method names in your analysis.
-Validate whether each claim is fully supported by the actual test implementation.
-
-CODEBASE:
-{codebase_content}
-"""
-
-print("🤖 Sending validation to Gemini...")
-try:
-    response = model.generate_content(prompt)
-    print("\n" + "="*80)
-    print("GEMINI VALIDATION RESULTS")
-    print("="*80)
-    print(response.text)
-    print("="*80)
+Please analyze the provided documentation files and provide a verdict for each claim with specific evidence from the content.
+""",
+        claims_of_success={
+            "Code Documentation Standards": "Complete comprehensive code documentation framework with academic research requirements implemented in docs/development/standards/code-documentation-standards.md",
+            "System Behavior Recording Protocols": "Complete operational knowledge capture framework for knowledge transfer implemented in docs/development/standards/system-behavior-recording-protocols.md", 
+            "Knowledge Transfer Protocols": "Complete systematic developer transition processes with academic domain knowledge preservation implemented in docs/development/standards/knowledge-transfer-protocols.md",
+            "Comprehensive Configuration Documentation": "Complete centralized configuration management with academic optimization implemented in docs/development/standards/comprehensive-configuration-documentation.md",
+            "Development Workflow Documentation": "Complete systematic development processes with academic integration implemented in docs/development/standards/development-workflow-documentation.md",
+            "Testing Strategy Documentation": "Complete mock-free testing methodology with academic validation frameworks implemented in docs/development/standards/testing-strategy-documentation.md",
+            "Deployment Procedures Documentation": "Complete safe deployment processes with academic data protection implemented in docs/development/standards/deployment-procedures-documentation.md",
+            "Monitoring and Observability Documentation": "Complete academic research-focused monitoring frameworks implemented in docs/development/standards/monitoring-observability-documentation.md"
+        }
+    )
     
-    # Save results
-    results_path = Path("validation-results-direct.md")
-    with open(results_path, "w") as f:
-        f.write("# AsyncAPIClient Unit Testing Validation Results\n")
-        f.write("Generated by Direct Gemini Validation\n\n")
-        f.write(response.text)
+    # Initialize reviewer
+    reviewer = GeminiReviewer()
     
-    print(f"\n✅ Results saved to: {results_path}")
+    # Read the repomix output
+    repomix_path = "repomix-output.xml"
+    if not os.path.exists(repomix_path):
+        print(f"❌ {repomix_path} not found")
+        return
     
-except Exception as e:
-    print(f"❌ Error during validation: {e}")
+    with open(repomix_path, 'r', encoding='utf-8') as f:
+        content = f.read()
+    
+    print("🤖 Sending validation request to Gemini...")
+    
+    try:
+        # Run the review
+        result = reviewer.review_content(content, config)
+        
+        # Save results
+        output_file = "development-standards-validation-results.md"
+        with open(output_file, 'w', encoding='utf-8') as f:
+            f.write(result)
+        
+        print(f"✅ Validation complete! Results saved to: {output_file}")
+        
+        # Print key findings
+        print("\n" + "="*60)
+        print("📊 VALIDATION RESULTS SUMMARY")
+        print("="*60)
+        
+        lines = result.split('\n')
+        for line in lines:
+            if '✅' in line or '⚠️' in line or '❌' in line:
+                print(line)
+        
+        print("="*60)
+        print(f"📄 Full results: {output_file}")
+        
+    except Exception as e:
+        print(f"❌ Error during validation: {e}")
+        import traceback
+        traceback.print_exc()
+
+if __name__ == "__main__":
+    main()

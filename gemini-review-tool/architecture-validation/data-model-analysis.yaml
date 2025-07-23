@@ -1,0 +1,76 @@
+# Data Model and Schema Analysis
+# Purpose: Deep evaluation of data architecture and modeling decisions
+
+validation_type: data_architecture_analysis
+claim: "The data models and schemas provide a robust foundation for knowledge graph operations"
+
+target_files:
+  - "docs/architecture/data/DATABASE_SCHEMAS.md"
+  - "docs/architecture/data/PYDANTIC_SCHEMAS.md"
+  - "docs/architecture/data/AI_MODELS.md"
+  - "docs/architecture/data/bi-store-justification.md"
+  - "docs/architecture/data/theory-meta-schema-v10.md"
+  - "docs/architecture/data-model/neo4j-schema.md"
+  - "docs/architecture/data-model/sqlite-schema.md"
+
+prompt: |
+  Perform a critical analysis of the KGAS data architecture and modeling approach:
+  
+  **1. DATA MODEL DESIGN QUALITY**
+  - Are the data models well-normalized and efficient?
+  - Do they capture the essential aspects of knowledge graphs?
+  - Are relationships properly modeled?
+  - How well do they support the intended queries and operations?
+  
+  **2. BI-STORE ARCHITECTURE**
+  - Is the dual Neo4j/SQLite approach justified?
+  - Are the responsibilities clearly divided between stores?
+  - How is consistency maintained across stores?
+  - What are the synchronization challenges?
+  
+  **3. SCHEMA EVOLUTION**
+  - How well do the schemas support evolution?
+  - Are versioning strategies adequate?
+  - Can the system handle schema migrations gracefully?
+  - What happens to existing data during schema changes?
+  
+  **4. PERFORMANCE IMPLICATIONS**
+  - Will the data models support efficient querying?
+  - Are there potential performance bottlenecks?
+  - How well will the models scale with data volume?
+  - Are indexes and optimizations properly considered?
+  
+  **5. SEMANTIC RICHNESS**
+  - Do the models capture sufficient semantic information?
+  - How well is uncertainty and confidence represented?
+  - Are provenance and lineage properly tracked?
+  - Can the models support advanced graph analytics?
+  
+  **6. CRITICAL ISSUES**
+  - What are the most significant weaknesses in the data design?
+  - Are there missing entities or relationships?
+  - Where might data integrity be compromised?
+  - What operational challenges will arise?
+  
+  Provide specific examples of:
+  - Poorly designed schemas or relationships
+  - Missing but essential data elements
+  - Potential consistency problems
+  - Performance anti-patterns
+  
+  Rate the data architecture maturity: Nascent/Developing/Mature/Advanced
+  What are the top 3 data architecture improvements needed?
+
+analysis_criteria:
+  - Normalization and efficiency
+  - Query optimization potential
+  - Consistency mechanisms
+  - Evolution capabilities
+  - Semantic completeness
+
+warning_signs:
+  - Circular dependencies
+  - Missing foreign key relationships
+  - Inadequate indexing strategies
+  - Synchronization complexity
+  - Schema rigidity

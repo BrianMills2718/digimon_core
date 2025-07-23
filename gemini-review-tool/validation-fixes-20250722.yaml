@@ -1,0 +1,35 @@
+# Focused validation of fixes implemented
+include_patterns:
+  - "tests/unit/test_t11_powerpoint_loader_unified.py"
+  - "src/tools/base_tool.py"
+
+# Custom validation prompt focused on the fixes
+custom_prompt: |
+  You are validating specific FIXES to issues identified in a previous Gemini validation.
+  
+  PREVIOUS CRITICAL ISSUES:
+  1. T11 PowerPoint Loader test suite was completely missing
+  2. Error handling used string prefixes instead of formal programmatic error codes
+  
+  FIXES TO VALIDATE:
+  1. test_t11_powerpoint_loader_unified.py - Should now exist with comprehensive mock-free tests
+  2. ToolErrorCode enum in base_tool.py - Should provide formal error codes for programmatic handling
+  
+  For each fix, determine:
+  - FULLY RESOLVED: Fix implemented completely and correctly
+  - PARTIALLY RESOLVED: Fix implemented but incomplete or has issues
+  - NOT RESOLVED: Fix missing or incorrect
+  
+  Provide specific line numbers and evidence for each assessment.
+
+claims_of_success: |
+  FIX 1: T11 PowerPoint Loader test suite now exists with comprehensive mock-free tests using real python-pptx processing
+  FIX 2: ToolErrorCode enum added to base_tool.py with formal error codes for programmatic error handling
+
+ignore_patterns:
+  - "*.md"
+  - "*.log" 
+  - "*.xml"
+  - "archived/**"
+  - "docs/**"
+  - "data/**"

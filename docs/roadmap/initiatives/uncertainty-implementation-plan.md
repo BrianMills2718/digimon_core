@@ -158,7 +158,18 @@ class EnhancedIdentityService(T107_IdentityService):
 | Confidence Calibration | ±0.05 | Predicted vs actual | Calibration plot |
 | Cross-domain Performance | > 85% | Accuracy across domains | Domain-specific tests |
 
-### 📅 **Layer 3: Temporal Knowledge Graph** (Phase 7-8)
+### 🚀 **Layer 3: Bayesian Aggregation for Multiple Sources** (Phase 2.1)
+**Timeline**: 4 weeks  
+**Purpose**: LLM-based Bayesian aggregation for dependent sources  
+**Status**: PLANNED - See [Phase 2.1 Implementation Plan](../phases/phase-2.1-graph-analytics/uncertainty-system-implementation.md)
+
+This layer has been prioritized for immediate implementation in Phase 2.1 due to critical need for proper multi-source aggregation. The implementation will include:
+- LLM-based parameter estimation for Bayesian analysis
+- Proper handling of source dependencies (citations, temporal cascades)
+- Integration with existing Quality and Identity services
+- Structured output using Pydantic models
+
+### 📅 **Layer 4: Temporal Knowledge Graph** (Phase 7-8)
 **Timeline**: 6-8 weeks  
 **Purpose**: Add time-aware confidence bounds
 
@@ -296,56 +307,82 @@ class TemporalReasoner:
 | Temporal Joins | Functional | Cross-time relationships |
 | Validity Periods | Enforced | Constraint validation |
 
-### 🔬 **Layer 4: Full Bayesian Pipeline** (Phase 8-9)
+### 🔬 **Layer 5: Full Bayesian Pipeline** (Phase 8-9)
 **Timeline**: 8-10 weeks  
-**Purpose**: Complete uncertainty propagation
+**Purpose**: Complete uncertainty propagation with advanced Bayesian networks
+
+Note: Basic Bayesian aggregation for multiple sources has been moved to Layer 3 and prioritized for Phase 2.1 implementation. This layer focuses on more advanced Bayesian network capabilities.
 
 #### Implementation Tasks
 
-##### Week 1-3: Bayesian Framework
+##### Week 1-3: Bayesian Aggregation Framework
 ```python
 # TDD Test First
-def test_bayesian_propagation():
-    """Test uncertainty propagates correctly"""
-    # Given: Uncertain inputs
-    entity1 = Entity("A", confidence=Normal(0.8, 0.1))
-    entity2 = Entity("B", confidence=Normal(0.7, 0.15))
+def test_bayesian_aggregation():
+    """Test Bayesian aggregation of multiple sources"""
+    # Given: Multiple sources claiming same fact
+    sources = [
+        Source("Paper A", confidence=0.9, cited_by=["Paper B"]),
+        Source("Paper B", confidence=0.8, cites=["Paper A"]), 
+        Source("Paper C", confidence=0.7, independent=True)
+    ]
     
-    # When: Combined in relationship
-    relationship = create_relationship(entity1, entity2)
+    # When: Bayesian aggregation applied
+    aggregator = BayesianAggregationService(llm_client)
+    result = aggregator.aggregate_claim(
+        claim="Tim Cook is CEO of Apple",
+        sources=sources
+    )
     
-    # Then: Uncertainty propagates correctly
-    assert isinstance(relationship.confidence, Distribution)
-    assert 0.5 < relationship.confidence.mean() < 0.8
-    assert relationship.confidence.std() > max(0.1, 0.15)
+    # Then: Proper handling of dependencies
+    assert 0.6 < result.posterior < 0.8  # Not naive 0.98
+    assert "citation dependency" in result.reasoning
+    assert result.joint_likelihood_given_H < 0.504  # Not independent
 ```
 
 ```python
-# Implementation
-from typing import Union
-from scipy import stats
+# Implementation per ADR-016
+from pydantic import BaseModel
+from typing import List, Dict, Optional
 
-class BayesianConfidence:
-    """Full probability distribution for confidence"""
+class BayesianAnalysisOutput(BaseModel):
+    """Structured output from LLM for Bayesian analysis"""
+    prior_H: float  # P(H)
+    joint_likelihood_given_H: float  # P(E₁,E₂,E₃|H)
+    joint_likelihood_given_not_H: float  # P(E₁,E₂,E₃|¬H)
+    reasoning: str  # Explanation of the analysis
+
+class BayesianAggregationService:
+    """Service for Bayesian aggregation of multiple sources"""
     
-    def __init__(self, distribution: Union[stats.rv_continuous, float]):
-        if isinstance(distribution, float):
-            # Convert point estimate to distribution
-            self.dist = stats.norm(distribution, 0.05)
-        else:
-            self.dist = distribution
-    
-    def propagate_through(self, operation: str, *other_confidences):
-        """Propagate uncertainty through operation"""
-        if operation == "AND":
-            # Multiplication of probabilities
-            return self._propagate_multiplication(other_confidences)
-        elif operation == "OR":
-            # Maximum of probabilities
-            return self._propagate_maximum(other_confidences)
-        elif operation == "WEIGHTED":
-            # Weighted combination
-            return self._propagate_weighted(other_confidences)
+    def __init__(self, llm_client, service_manager):
+        self.llm = llm_client
+        self.service_manager = service_manager
+        self.identity_service = service_manager.identity_service
+        self.quality_service = service_manager.quality_service
+        
+    def aggregate_claim(self, claim: str, sources: List[Source]) -> AggregatedClaim:
+        """Aggregate confidence from multiple sources using Bayesian approach"""
+        # Step 1: Get base confidence from each source
+        source_confidences = [
+            self.quality_service.assess_confidence(source) 
+            for source in sources
+        ]
+        
+        # Step 2: LLM analyzes dependencies and estimates parameters
+        analysis = self._get_bayesian_analysis(claim, sources, source_confidences)
+        
+        # Step 3: Programmatic Bayesian update
+        posterior = self._bayesian_update(analysis)
+        
+        # Step 4: Create aggregated result with provenance
+        return AggregatedClaim(
+            claim=claim,
+            posterior_confidence=posterior,
+            sources=sources,
+            bayesian_analysis=analysis,
+            provenance=self._create_provenance_record(sources, analysis)
+        )
 ```
 
 ##### Week 4-5: Monte Carlo Integration
@@ -488,7 +525,7 @@ test_temporal_decay_functions()
 test_time_travel_queries()
 test_evolution_tracking()
 
-# Layer 4 Tests
+# Layer 5 Tests
 test_distribution_propagation()
 test_monte_carlo_convergence()
 test_belief_network_inference()
@@ -504,7 +541,7 @@ def test_uncertainty_through_pipeline():
     # Process through pipeline
     entities = extract_entities(doc)  # Layer 2: Contextual
     graph = build_graph(entities)     # Layer 3: Temporal
-    analysis = analyze_graph(graph)   # Layer 4: Bayesian
+    analysis = analyze_graph(graph)   # Layer 5: Bayesian
     
     # Verify uncertainty preserved and propagated
     assert all(e.confidence.layer >= 2 for e in entities)
@@ -541,7 +578,9 @@ def test_uncertainty_through_pipeline():
 ### Per-Layer Success
 - **Layer 2**: >85% disambiguation accuracy
 - **Layer 3**: Temporal queries functional
-- **Layer 4**: Bayesian propagation accurate
+- **Layer 3**: Bayesian aggregation accurate
+- **Layer 4**: Temporal queries functional
+- **Layer 5**: Full Bayesian propagation accurate
 
 ## Comprehensive Success Metrics Dashboard
 
@@ -551,10 +590,12 @@ def test_uncertainty_through_pipeline():
 | Layer 1 (Basic) | ✅ Complete | Baseline | Confidence scores |
 | Layer 2 (Contextual) | 4-6 weeks | +50% | 85%→90% accuracy |
 | Layer 3 (Temporal) | 6-8 weeks | +100% | Time-aware analysis |
-| Layer 4 (Bayesian) | 8-10 weeks | +200% | Full uncertainty |
+| Layer 3 (Bayesian Agg) | 4 weeks | +75% | Multi-source aggregation |
+| Layer 4 (Temporal) | 6-8 weeks | +150% | Time-aware analysis |
+| Layer 5 (Full Bayesian) | 8-10 weeks | +250% | Complete uncertainty |
 
 ### End-to-End Metrics
-| Metric | Current (L1) | Target (L4) | Improvement |
+| Metric | Current (L1) | Target (L5) | Improvement |
 |--------|--------------|-------------|-------------|
 | Entity Resolution Accuracy | 75% | 95% | +20% |
 | Confidence Calibration | ±0.2 | ±0.02 | 10x better |
@@ -567,7 +608,9 @@ def test_uncertainty_through_pipeline():
 |-------|-----------|----------|------------|------------|
 | Layer 2 | 4 weeks | 5 weeks | 8 weeks | Parallel development |
 | Layer 3 | 6 weeks | 7 weeks | 10 weeks | Simplified decay models |
-| Layer 4 | 8 weeks | 10 weeks | 14 weeks | GPU acceleration |
+| Layer 3 | 3 weeks | 4 weeks | 5 weeks | Caching optimization |
+| Layer 4 | 6 weeks | 7 weeks | 10 weeks | Simplified decay models |
+| Layer 5 | 8 weeks | 10 weeks | 14 weeks | GPU acceleration |
 | Integration | 2 weeks | 3 weeks | 4 weeks | Incremental rollout |
 | **Total** | **20 weeks** | **25 weeks** | **36 weeks** | Agile adjustment |
 
@@ -584,7 +627,19 @@ def test_uncertainty_through_pipeline():
 - [ ] Decay functions validated
 - [ ] No data loss
 
+#### Layer 3 Go Criteria
+- [ ] Aggregation accuracy > 90%
+- [ ] LLM parameter estimation working
+- [ ] Dependency detection functional
+- [ ] Integration with services complete
+
 #### Layer 4 Go Criteria
+- [ ] Temporal queries functional
+- [ ] Storage overhead < 30%
+- [ ] Decay functions validated
+- [ ] No data loss
+
+#### Layer 5 Go Criteria
 - [ ] Propagation accuracy > 95%
 - [ ] Performance acceptable (< 5x)
 - [ ] Visualization working

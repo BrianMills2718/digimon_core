@@ -1,0 +1,61 @@
+project_name: "Test Infrastructure Improvements Validation"
+output_format: "markdown"
+keep_repomix: false
+
+# Validation objective  
+custom_prompt: |
+  VALIDATION OBJECTIVE: Verify that claimed test infrastructure improvements have been implemented.
+  
+  SPECIFIC CLAIMS TO VALIDATE:
+  
+  1. **Mock-Free Testing Implementation**: Verify that T03, T04, T15A have been converted to mock-free testing following T01/T02 pattern
+     - Look for TestT03TextLoaderUnifiedMockFree, TestT04MarkdownLoaderUnifiedMockFree, TestT15ATextChunkerUnifiedMockFree classes
+     - Verify tests use real ServiceManager() and real file operations (not mocks)
+     - Check for "REAL" or "real" keywords in test method names and documentation
+  
+  2. **Service Integration**: Verify tools use real services instead of mocked services
+     - Check that tools initialize with real ServiceManager()
+     - Verify service integration tests call actual service methods
+     - Look for elimination of Mock() usage in service integration
+  
+  3. **Test Coverage Quality**: Verify comprehensive test coverage through real functionality
+     - Check for substantial test files with multiple test methods
+     - Verify tests create real files and perform real operations
+     - Look for performance tests, error handling tests, Unicode tests
+  
+  4. **Architecture Fix Integration**: Verify that previous architecture issues have been resolved
+     - Check for working imports and proper class definitions
+     - Verify test files compile and have proper structure
+  
+  For each claim, provide specific evidence from the code including:
+  - File names and line numbers where implementations are found
+  - Specific examples of mock-free patterns
+  - Evidence of real service usage vs mocked services
+  - Count of test methods implementing real functionality
+  
+  VALIDATION CRITERIA:
+  ✅ FULLY RESOLVED = Implementation present, complete, follows stated pattern
+  ⚠️ PARTIALLY RESOLVED = Implementation present but incomplete or inconsistent  
+  ❌ NOT RESOLVED = Implementation missing or doesn't match claimed pattern
+
+# Only include files with claimed implementations
+include_patterns:
+  - "tests/unit/test_t03_text_loader_unified.py"
+  - "tests/unit/test_t04_markdown_loader_unified.py" 
+  - "tests/unit/test_t15a_text_chunker_unified.py"
+  - "src/tools/phase1/t03_text_loader_unified.py"
+  - "src/tools/phase1/t04_markdown_loader_unified.py"
+  - "src/tools/phase1/t15a_text_chunker_unified.py"
+  - "src/core/service_manager.py"
+  - "docs/roadmap/ROADMAP_OVERVIEW.md"
+
+# Specific claims mapped to expected implementations
+claims_of_success: |
+  CLAIMS TO VALIDATE:
+  
+  1. T03 Text Loader converted to mock-free testing with TestT03TextLoaderUnifiedMockFree class using real ServiceManager and real file operations
+  2. T04 Markdown Loader converted to mock-free testing with TestT04MarkdownLoaderUnifiedMockFree class using real ServiceManager and real file operations  
+  3. T15A Text Chunker converted to mock-free testing with TestT15ATextChunkerUnifiedMockFree class using real ServiceManager and real functionality
+  4. Test files show substantial coverage with real functionality tests (not mocked behavior)
+  5. Tools integrate with real services (identity_service, provenance_service, quality_service) instead of Mock objects
+  6. Roadmap updated with test infrastructure improvement tasks for LLM coder in Phase 7.1

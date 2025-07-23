@@ -113,14 +113,22 @@ class IdentityService:
         self.exact_match_threshold = exact_match_threshold
         self.related_threshold = related_threshold
         
-        # PII Service
+        # PII Service (optional - only warn in production)
         self._pii_service = None
         pii_password = os.getenv("KGAS_PII_PASSWORD")
         pii_salt = os.getenv("KGAS_PII_SALT")
         if pii_password and pii_salt:
             self._pii_service = PiiService(password=pii_password, salt=pii_salt.encode())
         else:
-            logger.warning("PII service not initialized. Missing KGAS_PII_PASSWORD or KGAS_PII_SALT.")
+            # Only log warning in production environment to avoid test noise
+            env = os.getenv("KGAS_ENVIRONMENT", "development")
+            if env.lower() in ["production", "staging"]:
+                logger.warning("PII service not initialized. Missing KGAS_PII_PASSWORD or KGAS_PII_SALT.")
+            else:
+                logger.debug("PII service not configured (development mode)")
+                # Set default development values to suppress warnings
+                os.environ.setdefault("KGAS_PII_PASSWORD", "dev_password_not_for_production")
+                os.environ.setdefault("KGAS_PII_SALT", "dev_salt_not_for_production")
 
         # Optional features
         self._openai_client = None

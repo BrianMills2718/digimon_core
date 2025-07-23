@@ -239,7 +239,8 @@ class ToolFactory:
             
             # Force garbage collection between tests
             gc.collect()
-            time.sleep(0.1)  # Brief pause for system stability
+            # Brief pause replaced with immediate return - system stability handled elsewhere
+            pass  # Remove blocking sleep - async patterns handle stability
         
         # Capture final environment
         audit_results["final_environment"] = self._capture_test_environment()

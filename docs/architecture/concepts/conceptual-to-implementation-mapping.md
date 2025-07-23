@@ -83,7 +83,7 @@ cross_modal_service:
 | **Contextual Entity Resolution** | `src/core/identity_service.py` | IdentityService |
 | **Temporal Knowledge Graph** | `src/core/temporal_graph.py` | AnalyticsService |
 | **Bayesian Pipeline** | `src/core/uncertainty/bayesian.py` | QualityService |
-| **Distribution Preservation** | `src/core/confidence_score.py` | All Tools (ADR-004) |
+| **Distribution Preservation** | `src/core/confidence_score.py` | All Tools (see ADR-007) |
 | **Uncertainty Propagation** | `src/core/uncertainty/propagator.py` | PipelineOrchestrator |
 
 #### **Uncertainty Integration Pattern**
@@ -202,7 +202,7 @@ class BiStoreManager:
 class KGASTool:
     def __init__(self, tool_id: str):
         self.tool_id = tool_id
-        self.confidence_scorer = ConfidenceScore()  # ADR-004
+        self.confidence_scorer = ConfidenceScore()  # see ADR-007 for uncertainty metrics
         self.service_manager = ServiceManager()
         
     async def execute(self, inputs: ToolInputs) -> ToolResult:

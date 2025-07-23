@@ -67,7 +67,7 @@ class TestEndToEndIntegration(unittest.TestCase):
         print("\n🧪 Testing Phase 1 Basic Workflow...")
         
         workflow_config = create_unified_workflow_config(phase=Phase.PHASE1, optimization_level=OptimizationLevel.STANDARD)
-workflow = PipelineOrchestrator(workflow_config)
+        workflow = PipelineOrchestrator(workflow_config)
         
         try:
             # Test the new execute_pdf_workflow method
@@ -207,9 +207,9 @@ workflow = PipelineOrchestrator(workflow_config)
         
         # Test that multiple workflows use same service instances
         workflow1_config = create_unified_workflow_config(phase=Phase.PHASE1, optimization_level=OptimizationLevel.STANDARD)
-workflow1 = PipelineOrchestrator(workflow1_config)
+        workflow1 = PipelineOrchestrator(workflow1_config)
         workflow2_config = create_unified_workflow_config(phase=Phase.PHASE1, optimization_level=OptimizationLevel.STANDARD)
-workflow2 = PipelineOrchestrator(workflow2_config)
+        workflow2 = PipelineOrchestrator(workflow2_config)
         
         try:
             # Both workflows should use the same service manager instance
@@ -286,7 +286,7 @@ workflow2 = PipelineOrchestrator(workflow2_config)
         
         # Test with non-existent file
         workflow_config = create_unified_workflow_config(phase=Phase.PHASE1, optimization_level=OptimizationLevel.STANDARD)
-workflow = PipelineOrchestrator(workflow_config)
+        workflow = PipelineOrchestrator(workflow_config)
         
         try:
             result = workflow.execute_pdf_workflow(
@@ -344,7 +344,7 @@ workflow = PipelineOrchestrator(workflow_config)
         
         # Test that workflow components use proper logging
         workflow_config = create_unified_workflow_config(phase=Phase.PHASE1, optimization_level=OptimizationLevel.STANDARD)
-workflow = PipelineOrchestrator(workflow_config)
+        workflow = PipelineOrchestrator(workflow_config)
         self.assertIsNotNone(workflow.logger)
         
         workflow.close()
@@ -357,7 +357,7 @@ workflow = PipelineOrchestrator(workflow_config)
         
         # Test that workflows properly close resources
         workflow_config = create_unified_workflow_config(phase=Phase.PHASE1, optimization_level=OptimizationLevel.STANDARD)
-workflow = PipelineOrchestrator(workflow_config)
+        workflow = PipelineOrchestrator(workflow_config)
         
         # Verify workflow has service manager
         self.assertIsNotNone(workflow.orchestrator.service_manager)

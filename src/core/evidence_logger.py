@@ -710,3 +710,6 @@ class EvidenceLogger:
         
         self.log_with_verification(f"TOOL_AUDIT_CONSISTENT_{operation_id}", evidence_entry)
         return evidence_entry
+
+# Global evidence logger instance
+evidence_logger = EvidenceLogger()

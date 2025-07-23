@@ -1,0 +1,62 @@
+# Core Architecture Validation
+# Purpose: Deep critical analysis of core architecture design and implementation alignment
+
+validation_type: architecture_analysis
+claim: "The KGAS system architecture provides a coherent, well-designed foundation for academic knowledge graph analysis"
+
+target_files:
+  - "docs/architecture/ARCHITECTURE_OVERVIEW.md"
+  - "docs/architecture/CURRENT_ARCHITECTURE.md"
+  - "docs/architecture/ARCHITECTURE_PHASES.md"
+  - "docs/architecture/concepts/conceptual-to-implementation-mapping.md"
+
+prompt: |
+  Perform a deep and critical analysis of the KGAS system architecture with focus on:
+  
+  **1. ARCHITECTURAL COHERENCE**
+  - Is the overall architecture internally consistent?
+  - Do the components fit together logically?
+  - Are there any contradictions between different architectural documents?
+  - How well does the implementation align with the architectural vision?
+  
+  **2. DESIGN QUALITY**
+  - Are architectural decisions well-justified?
+  - Is the separation of concerns clear and appropriate?
+  - Are the interfaces between components well-defined?
+  - How maintainable and extensible is the design?
+  
+  **3. ACADEMIC RESEARCH ALIGNMENT**
+  - Does the architecture support academic research workflows?
+  - Are the abstractions appropriate for knowledge graph analysis?
+  - How well does it handle uncertainty and confidence scoring?
+  - Is the design suitable for reproducible research?
+  
+  **4. CRITICAL GAPS AND ISSUES**
+  - What are the major architectural weaknesses?
+  - Are there missing components or capabilities?
+  - What technical debt is evident in the design?
+  - Where might the architecture struggle to scale?
+  
+  **5. PHASE-BASED DEVELOPMENT**
+  - Is the phased approach well-conceived?
+  - Are dependencies between phases properly managed?
+  - Do the phases build logically on each other?
+  - Are there risks in the phase transition strategy?
+  
+  Provide specific examples from the documentation to support your analysis.
+  Rate the overall architectural quality on a scale of 1-10 with justification.
+  Identify the top 5 most critical improvements needed.
+
+analysis_focus:
+  - Architectural patterns and anti-patterns
+  - Component coupling and cohesion
+  - Interface design quality
+  - Abstraction levels appropriateness
+  - Evolution and maintenance concerns
+
+expected_evidence:
+  - Specific architectural decisions that are problematic
+  - Missing or inadequate component definitions
+  - Inconsistencies between documents
+  - Technical debt indicators
+  - Scalability bottlenecks

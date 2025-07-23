@@ -122,7 +122,14 @@ class Neo4jDockerManager:
                     
                     # Exponential backoff with jitter
                     delay = self.retry_delay * (2 ** attempt) * (1 + random.random() * 0.1)
-                    time.sleep(min(delay, 30.0))  # Cap at 30 seconds
+                    # Use async backoff instead of blocking
+                    import asyncio
+                    try:
+                        asyncio.create_task(asyncio.sleep(min(delay, 5.0)))  # Reduced cap to 5s
+                    except RuntimeError:
+                        # Non-async fallback with reduced delay
+                        import time
+                        time.sleep(min(delay, 1.0))  # Cap at 1 second
     
     async def get_session_async(self):
         """Real async session with AsyncGraphDatabase for non-blocking Neo4j operations"""
@@ -253,7 +260,14 @@ class Neo4jDockerManager:
                 self._async_driver = None
         
         # Wait for cleanup to complete
-        time.sleep(0.5)
+        # Brief delay for connection stability - use async when possible
+        import asyncio
+        try:
+            asyncio.create_task(asyncio.sleep(0.1))  # Reduced from 0.5s to 0.1s
+        except RuntimeError:
+            # Non-async fallback
+            import time
+            time.sleep(0.1)
         
         # Create fresh driver with full configuration
         from neo4j import GraphDatabase
@@ -501,7 +515,14 @@ class Neo4jDockerManager:
                     logger.debug(f"Neo4j connection attempt failed: {e}")
                     pass
             
-            time.sleep(1)
+            # Transaction retry delay - use async when possible
+            import asyncio
+            try:
+                asyncio.create_task(asyncio.sleep(0.5))  # Reduced from 1s to 0.5s
+            except RuntimeError:
+                # Non-async fallback
+                import time
+                time.sleep(0.1)  # Minimal delay
             if i % 5 == 4:  # Every 5 seconds
                 logger.info(f"   Still waiting... ({i+1}/{max_wait}s)")
         

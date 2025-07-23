@@ -1,0 +1,259 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Computational Social Science Theory Meta-Schema (Final, Revised)",
+    "description": "A formal schema defining the structure for representing academic theories as described in a source document. This version mandates an 'Ontology' but makes all other core components optional.",
+    "type": "object",
+    "patternProperties": {
+      "^[a-zA-Z0-9_-]+$": {
+        "$ref": "#/definitions/theoryObject"
+      }
+    },
+    "additionalProperties": false,
+    "definitions": {
+      "theoryObject": {
+        "type": "object",
+        "properties": {
+          "metadata": {
+            "$ref": "#/definitions/metadata"
+          },
+          "schema": {
+            "$ref": "#/definitions/coreSchema"
+          },
+          "schema_overrides": {
+            "$ref": "#/definitions/coreSchema"
+          }
+        },
+        "required": ["metadata"],
+        "if": {
+          "properties": {
+            "metadata": {
+              "required": ["extends"]
+            }
+          }
+        },
+        "then": {
+          "required": ["schema_overrides"],
+          "properties": { "schema": { "type": "null", "description": "Schema must not be present when 'extends' is used." } }
+        },
+        "else": {
+          "required": ["schema"],
+          "properties": { "schema_overrides": { "type": "null", "description": "Schema_overrides must not be present unless 'extends' is used." } }
+        }
+      },
+      "metadata": {
+        "type": "object",
+        "properties": {
+          "citation": {
+            "type": "string",
+            "description": "The full bibliographic citation for the source document."
+          },
+          "annotation": {
+            "type": "string",
+            "description": "A 1-3 sentence summary of the theory."
+          },
+          "extends": {
+            "type": "string",
+            "description": "The key name of another theory in the same file that this theory modifies."
+          }
+        },
+        "required": ["citation", "annotation"]
+      },
+      "coreSchema": {
+        "type": "object",
+        "properties": {
+          "components": {
+            "type": "object",
+            "description": "A library of reusable, named Process blocks.",
+            "patternProperties": {
+              "^[a-zA-Z0-9_-]+$": { "$ref": "#/definitions/process" }
+            },
+            "additionalProperties": false
+          },
+          "Ontology": { "$ref": "#/definitions/ontology" },
+          "Axioms": { "$ref": "#/definitions/axioms" },
+          "Analytics": { "$ref": "#/definitions/analytics" },
+          "Process": { "$ref": "#/definitions/process" },
+          "Telos": { "$ref": "#/definitions/telos" }
+        },
+        "required": [
+          "Ontology"
+        ]
+      },
+      "ontology": {
+        "type": "object",
+        "properties": {
+          "entities": {
+            "type": "array",
+            "items": { "$ref": "#/definitions/termDefinition" }
+          },
+          "connections": {
+            "type": "array",
+            "items": { "$ref": "#/definitions/termDefinition" }
+          },
+          "properties": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": { "type": "string" },
+                "description": { "type": "string" },
+                "type": { "type": "string" }
+              },
+              "required": ["name", "description"]
+            }
+          }
+        },
+        "required": ["entities"]
+      },
+      "termDefinition": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "description": { "type": "string" },
+          "subTypeOf": { "type": "string" },
+          "properties": { "type": "object" },
+          "domain": { "type": "array", "items": { "type": "string" } },
+          "range": { "type": "array", "items": { "type": "string" } }
+        },
+        "required": ["name", "description"]
+      },
+      "axioms": {
+        "type": "object",
+        "properties": {
+          "principles": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Broad, philosophical assumptions in natural language."
+          },
+          "rules": {
+            "type": "array",
+            "items": { "type": "object" },
+            "description": "Formal, structured axioms or logical rules."
+          },
+          "domain_of_applicability": { "type": "string" }
+        },
+        "required": ["principles"]
+      },
+      "analytics": {
+        "type": "object",
+        "properties": {
+          "analytical_primitives": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "focal_concepts": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "triggers": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": { "type": "string" },
+                "condition": { "type": "string" }
+              },
+              "required": ["name", "condition"]
+            }
+          }
+        },
+        "required": ["analytical_primitives"]
+      },
+      "process": {
+        "type": "object",
+        "properties": {
+          "mode": {
+            "type": "string",
+            "enum": ["workflow", "sequential", "parallel"]
+          }
+        },
+        "required": ["mode"],
+        "oneOf": [
+          { "$ref": "#/definitions/workflowProcess" },
+          { "$ref": "#/definitions/sequentialProcess" },
+          { "$ref": "#/definitions/parallelProcess" }
+        ]
+      },
+      "workflowProcess": {
+        "properties": {
+          "mode": { "const": "workflow" },
+          "entry_point": { "type": "string" },
+          "nodes": {
+            "type": "object",
+            "patternProperties": {
+              "^[a-zA-Z0-9_-]+$": {
+                "type": "object",
+                "properties": {
+                  "action": { "type": "string" },
+                  "description": { "type": "string" }
+                },
+                "required": ["action"]
+              }
+            }
+          },
+          "edges": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "source": { "type": "string" },
+                "target": { "type": "string" },
+                "condition": { "type": "string" }
+              },
+              "required": ["source", "target"]
+            }
+          }
+        },
+        "required": ["entry_point", "nodes", "edges"]
+      },
+      "sequentialProcess": {
+        "properties": {
+          "mode": { "const": "sequential" },
+          "steps": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "stage_name": { "type": "string" },
+                "objective": { "type": "string" },
+                "completion_criteria": { "type": "string" }
+              },
+              "required": ["stage_name", "objective", "completion_criteria"]
+            }
+          }
+        },
+        "required": ["steps"]
+      },
+      "parallelProcess": {
+        "properties": {
+          "mode": { "const": "parallel" },
+          "lenses": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": { "type": "string" },
+                "instruction": { "type": "string" }
+              },
+              "required": ["name", "instruction"]
+            }
+          }
+        },
+        "required": ["lenses"]
+      },
+      "telos": {
+        "type": "object",
+        "properties": {
+          "output_format": {
+            "type": "object",
+            "description": "A schema defining the structure of the final output."
+          },
+          "success_criteria": {
+            "type": "string"
+          }
+        },
+        "required": ["output_format", "success_criteria"]
+      }
+    }
+  }
+  

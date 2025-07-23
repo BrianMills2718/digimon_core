@@ -1,53 +1,34 @@
-# KGAS Documentation Hub
+# KGAS Documentation Guide
 
-Welcome to the Knowledge Graph Analysis System (KGAS) documentation. This hub provides a central entry point to all documentation related to the project's architecture, planning, and operations.
+**For current project status and implementation progress, see [ROADMAP_OVERVIEW.md](../ROADMAP_OVERVIEW.md)**
 
-## 📋 Documentation Management Guidelines
+## 📁 Documentation Structure
 
-**CRITICAL: Read this section before accessing or editing any documentation.**
+### Architecture (`/docs/architecture/`)
+- **Target state** designs and specifications
+- **DO NOT** add implementation progress here
+- Only update when architectural goals change
 
-### 🏗️ Architecture Documentation (`/architecture/`)
-- **Purpose**: Represents the **target/final architecture** - the goal state
-- **Content**: System design, component relationships, interfaces, data flows, architectural decisions
-- **Should NOT change** unless the architectural goals change
-- **Should NOT contain** current implementation status, progress percentages, or known issues
-- **Examples**: Component diagrams, interface specifications, data models, ADRs
+### Roadmap (`/docs/roadmap/`)  
+- **Current progress** and planning
+- See [ROADMAP.md](./roadmap/CLAUDE.md) for detailed usage
+- Update as work progresses
 
-### 📈 Planning Documentation (`/planning/`)
-- **Purpose**: Represents the **current state and path to the goal**
-- **Content**: Roadmap, implementation plan, current progress, issues, tasks, analysis
-- **Should change** as implementation progresses and issues are discovered
-- **Examples**: Roadmap status, implementation tasks, progress reports, issue tracking
+### Development/Operations/API
+- Current practices and guides
+- Update to reflect actual workflow
 
-### 🚀 Development Documentation (`/development/`)
-- **Purpose**: Guides for developers working on the system
-- **Content**: Contributing guidelines, coding standards, testing procedures
-- **Should reflect** current development practices and requirements
+## 🔄 Quick Reference
 
-### ⚙️ Operations Documentation (`/operations/`)
-- **Purpose**: Guides for running and maintaining the system
-- **Content**: Deployment, monitoring, governance, security
-- **Should reflect** current operational requirements and procedures
+**Check status**: `../ROADMAP_OVERVIEW.md`
+**Plan work**: `roadmap/phases/` or `roadmap/initiatives/`  
+**Review architecture**: `architecture/` (target state only)
 
-### 📖 API Documentation (`/api/`)
-- **Purpose**: Reference for system interfaces
-- **Content**: API specifications, endpoints, data formats
-- **Should reflect** the current API design and implementation
+## ⚠️ Key Rules
 
-### 📦 Archive Documentation (`/archive/`)
-- **Purpose**: Historical reference and legacy documentation
-- **Content**: Previous versions, deprecated features, historical decisions
-- **Should be preserved** for reference but not actively maintained
-
-### 🔄 Documentation Update Process
-1. **Identify the correct section** for your changes
-2. **Verify the purpose** of the documentation you're editing
-3. **Make changes** that align with the section's purpose
-4. **Update cross-references** if your changes affect other documents
-5. **Run verification** to ensure documentation accuracy
-
-### ⚠️ Common Mistakes to Avoid
-- ❌ Adding implementation status to architecture documentation
+- Architecture = target design (stable)
+- Roadmap = current progress (changes frequently)
+- ROADMAP_OVERVIEW.md = single source of truth for status
 - ❌ Adding architectural decisions to planning documentation
 - ❌ Mixing current state with target state
 - ❌ Updating architecture docs for implementation progress

@@ -143,13 +143,35 @@ KGAS (Knowledge Graph Analysis System) is a theory-aware, cross-modal analysis p
 
 ## Uncertainty Architecture
 
-### Four-Layer Uncertainty System
-1. **Contextual Entity Resolution**: Dynamic disambiguation
-2. **Temporal Knowledge Graph**: Time-bounded confidence
-3. **Bayesian Pipeline**: Dependency modeling
-4. **Distribution Preservation**: Full uncertainty propagation
+### Comprehensive Uncertainty Management System
 
-See **[Uncertainty Architecture](concepts/uncertainty-architecture.md)** for details.
+KGAS implements a sophisticated uncertainty management framework that handles both individual extraction confidence and multi-source aggregation:
+
+#### Core Components
+
+1. **Base Confidence Assessment** ([ADR-010](adrs/ADR-010-Quality-System-Design.md))
+   - Quality degradation through processing pipelines
+   - Tool-specific confidence factors
+   - Quality tier classification (HIGH/MEDIUM/LOW)
+
+2. **Bayesian Aggregation System** ([ADR-016](adrs/ADR-016-Bayesian-Uncertainty-Aggregation.md))
+   - LLM-based parameter estimation for dependent sources
+   - Proper joint likelihood calculation
+   - Evidence accumulation from multiple sources
+   - Theory-aware prior estimation
+
+3. **Multi-Modal Uncertainty Representation**
+   - Probability distributions for quantitative uncertainty
+   - Confidence intervals for avoiding false precision
+   - Process metadata for qualitative assessment
+   - Interactive visualization of uncertainty levels
+
+4. **Strategic Uncertainty Management**
+   - Context-aware decision to reduce/maintain/increase uncertainty
+   - Robustness testing through perturbation analysis
+   - Meta-uncertainty assessment of analysis confidence
+
+See **[Uncertainty Architecture](concepts/uncertainty-architecture.md)** for detailed implementation.
 
 ## MCP Integration Architecture
 
@@ -291,8 +313,9 @@ Key architectural decisions are documented in ADRs:
 - **[ADR-001](adrs/ADR-001-Phase-Interface-Design.md)**: Contract-first tool interfaces with trade-off analysis
 - **[ADR-002](adrs/ADR-002-Pipeline-Orchestrator-Architecture.md)**: Pipeline orchestration design  
 - **[ADR-003](adrs/ADR-003-Vector-Store-Consolidation.md)**: Bi-store data architecture with detailed trade-offs
-- **[ADR-004](adrs/ADR-004-Normative-Confidence-Score-Ontology.md)**: Uncertainty quantification approach
+- **[ADR-004](adrs/ADR-004-Normative-Confidence-Score-Ontology.md)**: Confidence score ontology (superseded by ADR-007)
 - **[ADR-005](adrs/ADR-005-buy-vs-build-strategy.md)**: Strategic buy vs build decisions for external services
+- **[ADR-007](adrs/adr-004-uncertainty-metrics.md)**: Comprehensive uncertainty metrics framework
 
 ## Related Documentation
 

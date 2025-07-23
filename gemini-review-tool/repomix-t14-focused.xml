@@ -1,0 +1,628 @@
+This file is a merged representation of a subset of the codebase, containing specifically included files, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of a subset of the repository's contents that is considered the most important context.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Only files matching these patterns are included: tests/unit/test_t14_email_parser_unified.py
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+tests/
+  unit/
+    test_t14_email_parser_unified.py
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="tests/unit/test_t14_email_parser_unified.py">
+"""
+Mock-free unit tests for T14 Email Parser Unified Tool
+
+Tests real email parsing with email module and temporary email files.
+Achieves comprehensive coverage through real functionality testing.
+"""
+
+import pytest
+import tempfile
+import os
+import email
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from email.mime.base import MIMEBase
+from email.mime.image import MIMEImage
+from email import encoders
+import base64
+from pathlib import Path
+from datetime import datetime
+
+from src.tools.phase1.t14_email_parser_unified import T14EmailParserUnified
+from src.core.service_manager import ServiceManager
+from src.tools.base_tool import ToolRequest
+
+class TestT14EmailParserUnifiedMockFree:
+    """Mock-free test suite for T14 Email Parser - NO mocks used"""
+    
+    def setup_method(self):
+        # Real ServiceManager - NO mocks
+        self.service_manager = ServiceManager()
+        self.tool = T14EmailParserUnified(service_manager=self.service_manager)
+        
+        # Create real test email files
+        self.test_email_files = self._create_real_test_email_files()
+        
+    def _create_real_test_email_files(self) -> dict:
+        """Create actual email files for testing"""
+        files = {}
+        
+        # Simple text email
+        simple_msg = MIMEText("This is a simple test message.\nLine 2 of the message.", "plain", "utf-8")
+        simple_msg["Subject"] = "Test Subject - Simple Email"
+        simple_msg["From"] = "sender@example.com"
+        simple_msg["To"] = "recipient@example.com"
+        simple_msg["Date"] = "Wed, 22 Jul 2025 10:30:00 -0700"
+        simple_msg["Message-ID"] = "<test123@example.com>"
+        
+        simple_file = tempfile.NamedTemporaryFile(mode='w', suffix='.eml', delete=False, encoding='utf-8')
+        simple_file.write(str(simple_msg))
+        simple_file.close()
+        files['simple'] = simple_file.name
+        
+        # Multipart email with HTML and text
+        multipart_msg = MIMEMultipart("alternative")
+        multipart_msg["Subject"] = "Test Subject - Multipart Email"
+        multipart_msg["From"] = "sender@company.com"
+        multipart_msg["To"] = "recipient@company.com, cc@company.com"
+        multipart_msg["CC"] = "cc@company.com"
+        multipart_msg["Date"] = "Wed, 22 Jul 2025 11:00:00 -0700"
+        multipart_msg["Message-ID"] = "<multipart456@company.com>"
+        multipart_msg["In-Reply-To"] = "<original789@company.com>"
+        
+        text_part = MIMEText("This is the plain text version.\nWith multiple lines.", "plain", "utf-8")
+        html_part = MIMEText("<html><body><h1>HTML Version</h1><p>This is the <b>HTML</b> version.</p></body></html>", "html", "utf-8")
+        
+        multipart_msg.attach(text_part)
+        multipart_msg.attach(html_part)
+        
+        multipart_file = tempfile.NamedTemporaryFile(mode='w', suffix='.eml', delete=False, encoding='utf-8')
+        multipart_file.write(str(multipart_msg))
+        multipart_file.close()
+        files['multipart'] = multipart_file.name
+        
+        # Email with attachments
+        attachment_msg = MIMEMultipart()
+        attachment_msg["Subject"] = "Test Subject - With Attachments"
+        attachment_msg["From"] = "files@example.com"
+        attachment_msg["To"] = "user@example.com"
+        attachment_msg["Date"] = "Wed, 22 Jul 2025 12:00:00 -0700"
+        
+        # Add body
+        body_text = MIMEText("Please find attached files.", "plain", "utf-8")
+        attachment_msg.attach(body_text)
+        
+        # Add text attachment
+        text_attachment = MIMEBase('application', 'octet-stream')
+        text_content = b"This is attachment content.\nLine 2 of attachment."
+        text_attachment.set_payload(text_content)
+        encoders.encode_base64(text_attachment)
+        text_attachment.add_header('Content-Disposition', 'attachment; filename="test_document.txt"')
+        attachment_msg.attach(text_attachment)
+        
+        # Add image attachment
+        image_attachment = MIMEImage(b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x02\x00\x00\x00\x90wS\xde\x00\x00\x00\tpHYs\x00\x00\x0b\x13\x00\x00\x0b\x13\x01\x00\x9a\x9c\x18\x00\x00\x00\nIDATx\x9cc\xf8\x00\x00\x00\x01\x00\x01\x1c\x04[7\x00\x00\x00\x00IEND\xaeB`\x82')
+        image_attachment.add_header('Content-Disposition', 'attachment; filename="test_image.png"')
+        attachment_msg.attach(image_attachment)
+        
+        attachment_file = tempfile.NamedTemporaryFile(mode='w', suffix='.eml', delete=False, encoding='utf-8')
+        attachment_file.write(str(attachment_msg))
+        attachment_file.close()
+        files['with_attachments'] = attachment_file.name
+        
+        # Email with encoded headers
+        encoded_msg = MIMEText("Message with encoded headers", "plain", "utf-8")
+        encoded_msg["Subject"] = "=?utf-8?B?VGVzdCBTdWJqZWN0IHdpdGggw5bDpMOc?="  # "Test Subject with ÖäÜ"
+        encoded_msg["From"] = "=?utf-8?Q?John_D=C3=B6e?= <john@example.com>"  # "John Döe"
+        encoded_msg["To"] = "user@example.com"
+        encoded_msg["Date"] = "Wed, 22 Jul 2025 13:00:00 -0700"
+        
+        encoded_file = tempfile.NamedTemporaryFile(mode='w', suffix='.eml', delete=False, encoding='utf-8')
+        encoded_file.write(str(encoded_msg))
+        encoded_file.close()
+        files['encoded_headers'] = encoded_file.name
+        
+        # Email with different encodings
+        latin1_content = "Mensaje con acentos: café, niño, señor"
+        latin1_msg = MIMEText(latin1_content, "plain", "latin-1")
+        latin1_msg["Subject"] = "Test Latin-1 Encoding"
+        latin1_msg["From"] = "spanish@example.com"
+        latin1_msg["To"] = "user@example.com"
+        latin1_msg["Date"] = "Wed, 22 Jul 2025 14:00:00 -0700"
+        
+        latin1_file = tempfile.NamedTemporaryFile(mode='w', suffix='.eml', delete=False, encoding='latin-1')
+        latin1_file.write(str(latin1_msg))
+        latin1_file.close()
+        files['latin1_encoding'] = latin1_file.name
+        
+        # Malformed email for error testing
+        malformed_file = tempfile.NamedTemporaryFile(mode='w', suffix='.eml', delete=False, encoding='utf-8')
+        malformed_file.write("This is not a valid email message\nJust random text\n")
+        malformed_file.close()
+        files['malformed'] = malformed_file.name
+        
+        return files
+    
+    def teardown_method(self):
+        """Clean up test files"""
+        for file_path in self.test_email_files.values():
+            try:
+                os.unlink(file_path)
+            except:
+                pass
+    
+    def test_simple_email_parsing_real(self):
+        """Test parsing simple text email with real email module"""
+        request = ToolRequest(
+            tool_id="T14",
+            operation="parse",
+            input_data={
+                "email_path": self.test_email_files['simple'],
+                "extract_attachments": False
+            },
+            parameters={}
+        )
+        
+        result = self.tool.execute(request)
+        
+        assert result.status == "success"
+        assert result.data["email_data"]["headers"]["subject"] == "Test Subject - Simple Email"
+        assert result.data["email_data"]["headers"]["from"] == "sender@example.com"
+        assert result.data["email_data"]["headers"]["to"] == "recipient@example.com"
+        assert "This is a simple test message" in result.data["email_data"]["body"]["plain_text"]
+        assert result.data["email_data"]["file_type"] == "eml"
+        assert result.data["confidence"] > 0.7
+        assert result.execution_time > 0
+    
+    def test_multipart_email_parsing_real(self):
+        """Test parsing multipart email with HTML and text"""
+        request = ToolRequest(
+            tool_id="T14",
+            operation="parse",
+            input_data={"email_path": self.test_email_files['multipart']},
+            parameters={}
+        )
+        
+        result = self.tool.execute(request)
+        
+        assert result.status == "success"
+        email_data = result.data["email_data"]
+        
+        # Verify headers
+        assert email_data["headers"]["subject"] == "Test Subject - Multipart Email"
+        assert email_data["headers"]["from"] == "sender@company.com"
+        assert "recipient@company.com" in email_data["headers"]["to"]
+        assert email_data["headers"]["cc"] == "cc@company.com"
+        assert email_data["headers"]["in_reply_to"] == "<original789@company.com>"
+        
+        # Verify body content
+        assert "This is the plain text version" in email_data["body"]["plain_text"]
+        assert "<h1>HTML Version</h1>" in email_data["body"]["html_content"]
+        assert result.data["confidence"] > 0.8
+    
+    def test_attachment_extraction_real(self):
+        """Test real attachment extraction and saving"""
+        output_dir = tempfile.mkdtemp()
+        
+        try:
+            request = ToolRequest(
+                tool_id="T14",
+                operation="parse",
+                input_data={
+                    "email_path": self.test_email_files['with_attachments'],
+                    "extract_attachments": True,
+                    "output_dir": output_dir
+                },
+                parameters={}
+            )
+            
+            result = self.tool.execute(request)
+            
+            assert result.status == "success"
+            attachments = result.data["email_data"]["attachments"]
+            
+            # Should have 2 attachments
+            assert len(attachments) == 2
+            
+            # Check text attachment
+            text_att = next((att for att in attachments if "test_document.txt" in att["filename"]), None)
+            assert text_att is not None
+            assert text_att["size"] > 0
+            assert "saved_path" in text_att
+            assert os.path.exists(text_att["saved_path"])
+            
+            # Check image attachment
+            image_att = next((att for att in attachments if "test_image.png" in att["filename"]), None)
+            assert image_att is not None
+            assert image_att["content_type"] == "image/png"
+            assert "saved_path" in image_att
+            assert os.path.exists(image_att["saved_path"])
+            
+            # Verify stats
+            assert result.data["stats"]["attachments_extracted"] == 2
+            assert result.data["confidence"] > 0.8
+            
+        finally:
+            # Clean up output directory
+            import shutil
+            shutil.rmtree(output_dir, ignore_errors=True)
+    
+    def test_encoded_headers_decoding_real(self):
+        """Test real RFC 2047 header decoding"""
+        request = ToolRequest(
+            tool_id="T14",
+            operation="parse",
+            input_data={"email_path": self.test_email_files['encoded_headers']},
+            parameters={}
+        )
+        
+        result = self.tool.execute(request)
+        
+        assert result.status == "success"
+        headers = result.data["email_data"]["headers"]
+        
+        # Verify decoded headers
+        assert "ÖäÜ" in headers["subject"] or "Test Subject with" in headers["subject"]
+        assert "John" in headers["from"] and "john@example.com" in headers["from"]
+        assert result.data["stats"]["headers_decoded"] > 0
+        assert result.data["confidence"] > 0.7
+    
+    def test_encoding_detection_real(self):
+        """Test real character encoding detection"""
+        request = ToolRequest(
+            tool_id="T14",
+            operation="parse",
+            input_data={"email_path": self.test_email_files['latin1_encoding']},
+            parameters={}
+        )
+        
+        result = self.tool.execute(request)
+        
+        assert result.status == "success"
+        
+        # Should successfully parse despite different encoding
+        assert result.data["email_data"]["headers"]["subject"] == "Test Latin-1 Encoding"
+        assert "café" in result.data["email_data"]["body"]["plain_text"] or "caf" in result.data["email_data"]["body"]["plain_text"]
+        assert result.data["stats"]["encoding_detections"] > 0
+        assert result.data["confidence"] > 0.6
+    
+    def test_malformed_email_handling_real(self):
+        """Test handling of malformed email files"""
+        request = ToolRequest(
+            tool_id="T14",
+            operation="parse",
+            input_data={"email_path": self.test_email_files['malformed']},
+            parameters={}
+        )
+        
+        result = self.tool.execute(request)
+        
+        # Should not fail, but parse as plain text
+        assert result.status == "success"
+        assert "This is not a valid email message" in result.data["email_data"]["body"]["plain_text"]
+        assert result.data["confidence"] < 0.8  # Lower confidence for malformed
+    
+    def test_nonexistent_file_real(self):
+        """Test error handling for non-existent email file"""
+        request = ToolRequest(
+            tool_id="T14",
+            operation="parse",
+            input_data={"email_path": "/nonexistent/email.eml"},
+            parameters={}
+        )
+        
+        result = self.tool.execute(request)
+        
+        assert result.status == "error"
+        assert result.error_code.value == "FILE_NOT_FOUND"
+        assert "not found" in result.error_message.lower()
+        assert result.execution_time > 0
+    
+    def test_invalid_input_real(self):
+        """Test error handling for invalid input parameters"""
+        # Missing email_path
+        request = ToolRequest(
+            tool_id="T14",
+            operation="parse",
+            input_data={},
+            parameters={}
+        )
+        
+        result = self.tool.execute(request)
+        
+        assert result.status == "error"
+        assert result.error_code.value == "INVALID_INPUT"
+        assert "email_path" in result.error_message
+    
+    def test_unsupported_file_format_real(self):
+        """Test error handling for unsupported file formats"""
+        # Create a .txt file instead of .eml
+        txt_file = tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False)
+        txt_file.write("This is a text file, not an email")
+        txt_file.close()
+        
+        try:
+            request = ToolRequest(
+                tool_id="T14",
+                operation="parse",
+                input_data={"email_path": txt_file.name},
+                parameters={}
+            )
+            
+            result = self.tool.execute(request)
+            
+            assert result.status == "error"
+            assert result.error_code.value == "INVALID_INPUT"
+            assert "Unsupported email format" in result.error_message
+            
+        finally:
+            os.unlink(txt_file.name)
+    
+    def test_service_integration_real(self):
+        """Test integration with real ServiceManager services"""
+        request = ToolRequest(
+            tool_id="T14",
+            operation="parse",
+            input_data={"email_path": self.test_email_files['simple']},
+            parameters={}
+        )
+        
+        result = self.tool.execute(request)
+        
+        assert result.status == "success"
+        
+        # Verify service manager is used
+        assert self.tool.service_manager is not None
+        
+        # Tool should attempt to create mentions
+        # (Implementation depends on actual services being available)
+        assert result.data["email_data"]["headers"]["from"] == "sender@example.com"
+    
+    def test_performance_tracking_real(self):
+        """Test real performance metrics collection"""
+        request = ToolRequest(
+            tool_id="T14",
+            operation="parse",
+            input_data={"email_path": self.test_email_files['multipart']},
+            parameters={}
+        )
+        
+        result = self.tool.execute(request)
+        
+        assert result.status == "success"
+        assert result.execution_time > 0
+        assert hasattr(result, 'memory_used')
+        
+        # Processing stats should be tracked
+        assert result.data["stats"]["headers_decoded"] > 0
+        assert isinstance(result.data["stats"]["attachments_extracted"], int)
+        assert isinstance(result.data["stats"]["encoding_detections"], int)
+    
+    def test_tool_contract_real(self):
+        """Test tool contract specification"""
+        contract = self.tool.get_contract()
+        
+        assert contract["tool_id"] == "T14"
+        assert contract["name"] == "Email Parser"
+        assert contract["category"] == "document_processing"
+        assert "Parse email files" in contract["description"]
+        
+        # Check input schema
+        assert "email_path" in contract["input_schema"]["properties"]
+        assert "extract_attachments" in contract["input_schema"]["properties"]
+        assert contract["input_schema"]["required"] == ["email_path"]
+        
+        # Check error codes
+        assert len(contract["error_codes"]) > 0
+        assert any(code.value == "FILE_NOT_FOUND" for code in contract["error_codes"])
+    
+    def test_health_check_real(self):
+        """Test real health check functionality"""
+        health = self.tool.health_check()
+        
+        assert health["status"] == "healthy"
+        assert health["email_module"] == "available"
+        assert health["chardet_module"] == "available"
+        assert health["test_parsing"] == "successful"
+        assert ".eml" in health["supported_formats"]
+    
+    def test_tool_cleanup_real(self):
+        """Test tool cleanup functionality"""
+        # Process an email to generate some stats
+        output_dir = tempfile.mkdtemp()
+        
+        try:
+            request = ToolRequest(
+                tool_id="T14",
+                operation="parse",
+                input_data={
+                    "email_path": self.test_email_files['with_attachments'],
+                    "extract_attachments": True,
+                    "output_dir": output_dir
+                },
+                parameters={}
+            )
+        
+            result = self.tool.execute(request)
+            assert result.status == "success"
+            
+            # Verify stats were generated
+            assert self.tool.attachments_extracted > 0
+            assert self.tool.headers_decoded > 0
+            
+            # Clean up
+            self.tool.cleanup()
+            
+            # Verify stats were reset
+            assert self.tool.attachments_extracted == 0
+            assert self.tool.headers_decoded == 0
+            assert self.tool.encoding_detections == 0
+            
+        finally:
+            # Clean up output directory
+            import shutil
+            shutil.rmtree(output_dir, ignore_errors=True)
+    
+    def test_confidence_calculation_real(self):
+        """Test confidence score calculation with real data"""
+        # Test with complete email
+        request_complete = ToolRequest(
+            tool_id="T14",
+            operation="parse",
+            input_data={"email_path": self.test_email_files['with_attachments']},
+            parameters={}
+        )
+        
+        result_complete = self.tool.execute(request_complete)
+        
+        # Test with minimal email
+        request_minimal = ToolRequest(
+            tool_id="T14",
+            operation="parse",
+            input_data={"email_path": self.test_email_files['malformed']},
+            parameters={}
+        )
+        
+        result_minimal = self.tool.execute(request_minimal)
+        
+        # Complete email should have higher confidence
+        assert result_complete.data["confidence"] > result_minimal.data["confidence"]
+        assert result_complete.data["confidence"] > 0.7
+        assert 0.3 <= result_minimal.data["confidence"] <= 0.8
+    
+    def test_metadata_extraction_real(self):
+        """Test comprehensive metadata extraction"""
+        request = ToolRequest(
+            tool_id="T14",
+            operation="parse",
+            input_data={"email_path": self.test_email_files['multipart']},
+            parameters={}
+        )
+        
+        result = self.tool.execute(request)
+        
+        assert result.status == "success"
+        metadata = result.data["email_data"]["metadata"]
+        
+        # Verify metadata fields
+        assert metadata["file_size"] > 0
+        assert metadata["is_multipart"] is True
+        assert metadata["has_attachments"] is False  # This email has no attachments
+        assert metadata["part_count"] > 1
+        assert "creation_time" in metadata
+        assert "modification_time" in metadata
+        assert metadata["content_type"] == "multipart/alternative"
+    
+    def test_thread_id_extraction_real(self):
+        """Test email thread identification"""
+        request = ToolRequest(
+            tool_id="T14",
+            operation="parse",
+            input_data={"email_path": self.test_email_files['multipart']},
+            parameters={}
+        )
+        
+        result = self.tool.execute(request)
+        
+        assert result.status == "success"
+        email_data = result.data["email_data"]
+        
+        # Verify thread information
+        assert email_data["message_id"] == "<multipart456@company.com>"
+        assert email_data["thread_id"] == "<original789@company.com>"
+        assert email_data["headers"]["in_reply_to"] == "<original789@company.com>"
+    
+    def test_attachment_metadata_real(self):
+        """Test detailed attachment metadata extraction"""
+        request = ToolRequest(
+            tool_id="T14",
+            operation="parse",
+            input_data={
+                "email_path": self.test_email_files['with_attachments'],
+                "extract_attachments": False  # Just metadata, no saving
+            },
+            parameters={}
+        )
+        
+        result = self.tool.execute(request)
+        
+        assert result.status == "success"
+        attachments = result.data["email_data"]["attachments"]
+        
+        assert len(attachments) == 2
+        
+        # Check attachment details
+        for attachment in attachments:
+            assert "filename" in attachment
+            assert "size" in attachment
+            assert "content_type" in attachment
+            assert attachment["size"] > 0
+            assert "saved_path" not in attachment  # Not extracted
+    
+    def test_comprehensive_header_extraction_real(self):
+        """Test extraction of all common email headers"""
+        request = ToolRequest(
+            tool_id="T14",
+            operation="parse",
+            input_data={"email_path": self.test_email_files['multipart']},
+            parameters={}
+        )
+        
+        result = self.tool.execute(request)
+        
+        assert result.status == "success"
+        headers = result.data["email_data"]["headers"]
+        
+        # Check all expected headers are present
+        expected_headers = ["from", "to", "cc", "subject", "date", "message_id", "in_reply_to"]
+        for header in expected_headers:
+            assert header in headers
+            assert headers[header]  # Not empty
+        
+        # Verify header decoding stats
+        assert result.data["stats"]["headers_decoded"] >= len(expected_headers)
+</file>
+
+</files>

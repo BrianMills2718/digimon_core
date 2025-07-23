@@ -45,11 +45,14 @@ The uncertainty system employs a hybrid architecture with four specialized layer
 - **Format**: `⟨subject, predicate, object, [start_time, end_time], [confidence_lower, confidence_upper]⟩`
 - **Handles**: Time-bounded facts, missing vs measured absence distinction
 
-#### Layer 3: Bayesian Network Pipeline Scaffolding
-- **Technology**: Bayesian Network with learned Conditional Probability Tables
-- **Function**: Model dependencies between pipeline stages for uncertainty propagation
-- **Structure**: Nodes = pipeline stages, Edges = dependencies
-- **Handles**: Dependent uncertainty cascades, conditional probability propagation
+#### Layer 3: Bayesian Aggregation for Multiple Sources
+- **Technology**: LLM-based Bayesian parameter estimation with programmatic updating
+- **Function**: Aggregate confidence from multiple sources reporting same claim
+- **Process**: 
+  - LLM estimates prior P(H) and joint likelihoods P(E₁,...,Eₙ|H)
+  - Proper handling of source dependencies (citation networks, temporal cascades)
+  - Programmatic Bayesian update using estimated parameters
+- **Handles**: Evidence accumulation, dependent sources, theory-aware priors
 
 #### Layer 4: Distribution-Preserving Aggregation
 - **Technology**: Mixture Models + Bayesian Hierarchical Models

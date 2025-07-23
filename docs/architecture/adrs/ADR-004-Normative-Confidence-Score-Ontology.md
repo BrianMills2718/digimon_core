@@ -1,6 +1,10 @@
 # ADR-004: Normative Confidence Score Ontology
 
-*Status: **ACCEPTED** - 2025-01-18*
+*Status: **SUPERSEDED by ADR-007** - 2025-01-18 (original), 2025-07-20 (superseded)*
+
+## Supersession Notice
+
+This ADR has been superseded by [ADR-007: CERQual-Based Uncertainty Architecture](./ADR-007-uncertainty-metrics.md). The simple confidence score approach described here was found insufficient for academic social science research requirements. ADR-007 introduces a more sophisticated CERQual-based uncertainty quantification framework.
 
 ## Context
 

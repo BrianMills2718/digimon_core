@@ -1,0 +1,52 @@
+project_name: "Mock Elimination Focused Validation"
+project_path: ".."
+output_format: "xml"
+keep_repomix: true
+
+include_patterns:
+  - "tests/unit/test_t01_pdf_loader_unified.py"
+  - "tests/unit/test_t02_word_loader_unified.py"
+  - "Evidence_T01_Mock_Elimination.md"
+  - "Evidence_T02_Mock_Elimination.md"
+
+claims_of_success: |
+  FOCUSED MOCK ELIMINATION VALIDATION:
+  
+  **PRIMARY CLAIM**: Complete elimination of all mocking from T01 and T02 unified tool tests.
+  
+  **SPECIFIC EVIDENCE TO VALIDATE**:
+  1. Test files contain zero mock/patch/Mock imports
+  2. Tests use real libraries (PyPDF2 for T01, python-docx for T02) directly
+  3. Real file generation and processing in test methods
+  4. Evidence files document the transformation with execution logs
+
+custom_prompt: |
+  FOCUSED MOCK ELIMINATION VALIDATION
+  
+  **OBJECTIVE**: Verify complete elimination of mocking from T01 and T02 test files.
+  
+  **VALIDATION STEPS**:
+  
+  1. **Scan Test Files for Mocking**:
+     - Search tests/unit/test_t01_pdf_loader_unified.py for any "mock", "patch", or "Mock" imports
+     - Search tests/unit/test_t02_word_loader_unified.py for any "mock", "patch", or "Mock" imports  
+     - Verify tests use real libraries directly (import PyPDF2, import docx)
+  
+  2. **Verify Real Functionality**:
+     - Confirm test methods create actual PDF/DOCX files for testing
+     - Verify tests call real library methods (not mocked versions)
+     - Check that ServiceManager instances are real, not mocked
+  
+  3. **Evidence Validation**:
+     - Review evidence files for before/after comparisons
+     - Confirm execution logs show real functionality
+  
+  **SCORING**:
+  - 10/10: Zero mocking found, all tests use real functionality
+  - 0/10: Mocking still present or false claims
+  
+  **REQUIRED RESPONSE**:
+  - ✅ FULLY RESOLVED: No mocking found, complete real functionality
+  - ❌ NOT RESOLVED: Mocking still present or inadequate evidence
+  
+  Focus exclusively on detecting any remaining mock usage patterns.

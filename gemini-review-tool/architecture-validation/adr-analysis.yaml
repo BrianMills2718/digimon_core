@@ -1,0 +1,69 @@
+# Architecture Decision Records (ADR) Analysis
+# Purpose: Critical evaluation of design decisions and their implications
+
+validation_type: design_decision_analysis
+claim: "The Architecture Decision Records demonstrate thoughtful, well-reasoned design choices"
+
+target_files:
+  - "docs/architecture/adrs/ADR-001-Phase-Interface-Design.md"
+  - "docs/architecture/adrs/ADR-002-Pipeline-Orchestrator-Architecture.md"
+  - "docs/architecture/adrs/ADR-008-Core-Service-Architecture.md"
+  - "docs/architecture/adrs/ADR-009-Bi-Store-Database-Strategy.md"
+  - "docs/architecture/adrs/ADR-010-Quality-System-Design.md"
+  - "docs/architecture/adrs/ADR-011-Academic-Research-Focus.md"
+  - "docs/architecture/adrs/ADR-014-Error-Handling-Strategy.md"
+
+prompt: |
+  Critically analyze the Architecture Decision Records (ADRs) for the KGAS system:
+  
+  **1. DECISION QUALITY**
+  - Are the decisions well-motivated with clear problem statements?
+  - Do the chosen solutions adequately address the stated problems?
+  - Are alternatives properly considered and evaluated?
+  - Is the rationale for choosing specific solutions compelling?
+  
+  **2. TECHNICAL SOUNDNESS**
+  - Are the technical approaches industry best practices?
+  - Do the decisions show deep understanding of the problem domain?
+  - Are there any decisions that seem technically questionable?
+  - How well do decisions handle edge cases and failure modes?
+  
+  **3. CONSISTENCY AND INTEGRATION**
+  - Do the various ADRs form a coherent whole?
+  - Are there conflicting decisions between different ADRs?
+  - How well do decisions integrate with each other?
+  - Are dependencies between decisions properly managed?
+  
+  **4. RISK ASSESSMENT**
+  - Are the risks of each decision properly identified?
+  - Do the ADRs acknowledge potential negative consequences?
+  - Are mitigation strategies adequate?
+  - What are the biggest risks in the current decisions?
+  
+  **5. IMPLEMENTATION PRACTICALITY**
+  - Are the decisions realistic to implement?
+  - Do they consider development effort and complexity?
+  - Are there decisions that might be over-engineered?
+  - How actionable are the decisions for developers?
+  
+  For each ADR, provide:
+  - A brief assessment of its quality (Good/Adequate/Poor)
+  - The most significant strength
+  - The most critical weakness
+  - Suggested improvements
+  
+  Overall assessment: Which decisions pose the greatest risk to project success?
+
+analysis_focus:
+  - Problem-solution fit
+  - Technical depth and accuracy
+  - Consideration of alternatives
+  - Risk identification and mitigation
+  - Implementation guidance clarity
+
+red_flags:
+  - Decisions without clear problems
+  - Missing alternative considerations
+  - Overly complex solutions
+  - Ignored failure modes
+  - Contradictory decisions

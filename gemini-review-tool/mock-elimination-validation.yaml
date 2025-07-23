@@ -1,0 +1,95 @@
+project_name: "Mock Elimination and Coverage Achievement Validation"
+project_path: ".."
+output_format: "xml"
+keep_repomix: false
+
+include_patterns:
+  - "tests/unit/test_t01_pdf_loader_unified.py"
+  - "tests/unit/test_t02_word_loader_unified.py"  
+  - "src/tools/phase1/t01_pdf_loader_unified.py"
+  - "src/tools/phase1/t02_word_loader_unified.py"
+  - "Evidence_T01_Mock_Elimination.md"
+  - "Evidence_T02_Mock_Elimination.md"
+  - "Evidence_Coverage_Accuracy.md"
+  - "CLAUDE.md"
+
+claims_of_success: |
+  MOCK ELIMINATION AND COVERAGE ACHIEVEMENT CLAIMS:
+  
+  1. **Complete Mock Elimination**: All unified tool tests (T01, T02) use zero mocking of core functionality
+     - No unittest.mock imports in any test files
+     - Real PyPDF2 execution in T01 tests with actual PDF file generation
+     - Real python-docx execution in T02 tests with actual DOCX file generation
+     - Real ServiceManager instances throughout all tests
+  
+  2. **88% Coverage Achievement**: All unified tools achieve 88% test coverage through real functionality
+     - T01 PDF Loader: 88% coverage (164 statements, 20 missed) with real PDF processing
+     - T02 Word Loader: 88% coverage (178 statements, 22 missed) with real DOCX processing
+     - All coverage achieved through genuine functionality testing, not mocked behavior
+  
+  3. **Real Error Handling**: All error scenarios tested with actual error conditions
+     - Corrupted file handling with real corrupted PDF/DOCX files
+     - File system validation with real file operations and security checks
+     - Service integration with real ServiceManager instances
+     - Performance validation with real timing measurements from actual processing
+  
+  4. **Evidence-Based Validation**: All claims supported by execution logs and coverage reports
+     - Evidence_T01_Mock_Elimination.md contains actual test execution logs
+     - Evidence_T02_Mock_Elimination.md contains actual test execution logs  
+     - Evidence_Coverage_Accuracy.md shows real line-by-line coverage analysis
+     - Zero mocking verified through code analysis and grep searches
+     - 48 total tests (26 T01 + 22 T02) all passing with real functionality
+
+custom_prompt: |
+  CRITICAL MOCK ELIMINATION VALIDATION
+  
+  **PRIMARY OBJECTIVE**: Verify complete elimination of mocking from unified tool tests T01 and T02.
+  
+  **VALIDATION CRITERIA**:
+  
+  1. **Zero Mocking Verification**: 
+     - Scan all test files for mock/patch/Mock imports - should find NONE
+     - Verify tests use real libraries (PyPDF2, python-docx) - should be direct imports only
+     - Confirm ServiceManager instances are real, not mocked - should see actual ServiceManager() calls
+     - Check for any remnant mocking patterns - should find NONE
+  
+  2. **Real Functionality Evidence**:
+     - Tests create and process actual PDF and DOCX files - verify file generation code
+     - Error scenarios use real error conditions - verify actual corrupted files, permission tests
+     - Performance measurements from actual execution - verify real timing code
+     - Service integration uses real services - verify actual service method calls
+  
+  3. **Coverage Achievement**:
+     - Verify 88% coverage achieved through real testing - check coverage reports
+     - Confirm line attribution accuracy - verify missed lines are correctly identified
+     - Validate missed lines are genuinely uncovered defensive/exception paths
+     - Ensure no false coverage from mocked behavior
+  
+  4. **Evidence Quality**:
+     - Evidence files contain actual execution logs - verify log authenticity
+     - Before/after comparisons show genuine mock removal - verify code changes
+     - Coverage reports show real line-by-line analysis - verify coverage accuracy
+     - Test execution demonstrates real functionality - verify test output
+  
+  **SCORING CRITERIA**:
+  - 10/10: Perfect mock elimination with comprehensive evidence and 88%+ real coverage
+  - 8-9/10: Mock elimination complete with minor evidence gaps or coverage slightly below target
+  - 6-7/10: Substantial progress with some remaining mocks or incomplete evidence
+  - 4-5/10: Partial implementation with significant mocking remaining
+  - 1-3/10: Minimal progress or claims not supported by evidence
+  - 0/10: No mock elimination or false claims
+  
+  **REQUIRED RESPONSE FORMAT**:
+  For each claim:
+  - ✅ FULLY RESOLVED: Complete implementation with evidence
+  - ⚠️ PARTIALLY RESOLVED: Partial implementation or minor issues  
+  - ❌ NOT RESOLVED: Implementation missing or inadequate
+  
+  **FOCUS AREAS**: 
+  1. Examine test files line-by-line for any mock usage patterns
+  2. Verify real file generation and processing code  
+  3. Validate coverage reports show genuine functionality testing
+  4. Confirm evidence files contain authentic execution data
+  5. Check for any hidden or subtle mocking patterns
+  
+  Be extremely thorough in detecting any remaining mocking or false claims. The goal is production-ready, mock-free testing with genuine functionality coverage.

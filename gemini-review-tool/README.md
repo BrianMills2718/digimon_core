@@ -263,14 +263,65 @@ python gemini_review.py --no-cache
 python gemini_review.py --cache-dir /tmp/cache --cache-max-age 48
 ```
 
+## 🎯 **CRITICAL: Focused Validation Approach**
+
+**⚠️ AVOID**: Sending massive, unfocused context hoping AI will "figure it out"  
+**✅ DO**: Send precisely what's needed for each specific validation claim
+
+### The Focused Validation Process
+
+```bash
+# Step 1: Create minimal bundle with only relevant files
+npx repomix --include "tests/unit/test_specific.py,src/core/specific.py" --output validation.xml .
+
+# Step 2: Run targeted validation  
+python gemini_review.py . \
+  --include "tests/unit/test_specific.py" \
+  --prompt "
+CRITICAL VALIDATION: [Your specific claim]
+
+**CONTEXT**: [Why this matters]
+
+**SPECIFIC VALIDATION REQUIRED**:
+1. [Specific check 1]
+2. [Specific check 2] 
+3. [Specific check 3]
+
+**EVIDENCE REQUIRED**: 
+- ✅ FULLY RESOLVED / ⚠️ PARTIALLY / ❌ NOT RESOLVED
+- Specific code examples with line references
+- Score 1-10 for this specific issue
+"
+```
+
+### Validation Guidelines
+
+**File Size Limits**:
+- Single claim validation: < 25KB (≈ 6,000 tokens)
+- Multi-file validation: < 75KB (≈ 20,000 tokens)
+- If you get 500 errors: **reduce file scope immediately**
+
+**One Claim Per Validation**:
+```bash
+# ❌ BAD: Multiple unrelated claims
+python gemini_review.py . --claims "Fixed async, tests, security, performance"
+
+# ✅ GOOD: One focused claim
+python gemini_review.py . \
+  --include "tests/unit/test_auth.py" \
+  --claims "Authentication tests use real functionality, not mocks"
+```
+
 ## Best Practices
 
-1. **Create project-specific configs**: Commit `.gemini-review.yaml` to your repo
-2. **Use include/ignore patterns strategically**: Use include patterns for precise control, ignore patterns for exclusions
-3. **Include documentation**: Always include README and architecture docs
-4. **Be specific with claims**: The more specific the claims, the better the evaluation
-5. **Use templates**: Start with templates and customize as needed
-6. **Leverage caching**: Cache speeds up repeated reviews of the same codebase
+1. **Use Focused Validation**: One specific claim per validation run
+2. **Minimal File Sets**: Include only files directly relevant to the claim  
+3. **Targeted Prompts**: Ask about specific line numbers and functions
+4. **Evidence-Based**: Request specific evidence for each assessment
+5. **Create project-specific configs**: Commit `.gemini-review.yaml` to your repo
+6. **Use include/ignore patterns strategically**: Use include patterns for precise control
+7. **Include documentation**: Always include README and architecture docs
+8. **Leverage caching**: Cache speeds up repeated reviews of the same codebase
 
 ## File Structure
 

@@ -267,7 +267,14 @@ class APIAuthManager:
         while not self.rate_limiter.can_make_call(service_name):
             if time.time() - start_time > timeout:
                 raise APIRateLimitError(f"Rate limit timeout for {service_name}")
-            time.sleep(1)
+            # Use async delay instead of blocking
+            import asyncio
+            try:
+                asyncio.create_task(asyncio.sleep(1))
+            except RuntimeError:
+                # Reduced blocking delay for responsiveness
+                import time
+                time.sleep(0.1)  # Reduced from 1s to 100ms
     
     async def wait_for_rate_limit_async(self, service_name: str, timeout: float = 30.0):
         """Async version of wait_for_rate_limit

@@ -3,7 +3,7 @@
 # ADR-001: Contract-First Tool Interface Design
 
 **Date**: 2025-01-27  
-**Status**: Partially Implemented - 12 tools use legacy interfaces, contract-first design remains architectural goal  
+**Status**: Partially Implemented - 10 tools use legacy interfaces, 9 tools have unified interface, contract-first design remains architectural goal  
 **Deciders**: Development Team  
 **Context**: Tool integration failures due to incompatible interfaces
 

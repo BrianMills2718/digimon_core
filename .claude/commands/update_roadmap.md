@@ -1,1 +1,1 @@
-update the ROADMAP_OVERVIEW.md to reflect these new plans and the relevant phase/task files with the full details. if you have any questions about where or how the roadmpa should be updated let me know. 
+update the ROADMAP_OVERVIEW.md to reflect the current status and then update the claude.md with the next steps as outline in the roadmap and the detailed instructions for th enext phase

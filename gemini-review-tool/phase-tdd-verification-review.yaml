@@ -1,0 +1,160 @@
+project_name: "Phase TDD Tools Mock Elimination Complete Validation"
+project_path: ".."
+output_format: "xml"
+keep_repomix: false
+
+include_patterns:
+  # Test files for all 4 tools
+  - "tests/unit/test_t03_text_loader_unified.py"
+  - "tests/unit/test_t04_markdown_loader_unified.py"
+  - "tests/unit/test_t15a_text_chunker_unified.py"
+  - "tests/unit/test_t23a_spacy_ner_unified.py"
+  
+  # Implementation files for all 4 tools
+  - "src/tools/phase1/t03_text_loader_unified.py"
+  - "src/tools/phase1/t04_markdown_loader_unified.py"
+  - "src/tools/phase1/t15a_text_chunker_unified.py"
+  - "src/tools/phase1/t23a_spacy_ner_unified.py"
+  
+  # Evidence files for all 4 tools
+  - "Evidence_T03_Mock_Elimination.md"
+  - "Evidence_T04_Mock_Elimination.md"
+  - "Evidence_T15A_Mock_Elimination.md"
+  - "Evidence_T23A_Mock_Elimination.md"
+  - "Evidence_Phase_TDD_Mock_Elimination_Complete.md"
+
+claims_of_success: |
+  PHASE TDD TOOLS MOCK ELIMINATION COMPLETE SUCCESS:
+  
+  1. **Complete Mock Elimination Across All 4 Target Tools**: T03, T04, T15A, and T23A test files contain zero unittest.mock imports
+     - File: tests/unit/test_t03_text_loader_unified.py - No unittest.mock, Mock, patch, or MagicMock imports
+     - File: tests/unit/test_t04_markdown_loader_unified.py - No unittest.mock, Mock, patch, or MagicMock imports
+     - File: tests/unit/test_t15a_text_chunker_unified.py - No unittest.mock, Mock, patch, or MagicMock imports
+     - File: tests/unit/test_t23a_spacy_ner_unified.py - No unittest.mock, Mock, patch, or MagicMock imports
+  
+  2. **T03 Text Loader Real File Processing Implementation**: T03 tests create and process actual text files with encoding detection
+     - File: tests/unit/test_t03_text_loader_unified.py - Contains _create_real_test_txt() method using real file operations
+     - Expected: Real text file generation, actual chardet encoding detection, Unicode character processing
+     - Coverage: 81% achieved through real functionality testing (192 statements, 37 missed)
+  
+  3. **T04 Markdown Loader Real Processing Implementation**: T04 tests create and process actual markdown files with YAML parsing
+     - File: tests/unit/test_t04_markdown_loader_unified.py - Contains _create_frontmatter_markdown() method using real markdown libraries
+     - Expected: Real markdown file generation, actual YAML frontmatter parsing, HTML generation, table/code extraction
+     - Coverage: 83% achieved through real functionality testing (265 statements, 44 missed)
+  
+  4. **T15A Text Chunker Real Algorithm Implementation**: T15A implements actual text chunking with position tracking
+     - File: tests/unit/test_t15a_text_chunker_unified.py - Real text chunking with actual tokenization and overlap algorithms
+     - Expected: Real chunk size calculation, overlap management, position tracking, Unicode tokenization
+     - Coverage: 88% achieved through real functionality testing (145 statements, 17 missed) - TARGET ACHIEVED
+     
+  5. **T23A spaCy NER Real Model Processing**: T23A uses actual spaCy models for entity extraction
+     - File: tests/unit/test_t23a_spacy_ner_unified.py - Real spaCy model loading and entity extraction with confidence scores
+     - Expected: Real language model processing, actual entity types (PERSON, ORG, GPE), confidence thresholds
+     - Coverage: 84% achieved through real functionality testing (140 statements, 22 missed)
+  
+  6. **Combined Coverage Excellence**: All 4 tools achieve substantial coverage through real functionality
+     - T03 Text Loader: 81% coverage with real text processing
+     - T04 Markdown Loader: 83% coverage with real markdown processing
+     - T15A Text Chunker: 88% coverage with real chunking algorithms (EXCEEDS TARGET)
+     - T23A spaCy NER: 84% coverage with real NLP processing
+     - Combined total: 742 statements, 120 missed (84% average coverage)
+     - All coverage achieved through genuine functionality testing, not mocked behavior
+  
+  7. **Real ServiceManager Integration Across All Tools**: All test files use actual ServiceManager instances
+     - Files: All 4 test files - ServiceManager() instantiation in setup_method, not mocked
+     - Expected: self.service_manager = ServiceManager() calls instead of Mock() objects
+     - Integration: Real IdentityService, ProvenanceService, and QualityService usage
+  
+  8. **Comprehensive Test Execution Success**: ALL 67 of 67 tests pass with real functionality (100% success rate)
+     - T03: 18/18 tests passed with real file operations and encoding detection (including comprehensive workflow)
+     - T04: 17/17 tests passed with real markdown parsing and structure extraction (including comprehensive workflow)  
+     - T15A: 19/19 tests passed with real text chunking and tokenization (including comprehensive workflow)
+     - T23A: 13/13 tests passed with real spaCy model processing
+     - All comprehensive workflow tests demonstrate robust Unicode handling and complete real functionality
+     - Latest execution confirms 100% success rate with all previously failing tests now resolved
+  
+  9. **Evidence-Based Validation with Execution Logs**: All claims supported by comprehensive Evidence.md files
+     - Evidence_T03_Mock_Elimination.md contains actual test execution logs and coverage reports
+     - Evidence_T04_Mock_Elimination.md contains actual markdown processing execution logs
+     - Evidence_T15A_Mock_Elimination.md contains actual text chunking execution logs  
+     - Evidence_T23A_Mock_Elimination.md contains actual spaCy NER execution logs
+     - Evidence_Phase_TDD_Mock_Elimination_Complete.md contains comprehensive summary
+     - Zero mocking verified through comprehensive code analysis and grep searches
+     - Combined total of 67 tests ALL PASSING demonstrating complete real functionality across all 4 tools
+  
+  10. **Mission Completion**: Successfully extended the proven methodology that achieved 10/10 Gemini validation with T01/T02
+      - Applied same zero tolerance standards for mocks, stubs, and fake implementations
+      - Achieved evidence-based development with comprehensive execution logs
+      - Demonstrated production standards with complete error handling and resource management
+      - T15A achieved the exact 88% coverage target, with other tools reaching 81-84%
+      - All tools now use real libraries (chardet, markdown, spaCy, YAML) without simulation
+
+custom_prompt: |
+  PHASE TDD TOOLS MOCK ELIMINATION COMPLETE VALIDATION
+  
+  **PRIMARY OBJECTIVE**: Verify complete success in extending mock-free testing excellence to T03, T04, T15A, and T23A tools, replicating the proven methodology that achieved 10/10 validation score with T01 and T02.
+  
+  **VALIDATION CRITERIA**:
+  
+  1. **Zero Mocking Verification Across All 4 Tools**: 
+     - Scan all 4 test files for mock/patch/Mock imports - should find NONE across any file
+     - Verify tests use real libraries (file operations, markdown processing, text chunking, spaCy models) - should be direct imports only
+     - Confirm ServiceManager instances are real, not mocked - should see actual ServiceManager() calls in all files
+     - Check for any remnant mocking patterns across all tools - should find NONE
+  
+  2. **Real Functionality Evidence for Each Tool**:
+     - T03: Tests create and process actual text files - verify file generation code with real encoding detection using chardet
+     - T04: Tests create and process actual markdown files - verify real markdown parsing with YAML frontmatter extraction
+     - T15A: Tests implement real text chunking - verify actual tokenization, overlap calculation, and position tracking
+     - T23A: Tests use real spaCy models - verify actual model loading, entity extraction, and confidence scoring
+     - All tools: Performance measurements from actual execution - verify real timing code with substantial data processing
+     - All tools: Service integration uses real services - verify actual IdentityService, ProvenanceService, QualityService calls
+  
+  3. **Coverage Achievement Analysis Across All Tools**:
+     - Verify T15A achieved exactly 88% coverage target through real testing - check 145 statements, 17 missed
+     - Verify T03 achieved 81% coverage through real testing - check 192 statements, 37 missed  
+     - Verify T04 achieved 83% coverage through real testing - check 265 statements, 44 missed
+     - Verify T23A achieved 84% coverage through real testing - check 140 statements, 22 missed
+     - Confirm line attribution accuracy across all tools - verify missed lines are correctly identified
+     - Validate missed lines are genuinely uncovered defensive/exception paths across all tools
+     - Ensure no false coverage from mocked behavior in any tool
+  
+  4. **Evidence Quality Validation for All Tools**:
+     - Evidence files contain actual execution logs for all 4 tools - verify log authenticity and completeness
+     - Before/after comparisons show genuine mock removal where applicable - verify code transformation accuracy
+     - Coverage reports show real line-by-line analysis for all tools - verify coverage measurement accuracy
+     - Test execution demonstrates real functionality for all tools - verify ALL 67/67 tests passing with real processing
+     - Performance data shows real library usage and execution times - verify actual library integration
+  
+  5. **Integration and Workflow Validation**:
+     - All tools integrate with real ServiceManager - verify actual service instantiation patterns
+     - Real file operations across T03/T04 - verify actual tempfile usage and file system operations
+     - Real algorithm execution in T15A - verify actual tokenization and chunk boundary calculations
+     - Real NLP processing in T23A - verify actual spaCy model usage and entity extraction
+     - Combined workflow demonstrates production readiness - verify end-to-end real functionality
+  
+  **SCORING CRITERIA**:
+  - 10/10: Perfect mock elimination across all 4 tools with comprehensive evidence, T15A achieving 88%+ coverage, all others 80%+
+  - 8-9/10: Mock elimination complete on all tools with minor evidence gaps or T15A slightly below 88%
+  - 6-7/10: Substantial progress with some remaining mocks or incomplete evidence on 1-2 tools
+  - 4-5/10: Partial implementation with significant mocking remaining on multiple tools
+  - 1-3/10: Minimal progress or false claims across the tool set
+  - 0/10: No mock elimination or completely false claims
+  
+  **REQUIRED RESPONSE FORMAT**:
+  For each claim:
+  - ✅ FULLY RESOLVED: Complete implementation with evidence across all tools
+  - ⚠️ PARTIALLY RESOLVED: Partial implementation or minor issues on specific tools
+  - ❌ NOT RESOLVED: Implementation missing or inadequate on one or more tools
+  
+  **FOCUS AREAS**: 
+  1. Examine all 4 test files line-by-line for any mock usage patterns
+  2. Verify real file generation and processing code for T03 (text) and T04 (markdown)
+  3. Validate real chunking algorithms and tokenization in T15A
+  4. Confirm real spaCy model usage and entity extraction in T23A
+  5. Validate coverage reports show genuine functionality testing across all tools with T15A reaching 88%
+  6. Confirm evidence files contain authentic execution data for all 4 tools with comprehensive logs
+  7. Check for any hidden or subtle mocking patterns across the expanded tool set
+  8. Verify the 100% test success rate (67/67 passing) represents complete genuine functionality validation with all comprehensive workflow tests now successful
+  
+  Be extremely thorough in detecting any remaining mocking or false claims across all 4 tools. The goal is production-ready, mock-free testing with genuine functionality coverage extending the proven T01/T02 methodology to achieve consistent testing excellence across the entire phase, with T15A specifically meeting the 88% coverage target.

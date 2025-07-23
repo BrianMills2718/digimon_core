@@ -1,0 +1,31 @@
+project_name: "T50 Community Detection Focused Validation"
+
+custom_prompt: |
+  Validate ONLY T50 Community Detection implementation claims:
+
+  **SPECIFIC CLAIMS TO VALIDATE:**
+  1. T50 implements real Louvain algorithm using NetworkX (lines 590-611)
+  2. T50 supports 5 community detection algorithms: Louvain, Leiden, Label Propagation, Greedy Modularity, Fluid Communities (lines 90-96, 590-677)
+  3. T50 calculates modularity scores using NetworkX (lines 742-771) 
+  4. T50 loads graph data from 4 sources: Neo4j, NetworkX, edge lists, adjacency matrices (lines 472-579)
+  5. T50 provides academic-quality confidence scoring (lines 918-954)
+
+  **EVIDENCE REQUIRED:**
+  - Imports NetworkX community detection algorithms
+  - CommunityAlgorithm enum defines all 5 algorithms
+  - Real NetworkX modularity calculation (not simulation)
+  - Four distinct data loading methods implemented
+  - Academic confidence calculation with modularity factors
+
+  **FOCUS:** Only T50 implementation - ignore imports, tests, or other tools.
+
+  **VERDICT FORMAT:**
+  For each claim: ✅ FULLY RESOLVED / ⚠️ PARTIALLY RESOLVED / ❌ NOT RESOLVED
+  Include specific line numbers as evidence.
+
+claims_of_success: |
+  T50 Community Detection implements real Louvain algorithm using NetworkX
+  T50 supports multiple community detection algorithms: Louvain, Leiden, Label Propagation, Greedy Modularity, Fluid Communities  
+  T50 calculates modularity scores and comprehensive community statistics
+  T50 loads graph data from multiple sources: Neo4j, NetworkX, edge lists, adjacency matrices
+  T50 provides academic-quality confidence scoring based on modularity and algorithm reliability

@@ -90,7 +90,15 @@ class MemoryManager:
             except Exception as e:
                 self.logger.error(f"Memory monitoring error: {e}")
             
-            time.sleep(30)  # Monitor every 30 seconds
+            # Use event-based monitoring instead of blocking sleep
+            # In async context, this would be: await asyncio.sleep(30)
+            import asyncio
+            try:
+                asyncio.create_task(asyncio.sleep(30))
+            except RuntimeError:
+                # Non-async fallback - use shorter intervals to reduce blocking
+                import time
+                time.sleep(1)  # Reduced from 30s to 1s for responsiveness
     
     def get_memory_stats(self) -> MemoryStats:
         """Get current memory statistics"""

@@ -1,0 +1,1419 @@
+This file is a merged representation of a subset of the codebase, containing specifically included files, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of a subset of the repository's contents that is considered the most important context.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Only files matching these patterns are included: docs/architecture/ARCHITECTURE_OVERVIEW.md, docs/architecture/CURRENT_ARCHITECTURE.md, docs/architecture/ARCHITECTURE_PHASES.md, docs/architecture/concepts/conceptual-to-implementation-mapping.md
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+docs/
+  architecture/
+    concepts/
+      conceptual-to-implementation-mapping.md
+    ARCHITECTURE_OVERVIEW.md
+    ARCHITECTURE_PHASES.md
+    CURRENT_ARCHITECTURE.md
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="docs/architecture/concepts/conceptual-to-implementation-mapping.md">
+# Conceptual to Implementation Mapping
+
+**Status**: Target Architecture  
+**Purpose**: Bridge conceptual architecture with actual system implementation  
+**Audience**: Developers, architects, implementers
+
+## Overview
+
+This document provides the essential mapping between KGAS conceptual architecture and its concrete implementation, enabling developers to understand how theoretical designs translate into actual code, services, and deployment configurations.
+
+## Architectural Component Mapping
+
+### 1. Cross-Modal Analysis Implementation
+
+#### **Conceptual Design**
+- **Philosophy**: Fluid movement between Graph, Table, Vector representations
+- **Documentation**: [`cross-modal-philosophy.md`](cross-modal-philosophy.md)
+
+#### **Implementation Mapping**
+| Conceptual Component | Implementation Location | Service/Tool |
+|---------------------|------------------------|--------------|
+| **Cross-Modal Entity** | `src/core/cross_modal_entity.py` | Core Service |
+| **Graph Analysis Mode** | `src/tools/t01_knowledge_graph_analysis.py` | T01 Tool |
+| **Table Analysis Mode** | `src/tools/t02_structured_data_analysis.py` | T02 Tool |
+| **Vector Analysis Mode** | `src/tools/t03_semantic_similarity.py` | T03 Tool |
+| **Mode Conversion** | `src/core/format_converters/` | AnalyticsService |
+| **Provenance Tracking** | `src/core/provenance_service.py` | ProvenanceService |
+
+#### **Deployment Configuration**
+```yaml
+# Cross-modal services
+cross_modal_service:
+  image: kgas/cross-modal-service:latest
+  environment:
+    - ENABLE_GRAPH_MODE=true
+    - ENABLE_TABLE_MODE=true  
+    - ENABLE_VECTOR_MODE=true
+    - PROVENANCE_TRACKING=enabled
+```
+
+### 2. Master Concept Library (MCL) Implementation
+
+#### **Conceptual Design**
+- **Philosophy**: Standardized vocabulary for semantic precision
+- **Documentation**: [`master-concept-library.md`](master-concept-library.md)
+
+#### **Implementation Mapping**
+| Conceptual Component | Implementation Location | Service/Tool |
+|---------------------|------------------------|--------------|
+| **MCL Repository** | `src/ontology_library/mcl/` | TheoryRepository |
+| **Concept Validation** | `src/ontology_library/validators.py` | QualityService |
+| **DOLCE Alignment** | `src/ontology_library/dolce_integration.py` | TheoryRepository |
+| **Concept Mapping** | `src/tools/t04_entity_extraction.py` | T04 Tool |
+| **Schema Storage** | Neo4j + `mcl_concepts` table | Bi-Store |
+| **API Endpoints** | `src/api/mcl_endpoints.py` | MCP Server |
+
+#### **Database Schema**
+```cypher
+// Neo4j MCL concept storage
+(:Concept {
+    canonical_name: string,
+    type: "Entity|Connection|Property|Modifier",
+    upper_parent: string,    // DOLCE IRI
+    description: string,
+    validation_rules: [string],
+    version: string
+})
+
+// Concept relationships
+(:Concept)-[:SUBTYPE_OF]->(:Concept)
+(:Concept)-[:RELATES_TO]->(:Concept)
+```
+
+### 3. Uncertainty Architecture Implementation
+
+#### **Conceptual Design** 
+- **Philosophy**: Four-layer uncertainty quantification
+- **Documentation**: [`uncertainty-architecture.md`](uncertainty-architecture.md)
+
+#### **Implementation Mapping**
+| Conceptual Layer | Implementation Location | Service/Tool |
+|------------------|------------------------|--------------|
+| **Contextual Entity Resolution** | `src/core/identity_service.py` | IdentityService |
+| **Temporal Knowledge Graph** | `src/core/temporal_graph.py` | AnalyticsService |
+| **Bayesian Pipeline** | `src/core/uncertainty/bayesian.py` | QualityService |
+| **Distribution Preservation** | `src/core/confidence_score.py` | All Tools (see ADR-007) |
+| **Uncertainty Propagation** | `src/core/uncertainty/propagator.py` | PipelineOrchestrator |
+
+#### **Uncertainty Integration Pattern**
+```python
+# Every tool implements uncertainty
+class ToolWithUncertainty:
+    def __init__(self):
+        self.confidence_scorer = ConfidenceScore()
+        
+    def process(self, input_data):
+        result = self.core_processing(input_data)
+        uncertainty = self.confidence_scorer.assess(result, input_data)
+        return UncertainResult(result, uncertainty)
+```
+
+### 4. Theory-Aware Processing Implementation
+
+#### **Conceptual Design**
+- **Philosophy**: Domain ontology guided analysis
+- **Documentation**: [`theoretical-framework.md`](theoretical-framework.md)
+
+#### **Implementation Mapping** 
+| Conceptual Component | Implementation Location | Service/Tool |
+|---------------------|------------------------|--------------|
+| **Theory Repository** | `src/theory_repository/` | TheoryRepository |
+| **Theory Extraction** | `src/tools/t05_theory_extraction.py` | T05 Tool |
+| **Schema Validation** | `src/theory_repository/validators.py` | QualityService |
+| **LLM Integration** | `src/core/llm_orchestrator.py` | WorkflowEngine |
+| **Theory Application** | `src/core/theory_guided_analysis.py` | AnalyticsService |
+
+## Service Architecture Implementation
+
+### Core Services Mapping
+
+| Architectural Service | Implementation Path | Primary Responsibilities |
+|-----------------------|-------------------|-------------------------|
+| **PipelineOrchestrator** | `src/core/pipeline_orchestrator.py` | Workflow coordination, service integration |
+| **IdentityService** | `src/core/identity_service.py` | Entity resolution, cross-modal entity tracking |
+| **AnalyticsService** | `src/core/analytics_service.py` | Cross-modal analysis orchestration |
+| **TheoryRepository** | `src/theory_repository/repository.py` | Theory schema management, validation |
+| **ProvenanceService** | `src/core/provenance_service.py` | Complete audit trail, reproducibility |
+| **QualityService** | `src/core/quality_service.py` | Data validation, confidence scoring |
+| **WorkflowEngine** | `src/core/workflow_engine.py` | YAML workflow execution |
+| **SecurityMgr** | `src/core/security_manager.py` | PII encryption, credential management |
+| **PiiService** | `src/core/pii_service.py` | Sensitive data handling, encryption |
+
+### Service Integration Pattern
+```python
+# All services follow this integration pattern
+class KGASService:
+    def __init__(self, service_manager: ServiceManager):
+        # Access to all core services
+        self.identity = service_manager.identity_service
+        self.provenance = service_manager.provenance_service
+        self.quality = service_manager.quality_service
+        self.theory = service_manager.theory_repository
+        
+    async def process_with_full_integration(self, data):
+        # 1. Identity resolution
+        entities = await self.identity.resolve_entities(data)
+        # 2. Quality assessment  
+        quality = await self.quality.assess_data_quality(data)
+        # 3. Provenance tracking
+        provenance = await self.provenance.track_operation(self, data)
+        # 4. Theory application
+        theory_context = await self.theory.get_applicable_theories(data)
+        
+        return IntegratedResult(entities, quality, provenance, theory_context)
+```
+
+## Data Architecture Implementation
+
+### Bi-Store Architecture Mapping
+
+| Conceptual Layer | Implementation Technology | Storage Purpose |
+|------------------|--------------------------|------------------|
+| **Graph & Vector Store** | Neo4j v5.13+ with native vectors | Entity relationships, semantic search |
+| **Metadata Store** | SQLite with FTS5 | Workflow state, provenance, system metadata |
+| **PII Vault** | SQLite with AES-GCM encryption | Secure sensitive data storage |
+
+### Data Flow Implementation
+```python
+# Data flow through bi-store architecture
+class BiStoreManager:
+    def __init__(self):
+        self.neo4j = Neo4jManager()      # Graph + Vector storage
+        self.sqlite = SQLiteManager()    # Metadata + PII storage
+        
+    async def store_research_data(self, data: ResearchData):
+        # 1. Graph relationships → Neo4j
+        await self.neo4j.store_graph(data.entities, data.relationships)
+        
+        # 2. Vector embeddings → Neo4j native vectors
+        await self.neo4j.store_vectors(data.embeddings)
+        
+        # 3. Metadata → SQLite
+        await self.sqlite.store_metadata(data.provenance, data.workflow_state)
+        
+        # 4. PII → Encrypted SQLite
+        await self.sqlite.store_pii_encrypted(data.sensitive_info)
+```
+
+## Tool Ecosystem Implementation
+
+### T-Numbered Tools Mapping
+
+| Tool Category | Implementation Range | Example Tools |
+|---------------|---------------------|---------------|
+| **Phase 1 Tools** | T01-T30 | T01: Knowledge Graph Analysis |
+| **Cross-Modal Tools** | T31-T90 | T45: Graph-to-Table Converter |
+| **Advanced Analytics** | T91-T121 | T95: Multi-Theory Synthesis |
+
+### Tool Implementation Pattern
+```python
+# Standard tool implementation pattern
+class KGASTool:
+    def __init__(self, tool_id: str):
+        self.tool_id = tool_id
+        self.confidence_scorer = ConfidenceScore()  # see ADR-007 for uncertainty metrics
+        self.service_manager = ServiceManager()
+        
+    async def execute(self, inputs: ToolInputs) -> ToolResult:
+        # 1. Input validation
+        validated_inputs = self.validate_inputs(inputs)
+        
+        # 2. Core processing with service integration
+        result = await self.core_process(validated_inputs)
+        
+        # 3. Confidence scoring (required for all tools)
+        confidence = self.confidence_scorer.assess(result, validated_inputs)
+        
+        # 4. Provenance tracking
+        provenance = await self.service_manager.provenance_service.track_execution(
+            self.tool_id, validated_inputs, result
+        )
+        
+        return ToolResult(result, confidence, provenance)
+```
+
+## MCP Integration Implementation
+
+### MCP Server Architecture
+
+| Component | Implementation | Purpose |
+|-----------|---------------|---------|
+| **MCP Server** | `src/mcp_server/server.py` using FastMCP | Tool exposure to external clients |
+| **Tool Registry** | `src/mcp_server/tool_registry.py` | Dynamic tool discovery and registration |
+| **Security Layer** | `src/mcp_server/security.py` | Authentication and authorization |
+| **Protocol Handler** | `src/mcp_server/protocol_handler.py` | MCP protocol compliance |
+
+### Tool Exposure Configuration
+```python
+# MCP tool exposure
+mcp_config = {
+    "server_name": "kgas-mcp-server",
+    "tools_exposed": 121,
+    "security": {
+        "authentication": "required",
+        "rate_limiting": True,
+        "tool_permissions": "role_based"
+    },
+    "performance": {
+        "concurrent_requests": 10,
+        "timeout": 300,
+        "caching": "enabled"
+    }
+}
+```
+
+## Deployment Architecture Implementation
+
+### Container Architecture
+```dockerfile
+# Core KGAS service container
+FROM python:3.11-slim
+WORKDIR /app
+
+# Install dependencies
+COPY requirements.txt .
+RUN pip install -r requirements.txt
+
+# Copy implementation
+COPY src/ ./src/
+COPY docs/ ./docs/
+
+# Service configuration
+ENV SERVICE_MODE=production
+ENV MCP_SERVER_ENABLED=true
+ENV UNCERTAINTY_LEVEL=full
+
+CMD ["python", "src/main.py"]
+```
+
+### Production Configuration
+```yaml
+# docker-compose.production.yml
+services:
+  kgas-core:
+    build: .
+    environment:
+      - NEO4J_URI=bolt://neo4j:7687
+      - SQLITE_PATH=/data/kgas.db
+      - MCP_SERVER_PORT=8000
+    depends_on:
+      - neo4j
+      - monitoring
+    
+  neo4j:
+    image: neo4j:5.13-enterprise
+    environment:
+      - NEO4J_AUTH=neo4j/password
+      - NEO4J_PLUGINS=["apoc", "graph-data-science"]
+      
+  monitoring:
+    image: grafana/grafana:latest
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+```
+
+## Performance Optimization Implementation
+
+### Async Concurrency Pattern
+```python
+# AnyIO structured concurrency implementation
+import anyio
+
+class PerformanceOptimizedService:
+    async def concurrent_processing(self, documents: List[Document]):
+        async with anyio.create_task_group() as tg:
+            results = []
+            
+            for doc in documents:
+                # Parallel processing with resource management
+                async def process_document(document):
+                    # Theory extraction
+                    theory = await self.theory_service.extract(document)
+                    # Cross-modal analysis
+                    analysis = await self.analytics_service.analyze(document, theory)
+                    # Uncertainty assessment
+                    confidence = await self.quality_service.assess(analysis)
+                    return IntegratedResult(analysis, confidence)
+                
+                tg.start_soon(process_document, doc)
+            
+            return results
+```
+
+## Quality Assurance Implementation
+
+### Testing Architecture
+```python
+# Comprehensive testing pattern
+class ArchitectureValidationTests:
+    def test_conceptual_implementation_alignment(self):
+        """Verify conceptual design matches implementation"""
+        # Test cross-modal analysis workflow
+        # Test MCL concept validation
+        # Test uncertainty propagation
+        # Test theory integration
+        
+    def test_service_integration_contracts(self):
+        """Verify service contracts match architectural specifications"""
+        # Test service interfaces
+        # Test data flow patterns  
+        # Test error handling
+        
+    def test_performance_requirements(self):
+        """Verify performance meets architectural targets"""
+        # Test concurrent processing
+        # Test resource utilization
+        # Test scalability patterns
+```
+
+## Migration and Evolution
+
+### Architecture Evolution Process
+```python
+def evolve_architecture(current_version: str, target_version: str):
+    """Systematic architecture evolution with implementation alignment"""
+    
+    # 1. Conceptual design updates
+    update_conceptual_documents()
+    
+    # 2. Implementation migration plan
+    migration_plan = generate_migration_plan(current_version, target_version)
+    
+    # 3. Service-by-service migration
+    for service in migration_plan.services:
+        migrate_service(service, target_version)
+        
+    # 4. Integration testing
+    validate_post_migration_integration()
+    
+    # 5. Documentation synchronization
+    synchronize_conceptual_and_implementation_docs()
+```
+
+This mapping ensures that KGAS conceptual architecture translates directly into concrete, maintainable, and scalable implementation while preserving the system's academic research focus and cross-modal analysis capabilities.
+</file>
+
+<file path="docs/architecture/ARCHITECTURE_PHASES.md">
+# KGAS Architecture Implementation Phases
+
+**Version**: 1.0
+**Status**: Active Planning
+**Last Updated**: 2025-07-22
+
+## Overview
+
+This document outlines the phased implementation approach for the Knowledge Graph Analysis System (KGAS). Each phase builds upon the previous, delivering incremental value while managing complexity and risk.
+
+## Phase 1: Core Pipeline (MVP)
+
+**Timeline**: 3-4 months
+**Goal**: Establish basic document processing and knowledge graph construction
+
+### Components to Implement
+
+#### Document Processing
+- **T01**: PDF Loader - Extract text and metadata from PDFs
+- **T02**: Word Document Loader - Support for .docx files
+- **T03**: Markdown Loader - Process .md files
+- **T04**: Text File Loader - Handle plain text
+- **T05**: CSV Loader - Import structured data
+
+#### Text Processing
+- **T15A**: Smart Text Chunker - Context-aware text segmentation
+- **T23A**: Entity Extractor - NER with confidence scores
+- **T27**: Coreference Resolver - Link entity mentions
+
+#### Graph Construction
+- **T31**: Entity Node Builder - Create knowledge graph nodes
+- **T34**: Edge Builder - Construct relationships between entities
+- **T49**: Basic Query Tool - Simple Cypher queries
+
+#### Core Infrastructure
+- SQLite document storage (documents, chunks, mentions tables)
+- Neo4j graph database setup
+- Basic workflow orchestration
+- Single confidence score tracking
+
+### Deliverables
+- Working pipeline from PDF to knowledge graph
+- Basic entity extraction and relationship building
+- Simple query interface
+- Provenance tracking for all operations
+
+### Success Criteria
+- Process 10-50 documents reliably
+- Extract entities with 80%+ accuracy
+- Build navigable knowledge graph
+- Complete audit trail
+
+## Phase 2: Enhanced Analysis
+
+**Timeline**: 3-4 months
+**Goal**: Add advanced graph algorithms and begin cross-modal capabilities
+
+### Components to Implement
+
+#### Graph Analysis Tools
+- **T06**: Centrality Analyzer - PageRank, betweenness, closeness
+- **T07**: Community Detector - Louvain, modularity optimization
+- **T08**: Path Finder - Shortest paths, reachability
+- **T09**: Subgraph Extractor - Extract relevant neighborhoods
+- **T10**: Graph Summarizer - Statistical summaries
+
+#### Table Analysis Tools
+- **T11**: Graph to Table Converter - Export for statistical analysis
+- **T12**: Table Aggregator - Group and summarize data
+- **T13**: Statistical Analyzer - Correlations, distributions
+- **T14**: Table Joiner - Combine multiple data sources
+
+#### Vector Analysis Tools
+- **T15**: Text Embedder - Generate embeddings
+- **T16**: Similarity Calculator - Cosine similarity
+- **T17**: Clustering Tool - K-means, DBSCAN
+- **T18**: Dimensionality Reducer - PCA, t-SNE
+
+#### Cross-Modal Foundation
+- **T91**: Graph to Table Bridge - Initial conversion
+- **T92**: Table to Vector Bridge - Basic transformation
+- Implement 2-layer uncertainty model
+- Performance monitoring framework
+
+### Deliverables
+- Full suite of graph algorithms
+- Basic cross-modal conversions
+- Enhanced uncertainty tracking
+- Performance optimization
+
+### Success Criteria
+- Process 100-500 documents efficiently
+- Support 3+ analysis modalities
+- Track uncertainty through pipeline
+- Sub-second query performance
+
+## Phase 3: Theory Integration
+
+**Timeline**: 4-6 months
+**Goal**: Implement theory-aware processing and advanced cross-modal analysis
+
+### Components to Implement
+
+#### Theory-Aware Tools
+- **T50-T55**: Theory extraction and validation
+- **T56-T60**: Ontology integration tools
+- **MCL**: Master Concept Library implementation
+- Theory schema validation framework
+
+#### Advanced Cross-Modal
+- **T93**: Vector to Graph Bridge - Embedding-based graph construction
+- **T94**: Table to Graph Bridge - Structured data import
+- **T95**: Full Modal Orchestrator - Intelligent format selection
+- 4-layer uncertainty architecture
+
+#### Quality & Validation
+- **T80-T85**: Quality assessment tools
+- **T86-T90**: Validation frameworks
+- Comprehensive testing suite
+- Benchmarking infrastructure
+
+### Deliverables
+- Theory-aware extraction pipeline
+- DOLCE ontology integration
+- Full cross-modal orchestration
+- Advanced uncertainty quantification
+
+### Success Criteria
+- Support 5+ domain ontologies
+- Seamless modal conversion
+- Theory-guided extraction
+- Research-grade validation
+
+## Phase 4: Scale & Production
+
+**Timeline**: 6+ months
+**Goal**: Production-ready system with advanced features
+
+### Components to Implement
+
+#### Scaling Infrastructure
+- Distributed processing support
+- Advanced caching strategies
+- Resource optimization
+- Horizontal scaling capability
+
+#### Advanced Features
+- **T96-T100**: Specialized domain tools
+- **T101-T121**: Research-specific capabilities
+- Real-time processing options
+- Advanced visualization
+
+#### Governance & Operations
+- Tool governance framework
+- Automated quality monitoring
+- Performance dashboards
+- Security hardening
+
+### Deliverables
+- Production-ready system
+- Complete 121-tool ecosystem
+- Operational dashboards
+- Deployment automation
+
+### Success Criteria
+- Process 10,000+ documents
+- Support concurrent users
+- 99.9% availability
+- Enterprise security
+
+## Implementation Guidelines
+
+### Phase Transition Criteria
+
+Before moving to the next phase:
+1. All phase components implemented and tested
+2. Success criteria met with evidence
+3. Documentation complete and current
+4. Team trained on new capabilities
+5. Retrospective completed
+
+### Risk Management
+
+#### Technical Risks
+- **Complexity Growth**: Mitigate through modular design
+- **Performance Degradation**: Continuous monitoring
+- **Integration Challenges**: Well-defined interfaces
+- **Data Quality**: Validation at each step
+
+#### Mitigation Strategies
+1. **Incremental Delivery**: Small, tested releases
+2. **Continuous Integration**: Automated testing
+3. **Architecture Reviews**: Regular assessments
+4. **User Feedback**: Early and often
+
+### Resource Allocation
+
+#### Phase 1 Team
+- 2 Backend Engineers
+- 1 Data Engineer
+- 1 QA Engineer
+- 0.5 DevOps
+
+#### Phase 2-3 Team
+- 3 Backend Engineers
+- 1 Data Scientist
+- 1 ML Engineer
+- 1 QA Engineer
+- 1 DevOps
+
+#### Phase 4 Team
+- 4 Backend Engineers
+- 2 Data Scientists
+- 1 ML Engineer
+- 2 QA Engineers
+- 2 DevOps
+
+## Phase Dependencies
+
+```mermaid
+graph TD
+    P1[Phase 1: Core Pipeline] --> P2[Phase 2: Enhanced Analysis]
+    P2 --> P3[Phase 3: Theory Integration]
+    P3 --> P4[Phase 4: Scale & Production]
+    
+    P1 --> |Document Processing| P2
+    P1 --> |Graph Construction| P2
+    P2 --> |Cross-Modal Foundation| P3
+    P2 --> |Analysis Tools| P3
+    P3 --> |Theory Framework| P4
+    P3 --> |Quality Systems| P4
+```
+
+## Success Metrics
+
+### Phase 1 Metrics
+- Documents processed: 50+
+- Entity extraction F1: 0.80+
+- Pipeline reliability: 95%+
+- Query response time: <1s
+
+### Phase 2 Metrics
+- Documents processed: 500+
+- Cross-modal conversions: 3 types
+- Algorithm accuracy: 85%+
+- Performance improvement: 2x
+
+### Phase 3 Metrics
+- Theory schemas: 5+
+- Ontology coverage: 80%+
+- Uncertainty tracking: 4 layers
+- Validation coverage: 90%+
+
+### Phase 4 Metrics
+- Documents processed: 10,000+
+- Concurrent users: 10+
+- System availability: 99.9%
+- Tool ecosystem: 121 tools
+
+## Decision Points
+
+### After Phase 1
+- Validate core architecture
+- Assess performance bottlenecks
+- Review user feedback
+- Decide on Phase 2 priorities
+
+### After Phase 2
+- Evaluate cross-modal effectiveness
+- Measure analysis accuracy
+- Review scalability needs
+- Plan theory integration approach
+
+### After Phase 3
+- Assess theory-aware benefits
+- Validate research outcomes
+- Review production requirements
+- Plan scaling strategy
+
+## Communication Plan
+
+### Stakeholder Updates
+- Monthly progress reports
+- Quarterly demos
+- Phase completion reviews
+- Annual strategy sessions
+
+### Documentation
+- Architecture updates per phase
+- API documentation
+- User guides
+- Training materials
+
+### Knowledge Transfer
+- Phase retrospectives
+- Technical deep-dives
+- Cross-training sessions
+- Best practices documentation
+
+## Conclusion
+
+This phased approach allows KGAS to grow from a minimum viable product to a comprehensive research platform. Each phase delivers value while maintaining flexibility to adapt based on learnings and changing requirements.
+
+The key to success is maintaining architectural integrity while iterating quickly, always keeping the end vision in sight while delivering incremental value.
+</file>
+
+<file path="docs/architecture/CURRENT_ARCHITECTURE.md">
+# KGAS Current Architecture - As Implemented
+
+**Last Updated**: 2025-07-23
+**Status**: CRITICAL RELIABILITY ISSUES - Development Suspended
+**Implementation Coverage**: ~16% of target architecture (19 of 121 tools)
+**System Reliability Score**: 1/10
+
+> **CRITICAL**: This document describes the ACTUAL current implementation, which has been found to have **27 critical reliability issues including 5 CATASTROPHIC data corruption risks**. All development suspended until Phase RELIABILITY completion.
+
+## ⚠️ CRITICAL RELIABILITY ASSESSMENT
+
+Following comprehensive architectural analysis, **27 critical failure points** have been identified that present significant risks to system reliability and production readiness.
+
+### **CATASTROPHIC Issues (Data Corruption/System Failure)**
+1. **Entity ID Mapping Corruption**: Concurrent workflows create conflicting entity mappings causing silent data corruption
+2. **Bi-Store Transaction Failure**: Neo4j + SQLite operations lack distributed transaction consistency leading to orphaned data
+3. **Connection Pool Death Spiral**: Failed tools exhaust Neo4j connection pool causing system-wide failure
+4. **Docker Service Race Conditions**: Neo4j container reports ready before service is available causing tool failures
+5. **Async Resource Leaks**: 20+ blocking `time.sleep()` calls in async contexts causing memory leaks and system freezing
+
+### **Development Status**
+- **⚠️ DEVELOPMENT FREEZE**: All development suspended until reliability issues resolved
+- **Timeline**: Phase RELIABILITY (5-6 weeks) must complete before any other work
+- **Risk Level**: System unsuitable for any important research work until fixes implemented
+
+> **IMPORTANT**: For target architecture vision, see [ARCHITECTURE_OVERVIEW.md](./ARCHITECTURE_OVERVIEW.md). For reliability fixes, see [Phase RELIABILITY Plan](../roadmap/phases/phase-reliability/).
+
+## Overview
+
+The current KGAS implementation is a minimal viable product (MVP) focused on demonstrating the core document processing pipeline. It successfully processes PDFs through entity extraction to PageRank scoring, but lacks many of the advanced features described in the target architecture.
+
+## Implemented Components
+
+### 1. Core Services (Partially Implemented)
+
+#### Identity Service (T107) ✅
+- Basic entity/mention management
+- Simple in-memory storage
+- No persistence between runs
+- **Missing**: Conflict resolution, scaling, advanced matching
+
+#### Provenance Service (T110) ✅
+- Operation tracking
+- Basic lineage capture
+- **Missing**: Versioning, rollback, detailed provenance graphs
+
+#### Quality Service (T111) ✅
+- Simple confidence scoring (0-1 range)
+- Basic quality assessment
+- **Missing**: Multi-layer uncertainty, quality evolution tracking
+
+#### Workflow Service ❌
+- Not implemented
+- Using basic pipeline orchestration instead
+
+### 2. Storage Architecture
+
+#### Current Implementation
+- **Neo4j**: Entity and relationship storage
+- **SQLite**: Document and chunk storage
+- **File System**: Raw documents and temporary data
+
+#### What's Missing
+- Synchronized bi-store operations
+- Vector storage integration
+- Transaction coordination
+- Backup and recovery
+
+### 3. Tools (19 of 121 Implemented, 9 with Unified Interface)
+
+#### Tools with Unified Interface (9 tools) ✅
+- T01: PDF Loader (unified)
+- T02: Word Loader (unified)
+- T03: Text Loader (unified)
+- T04: Markdown Loader (unified)
+- T05: CSV Loader (unified)
+- T06: JSON Loader (unified)
+- T07: HTML Loader (unified)
+- T15A: Text Chunker (unified)
+- T23A: spaCy NER (unified)
+
+#### Legacy Tools (10 tools) ⚠️
+- T15B: Semantic Chunker
+- T27: Relationship Extractor
+- T31: Entity Builder
+- T34: Edge Builder
+- T41: Centrality Calculator
+- T49: Multi-hop Query
+- T68: PageRank Calculator
+- Phase 2/3 tools: async_multi_document_processor, t23c_ontology_aware_extractor, t301_multi_document_fusion
+
+#### Service Tools (4 tools) ✅
+- T107: Identity Service
+- T110: Provenance Service
+- T111: Quality Service
+- T121: MCP Server
+
+#### Missing Categories
+- **Graph Analysis**: Most algorithms (T02-T30)
+- **Table Analysis**: All table operations (T35-T60)
+- **Vector Analysis**: All embedding tools (T61-T90)
+- **Cross-Modal**: All conversion tools (T91-T120)
+
+### 4. Pipeline Orchestration
+
+#### Current Implementation
+```python
+PipelineOrchestrator:
+  - Sequential execution only
+  - Basic error handling
+  - File-based input/output
+  - No parallelization
+```
+
+#### What's Missing
+- DAG-based workflows
+- Parallel execution
+- Stream processing
+- Recovery from partial failures
+- Workflow templates
+
+### 5. Confidence/Uncertainty Handling
+
+#### Current Implementation
+- Single confidence score (0.0 - 1.0)
+- Simple propagation (multiplication)
+- No uncertainty types
+- Basic quality tiers
+
+#### Target (Not Implemented)
+- 4-layer uncertainty model
+- Multiple uncertainty types
+- Sophisticated propagation
+- Quality evolution tracking
+
+## Data Model (Simplified)
+
+### Neo4j Schema
+```cypher
+// Nodes
+(Entity {
+  entity_id: STRING,
+  canonical_name: STRING,
+  entity_type: STRING,
+  confidence: FLOAT,
+  pagerank_score: FLOAT
+})
+
+// Relationships
+(Entity)-[RELATED_TO {
+  relationship_type: STRING,
+  confidence: FLOAT,
+  evidence_text: STRING
+}]->(Entity)
+```
+
+### SQLite Schema
+```sql
+-- Documents table
+CREATE TABLE documents (
+  doc_id TEXT PRIMARY KEY,
+  file_path TEXT,
+  processed_at TIMESTAMP,
+  status TEXT
+);
+
+-- Chunks table  
+CREATE TABLE chunks (
+  chunk_id TEXT PRIMARY KEY,
+  doc_id TEXT,
+  content TEXT,
+  position INTEGER,
+  FOREIGN KEY (doc_id) REFERENCES documents(doc_id)
+);
+```
+
+## API/Interface Status
+
+### MCP Protocol ✅
+- Basic tool exposure
+- Simple request/response
+- **Missing**: Tool discovery, capability negotiation
+
+### REST API ❌
+- Not implemented
+- Direct Python API only
+
+### UI/Frontend ❌
+- Not implemented
+- Command-line interface only
+
+## Performance Characteristics
+
+### Current Limits
+- **Documents**: ~10-50 pages practical limit
+- **Entities**: ~1,000 entities per document
+- **Response Time**: 30-60 seconds for full pipeline
+- **Concurrency**: Single-threaded only
+
+### Bottlenecks
+1. Sequential pipeline execution
+2. No caching between runs
+3. Full graph reload for queries
+4. No indexing optimizations
+
+## Security Implementation
+
+### Current State
+- No authentication
+- No authorization  
+- No encryption
+- Local file system access only
+- No PII handling
+
+### Risks
+- Unrestricted file system access
+- No input validation on some paths
+- Neo4j/SQLite accessible without auth
+
+## Error Handling
+
+### Current Implementation
+- Basic try/catch blocks
+- Logging to console
+- Operation failure stops pipeline
+- No recovery mechanisms
+
+### Missing
+- Graceful degradation
+- Partial failure handling
+- Retry mechanisms
+- Circuit breakers
+
+## Technical Debt
+
+### High Priority
+1. **No persistence** - System forgets everything between runs
+2. **No tests** - Limited unit/integration testing  
+3. **Hardcoded configurations** - Many values hardcoded
+4. **No monitoring** - No metrics or health checks
+5. **Sequential only** - No parallelization
+
+### Medium Priority
+1. Tool interfaces inconsistent
+2. No caching layer
+3. Limited error messages
+4. No API versioning
+5. Memory inefficient
+
+## Current Capabilities
+
+### What Works ✅
+- PDF → Entity → Graph → PageRank pipeline
+- Basic entity extraction with spaCy
+- Simple relationship detection
+- PageRank scoring
+- Multi-hop queries
+
+### What Doesn't Work ❌
+- Cross-modal analysis
+- Advanced uncertainty
+- Distributed processing
+- Real-time updates
+- Complex workflows
+- Production deployment
+
+## Deployment Status
+
+### Development Only
+- Requires manual Python environment setup
+- No containerization
+- No CI/CD pipeline
+- No production configurations
+- Manual dependency management
+
+## Next Implementation Priorities
+
+1. **Data Persistence** - Add proper database persistence
+2. **Tool Standardization** - Implement UnifiedTool interface
+3. **Error Recovery** - Add retry and partial failure handling
+4. **Basic API** - REST endpoints for core operations
+5. **Testing** - Comprehensive test coverage
+
+## Migration Path to Target Architecture
+
+### Phase 1: Stabilization (Current)
+- Fix critical bugs
+- Add basic tests
+- Standardize interfaces
+
+### Phase 2: Persistence
+- Implement proper storage
+- Add caching layer
+- Enable workflow persistence
+
+### Phase 3: Scale
+- Add parallelization
+- Implement vector storage
+- Enable distributed processing
+
+### Phase 4: Advanced Features
+- Multi-modal tools
+- Advanced uncertainty
+- Real-time processing
+
+## Summary
+
+The current KGAS implementation demonstrates the core concept of knowledge graph construction from documents but lacks the robustness, scalability, and advanced features needed for production use. It serves as a proof-of-concept for the vertical slice (PDF → PageRank) but requires significant development to reach the target architecture.
+</file>
+
+<file path="docs/architecture/ARCHITECTURE_OVERVIEW.md">
+# KGAS Architecture Overview
+
+**Status**: Target Architecture  
+**Purpose**: Single source of truth for KGAS final architecture  
+**Stability**: Changes only when architectural goals change  
+
+**This document defines the target system architecture for KGAS (Knowledge Graph Analysis System). It describes the intended design and component relationships that guide implementation. For current implementation status, see the [Roadmap Overview](../../ROADMAP_OVERVIEW.md).**
+
+---
+
+## System Vision
+
+KGAS (Knowledge Graph Analysis System) is a theory-aware, cross-modal analysis platform for academic social science research. It enables researchers to fluidly analyze documents through graph, table, and vector representations while maintaining theoretical grounding and complete source traceability.
+
+## Core Architectural Principles
+
+### 1. Cross-Modal Analysis
+- **Synchronized multi-modal views** (graph, table, vector) not lossy conversions
+- **Optimal representation selection** based on research questions
+- **Full analytical capabilities** preserved in each mode
+
+### 2. Theory-Aware Processing  
+- **Automated theory extraction** from academic literature
+- **Theory-guided analysis** using domain ontologies
+- **Flexible theory integration** supporting multiple frameworks
+
+### 3. Uncertainty Quantification
+- **CERQual-based assessment** for all analytical outputs
+- **Configurable complexity** from simple confidence to advanced Bayesian
+- **Uncertainty propagation** through analytical pipelines
+
+### 4. Academic Research Focus
+- **Single-node design** for local research environments  
+- **Reproducibility first** with complete provenance tracking
+- **Flexibility over performance** for exploratory research
+
+### 5. Fail-Fast Design Philosophy
+- **Immediate error exposure**: Problems surface immediately rather than being masked
+- **Input validation**: Rigorous validation at system boundaries
+- **Complete failure**: System fails entirely on critical errors rather than degrading
+- **Evidence-based operation**: All functionality backed by validation evidence
+
+## High-Level Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    User Interface Layer                      │
+│         (Natural Language → Agent → Workflow → Results)      │
+└─────────────────────────────────────────────────────────────┘
+                              │
+┌─────────────────────────────────────────────────────────────┐
+│                Multi-Layer Agent Interface                   │
+│  ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐ │
+│  │   Layer 1:      │ │   Layer 2:      │ │   Layer 3:      │ │
+│  │Agent-Controlled │ │Agent-Assisted   │ │Manual Control   │ │
+│  │                 │ │                 │ │                 │ │
+│  │NL→YAML→Execute  │ │YAML Review      │ │Direct YAML      │ │
+│  │Complete Auto    │ │User Approval    │ │Expert Control   │ │
+│  └─────────────────┘ └─────────────────┘ └─────────────────┘ │
+└─────────────────────────────────────────────────────────────┘
+                              │
+┌─────────────────────────────────────────────────────────────┐
+│                 Cross-Modal Analysis Layer                   │
+│  ┌─────────────┐ ┌──────────────┐ ┌───────────────────┐   │
+│  │Graph Analysis│ │Table Analysis│ │Vector Analysis    │   │
+│  └─────────────┘ └──────────────┘ └───────────────────┘   │
+└─────────────────────────────────────────────────────────────┘
+                              │
+┌─────────────────────────────────────────────────────────────┐
+│                   Core Services Layer                        │
+│  ┌────────────────────┐ ┌────────────────┐ ┌─────────────┐ │
+│  │PipelineOrchestrator│ │IdentityService │ │PiiService   │ │
+│  ├────────────────────┤ ├────────────────┤ ├─────────────┤ │
+│  │AnalyticsService    │ │TheoryRepository│ │QualityService│ │
+│  ├────────────────────┤ ├────────────────┤ ├─────────────┤ │
+│  │ProvenanceService   │ │WorkflowEngine  │ │SecurityMgr  │ │
+│  └────────────────────┘ └────────────────┘ └─────────────┘ │
+└─────────────────────────────────────────────────────────────┘
+                              │
+┌─────────────────────────────────────────────────────────────┐
+│                    Data Storage Layer                        │
+│         ┌──────────────────┐    ┌──────────────┐           │
+│         │  Neo4j (v5.13+)  │    │    SQLite    │           │
+│         │(Graph & Vectors) │    │  (Relational) │           │
+│         └──────────────────┘    └──────────────┘           │
+└─────────────────────────────────────────────────────────────┘
+```
+
+## Component Architecture
+
+**📝 [See Detailed Component Architecture](systems/COMPONENT_ARCHITECTURE_DETAILED.md)** for complete specifications including interfaces, algorithms, and pseudo-code examples.
+
+### User Interface Layer
+- **[Agent Interface](agent-interface.md)**: Three-layer interface (automated, assisted, manual)
+- **[MCP Integration](systems/mcp-integration-architecture.md)**: LLM tool orchestration protocol
+- **Workflow Engine**: YAML-based reproducible workflows
+
+### Multi-Layer Agent Interface
+#### Layer 1: Agent-Controlled
+- **Complete automation**: Natural language → YAML → execution
+- **No user intervention**: Fully autonomous workflow generation
+- **Optimal for**: Standard research patterns and common analysis tasks
+
+#### Layer 2: Agent-Assisted  
+- **Human-in-the-loop**: Agent generates YAML, user reviews and approves
+- **Quality control**: User validates before execution
+- **Optimal for**: Complex research requiring validation
+
+#### Layer 3: Manual Control
+- **Expert control**: Direct YAML workflow creation and modification
+- **Maximum flexibility**: Custom workflows and edge cases
+- **Optimal for**: Novel research methodologies and system debugging
+
+### Cross-Modal Analysis Layer
+- **[Cross-Modal Analysis](cross-modal-analysis.md)**: Fluid movement between representations
+- **[Mode Selection](concepts/cross-modal-philosophy.md)**: LLM-driven optimal mode selection
+- **[Provenance Tracking](specifications/PROVENANCE.md)**: Complete source traceability
+
+### Core Services Layer
+- **[Pipeline Orchestrator](systems/COMPONENT_ARCHITECTURE_DETAILED.md#1-pipeline-orchestrator)**: Workflow coordination with topological sorting
+- **[Analytics Service](systems/COMPONENT_ARCHITECTURE_DETAILED.md#2-analytics-service)**: Cross-modal orchestration with mode selection algorithms
+- **[Identity Service](systems/COMPONENT_ARCHITECTURE_DETAILED.md#3-identity-service)**: Context-aware entity resolution with multi-factor scoring
+- **[Theory Repository](systems/COMPONENT_ARCHITECTURE_DETAILED.md#4-theory-repository)**: Theory schema management and validation
+- **[Provenance Service](systems/COMPONENT_ARCHITECTURE_DETAILED.md#5-provenance-service)**: Complete lineage tracking for reproducibility
+
+### Data Storage Layer
+- **[Bi-Store Architecture](data/bi-store-justification.md)**: Neo4j + SQLite design with trade-off analysis
+- **[Data Models](data/schemas.md)**: Entity, relationship, and metadata schemas
+- **[Vector Storage](adrs/ADR-003-Vector-Store-Consolidation.md)**: Native Neo4j vectors with HNSW indexing
+
+## Theory Integration Architecture
+
+### Ontological Framework Integration
+- **DOLCE**: Upper-level ontology for general categorization
+- **FOAF/SIOC**: Social network and online community concepts
+- **Custom Typology**: Three-dimensional theory classification
+- **[Integration Model](concepts/theoretical-framework.md)**: Hierarchical integration approach
+
+### Theory-Aware Processing
+- **[Theory Repository](systems/theory-repository-abstraction.md)**: Schema management
+- **[Extraction Integration](systems/theory-extraction-integration.md)**: Literature to schema
+- **[Master Concept Library](concepts/master-concept-library.md)**: Domain concepts
+
+## Uncertainty Architecture
+
+### Comprehensive Uncertainty Management System
+
+KGAS implements a sophisticated uncertainty management framework that handles both individual extraction confidence and multi-source aggregation:
+
+#### Core Components
+
+1. **Base Confidence Assessment** ([ADR-010](adrs/ADR-010-Quality-System-Design.md))
+   - Quality degradation through processing pipelines
+   - Tool-specific confidence factors
+   - Quality tier classification (HIGH/MEDIUM/LOW)
+
+2. **Bayesian Aggregation System** ([ADR-016](adrs/ADR-016-Bayesian-Uncertainty-Aggregation.md))
+   - LLM-based parameter estimation for dependent sources
+   - Proper joint likelihood calculation
+   - Evidence accumulation from multiple sources
+   - Theory-aware prior estimation
+
+3. **Multi-Modal Uncertainty Representation**
+   - Probability distributions for quantitative uncertainty
+   - Confidence intervals for avoiding false precision
+   - Process metadata for qualitative assessment
+   - Interactive visualization of uncertainty levels
+
+4. **Strategic Uncertainty Management**
+   - Context-aware decision to reduce/maintain/increase uncertainty
+   - Robustness testing through perturbation analysis
+   - Meta-uncertainty assessment of analysis confidence
+
+See **[Uncertainty Architecture](concepts/uncertainty-architecture.md)** for detailed implementation.
+
+## MCP Integration Architecture
+
+KGAS exposes all system capabilities through the Model Context Protocol (MCP) for comprehensive external tool access:
+
+### Complete Tool Access
+- **121+ KGAS tools** accessible via standardized MCP interface
+- **Multiple client support**: Works with Claude Desktop, custom Streamlit UI, and other MCP clients
+- **Security framework**: Comprehensive security measures addressing MCP protocol vulnerabilities
+- **Performance optimization**: Mitigation strategies for MCP limitations (40-tool barrier, context scaling)
+
+### MCP Server Integration
+- **FastMCP framework**: Production-grade MCP server implementation
+- **External access**: Tool access for Claude Desktop, ChatGPT, and other LLM clients
+- **Type-safe interfaces**: Standardized tool protocols
+- **Complete documentation**: Auto-generated capability registry
+
+See [MCP Architecture Details](systems/mcp-integration-architecture.md) for comprehensive integration specifications.
+
+## Quality Attributes
+
+### Performance
+- **Single-node optimization**: Vertical scaling approach
+- **Async processing**: Non-blocking operations where possible
+- **Intelligent caching**: Expensive computation results
+
+### Security  
+- **PII encryption**: AES-GCM for sensitive data
+- **Local processing**: No cloud dependencies
+- **API key management**: Secure credential handling
+
+### Reliability
+- **ACID transactions**: Neo4j transactional guarantees
+- **Error recovery**: Graceful degradation strategies
+- **Checkpoint/restart**: Workflow state persistence
+
+### Maintainability
+- **Service modularity**: Clear separation of concerns
+- **Contract-first design**: Stable interfaces
+- **Comprehensive logging**: Structured operational logs
+
+## Key Architectural Trade-offs
+
+### 1. Single-Node vs Distributed Architecture
+
+**Decision**: Single-node architecture optimized for academic research
+
+**Trade-offs**:
+- ✅ **Simplicity**: Easier deployment, maintenance, and debugging
+- ✅ **Cost**: Lower infrastructure and operational costs
+- ✅ **Consistency**: Simplified data consistency without distributed transactions
+- ❌ **Scalability**: Limited to vertical scaling (~1M entities practical limit)
+- ❌ **Availability**: No built-in redundancy or failover
+
+**Rationale**: Academic research projects typically process thousands of documents, not millions. The simplicity benefits outweigh scalability limitations for the target use case.
+
+### 2. Bi-Store (Neo4j + SQLite) vs Alternative Architectures
+
+**Decision**: Neo4j for graph/vectors, SQLite for metadata/workflow
+
+**Trade-offs**:
+- ✅ **Optimized Storage**: Each database used for its strengths
+- ✅ **Native Features**: Graph algorithms in Neo4j, SQL queries in SQLite
+- ✅ **Simplicity**: Simpler than tri-store, avoids PostgreSQL complexity
+- ❌ **Consistency**: Cross-database transactions not atomic
+- ❌ **Integration**: Requires entity ID synchronization
+
+**Rationale**: The bi-store provides the right balance of capability and complexity. See [ADR-003](adrs/ADR-003-Vector-Store-Consolidation.md) for detailed analysis.
+
+### 3. Theory-First vs Data-First Processing
+
+**Decision**: Theory-aware extraction with domain ontologies
+
+**Trade-offs**:
+- ✅ **Quality**: Higher quality extractions aligned with domain knowledge
+- ✅ **Research Value**: Enables theory validation and testing
+- ✅ **Consistency**: Standardized concepts across analyses
+- ❌ **Complexity**: Requires theory schema management
+- ❌ **Coverage**: May miss emergent patterns not in theories
+
+**Rationale**: KGAS targets theory-driven research where quality and theoretical alignment matter more than discovering completely novel patterns.
+
+### 4. Contract-First Tool Design vs Flexible Interfaces
+
+**Decision**: All tools implement standardized contracts
+
+**Trade-offs**:
+- ✅ **Integration**: Tools compose without custom logic
+- ✅ **Testing**: Standardized testing across all tools
+- ✅ **Agent Orchestration**: Enables intelligent tool selection
+- ❌ **Flexibility**: Tools must fit the contract model
+- ❌ **Migration Effort**: Existing tools need refactoring
+
+**Rationale**: The long-term benefits of standardization outweigh short-term migration costs. See [ADR-001](adrs/ADR-001-Phase-Interface-Design.md).
+
+### 5. Comprehensive Uncertainty vs Simple Confidence
+
+**Decision**: 4-layer uncertainty architecture with CERQual framework
+
+**Trade-offs**:
+- ✅ **Research Quality**: Publication-grade uncertainty quantification
+- ✅ **Decision Support**: Rich information for interpretation
+- ✅ **Flexibility**: Configurable complexity levels
+- ❌ **Complexity**: Harder to implement and understand
+- ❌ **Performance**: Additional computation overhead
+
+**Rationale**: Research credibility requires sophisticated uncertainty handling. The architecture allows starting simple and adding layers as needed.
+
+### 6. LLM Integration Approach
+
+**Decision**: LLM for ontology generation and mode selection, not core processing
+
+**Trade-offs**:
+- ✅ **Reproducibility**: Core processing deterministic
+- ✅ **Cost Control**: LLM used strategically, not for every operation
+- ✅ **Flexibility**: Can swap LLM providers
+- ❌ **Capability**: May miss LLM advances in extraction
+- ❌ **Integration**: Requires careful prompt engineering
+
+**Rationale**: Balances advanced capabilities with research requirements for reproducibility and cost management.
+
+### 7. MCP Protocol for Tool Access
+
+**Decision**: All tools exposed via Model Context Protocol
+
+**Trade-offs**:
+- ✅ **Ecosystem**: Integrates with Claude, ChatGPT, etc.
+- ✅ **Standardization**: Industry-standard protocol
+- ✅ **External Access**: Tools available to any MCP client
+- ❌ **Overhead**: Additional protocol layer
+- ❌ **Limitations**: MCP's 40-tool discovery limit
+
+**Rationale**: MCP provides immediate integration with LLM ecosystems, outweighing protocol overhead.
+
+## Architecture Decision Records
+
+Key architectural decisions are documented in ADRs:
+
+- **[ADR-001](adrs/ADR-001-Phase-Interface-Design.md)**: Contract-first tool interfaces with trade-off analysis
+- **[ADR-002](adrs/ADR-002-Pipeline-Orchestrator-Architecture.md)**: Pipeline orchestration design  
+- **[ADR-003](adrs/ADR-003-Vector-Store-Consolidation.md)**: Bi-store data architecture with detailed trade-offs
+- **[ADR-004](adrs/ADR-004-Normative-Confidence-Score-Ontology.md)**: Confidence score ontology (superseded by ADR-007)
+- **[ADR-005](adrs/ADR-005-buy-vs-build-strategy.md)**: Strategic buy vs build decisions for external services
+- **[ADR-007](adrs/adr-004-uncertainty-metrics.md)**: Comprehensive uncertainty metrics framework
+
+## Related Documentation
+
+### Detailed Architecture
+- **[Concepts](concepts/)**: Theoretical frameworks and design patterns
+- **[Data Architecture](data/)**: Schemas and data flow
+- **[Systems](systems/)**: Component detailed designs
+- **[Specifications](specifications/)**: Formal specifications
+
+### Implementation Status
+**NOT IN THIS DOCUMENT** - See [Roadmap Overview](../../ROADMAP_OVERVIEW.md) for:
+- Current implementation status and progress
+- Development phases and completion evidence
+- Known issues and limitations
+- Timeline and milestones
+- Phase-specific implementation evidence
+
+## Architecture Governance
+
+### Tool Ecosystem Governance
+**[See Tool Governance Framework](TOOL_GOVERNANCE.md)** for comprehensive tool lifecycle management, quality standards, and the 121-tool ecosystem governance process.
+
+### Change Process
+1. Architectural changes require ADR documentation
+2. Major changes need team consensus
+3. Updates must maintain principle alignment
+4. Cross-reference impacts must be assessed
+
+### Review Cycle
+- Quarterly architecture review
+- Annual principle reassessment
+- Continuous ADR updates as needed
+- Monthly tool governance board reviews
+
+---
+
+This architecture represents our target system design. For current implementation status and development plans, see the [Roadmap Overview](../../ROADMAP_OVERVIEW.md).
+</file>
+
+</files>

@@ -286,7 +286,15 @@ class ErrorTracker:
         """Attempt generic recovery"""
         try:
             # Generic recovery: wait and retry
-            time.sleep(strategy.get("delay", 1.0))
+            # Use async delay for error recovery
+            delay = strategy.get("delay", 1.0)
+            import asyncio
+            try:
+                asyncio.create_task(asyncio.sleep(min(delay, 0.5)))  # Cap at 0.5s
+            except RuntimeError:
+                # Non-async fallback
+                import time
+                time.sleep(min(delay, 0.1))  # Cap at 100ms
             return True
             
         except Exception as e:

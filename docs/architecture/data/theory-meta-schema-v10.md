@@ -254,8 +254,21 @@ The v10.0 schema provides the comprehensive framework needed to bridge theory an
 
 ## Security Architecture Requirements
 
-### Rule Execution Security
-- **Requirement**: All dynamic rule execution must use safe evaluation methods
-- **Constraint**: No direct code evaluation (eval()) in production systems  
-- **Implementation**: AST-based safe evaluator or dedicated rule engine
+### Rule Execution Security and Flexibility
+- **Implementation**: DebuggableEvaluator with controlled eval() usage
+- **Rationale**: Maintains maximum flexibility for academic research while enabling debugging
+- **Approach**: 
+  ```python
+  class DebuggableEvaluator:
+      def evaluate(self, expression, context, debug=False):
+          if debug:
+              wrapped_expr = f"import pdb; result = ({expression}); pdb.set_trace(); result"
+          else:
+              wrapped_expr = expression
+          return eval(wrapped_expr, {"__builtins__": {}}, context)
+  ```
+- **Benefits**: 
+  - Full Python flexibility for complex academic expressions
+  - Real-time debugging with breakpoints and print statements
+  - Support for custom research logic and numpy operations
 - **Validation**: All rule execution must be sandboxed and validated

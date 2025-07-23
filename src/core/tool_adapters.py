@@ -1793,9 +1793,8 @@ class MultiDocumentFusionAdapter(BaseToolAdapter):
         super().__init__(config_manager)
         
         from src.tools.phase3.t301_multi_document_fusion import MultiDocumentFusion
-from src.core.config_manager import get_config
+        from src.core.config_manager import get_config
 
-        
         # Get Neo4j config from ConfigManager
         neo4j_config = self.config_manager.get_neo4j_config()
         

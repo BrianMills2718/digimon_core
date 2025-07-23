@@ -2,9 +2,21 @@
 
 *Status: Target Architecture*
 
+## ⚠️ CRITICAL IMPLEMENTATION ISSUES
+
+**IDENTIFIED**: Current implementation has **20+ blocking `time.sleep()` calls in async contexts** causing resource leaks and event loop blocking.
+
+**STATUS**: Phase RELIABILITY Issue C5 - CATASTROPHIC priority requiring immediate resolution.
+
+**IMPACT**: System experiences memory leaks, performance degradation, and potential freezing due to improper async resource management.
+
+**FILES AFFECTED**: Multiple files including `async_multi_doc_demo.py`, `neo4j_manager.py`, and core async operations.
+
 ## Overview
 
 KGAS implements structured concurrency using AnyIO to provide reliable, predictable asynchronous operations with automatic resource management and cancellation.
+
+**NOTE**: Current implementation violates these principles and requires complete async pattern remediation before target architecture can be achieved.
 
 ## Design Principles
 

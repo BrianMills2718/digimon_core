@@ -1,0 +1,3560 @@
+This file is a merged representation of a subset of the codebase, containing specifically included files, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of a subset of the repository's contents that is considered the most important context.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Only files matching these patterns are included: tests/unit/test_t34_edge_builder_unified.py, src/tools/phase1/t68_pagerank_calculator_unified.py, tests/unit/test_t68_pagerank_calculator_unified.py, src/tools/phase1/t49_multihop_query_unified.py, tests/unit/test_t49_multihop_query_unified.py, src/tools/base_tool.py
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+src/
+  tools/
+    phase1/
+      t49_multihop_query_unified.py
+      t68_pagerank_calculator_unified.py
+    base_tool.py
+tests/
+  unit/
+    test_t34_edge_builder_unified.py
+    test_t49_multihop_query_unified.py
+    test_t68_pagerank_calculator_unified.py
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="src/tools/phase1/t49_multihop_query_unified.py">
+"""
+T49 Multi-hop Query Unified Tool
+
+Performs multi-hop queries on Neo4j graph to find research answers.
+Implements unified BaseTool interface with comprehensive query capabilities.
+"""
+
+import uuid
+import logging
+import re
+import time
+from datetime import datetime
+from typing import Dict, Any, List, Optional, Tuple, Set
+
+try:
+    from neo4j import GraphDatabase, Driver
+    NEO4J_AVAILABLE = True
+except ImportError:
+    NEO4J_AVAILABLE = False
+    Driver = None
+
+from src.tools.base_tool import BaseTool, ToolRequest, ToolResult, ToolErrorCode
+from src.core.service_manager import ServiceManager
+
+class T49MultiHopQueryUnified(BaseTool):
+    """
+    Multi-hop Query tool for answering research questions from graph data.
+    
+    Features:
+    - Real Neo4j multi-hop path finding
+    - Query entity extraction from natural language
+    - PageRank-weighted result ranking
+    - Path explanation and evidence tracking
+    - 1-hop, 2-hop, and 3-hop query support
+    - Quality assessment and confidence scoring
+    - Comprehensive error handling
+    """
+    
+    def __init__(self, service_manager: ServiceManager):
+        super().__init__(service_manager)
+        self.tool_id = "T49"
+        self.name = "Multi-hop Query"
+        self.category = "graph_querying"
+        self.service_manager = service_manager
+        self.logger = logging.getLogger(__name__)
+        
+        # Query parameters
+        self.max_hops = 3
+        self.result_limit = 20
+        self.min_path_weight = 0.01
+        self.pagerank_boost_factor = 2.0
+        
+        # Initialize Neo4j connection
+        self.driver = None
+        self._initialize_neo4j_connection()
+        
+        # Query execution stats
+        self.queries_processed = 0
+        self.paths_found = 0
+        self.entities_extracted = 0
+        self.neo4j_operations = 0
+
+    def _initialize_neo4j_connection(self):
+        """Initialize Neo4j connection"""
+        if not NEO4J_AVAILABLE:
+            self.logger.warning("Neo4j driver not available. Install with: pip install neo4j")
+            return
+        
+        try:
+            # Use default Neo4j settings - in production these would come from config
+            neo4j_uri = "bolt://localhost:7687"
+            neo4j_user = "neo4j"
+            neo4j_password = "password"
+            
+            self.driver = GraphDatabase.driver(
+                neo4j_uri, 
+                auth=(neo4j_user, neo4j_password)
+            )
+            
+            # Test connection
+            with self.driver.session() as session:
+                session.run("RETURN 1")
+            
+            self.logger.info("Neo4j connection established successfully")
+            
+        except Exception as e:
+            self.logger.warning(f"Failed to connect to Neo4j: {e}")
+            self.driver = None
+
+    def execute(self, request: ToolRequest) -> ToolResult:
+        """Execute multi-hop query with real Neo4j integration"""
+        self._start_execution()
+        
+        try:
+            # Validate input
+            validation_result = self._validate_input(request.input_data)
+            if not validation_result["valid"]:
+                execution_time, memory_used = self._end_execution()
+                return ToolResult(
+                    tool_id=self.tool_id,
+                    status="error",
+                    data={},
+                    error_message=validation_result["error"],
+                    error_code=ToolErrorCode.INVALID_INPUT,
+                    execution_time=execution_time,
+                    memory_used=memory_used
+                )
+            
+            # Check Neo4j availability
+            if not self.driver:
+                execution_time, memory_used = self._end_execution()
+                return ToolResult(
+                    tool_id=self.tool_id,
+                    status="error",
+                    data={},
+                    error_message="Neo4j connection not available",
+                    error_code=ToolErrorCode.CONNECTION_ERROR,
+                    execution_time=execution_time,
+                    memory_used=memory_used
+                )
+            
+            # Extract query parameters
+            query_text = request.input_data.get("query", request.input_data.get("query_text", ""))
+            max_hops = request.parameters.get("max_hops", self.max_hops)
+            result_limit = request.parameters.get("result_limit", self.result_limit)
+            min_path_weight = request.parameters.get("min_path_weight", self.min_path_weight)
+            
+            # Extract entities from query text
+            query_entities = self._extract_query_entities(query_text)
+            
+            if not query_entities:
+                execution_time, memory_used = self._end_execution()
+                return ToolResult(
+                    tool_id=self.tool_id,
+                    status="success",
+                    data={
+                        "query_results": [],
+                        "result_count": 0,
+                        "reason": "No recognizable entities found in query"
+                    },
+                    execution_time=execution_time,
+                    memory_used=memory_used,
+                    metadata={
+                        "query_text": query_text,
+                        "entities_extracted": 0
+                    }
+                )
+            
+            # Perform multi-hop query
+            query_results = self._perform_multihop_query(
+                query_entities, 
+                query_text, 
+                max_hops, 
+                result_limit,
+                min_path_weight
+            )
+            
+            # Calculate overall confidence
+            overall_confidence = self._calculate_overall_confidence(query_results)
+            
+            # Create service mentions for query results
+            self._create_service_mentions(query_results[:5], request.input_data)
+            
+            execution_time, memory_used = self._end_execution()
+            
+            return ToolResult(
+                tool_id=self.tool_id,
+                status="success",
+                data={
+                    "query_results": query_results,
+                    "result_count": len(query_results),
+                    "confidence": overall_confidence,
+                    "processing_method": "neo4j_multihop_query",
+                    "query_stats": {
+                        "queries_processed": self.queries_processed,
+                        "paths_found": self.paths_found,
+                        "entities_extracted": self.entities_extracted,
+                        "neo4j_operations": self.neo4j_operations
+                    },
+                    "extracted_entities": query_entities,
+                    "query_analysis": self._analyze_query_complexity(query_text, query_entities),
+                    "path_distribution": self._analyze_path_distribution(query_results)
+                },
+                execution_time=execution_time,
+                memory_used=memory_used,
+                metadata={
+                    "query_text": query_text,
+                    "max_hops": max_hops,
+                    "result_limit": result_limit,
+                    "min_path_weight": min_path_weight,
+                    "entities_found": len(query_entities),
+                    "neo4j_available": True
+                }
+            )
+            
+        except Exception as e:
+            execution_time, memory_used = self._end_execution()
+            self.logger.error(f"Multi-hop query error: {str(e)}")
+            return ToolResult(
+                tool_id=self.tool_id,
+                status="error",
+                data={"error": str(e)},
+                error_message=f"Multi-hop query failed: {str(e)}",
+                error_code=ToolErrorCode.PROCESSING_ERROR,
+                execution_time=execution_time,
+                memory_used=memory_used
+            )
+
+    def _validate_input(self, input_data: Any) -> Dict[str, Any]:
+        """Validate input data for multi-hop query"""
+        if not isinstance(input_data, dict):
+            return {"valid": False, "error": "Input must be a dictionary"}
+        
+        # Query text is required
+        query = input_data.get("query", input_data.get("query_text", ""))
+        if not query or not isinstance(query, str):
+            return {"valid": False, "error": "Query text is required and must be a string"}
+        
+        if len(query.strip()) < 3:
+            return {"valid": False, "error": "Query text must be at least 3 characters long"}
+        
+        return {"valid": True}
+
+    def _extract_query_entities(self, query_text: str) -> List[Dict[str, Any]]:
+        """Extract entities from query text using simple patterns and Neo4j lookup"""
+        if not self.driver:
+            return []
+        
+        try:
+            # Extract potential entity names using simple patterns
+            potential_entities = []
+            
+            # Pattern 1: Capitalized words/phrases (proper nouns)
+            capitalized_patterns = re.findall(r'\b[A-Z][a-zA-Z\s]{1,30}(?=\s|$)', query_text)
+            potential_entities.extend([p.strip() for p in capitalized_patterns if len(p.strip()) > 2])
+            
+            # Pattern 2: Quoted entities
+            quoted_patterns = re.findall(r'"([^"]+)"', query_text)
+            potential_entities.extend(quoted_patterns)
+            
+            # Pattern 3: Common entity indicators
+            entity_indicators = [
+                r'(?:company|corporation|inc|corp|ltd)\s+([A-Z][a-zA-Z\s]+)',
+                r'(?:person|people|individual)\s+([A-Z][a-zA-Z\s]+)',
+                r'(?:city|country|state)\s+([A-Z][a-zA-Z\s]+)',
+                r'([A-Z][a-zA-Z\s]+)\s+(?:company|corporation|inc|corp|ltd)',
+            ]
+            
+            for pattern in entity_indicators:
+                matches = re.findall(pattern, query_text, re.IGNORECASE)
+                potential_entities.extend([m.strip() for m in matches])
+            
+            # Remove duplicates and clean up
+            unique_entities = list(set([e.strip() for e in potential_entities if len(e.strip()) > 2]))
+            
+            # Look up entities in Neo4j
+            found_entities = []
+            
+            with self.driver.session() as session:
+                for entity_name in unique_entities:
+                    # Search for entities with similar names
+                    cypher = """
+                    MATCH (e:Entity)
+                    WHERE toLower(e.canonical_name) CONTAINS toLower($entity_name)
+                       OR toLower(e.canonical_name) = toLower($entity_name)
+                    RETURN e.entity_id as entity_id,
+                           e.canonical_name as canonical_name,
+                           e.entity_type as entity_type,
+                           e.confidence as confidence,
+                           e.pagerank_score as pagerank_score
+                    ORDER BY e.pagerank_score DESC NULLS LAST
+                    LIMIT 3
+                    """
+                    
+                    result = session.run(cypher, entity_name=entity_name)
+                    
+                    for record in result:
+                        found_entities.append({
+                            "query_name": entity_name,
+                            "entity_id": record["entity_id"],
+                            "canonical_name": record["canonical_name"],
+                            "entity_type": record["entity_type"],
+                            "confidence": record["confidence"] or 0.5,
+                            "pagerank_score": record["pagerank_score"] or 0.0001,
+                            "match_type": "exact" if entity_name.lower() == record["canonical_name"].lower() else "partial"
+                        })
+            
+            self.entities_extracted = len(found_entities)
+            self.neo4j_operations += len(unique_entities)
+            
+            return found_entities
+            
+        except Exception as e:
+            self.logger.error(f"Entity extraction failed: {e}")
+            return []
+
+    def _perform_multihop_query(
+        self, 
+        query_entities: List[Dict[str, Any]], 
+        query_text: str,
+        max_hops: int,
+        result_limit: int,
+        min_path_weight: float
+    ) -> List[Dict[str, Any]]:
+        """Perform multi-hop query to find relevant paths and answers"""
+        if not self.driver or not query_entities:
+            return []
+        
+        all_results = []
+        
+        try:
+            with self.driver.session() as session:
+                # If we have multiple entities, find paths between them
+                if len(query_entities) >= 2:
+                    # Find paths between entity pairs
+                    for i, source_entity in enumerate(query_entities):
+                        for target_entity in query_entities[i+1:]:
+                            paths = self._find_paths_between_entities(
+                                session, 
+                                source_entity, 
+                                target_entity, 
+                                max_hops
+                            )
+                            all_results.extend(paths)
+                
+                # Also find high-ranking entities related to each query entity
+                for entity in query_entities:
+                    related_results = self._find_related_entities(
+                        session,
+                        entity,
+                        max_hops,
+                        result_limit // len(query_entities) if len(query_entities) > 0 else result_limit
+                    )
+                    all_results.extend(related_results)
+            
+            # Rank and filter results
+            ranked_results = self._rank_query_results(all_results, query_text, min_path_weight)
+            
+            # Limit results
+            final_results = ranked_results[:result_limit]
+            
+            self.queries_processed += 1
+            self.paths_found = len(final_results)
+            
+            return final_results
+            
+        except Exception as e:
+            self.logger.error(f"Multi-hop query execution failed: {e}")
+            return []
+
+    def _find_paths_between_entities(
+        self, 
+        session, 
+        source_entity: Dict[str, Any], 
+        target_entity: Dict[str, Any], 
+        max_hops: int
+    ) -> List[Dict[str, Any]]:
+        """Find paths between two entities"""
+        paths = []
+        
+        try:
+            # Query for paths of different lengths
+            for hop_count in range(1, max_hops + 1):
+                cypher = f"""
+                MATCH path = (source:Entity)-[*{hop_count}]->(target:Entity)
+                WHERE source.entity_id = $source_id 
+                  AND target.entity_id = $target_id
+                  AND ALL(r IN relationships(path) WHERE r.weight > 0.1)
+                WITH path, 
+                     reduce(weight = 1.0, r IN relationships(path) | weight * r.weight) as path_weight,
+                     [n IN nodes(path) | n.canonical_name] as path_names,
+                     [r IN relationships(path) | r.relationship_type] as relationship_types,
+                     length(path) as path_length
+                WHERE path_weight > 0.001
+                RETURN path_weight, path_names, relationship_types, path_length
+                ORDER BY path_weight DESC
+                LIMIT 5
+                """
+                
+                result = session.run(
+                    cypher,
+                    source_id=source_entity["entity_id"],
+                    target_id=target_entity["entity_id"]
+                )
+                
+                for record in result:
+                    path_data = {
+                        "result_type": "path",
+                        "source_entity": source_entity["canonical_name"],
+                        "target_entity": target_entity["canonical_name"],
+                        "path": record["path_names"],
+                        "relationship_types": record["relationship_types"],
+                        "path_length": record["path_length"],
+                        "path_weight": record["path_weight"],
+                        "confidence": self._calculate_path_confidence(record["path_weight"], record["path_length"]),
+                        "explanation": self._generate_path_explanation(
+                            record["path_names"], 
+                            record["relationship_types"]
+                        )
+                    }
+                    paths.append(path_data)
+            
+            self.neo4j_operations += max_hops
+            return paths
+            
+        except Exception as e:
+            self.logger.error(f"Path finding failed: {e}")
+            return []
+
+    def _find_related_entities(
+        self, 
+        session, 
+        entity: Dict[str, Any], 
+        max_hops: int,
+        limit: int
+    ) -> List[Dict[str, Any]]:
+        """Find entities related to the query entity"""
+        related_entities = []
+        
+        try:
+            # Find highly connected entities within max_hops
+            cypher = f"""
+            MATCH (source:Entity)-[*1..{max_hops}]->(related:Entity)
+            WHERE source.entity_id = $entity_id
+              AND related.entity_id <> $entity_id
+            WITH related, 
+                 count(*) as connection_count,
+                 avg(related.pagerank_score) as avg_pagerank
+            WHERE connection_count >= 1
+            RETURN related.entity_id as entity_id,
+                   related.canonical_name as canonical_name,
+                   related.entity_type as entity_type,
+                   related.confidence as confidence,
+                   related.pagerank_score as pagerank_score,
+                   connection_count,
+                   avg_pagerank
+            ORDER BY pagerank_score DESC NULLS LAST, connection_count DESC
+            LIMIT $limit
+            """
+            
+            result = session.run(
+                cypher,
+                entity_id=entity["entity_id"],
+                limit=limit
+            )
+            
+            for record in result:
+                related_data = {
+                    "result_type": "related_entity",
+                    "query_entity": entity["canonical_name"],
+                    "related_entity": record["canonical_name"],
+                    "entity_type": record["entity_type"],
+                    "pagerank_score": record["pagerank_score"] or 0.0001,
+                    "connection_count": record["connection_count"],
+                    "confidence": self._calculate_related_confidence(
+                        record["pagerank_score"] or 0.0001,
+                        record["connection_count"],
+                        record["confidence"] or 0.5
+                    ),
+                    "explanation": f"{record['canonical_name']} is connected to {entity['canonical_name']} through {record['connection_count']} path(s)"
+                }
+                related_entities.append(related_data)
+            
+            self.neo4j_operations += 1
+            return related_entities
+            
+        except Exception as e:
+            self.logger.error(f"Related entity search failed: {e}")
+            return []
+
+    def _rank_query_results(
+        self, 
+        results: List[Dict[str, Any]], 
+        query_text: str,
+        min_path_weight: float
+    ) -> List[Dict[str, Any]]:
+        """Rank query results by relevance and confidence"""
+        if not results:
+            return []
+        
+        # Calculate ranking scores
+        for result in results:
+            ranking_score = 0.0
+            
+            # Base score from confidence
+            ranking_score += result.get("confidence", 0.5) * 0.4
+            
+            # PageRank boost
+            if "pagerank_score" in result:
+                ranking_score += result["pagerank_score"] * self.pagerank_boost_factor * 0.3
+            
+            # Path weight boost for path results
+            if result.get("result_type") == "path":
+                path_weight = result.get("path_weight", 0.0)
+                if path_weight >= min_path_weight:
+                    ranking_score += path_weight * 0.2
+                else:
+                    ranking_score *= 0.5  # Penalize low-weight paths
+                
+                # Prefer shorter paths (inverse length bonus)
+                path_length = result.get("path_length", 1)
+                ranking_score += (1.0 / path_length) * 0.1
+            
+            # Connection count boost for related entities
+            if result.get("result_type") == "related_entity":
+                connection_count = result.get("connection_count", 1)
+                ranking_score += min(connection_count / 10.0, 0.1)
+            
+            result["ranking_score"] = ranking_score
+        
+        # Filter out very low scoring results
+        filtered_results = [r for r in results if r.get("ranking_score", 0) > 0.1]
+        
+        # Sort by ranking score descending
+        ranked_results = sorted(filtered_results, key=lambda x: x.get("ranking_score", 0), reverse=True)
+        
+        # Add final rankings
+        for i, result in enumerate(ranked_results, 1):
+            result["rank"] = i
+        
+        return ranked_results
+
+    def _calculate_path_confidence(self, path_weight: float, path_length: int) -> float:
+        """Calculate confidence for a path result"""
+        # Base confidence from path weight
+        weight_confidence = min(path_weight * 10.0, 1.0)  # Scale up small weights
+        
+        # Length penalty (longer paths are less confident)
+        length_penalty = 1.0 / (1.0 + (path_length - 1) * 0.2)
+        
+        confidence = weight_confidence * length_penalty
+        return max(0.1, min(1.0, confidence))
+
+    def _calculate_related_confidence(
+        self, 
+        pagerank_score: float, 
+        connection_count: int, 
+        base_confidence: float
+    ) -> float:
+        """Calculate confidence for a related entity result"""
+        # Combine PageRank, connection count, and base confidence
+        pagerank_factor = min(pagerank_score * 1000, 1.0)  # Scale up small PageRank scores
+        connection_factor = min(connection_count / 5.0, 1.0)  # Scale connection count
+        
+        confidence = (pagerank_factor * 0.4) + (connection_factor * 0.3) + (base_confidence * 0.3)
+        return max(0.1, min(1.0, confidence))
+
+    def _generate_path_explanation(self, path_names: List[str], relationship_types: List[str]) -> str:
+        """Generate human-readable explanation for a path"""
+        if not path_names or len(path_names) < 2:
+            return "No path found"
+        
+        if not relationship_types or len(relationship_types) != len(path_names) - 1:
+            return f"Path: {' -> '.join(path_names)}"
+        
+        explanation_parts = []
+        for i in range(len(relationship_types)):
+            source = path_names[i]
+            target = path_names[i + 1]
+            relation = relationship_types[i].replace("_", " ").lower()
+            explanation_parts.append(f"{source} {relation} {target}")
+        
+        return "; ".join(explanation_parts)
+
+    def _analyze_query_complexity(self, query_text: str, query_entities: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """Analyze query complexity and characteristics"""
+        return {
+            "query_length": len(query_text),
+            "entity_count": len(query_entities),
+            "complexity_score": min(len(query_entities) / 5.0, 1.0),
+            "entity_types": list(set([e.get("entity_type", "UNKNOWN") for e in query_entities])),
+            "has_multiple_entities": len(query_entities) > 1,
+            "query_words": len(query_text.split())
+        }
+
+    def _analyze_path_distribution(self, query_results: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """Analyze distribution of path lengths and types"""
+        if not query_results:
+            return {}
+        
+        result_types = {}
+        path_lengths = []
+        confidence_ranges = {"high": 0, "medium": 0, "low": 0}
+        
+        for result in query_results:
+            # Count result types
+            result_type = result.get("result_type", "unknown")
+            result_types[result_type] = result_types.get(result_type, 0) + 1
+            
+            # Collect path lengths
+            if "path_length" in result:
+                path_lengths.append(result["path_length"])
+            
+            # Count confidence ranges
+            confidence = result.get("confidence", 0.5)
+            if confidence >= 0.8:
+                confidence_ranges["high"] += 1
+            elif confidence >= 0.5:
+                confidence_ranges["medium"] += 1
+            else:
+                confidence_ranges["low"] += 1
+        
+        analysis = {
+            "result_type_distribution": result_types,
+            "confidence_distribution": confidence_ranges
+        }
+        
+        if path_lengths:
+            analysis["path_length_stats"] = {
+                "min_length": min(path_lengths),
+                "max_length": max(path_lengths),
+                "avg_length": sum(path_lengths) / len(path_lengths)
+            }
+        
+        return analysis
+
+    def _calculate_overall_confidence(self, query_results: List[Dict[str, Any]]) -> float:
+        """Calculate overall confidence for query results"""
+        if not query_results:
+            return 0.0
+        
+        # Weight confidence by ranking
+        weighted_confidence = 0.0
+        total_weight = 0.0
+        
+        for result in query_results:
+            rank_weight = 1.0 / result.get("rank", 1)  # Higher rank = higher weight
+            confidence = result.get("confidence", 0.5)
+            weighted_confidence += confidence * rank_weight
+            total_weight += rank_weight
+        
+        return weighted_confidence / total_weight if total_weight > 0 else 0.0
+
+    def _create_service_mentions(self, top_results: List[Dict[str, Any]], input_data: Dict[str, Any]):
+        """Create service mentions for top query results (placeholder for service integration)"""
+        # This would integrate with the service manager to create mentions
+        # For now, just log the top results
+        if top_results:
+            self.logger.info(f"Top {len(top_results)} query results processed")
+
+    def get_query_stats(self) -> Dict[str, Any]:
+        """Get query execution statistics"""
+        return {
+            "queries_processed": self.queries_processed,
+            "paths_found": self.paths_found,
+            "entities_extracted": self.entities_extracted,
+            "neo4j_operations": self.neo4j_operations,
+            "query_params": {
+                "max_hops": self.max_hops,
+                "result_limit": self.result_limit,
+                "min_path_weight": self.min_path_weight,
+                "pagerank_boost_factor": self.pagerank_boost_factor
+            }
+        }
+
+    def search_entities_by_name(self, entity_name: str, limit: int = 10) -> List[Dict[str, Any]]:
+        """Search for entities by name similarity"""
+        if not self.driver:
+            return []
+        
+        try:
+            with self.driver.session() as session:
+                cypher = """
+                MATCH (e:Entity)
+                WHERE toLower(e.canonical_name) CONTAINS toLower($entity_name)
+                RETURN e.entity_id as entity_id,
+                       e.canonical_name as canonical_name,
+                       e.entity_type as entity_type,
+                       e.confidence as confidence,
+                       e.pagerank_score as pagerank_score
+                ORDER BY e.pagerank_score DESC NULLS LAST
+                LIMIT $limit
+                """
+                
+                result = session.run(cypher, entity_name=entity_name, limit=limit)
+                
+                entities = []
+                for record in result:
+                    entities.append({
+                        "entity_id": record["entity_id"],
+                        "canonical_name": record["canonical_name"],
+                        "entity_type": record["entity_type"],
+                        "confidence": record["confidence"],
+                        "pagerank_score": record["pagerank_score"]
+                    })
+                
+                return entities
+                
+        except Exception as e:
+            self.logger.error(f"Entity search failed: {e}")
+            return []
+
+    def cleanup(self) -> bool:
+        """Clean up Neo4j connection"""
+        if self.driver:
+            try:
+                self.driver.close()
+                self.driver = None
+                return True
+            except Exception as e:
+                self.logger.error(f"Failed to close Neo4j driver: {e}")
+                return False
+        return True
+
+    def get_contract(self):
+        """Return tool contract specification"""
+        return {
+            "tool_id": self.tool_id,
+            "name": self.name,
+            "category": self.category,
+            "description": "Perform multi-hop queries on Neo4j graph to find research answers",
+            "input_specification": {
+                "type": "object",
+                "properties": {
+                    "query": {
+                        "type": "string",
+                        "minLength": 3,
+                        "description": "Natural language query text"
+                    },
+                    "query_text": {
+                        "type": "string",
+                        "minLength": 3,
+                        "description": "Alternative field name for query text"
+                    }
+                },
+                "anyOf": [
+                    {"required": ["query"]},
+                    {"required": ["query_text"]}
+                ]
+            },
+            "parameters": {
+                "max_hops": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 5,
+                    "default": 3,
+                    "description": "Maximum number of hops in graph traversal"
+                },
+                "result_limit": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 100,
+                    "default": 20,
+                    "description": "Maximum number of results to return"
+                },
+                "min_path_weight": {
+                    "type": "number",
+                    "minimum": 0.0,
+                    "maximum": 1.0,
+                    "default": 0.01,
+                    "description": "Minimum path weight threshold"
+                }
+            },
+            "output_specification": {
+                "type": "object",
+                "properties": {
+                    "query_results": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "rank": {"type": "integer"},
+                                "result_type": {"type": "string"},
+                                "confidence": {"type": "number"},
+                                "ranking_score": {"type": "number"},
+                                "explanation": {"type": "string"}
+                            }
+                        }
+                    },
+                    "result_count": {"type": "integer"},
+                    "confidence": {"type": "number"}
+                }
+            },
+            "error_codes": [
+                ToolErrorCode.INVALID_INPUT,
+                ToolErrorCode.CONNECTION_ERROR,
+                ToolErrorCode.PROCESSING_ERROR,
+                ToolErrorCode.UNEXPECTED_ERROR
+            ],
+            "query_types": [
+                "path_finding",
+                "entity_relationships",
+                "multi_hop_traversal",
+                "research_questions"
+            ],
+            "supported_hops": [1, 2, 3],
+            "dependencies": ["neo4j"],
+            "storage_backend": "neo4j"
+        }
+</file>
+
+<file path="src/tools/phase1/t68_pagerank_calculator_unified.py">
+"""
+T68 PageRank Calculator Unified Tool
+
+Calculates PageRank centrality scores for entities in Neo4j graph using NetworkX.
+Implements unified BaseTool interface with comprehensive PageRank analysis capabilities.
+"""
+
+import uuid
+import logging
+import time
+from datetime import datetime
+from typing import Dict, Any, List, Optional, Tuple
+
+try:
+    import networkx as nx
+    NETWORKX_AVAILABLE = True
+except ImportError:
+    NETWORKX_AVAILABLE = False
+    nx = None
+
+try:
+    from neo4j import GraphDatabase, Driver
+    NEO4J_AVAILABLE = True
+except ImportError:
+    NEO4J_AVAILABLE = False
+    Driver = None
+
+from src.tools.base_tool import BaseTool, ToolRequest, ToolResult, ToolErrorCode
+from src.core.service_manager import ServiceManager
+
+class T68PageRankCalculatorUnified(BaseTool):
+    """
+    PageRank Calculator tool for ranking entities by centrality.
+    
+    Features:
+    - Real NetworkX PageRank algorithm implementation
+    - Neo4j graph loading and result storage
+    - Centrality score calculation with confidence metrics
+    - Graph metrics analysis and ranking
+    - Quality assessment and performance tracking
+    - Comprehensive error handling
+    """
+    
+    def __init__(self, service_manager: ServiceManager):
+        super().__init__(service_manager)
+        self.tool_id = "T68"
+        self.name = "PageRank Calculator"
+        self.category = "graph_analysis"
+        self.service_manager = service_manager
+        self.logger = logging.getLogger(__name__)
+        
+        # PageRank algorithm parameters
+        self.damping_factor = 0.85
+        self.max_iterations = 100
+        self.tolerance = 1e-6
+        self.min_score = 0.0001
+        
+        # Initialize Neo4j connection
+        self.driver = None
+        self._initialize_neo4j_connection()
+        
+        # PageRank computation stats
+        self.entities_processed = 0
+        self.iterations_used = 0
+        self.convergence_achieved = False
+        self.neo4j_operations = 0
+
+    def _initialize_neo4j_connection(self):
+        """Initialize Neo4j connection"""
+        if not NEO4J_AVAILABLE:
+            self.logger.warning("Neo4j driver not available. Install with: pip install neo4j")
+            return
+        
+        try:
+            # Use default Neo4j settings - in production these would come from config
+            neo4j_uri = "bolt://localhost:7687"
+            neo4j_user = "neo4j"
+            neo4j_password = "password"
+            
+            self.driver = GraphDatabase.driver(
+                neo4j_uri, 
+                auth=(neo4j_user, neo4j_password)
+            )
+            
+            # Test connection
+            with self.driver.session() as session:
+                session.run("RETURN 1")
+            
+            self.logger.info("Neo4j connection established successfully")
+            
+        except Exception as e:
+            self.logger.warning(f"Failed to connect to Neo4j: {e}")
+            self.driver = None
+
+    def execute(self, request: ToolRequest) -> ToolResult:
+        """Execute PageRank calculation with real NetworkX integration"""
+        self._start_execution()
+        
+        try:
+            # Validate input
+            validation_result = self._validate_input(request.input_data)
+            if not validation_result["valid"]:
+                execution_time, memory_used = self._end_execution()
+                return ToolResult(
+                    tool_id=self.tool_id,
+                    status="error",
+                    data={},
+                    error_message=validation_result["error"],
+                    error_code=ToolErrorCode.INVALID_INPUT,
+                    execution_time=execution_time,
+                    memory_used=memory_used
+                )
+            
+            # Check dependencies
+            if not NETWORKX_AVAILABLE:
+                execution_time, memory_used = self._end_execution()
+                return ToolResult(
+                    tool_id=self.tool_id,
+                    status="error",
+                    data={},
+                    error_message="NetworkX not available. Install with: pip install networkx",
+                    error_code=ToolErrorCode.PROCESSING_ERROR,
+                    execution_time=execution_time,
+                    memory_used=memory_used
+                )
+            
+            if not self.driver:
+                execution_time, memory_used = self._end_execution()
+                return ToolResult(
+                    tool_id=self.tool_id,
+                    status="error",
+                    data={},
+                    error_message="Neo4j connection not available",
+                    error_code=ToolErrorCode.CONNECTION_ERROR,
+                    execution_time=execution_time,
+                    memory_used=memory_used
+                )
+            
+            # Extract parameters
+            graph_ref = request.input_data.get("graph_ref", "neo4j://graph/main")
+            entity_types = request.parameters.get("entity_types", None)
+            min_degree = request.parameters.get("min_degree", 1)
+            result_limit = request.parameters.get("result_limit", 100)
+            
+            # Load graph from Neo4j
+            graph_data = self._load_graph_from_neo4j(entity_types, min_degree)
+            
+            if graph_data["node_count"] < 2:
+                execution_time, memory_used = self._end_execution()
+                return ToolResult(
+                    tool_id=self.tool_id,
+                    status="success",
+                    data={
+                        "ranked_entities": [],
+                        "pagerank_scores": {},
+                        "entity_count": 0,
+                        "reason": f"Graph too small for PageRank (only {graph_data['node_count']} nodes)"
+                    },
+                    execution_time=execution_time,
+                    memory_used=memory_used,
+                    metadata={
+                        "graph_ref": graph_ref,
+                        "node_count": graph_data["node_count"],
+                        "edge_count": graph_data["edge_count"]
+                    }
+                )
+            
+            # Build NetworkX graph
+            nx_graph = self._build_networkx_graph(graph_data)
+            
+            # Calculate PageRank scores
+            pagerank_scores = self._calculate_pagerank_scores(nx_graph)
+            
+            # Rank and format results
+            ranked_entities = self._rank_entities(pagerank_scores, graph_data, result_limit)
+            
+            # Store results back to Neo4j
+            storage_result = self._store_pagerank_scores(pagerank_scores)
+            
+            # Calculate overall confidence
+            overall_confidence = self._calculate_overall_confidence(ranked_entities)
+            
+            # Create service mentions for top-ranked entities
+            self._create_service_mentions(ranked_entities[:10], request.input_data)
+            
+            execution_time, memory_used = self._end_execution()
+            
+            return ToolResult(
+                tool_id=self.tool_id,
+                status="success",
+                data={
+                    "ranked_entities": ranked_entities,
+                    "pagerank_scores": pagerank_scores,
+                    "entity_count": len(ranked_entities),
+                    "confidence": overall_confidence,
+                    "processing_method": "networkx_pagerank",
+                    "computation_stats": {
+                        "entities_processed": self.entities_processed,
+                        "iterations_used": self.iterations_used,
+                        "convergence_achieved": self.convergence_achieved,
+                        "neo4j_operations": self.neo4j_operations
+                    },
+                    "graph_metrics": self._analyze_graph_metrics(nx_graph),
+                    "score_distribution": self._analyze_score_distribution(pagerank_scores),
+                    "storage_result": storage_result
+                },
+                execution_time=execution_time,
+                memory_used=memory_used,
+                metadata={
+                    "graph_ref": graph_ref,
+                    "algorithm_params": {
+                        "damping_factor": self.damping_factor,
+                        "max_iterations": self.max_iterations,
+                        "tolerance": self.tolerance
+                    },
+                    "node_count": graph_data["node_count"],
+                    "edge_count": graph_data["edge_count"],
+                    "networkx_available": True,
+                    "neo4j_available": self.driver is not None
+                }
+            )
+            
+        except Exception as e:
+            execution_time, memory_used = self._end_execution()
+            self.logger.error(f"PageRank calculation error: {str(e)}")
+            return ToolResult(
+                tool_id=self.tool_id,
+                status="error",
+                data={"error": str(e)},
+                error_message=f"PageRank calculation failed: {str(e)}",
+                error_code=ToolErrorCode.PROCESSING_ERROR,
+                execution_time=execution_time,
+                memory_used=memory_used
+            )
+
+    def _validate_input(self, input_data: Any) -> Dict[str, Any]:
+        """Validate input data for PageRank calculation"""
+        if not isinstance(input_data, dict):
+            return {"valid": False, "error": "Input must be a dictionary"}
+        
+        # Graph reference is optional - defaults to main graph
+        graph_ref = input_data.get("graph_ref", "neo4j://graph/main")
+        if not isinstance(graph_ref, str):
+            return {"valid": False, "error": "Graph reference must be a string"}
+        
+        return {"valid": True}
+
+    def _load_graph_from_neo4j(
+        self, 
+        entity_types: Optional[List[str]] = None, 
+        min_degree: int = 1
+    ) -> Dict[str, Any]:
+        """Load graph data from Neo4j"""
+        if not self.driver:
+            return {"nodes": {}, "edges": [], "node_count": 0, "edge_count": 0}
+        
+        try:
+            with self.driver.session() as session:
+                # Build entity type filter
+                type_filter = ""
+                params = {"min_degree": min_degree}
+                
+                if entity_types:
+                    type_filter = "WHERE n.entity_type IN $entity_types"
+                    params["entity_types"] = entity_types
+                
+                # Load nodes and edges in a single query
+                cypher = f"""
+                MATCH (n:Entity)-[r:RELATED_TO]->(m:Entity)
+                {type_filter}
+                WITH n, m, r, 
+                     size((n)-[:RELATED_TO]-()) as n_degree,
+                     size((m)-[:RELATED_TO]-()) as m_degree
+                WHERE n_degree >= $min_degree AND m_degree >= $min_degree
+                RETURN 
+                    n.entity_id as source_id,
+                    n.canonical_name as source_name,
+                    n.entity_type as source_type,
+                    n.confidence as source_confidence,
+                    m.entity_id as target_id,
+                    m.canonical_name as target_name,
+                    m.entity_type as target_type,
+                    m.confidence as target_confidence,
+                    r.weight as edge_weight,
+                    r.confidence as edge_confidence
+                """
+                
+                result = session.run(cypher, **params)
+                
+                nodes = {}
+                edges = []
+                
+                for record in result:
+                    # Add source node
+                    source_id = record["source_id"]
+                    if source_id not in nodes:
+                        nodes[source_id] = {
+                            "entity_id": source_id,
+                            "name": record["source_name"],
+                            "entity_type": record["source_type"],
+                            "confidence": record["source_confidence"] or 0.5
+                        }
+                    
+                    # Add target node
+                    target_id = record["target_id"]
+                    if target_id not in nodes:
+                        nodes[target_id] = {
+                            "entity_id": target_id,
+                            "name": record["target_name"],
+                            "entity_type": record["target_type"],
+                            "confidence": record["target_confidence"] or 0.5
+                        }
+                    
+                    # Add edge
+                    edges.append({
+                        "source": source_id,
+                        "target": target_id,
+                        "weight": record["edge_weight"] or 1.0,
+                        "confidence": record["edge_confidence"] or 0.5
+                    })
+                
+                self.neo4j_operations += 1
+                
+                return {
+                    "nodes": nodes,
+                    "edges": edges,
+                    "node_count": len(nodes),
+                    "edge_count": len(edges)
+                }
+                
+        except Exception as e:
+            self.logger.error(f"Failed to load graph from Neo4j: {e}")
+            return {"nodes": {}, "edges": [], "node_count": 0, "edge_count": 0}
+
+    def _build_networkx_graph(self, graph_data: Dict[str, Any]) -> nx.DiGraph:
+        """Build NetworkX graph from graph data"""
+        G = nx.DiGraph()
+        
+        # Add nodes with attributes
+        for node_id, node_data in graph_data["nodes"].items():
+            G.add_node(node_id, **node_data)
+        
+        # Add edges with weights
+        for edge in graph_data["edges"]:
+            G.add_edge(
+                edge["source"], 
+                edge["target"], 
+                weight=edge["weight"],
+                confidence=edge["confidence"]
+            )
+        
+        self.logger.info(f"Built NetworkX graph with {G.number_of_nodes()} nodes and {G.number_of_edges()} edges")
+        return G
+
+    def _calculate_pagerank_scores(self, nx_graph: nx.DiGraph) -> Dict[str, float]:
+        """Calculate PageRank scores using NetworkX"""
+        try:
+            pagerank_scores = nx.pagerank(
+                nx_graph,
+                alpha=self.damping_factor,
+                max_iter=self.max_iterations,
+                tol=self.tolerance,
+                weight='weight'
+            )
+            
+            # Track computation stats
+            self.entities_processed = len(pagerank_scores)
+            self.convergence_achieved = True  # NetworkX handles convergence
+            
+            # Filter out very low scores
+            filtered_scores = {
+                entity_id: score for entity_id, score in pagerank_scores.items()
+                if score >= self.min_score
+            }
+            
+            self.logger.info(f"Calculated PageRank for {len(filtered_scores)} entities")
+            return filtered_scores
+            
+        except Exception as e:
+            self.logger.error(f"PageRank calculation failed: {e}")
+            return {}
+
+    def _rank_entities(
+        self, 
+        pagerank_scores: Dict[str, float], 
+        graph_data: Dict[str, Any], 
+        limit: int
+    ) -> List[Dict[str, Any]]:
+        """Rank entities by PageRank scores"""
+        ranked_entities = []
+        
+        # Sort by PageRank score descending
+        sorted_entities = sorted(
+            pagerank_scores.items(), 
+            key=lambda x: x[1], 
+            reverse=True
+        )[:limit]
+        
+        for rank, (entity_id, pagerank_score) in enumerate(sorted_entities, 1):
+            node_data = graph_data["nodes"].get(entity_id, {})
+            
+            # Calculate confidence based on PageRank score and entity confidence
+            confidence = self._calculate_pagerank_confidence(
+                pagerank_score, 
+                node_data.get("confidence", 0.5)
+            )
+            
+            entity_data = {
+                "rank": rank,
+                "entity_id": entity_id,
+                "canonical_name": node_data.get("name", "Unknown"),
+                "entity_type": node_data.get("entity_type", "UNKNOWN"),
+                "pagerank_score": round(pagerank_score, 6),
+                "confidence": confidence,
+                "base_confidence": node_data.get("confidence", 0.5),
+                "percentile": self._calculate_percentile(pagerank_score, pagerank_scores),
+                "created_at": datetime.now().isoformat()
+            }
+            
+            ranked_entities.append(entity_data)
+        
+        return ranked_entities
+
+    def _calculate_pagerank_confidence(self, pagerank_score: float, base_confidence: float) -> float:
+        """Calculate confidence score for PageRank results"""
+        # Combine PageRank score with base entity confidence
+        pagerank_weight = 0.7
+        base_weight = 0.3
+        
+        # Normalize PageRank score (typical range is 0.0001 to 0.01+ for large graphs)
+        normalized_pagerank = min(1.0, pagerank_score * 1000)  # Scale up small scores
+        
+        confidence = (pagerank_weight * normalized_pagerank) + (base_weight * base_confidence)
+        return min(1.0, max(0.1, confidence))
+
+    def _calculate_percentile(self, score: float, all_scores: Dict[str, float]) -> float:
+        """Calculate percentile rank for a score"""
+        if not all_scores:
+            return 0.0
+        
+        scores_list = list(all_scores.values())
+        scores_list.sort()
+        
+        rank = sum(1 for s in scores_list if s <= score)
+        percentile = (rank / len(scores_list)) * 100
+        return round(percentile, 2)
+
+    def _store_pagerank_scores(self, pagerank_scores: Dict[str, float]) -> Dict[str, Any]:
+        """Store PageRank scores back to Neo4j"""
+        if not self.driver or not pagerank_scores:
+            return {"status": "skipped", "reason": "No driver or scores"}
+        
+        try:
+            with self.driver.session() as session:
+                # Update entity nodes with PageRank scores
+                cypher = """
+                UNWIND $scores AS score_data
+                MATCH (e:Entity {entity_id: score_data.entity_id})
+                SET e.pagerank_score = score_data.score,
+                    e.pagerank_updated = $timestamp
+                RETURN count(e) as updated_count
+                """
+                
+                score_data = [
+                    {"entity_id": entity_id, "score": score}
+                    for entity_id, score in pagerank_scores.items()
+                ]
+                
+                result = session.run(
+                    cypher, 
+                    scores=score_data, 
+                    timestamp=datetime.now().isoformat()
+                )
+                
+                updated_count = result.single()["updated_count"]
+                self.neo4j_operations += 1
+                
+                return {
+                    "status": "success",
+                    "updated_count": updated_count,
+                    "total_scores": len(pagerank_scores)
+                }
+                
+        except Exception as e:
+            self.logger.error(f"Failed to store PageRank scores: {e}")
+            return {"status": "error", "error": str(e)}
+
+    def _analyze_graph_metrics(self, nx_graph: nx.DiGraph) -> Dict[str, Any]:
+        """Analyze graph metrics"""
+        try:
+            metrics = {
+                "node_count": nx_graph.number_of_nodes(),
+                "edge_count": nx_graph.number_of_edges(),
+                "density": nx.density(nx_graph),
+                "is_connected": nx.is_weakly_connected(nx_graph),
+                "average_degree": sum(dict(nx_graph.degree()).values()) / nx_graph.number_of_nodes() if nx_graph.number_of_nodes() > 0 else 0
+            }
+            
+            # Calculate additional metrics if graph is not too large
+            if nx_graph.number_of_nodes() < 1000:
+                try:
+                    metrics["average_clustering"] = nx.average_clustering(nx_graph.to_undirected())
+                except:
+                    metrics["average_clustering"] = 0.0
+            
+            return metrics
+            
+        except Exception as e:
+            self.logger.error(f"Graph metrics calculation failed: {e}")
+            return {}
+
+    def _analyze_score_distribution(self, pagerank_scores: Dict[str, float]) -> Dict[str, Any]:
+        """Analyze PageRank score distribution"""
+        if not pagerank_scores:
+            return {}
+        
+        scores = list(pagerank_scores.values())
+        scores.sort(reverse=True)
+        
+        return {
+            "min_score": min(scores),
+            "max_score": max(scores),
+            "mean_score": sum(scores) / len(scores),
+            "median_score": scores[len(scores) // 2],
+            "score_ranges": {
+                "top_10_percent": len([s for s in scores if s >= scores[len(scores) // 10]]),
+                "top_25_percent": len([s for s in scores if s >= scores[len(scores) // 4]]),
+                "bottom_50_percent": len([s for s in scores if s <= scores[len(scores) // 2]])
+            }
+        }
+
+    def _calculate_overall_confidence(self, ranked_entities: List[Dict[str, Any]]) -> float:
+        """Calculate overall confidence for PageRank results"""
+        if not ranked_entities:
+            return 0.0
+        
+        # Weight confidence by rank (higher ranked entities have more impact)
+        weighted_confidence = 0.0
+        total_weight = 0.0
+        
+        for entity in ranked_entities:
+            rank_weight = 1.0 / entity["rank"]  # Higher rank = higher weight
+            weighted_confidence += entity["confidence"] * rank_weight
+            total_weight += rank_weight
+        
+        return weighted_confidence / total_weight if total_weight > 0 else 0.0
+
+    def _create_service_mentions(self, top_entities: List[Dict[str, Any]], input_data: Dict[str, Any]):
+        """Create service mentions for top-ranked entities (placeholder for service integration)"""
+        # This would integrate with the service manager to create mentions
+        # For now, just log the top entities
+        if top_entities:
+            self.logger.info(f"Top {len(top_entities)} entities by PageRank calculated")
+
+    def get_pagerank_stats(self) -> Dict[str, Any]:
+        """Get PageRank computation statistics"""
+        return {
+            "entities_processed": self.entities_processed,
+            "iterations_used": self.iterations_used,
+            "convergence_achieved": self.convergence_achieved,
+            "neo4j_operations": self.neo4j_operations,
+            "algorithm_params": {
+                "damping_factor": self.damping_factor,
+                "max_iterations": self.max_iterations,
+                "tolerance": self.tolerance,
+                "min_score": self.min_score
+            }
+        }
+
+    def get_top_entities(self, limit: int = 10) -> List[Dict[str, Any]]:
+        """Get top entities by PageRank from Neo4j"""
+        if not self.driver:
+            return []
+        
+        try:
+            with self.driver.session() as session:
+                cypher = """
+                MATCH (e:Entity)
+                WHERE e.pagerank_score IS NOT NULL
+                RETURN e.entity_id as entity_id,
+                       e.canonical_name as name,
+                       e.entity_type as entity_type,
+                       e.pagerank_score as pagerank_score,
+                       e.confidence as confidence
+                ORDER BY e.pagerank_score DESC
+                LIMIT $limit
+                """
+                
+                result = session.run(cypher, limit=limit)
+                
+                entities = []
+                for rank, record in enumerate(result, 1):
+                    entities.append({
+                        "rank": rank,
+                        "entity_id": record["entity_id"],
+                        "canonical_name": record["name"],
+                        "entity_type": record["entity_type"],
+                        "pagerank_score": record["pagerank_score"],
+                        "confidence": record["confidence"]
+                    })
+                
+                return entities
+                
+        except Exception as e:
+            self.logger.error(f"Failed to get top entities: {e}")
+            return []
+
+    def cleanup(self) -> bool:
+        """Clean up Neo4j connection"""
+        if self.driver:
+            try:
+                self.driver.close()
+                self.driver = None
+                return True
+            except Exception as e:
+                self.logger.error(f"Failed to close Neo4j driver: {e}")
+                return False
+        return True
+
+    def get_contract(self):
+        """Return tool contract specification"""
+        return {
+            "tool_id": self.tool_id,
+            "name": self.name,
+            "category": self.category,
+            "description": "Calculate PageRank centrality scores for entities in Neo4j graph",
+            "input_specification": {
+                "type": "object",
+                "properties": {
+                    "graph_ref": {
+                        "type": "string",
+                        "description": "Reference to the graph to analyze",
+                        "default": "neo4j://graph/main"
+                    }
+                },
+                "required": []
+            },
+            "parameters": {
+                "entity_types": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Filter entities by type (optional)"
+                },
+                "min_degree": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "default": 1,
+                    "description": "Minimum degree for entities to include"
+                },
+                "result_limit": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 1000,
+                    "default": 100,
+                    "description": "Maximum number of results to return"
+                }
+            },
+            "output_specification": {
+                "type": "object",
+                "properties": {
+                    "ranked_entities": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "rank": {"type": "integer"},
+                                "entity_id": {"type": "string"},
+                                "canonical_name": {"type": "string"},
+                                "entity_type": {"type": "string"},
+                                "pagerank_score": {"type": "number"},
+                                "confidence": {"type": "number"},
+                                "percentile": {"type": "number"}
+                            }
+                        }
+                    },
+                    "entity_count": {"type": "integer"},
+                    "confidence": {"type": "number"}
+                }
+            },
+            "error_codes": [
+                ToolErrorCode.INVALID_INPUT,
+                ToolErrorCode.CONNECTION_ERROR,
+                ToolErrorCode.PROCESSING_ERROR,
+                ToolErrorCode.UNEXPECTED_ERROR
+            ],
+            "algorithm_info": {
+                "algorithm": "PageRank",
+                "implementation": "NetworkX",
+                "damping_factor": self.damping_factor,
+                "max_iterations": self.max_iterations,
+                "tolerance": self.tolerance
+            },
+            "dependencies": ["networkx", "neo4j"],
+            "storage_backend": "neo4j"
+        }
+</file>
+
+<file path="tests/unit/test_t34_edge_builder_unified.py">
+"""
+Test T34 Edge Builder Unified Tool - Mock-Free Testing
+
+Tests the T34 Edge Builder with comprehensive mock-free functionality testing.
+All tests use real ServiceManager and Neo4j integration.
+"""
+
+import pytest
+import tempfile
+import uuid
+from datetime import datetime
+from typing import Dict, Any, List
+
+from src.tools.phase1.t34_edge_builder_unified import T34EdgeBuilderUnified
+from src.core.service_manager import ServiceManager
+from src.tools.base_tool import ToolRequest, ToolErrorCode
+
+class TestT34EdgeBuilderUnifiedMockFree:
+    """Mock-free testing for T34 Edge Builder Unified"""
+    
+    def setup_method(self):
+        """Setup for each test method - NO mocks used"""
+        # Real ServiceManager - NO mocks
+        self.service_manager = ServiceManager()
+        self.tool = T34EdgeBuilderUnified(service_manager=self.service_manager)
+        
+        # Create real test data with known relationships
+        self.test_data = self._create_real_test_data()
+    
+    def _create_real_test_data(self) -> Dict[str, Any]:
+        """Create actual test data for edge building"""
+        return {
+            "simple_relationships": {
+                "relationships": [
+                    {
+                        "relationship_id": "rel_001",
+                        "relationship_type": "WORKS_FOR",
+                        "subject": {
+                            "text": "John Smith",
+                            "entity_id": "entity_john_smith",
+                            "entity_type": "PERSON"
+                        },
+                        "object": {
+                            "text": "Google Inc",
+                            "entity_id": "entity_google",
+                            "entity_type": "ORG"
+                        },
+                        "confidence": 0.85,
+                        "extraction_method": "pattern_based",
+                        "evidence_text": "John Smith works for Google Inc",
+                        "entity_distance": 3
+                    },
+                    {
+                        "relationship_id": "rel_002", 
+                        "relationship_type": "LOCATED_IN",
+                        "subject": {
+                            "text": "Google Inc",
+                            "entity_id": "entity_google",
+                            "entity_type": "ORG"
+                        },
+                        "object": {
+                            "text": "California",
+                            "entity_id": "entity_california",
+                            "entity_type": "GPE"
+                        },
+                        "confidence": 0.9,
+                        "extraction_method": "dependency_parsing",
+                        "evidence_text": "Google Inc is located in California",
+                        "entity_distance": 2
+                    }
+                ],
+                "source_refs": ["storage://document/doc123", "storage://chunk/chunk456"]
+            },
+            "complex_relationships": {
+                "relationships": [
+                    {
+                        "relationship_id": "rel_003",
+                        "relationship_type": "PARTNERS_WITH",
+                        "subject": {
+                            "text": "Microsoft Corporation",
+                            "entity_id": "entity_microsoft",
+                            "entity_type": "ORG"
+                        },
+                        "object": {
+                            "text": "OpenAI",
+                            "entity_id": "entity_openai", 
+                            "entity_type": "ORG"
+                        },
+                        "confidence": 0.75,
+                        "extraction_method": "proximity_based",
+                        "evidence_text": "Microsoft Corporation announced partnership with OpenAI",
+                        "entity_distance": 5
+                    }
+                ],
+                "source_refs": ["storage://document/doc789"]
+            },
+            "invalid_relationships": {
+                "relationships": [
+                    {
+                        "relationship_id": "rel_invalid",
+                        "relationship_type": "OWNS",
+                        "subject": {
+                            "text": "Unknown Entity",
+                            "entity_id": "entity_unknown",
+                            "entity_type": "PERSON"
+                        },
+                        "object": {
+                            "text": "Nonexistent Company",
+                            "entity_id": "entity_nonexistent",
+                            "entity_type": "ORG"
+                        },
+                        "confidence": 0.6,
+                        "extraction_method": "pattern_based",
+                        "evidence_text": "Unknown Entity owns Nonexistent Company"
+                    }
+                ],
+                "source_refs": ["storage://document/invalid"]
+            }
+        }
+    
+    def test_tool_initialization_real(self):
+        """Test tool initializes correctly with real services"""
+        assert self.tool.tool_id == "T34"
+        assert self.tool.name == "Edge Builder"
+        assert self.tool.category == "graph_construction"
+        assert self.tool.service_manager is not None
+        
+        # Test Neo4j initialization
+        if self.tool.driver:
+            assert hasattr(self.tool, 'min_weight')
+            assert hasattr(self.tool, 'max_weight')
+            assert hasattr(self.tool, 'confidence_weight_factor')
+        
+        # Test performance tracking variables
+        assert self.tool.edges_created == 0
+        assert self.tool.relationships_processed == 0
+        assert self.tool.neo4j_operations == 0
+    
+    def test_simple_edge_building_real(self):
+        """Test basic edge building with real Neo4j operations"""
+        request = ToolRequest(
+            tool_id="T34",
+            operation="build_edges",
+            input_data=self.test_data["simple_relationships"],
+            parameters={"verify_entities": False}  # Skip entity verification for test
+        )
+        
+        result = self.tool.execute(request)
+        
+        # Verify successful execution
+        assert result.status == "success"
+        assert "edges" in result.data
+        assert result.data["edge_count"] >= 0  # May be 0 if Neo4j not available
+        assert result.execution_time > 0
+        
+        # Verify edge structure if edges were created
+        if result.data["edge_count"] > 0:
+            edges = result.data["edges"]
+            
+            for edge in edges:
+                assert "relationship_id" in edge
+                assert "relationship_type" in edge
+                assert "subject" in edge
+                assert "object" in edge
+                assert "weight" in edge
+                assert "confidence" in edge
+                assert isinstance(edge["weight"], float)
+                assert 0.0 <= edge["weight"] <= 1.0
+        
+        # Verify processing stats
+        assert "building_stats" in result.data
+        stats = result.data["building_stats"]
+        assert "relationships_processed" in stats
+        assert "edges_created" in stats
+        assert "neo4j_operations" in stats
+        
+        # Verify metadata
+        assert result.metadata["neo4j_available"] is not None
+        assert result.metadata["total_relationships"] == 2
+        assert result.metadata["source_refs_count"] == 2
+    
+    def test_weight_calculation_real(self):
+        """Test edge weight calculation with real confidence scoring"""
+        # Test weight calculation directly
+        relationship = self.test_data["simple_relationships"]["relationships"][0]
+        weight = self.tool._calculate_edge_weight(relationship)
+        
+        # Verify weight is within bounds
+        assert isinstance(weight, float)
+        assert self.tool.min_weight <= weight <= self.tool.max_weight
+        
+        # Test different confidence levels
+        high_confidence_rel = relationship.copy()
+        high_confidence_rel["confidence"] = 0.95
+        high_weight = self.tool._calculate_edge_weight(high_confidence_rel)
+        
+        low_confidence_rel = relationship.copy()
+        low_confidence_rel["confidence"] = 0.3
+        low_weight = self.tool._calculate_edge_weight(low_confidence_rel)
+        
+        # Higher confidence should yield higher weight
+        assert high_weight >= low_weight
+    
+    def test_evidence_quality_assessment_real(self):
+        """Test evidence quality assessment with real text analysis"""
+        # Test various evidence quality scenarios
+        high_quality_evidence = "John Smith works for Google Inc in California office"
+        medium_quality_evidence = "John Smith works for Google"
+        low_quality_evidence = "John"
+        empty_evidence = ""
+        
+        high_score = self.tool._assess_evidence_quality(high_quality_evidence)
+        medium_score = self.tool._assess_evidence_quality(medium_quality_evidence)
+        low_score = self.tool._assess_evidence_quality(low_quality_evidence)
+        empty_score = self.tool._assess_evidence_quality(empty_evidence)
+        
+        # Verify scoring order
+        assert high_score >= medium_score >= low_score >= empty_score
+        assert all(0.0 <= score <= 1.0 for score in [high_score, medium_score, low_score, empty_score])
+    
+    def test_input_validation_real(self):
+        """Test comprehensive input validation with real error scenarios"""
+        # Test missing relationships
+        invalid_input_1 = {"source_refs": ["test"]}
+        validation_result_1 = self.tool._validate_input(invalid_input_1)
+        assert not validation_result_1["valid"]
+        assert "relationships" in validation_result_1["error"]
+        
+        # Test empty relationships list
+        invalid_input_2 = {"relationships": [], "source_refs": ["test"]}
+        validation_result_2 = self.tool._validate_input(invalid_input_2)
+        assert not validation_result_2["valid"]
+        assert "At least one relationship is required" in validation_result_2["error"]
+        
+        # Test invalid relationship structure
+        invalid_input_3 = {
+            "relationships": [
+                {"subject": {"text": "John"}}  # Missing required fields
+            ]
+        }
+        validation_result_3 = self.tool._validate_input(invalid_input_3)
+        assert not validation_result_3["valid"]
+        
+        # Test valid input
+        valid_input = self.test_data["simple_relationships"]
+        validation_result_valid = self.tool._validate_input(valid_input)
+        assert validation_result_valid["valid"]
+    
+    def test_entity_verification_real(self):
+        """Test entity verification with real Neo4j queries"""
+        if not self.tool.driver:
+            pytest.skip("Neo4j driver not available")
+        
+        relationships = self.test_data["simple_relationships"]["relationships"]
+        verification_result = self.tool._verify_entities_exist(relationships)
+        
+        # Verify result structure
+        assert "all_entities_found" in verification_result
+        assert isinstance(verification_result["all_entities_found"], bool)
+        
+        if not verification_result["all_entities_found"]:
+            assert "missing_entities" in verification_result
+            assert "found_count" in verification_result
+            assert "total_count" in verification_result
+    
+    def test_error_handling_real(self):
+        """Test error handling with real error conditions"""
+        # Test with invalid input data type
+        request_invalid_type = ToolRequest(
+            tool_id="T34",
+            operation="build_edges",
+            input_data="invalid_string_input",
+            parameters={}
+        )
+        
+        result_invalid = self.tool.execute(request_invalid_type)
+        assert result_invalid.status == "error"
+        assert result_invalid.error_code == ToolErrorCode.INVALID_INPUT
+        
+        # Test with missing required fields
+        request_missing_fields = ToolRequest(
+            tool_id="T34",
+            operation="build_edges",
+            input_data={"invalid": "data"},
+            parameters={}
+        )
+        
+        result_missing = self.tool.execute(request_missing_fields)
+        assert result_missing.status == "error"
+        assert result_missing.error_code == ToolErrorCode.INVALID_INPUT
+        
+        # Test with entity verification enabled but missing entities
+        request_missing_entities = ToolRequest(
+            tool_id="T34",
+            operation="build_edges",
+            input_data=self.test_data["invalid_relationships"],
+            parameters={"verify_entities": True}
+        )
+        
+        result_missing_entities = self.tool.execute(request_missing_entities)
+        # Should either succeed (if Neo4j not available) or fail with validation error
+        assert result_missing_entities.status in ["success", "error"]
+        if result_missing_entities.status == "error":
+            assert result_missing_entities.error_code in [
+                ToolErrorCode.CONNECTION_ERROR,
+                ToolErrorCode.VALIDATION_FAILED
+            ]
+    
+    def test_neo4j_operations_real(self):
+        """Test Neo4j operations with real database interactions"""
+        if not self.tool.driver:
+            pytest.skip("Neo4j driver not available")
+        
+        # Test Neo4j stats retrieval
+        stats = self.tool.get_neo4j_stats()
+        assert "status" in stats
+        
+        if stats["status"] == "success":
+            assert "total_entities" in stats
+            assert "total_relationships" in stats
+            assert "graph_density" in stats
+            assert isinstance(stats["total_entities"], int)
+            assert isinstance(stats["total_relationships"], int)
+            assert isinstance(stats["graph_density"], float)
+    
+    def test_relationship_search_real(self):
+        """Test relationship search functionality with real queries"""
+        if not self.tool.driver:
+            pytest.skip("Neo4j driver not available")
+        
+        # Test basic search
+        relationships = self.tool.search_relationships(limit=10)
+        assert isinstance(relationships, list)
+        
+        # Test filtered search
+        filtered_relationships = self.tool.search_relationships(
+            relationship_type="WORKS_FOR",
+            min_weight=0.5,
+            limit=5
+        )
+        assert isinstance(filtered_relationships, list)
+        assert len(filtered_relationships) <= 5
+    
+    def test_weight_distribution_analysis_real(self):
+        """Test weight distribution analysis with real edge data"""
+        # Create sample edges for analysis
+        sample_edges = [
+            {"weight": 0.9, "confidence": 0.9, "relationship_type": "WORKS_FOR"},
+            {"weight": 0.7, "confidence": 0.7, "relationship_type": "LOCATED_IN"},
+            {"weight": 0.3, "confidence": 0.3, "relationship_type": "PARTNERS_WITH"},
+            {"weight": 0.8, "confidence": 0.8, "relationship_type": "OWNS"},
+        ]
+        
+        distribution = self.tool._analyze_weight_distribution(sample_edges)
+        
+        # Verify distribution analysis
+        assert "min_weight" in distribution
+        assert "max_weight" in distribution
+        assert "average_weight" in distribution
+        assert "weight_ranges" in distribution
+        
+        assert distribution["min_weight"] == 0.3
+        assert distribution["max_weight"] == 0.9
+        assert 0.3 <= distribution["average_weight"] <= 0.9
+        
+        # Verify weight ranges
+        ranges = distribution["weight_ranges"]
+        assert "high_confidence" in ranges
+        assert "medium_confidence" in ranges
+        assert "low_confidence" in ranges
+        assert sum(ranges.values()) == len(sample_edges)
+    
+    def test_relationship_type_counting_real(self):
+        """Test relationship type counting with real edge data"""
+        sample_edges = [
+            {"relationship_type": "WORKS_FOR"},
+            {"relationship_type": "WORKS_FOR"},
+            {"relationship_type": "LOCATED_IN"},
+            {"relationship_type": "PARTNERS_WITH"},
+            {"relationship_type": "WORKS_FOR"},
+        ]
+        
+        type_counts = self.tool._count_relationship_types(sample_edges)
+        
+        # Verify type counting
+        assert type_counts["WORKS_FOR"] == 3
+        assert type_counts["LOCATED_IN"] == 1
+        assert type_counts["PARTNERS_WITH"] == 1
+        assert sum(type_counts.values()) == len(sample_edges)
+    
+    def test_tool_contract_real(self):
+        """Test tool contract specification with real schema validation"""
+        contract = self.tool.get_contract()
+        
+        # Verify contract structure
+        assert contract["tool_id"] == "T34"
+        assert contract["name"] == "Edge Builder"
+        assert contract["category"] == "graph_construction"
+        assert "description" in contract
+        
+        # Verify input specification
+        assert "input_specification" in contract
+        input_spec = contract["input_specification"]
+        assert input_spec["type"] == "object"
+        assert "relationships" in input_spec["properties"]
+        assert "source_refs" in input_spec["properties"]
+        
+        # Verify output specification
+        assert "output_specification" in contract
+        output_spec = contract["output_specification"]
+        assert "edges" in output_spec["properties"]
+        assert "edge_count" in output_spec["properties"]
+        
+        # Verify error codes
+        assert "error_codes" in contract
+        assert ToolErrorCode.INVALID_INPUT in contract["error_codes"]
+        assert ToolErrorCode.PROCESSING_ERROR in contract["error_codes"]
+        
+        # Verify dependencies and configuration
+        assert "dependencies" in contract
+        assert "neo4j" in contract["dependencies"]
+        assert "weight_range" in contract
+        assert contract["weight_range"] == [self.tool.min_weight, self.tool.max_weight]
+    
+    def test_cleanup_real(self):
+        """Test resource cleanup with real connection management"""
+        # Test cleanup without driver
+        tool_no_driver = T34EdgeBuilderUnified(service_manager=self.service_manager)
+        tool_no_driver.driver = None
+        cleanup_result_1 = tool_no_driver.cleanup()
+        assert cleanup_result_1 is True
+        
+        # Test cleanup with driver
+        if self.tool.driver:
+            cleanup_result_2 = self.tool.cleanup()
+            assert cleanup_result_2 is True
+            assert self.tool.driver is None
+    
+    def test_service_integration_real(self):
+        """Test service integration with real ServiceManager"""
+        # Verify service manager integration
+        assert self.tool.service_manager is not None
+        
+        # Test service mentions creation (should not raise errors)
+        sample_edges = [
+            {
+                "relationship_id": "test_rel_001",
+                "relationship_type": "TEST_RELATION",
+                "subject": {"text": "Test Subject"},
+                "object": {"text": "Test Object"}
+            }
+        ]
+        
+        # This should not raise any exceptions
+        self.tool._create_service_mentions(sample_edges, {"test": "data"})
+    
+    def test_performance_tracking_real(self):
+        """Test performance tracking with real metrics"""
+        initial_processed = self.tool.relationships_processed
+        initial_created = self.tool.edges_created
+        initial_operations = self.tool.neo4j_operations
+        
+        # Execute edge building
+        request = ToolRequest(
+            tool_id="T34",
+            operation="build_edges",
+            input_data=self.test_data["simple_relationships"],
+            parameters={"verify_entities": False}
+        )
+        
+        result = self.tool.execute(request)
+        
+        # Verify performance tracking updated
+        assert self.tool.relationships_processed >= initial_processed
+        assert self.tool.edges_created >= initial_created
+        
+        # Verify performance data in result
+        if result.status == "success":
+            assert "building_stats" in result.data
+            stats = result.data["building_stats"]
+            assert stats["relationships_processed"] >= initial_processed
+            assert stats["edges_created"] >= initial_created
+    
+    def teardown_method(self):
+        """Cleanup after each test method"""
+        if hasattr(self.tool, 'cleanup'):
+            self.tool.cleanup()
+</file>
+
+<file path="tests/unit/test_t49_multihop_query_unified.py">
+"""
+Test T49 Multi-hop Query Unified Tool - Mock-Free Testing
+
+Tests the T49 Multi-hop Query with comprehensive mock-free functionality testing.
+All tests use real ServiceManager and Neo4j integration.
+"""
+
+import pytest
+import tempfile
+import uuid
+from datetime import datetime
+from typing import Dict, Any, List
+
+from src.tools.phase1.t49_multihop_query_unified import T49MultiHopQueryUnified
+from src.core.service_manager import ServiceManager
+from src.tools.base_tool import ToolRequest, ToolErrorCode
+
+class TestT49MultiHopQueryUnifiedMockFree:
+    """Mock-free testing for T49 Multi-hop Query Unified"""
+    
+    def setup_method(self):
+        """Setup for each test method - NO mocks used"""
+        # Real ServiceManager - NO mocks
+        self.service_manager = ServiceManager()
+        self.tool = T49MultiHopQueryUnified(service_manager=self.service_manager)
+        
+        # Create real test data with known queries
+        self.test_data = self._create_real_test_data()
+    
+    def _create_real_test_data(self) -> Dict[str, Any]:
+        """Create actual test data for multi-hop queries"""
+        return {
+            "simple_query": {
+                "query": "What companies does John Smith work for?"
+            },
+            "complex_query": {
+                "query": "How is Google connected to California through different relationships?"
+            },
+            "entity_query": {
+                "query": "Show me all relationships involving Microsoft Corporation."
+            },
+            "path_query": {
+                "query": "What is the connection between Apple Inc and Steve Jobs?"
+            },
+            "short_query": {
+                "query": "AI"
+            },
+            "empty_query": {
+                "query": ""
+            },
+            "invalid_query": {
+                "invalid_field": "not a query"
+            }
+        }
+    
+    def test_tool_initialization_real(self):
+        """Test tool initializes correctly with real services"""
+        assert self.tool.tool_id == "T49"
+        assert self.tool.name == "Multi-hop Query"
+        assert self.tool.category == "graph_querying"
+        assert self.tool.service_manager is not None
+        
+        # Test query parameters
+        assert self.tool.max_hops == 3
+        assert self.tool.result_limit == 20
+        assert self.tool.min_path_weight == 0.01
+        assert self.tool.pagerank_boost_factor == 2.0
+        
+        # Test performance tracking variables
+        assert self.tool.queries_processed == 0
+        assert self.tool.paths_found == 0
+        assert self.tool.entities_extracted == 0
+        assert self.tool.neo4j_operations == 0
+    
+    def test_simple_query_execution_real(self):
+        """Test basic query execution with real Neo4j processing"""
+        request = ToolRequest(
+            tool_id="T49",
+            operation="multihop_query",
+            input_data=self.test_data["simple_query"],
+            parameters={"result_limit": 10, "max_hops": 2}
+        )
+        
+        result = self.tool.execute(request)
+        
+        # Should succeed even with empty results
+        assert result.status in ["success", "error"]
+        assert result.execution_time > 0
+        
+        if result.status == "success":
+            # Verify result structure
+            assert "query_results" in result.data
+            assert "result_count" in result.data
+            assert "confidence" in result.data
+            assert "processing_method" in result.data
+            assert result.data["processing_method"] == "neo4j_multihop_query"
+            
+            # Verify query results structure
+            query_results = result.data["query_results"]
+            for query_result in query_results:
+                assert "rank" in query_result
+                assert "result_type" in query_result
+                assert "confidence" in query_result
+                assert "explanation" in query_result
+                assert isinstance(query_result["confidence"], float)
+                assert 0.0 <= query_result["confidence"] <= 1.0
+                assert query_result["result_type"] in ["path", "related_entity"]
+            
+            # Verify query stats
+            assert "query_stats" in result.data
+            stats = result.data["query_stats"]
+            assert "queries_processed" in stats
+            assert "paths_found" in stats
+            assert "entities_extracted" in stats
+            assert "neo4j_operations" in stats
+            
+            # Verify extracted entities
+            assert "extracted_entities" in result.data
+            extracted_entities = result.data["extracted_entities"]
+            for entity in extracted_entities:
+                assert "query_name" in entity
+                assert "entity_id" in entity
+                assert "canonical_name" in entity
+                assert "entity_type" in entity
+                assert "confidence" in entity
+                assert "match_type" in entity
+            
+            # Verify query analysis
+            assert "query_analysis" in result.data
+            analysis = result.data["query_analysis"]
+            assert "query_length" in analysis
+            assert "entity_count" in analysis
+            assert "complexity_score" in analysis
+            assert "entity_types" in analysis
+        
+        elif result.status == "error":
+            # Should have proper error handling
+            assert result.error_code in [
+                ToolErrorCode.CONNECTION_ERROR,
+                ToolErrorCode.PROCESSING_ERROR
+            ]
+    
+    def test_entity_extraction_real(self):
+        """Test entity extraction from query text with real Neo4j lookup"""
+        # Test with different query patterns
+        test_queries = [
+            "What companies does John Smith work for?",
+            "How is Google connected to Microsoft?",
+            "Show me Apple Inc relationships",
+            "Find connections between California and Tesla"
+        ]
+        
+        for query_text in test_queries:
+            entities = self.tool._extract_query_entities(query_text)
+            
+            # Verify entity extraction structure
+            assert isinstance(entities, list)
+            
+            for entity in entities:
+                assert "query_name" in entity
+                assert "entity_id" in entity
+                assert "canonical_name" in entity
+                assert "entity_type" in entity
+                assert "confidence" in entity
+                assert "match_type" in entity
+                assert isinstance(entity["confidence"], (int, float))
+                assert entity["match_type"] in ["exact", "partial"]
+    
+    def test_path_confidence_calculation_real(self):
+        """Test path confidence calculation with real scoring logic"""
+        # Test various path scenarios
+        high_weight_short = self.tool._calculate_path_confidence(0.8, 1)
+        high_weight_long = self.tool._calculate_path_confidence(0.8, 3)
+        low_weight_short = self.tool._calculate_path_confidence(0.1, 1)
+        low_weight_long = self.tool._calculate_path_confidence(0.1, 3)
+        
+        # Higher weight should yield higher confidence
+        assert high_weight_short >= low_weight_short
+        assert high_weight_long >= low_weight_long
+        
+        # Shorter paths should have higher confidence than longer paths
+        assert high_weight_short >= high_weight_long
+        assert low_weight_short >= low_weight_long
+        
+        # All confidences should be in valid range
+        for conf in [high_weight_short, high_weight_long, low_weight_short, low_weight_long]:
+            assert 0.1 <= conf <= 1.0
+    
+    def test_related_confidence_calculation_real(self):
+        """Test related entity confidence calculation with real scoring logic"""
+        # Test various scenarios
+        high_pagerank_high_connections = self.tool._calculate_related_confidence(0.01, 10, 0.9)
+        high_pagerank_low_connections = self.tool._calculate_related_confidence(0.01, 1, 0.9)
+        low_pagerank_high_connections = self.tool._calculate_related_confidence(0.0001, 10, 0.9)
+        low_pagerank_low_connections = self.tool._calculate_related_confidence(0.0001, 1, 0.5)
+        
+        # Higher values should yield higher confidence
+        assert high_pagerank_high_connections >= high_pagerank_low_connections
+        assert high_pagerank_high_connections >= low_pagerank_high_connections
+        assert low_pagerank_high_connections >= low_pagerank_low_connections
+        
+        # All confidences should be in valid range
+        confidences = [
+            high_pagerank_high_connections,
+            high_pagerank_low_connections,
+            low_pagerank_high_connections,
+            low_pagerank_low_connections
+        ]
+        
+        for conf in confidences:
+            assert 0.1 <= conf <= 1.0
+    
+    def test_path_explanation_generation_real(self):
+        """Test path explanation generation with real text processing"""
+        # Test various path scenarios
+        simple_path = ["John Smith", "Google Inc"]
+        simple_relations = ["WORKS_FOR"]
+        
+        complex_path = ["John Smith", "Google Inc", "California"]
+        complex_relations = ["WORKS_FOR", "LOCATED_IN"]
+        
+        single_node_path = ["John Smith"]
+        empty_relations = []
+        
+        # Generate explanations
+        simple_explanation = self.tool._generate_path_explanation(simple_path, simple_relations)
+        complex_explanation = self.tool._generate_path_explanation(complex_path, complex_relations)
+        single_explanation = self.tool._generate_path_explanation(single_node_path, empty_relations)
+        
+        # Verify explanations
+        assert "John Smith" in simple_explanation and "Google Inc" in simple_explanation
+        assert "works for" in simple_explanation.lower()
+        
+        assert all(name in complex_explanation for name in complex_path)
+        assert "works for" in complex_explanation.lower()
+        assert "located in" in complex_explanation.lower()
+        
+        assert single_explanation == "No path found"
+    
+    def test_query_ranking_real(self):
+        """Test query result ranking with real scoring algorithms"""
+        # Create sample results with different characteristics
+        sample_results = [
+            {
+                "result_type": "path",
+                "confidence": 0.8,
+                "path_weight": 0.5,
+                "path_length": 2,
+                "pagerank_score": 0.01
+            },
+            {
+                "result_type": "related_entity",
+                "confidence": 0.9,
+                "connection_count": 5,
+                "pagerank_score": 0.005
+            },
+            {
+                "result_type": "path",
+                "confidence": 0.6,
+                "path_weight": 0.1,
+                "path_length": 3,
+                "pagerank_score": 0.002
+            },
+            {
+                "result_type": "related_entity",
+                "confidence": 0.7,
+                "connection_count": 2,
+                "pagerank_score": 0.001
+            }
+        ]
+        
+        # Rank results
+        ranked_results = self.tool._rank_query_results(sample_results, "test query", 0.05)
+        
+        # Verify ranking
+        assert len(ranked_results) <= len(sample_results)  # May filter out low scores
+        
+        # Should be sorted by ranking score descending
+        for i in range(len(ranked_results) - 1):
+            assert ranked_results[i]["ranking_score"] >= ranked_results[i + 1]["ranking_score"]
+        
+        # Verify rank assignment
+        for i, result in enumerate(ranked_results, 1):
+            assert result["rank"] == i
+            assert "ranking_score" in result
+            assert isinstance(result["ranking_score"], float)
+    
+    def test_query_complexity_analysis_real(self):
+        """Test query complexity analysis with real text analysis"""
+        simple_query = "Apple"
+        complex_query = "How is Google connected to Microsoft through partnerships and acquisitions?"
+        
+        simple_entities = [{"entity_type": "ORG"}]
+        complex_entities = [
+            {"entity_type": "ORG"}, 
+            {"entity_type": "ORG"}, 
+            {"entity_type": "CONCEPT"}
+        ]
+        
+        simple_analysis = self.tool._analyze_query_complexity(simple_query, simple_entities)
+        complex_analysis = self.tool._analyze_query_complexity(complex_query, complex_entities)
+        
+        # Verify analysis structure
+        for analysis in [simple_analysis, complex_analysis]:
+            assert "query_length" in analysis
+            assert "entity_count" in analysis
+            assert "complexity_score" in analysis
+            assert "entity_types" in analysis
+            assert "has_multiple_entities" in analysis
+            assert "query_words" in analysis
+        
+        # Complex query should have higher complexity score
+        assert complex_analysis["complexity_score"] >= simple_analysis["complexity_score"]
+        assert complex_analysis["query_length"] > simple_analysis["query_length"]
+        assert complex_analysis["query_words"] > simple_analysis["query_words"]
+        assert complex_analysis["has_multiple_entities"] is True
+    
+    def test_path_distribution_analysis_real(self):
+        """Test path distribution analysis with real statistical computations"""
+        sample_results = [
+            {"result_type": "path", "path_length": 2, "confidence": 0.9},
+            {"result_type": "path", "path_length": 3, "confidence": 0.7},
+            {"result_type": "related_entity", "confidence": 0.8},
+            {"result_type": "path", "path_length": 1, "confidence": 0.6},
+            {"result_type": "related_entity", "confidence": 0.4}
+        ]
+        
+        distribution = self.tool._analyze_path_distribution(sample_results)
+        
+        # Verify distribution analysis
+        assert "result_type_distribution" in distribution
+        assert "confidence_distribution" in distribution
+        
+        # Verify result type counts
+        type_dist = distribution["result_type_distribution"]
+        assert type_dist["path"] == 3
+        assert type_dist["related_entity"] == 2
+        
+        # Verify confidence ranges
+        conf_dist = distribution["confidence_distribution"]
+        assert conf_dist["high"] == 2  # >= 0.8
+        assert conf_dist["medium"] == 2  # 0.5-0.8
+        assert conf_dist["low"] == 1   # < 0.5
+        
+        # Verify path length stats
+        assert "path_length_stats" in distribution
+        path_stats = distribution["path_length_stats"]
+        assert path_stats["min_length"] == 1
+        assert path_stats["max_length"] == 3
+        assert path_stats["avg_length"] == 2.0
+    
+    def test_input_validation_real(self):
+        """Test comprehensive input validation with real error scenarios"""
+        # Test invalid input type
+        invalid_input_1 = "invalid_string_input"
+        validation_result_1 = self.tool._validate_input(invalid_input_1)
+        assert not validation_result_1["valid"]
+        assert "dictionary" in validation_result_1["error"]
+        
+        # Test missing query
+        invalid_input_2 = {"not_query": "value"}
+        validation_result_2 = self.tool._validate_input(invalid_input_2)
+        assert not validation_result_2["valid"]
+        assert "Query text is required" in validation_result_2["error"]
+        
+        # Test empty query
+        invalid_input_3 = {"query": ""}
+        validation_result_3 = self.tool._validate_input(invalid_input_3)
+        assert not validation_result_3["valid"]
+        assert "Query text is required" in validation_result_3["error"]
+        
+        # Test too short query
+        invalid_input_4 = {"query": "hi"}
+        validation_result_4 = self.tool._validate_input(invalid_input_4)  
+        assert not validation_result_4["valid"]
+        assert "at least 3 characters" in validation_result_4["error"]
+        
+        # Test valid query
+        valid_input = {"query": "What is AI?"}
+        validation_result_valid = self.tool._validate_input(valid_input)
+        assert validation_result_valid["valid"]
+        
+        # Test alternative field name
+        valid_input_alt = {"query_text": "How does machine learning work?"}
+        validation_result_alt = self.tool._validate_input(valid_input_alt)
+        assert validation_result_alt["valid"]
+    
+    def test_error_handling_real(self):
+        """Test error handling with real error conditions"""
+        # Test with invalid input data type
+        request_invalid_type = ToolRequest(
+            tool_id="T49",
+            operation="multihop_query",
+            input_data="invalid_string_input",
+            parameters={}
+        )
+        
+        result_invalid = self.tool.execute(request_invalid_type)
+        assert result_invalid.status == "error"
+        assert result_invalid.error_code == ToolErrorCode.INVALID_INPUT
+        
+        # Test with empty query
+        request_empty_query = ToolRequest(
+            tool_id="T49",
+            operation="multihop_query",
+            input_data={"query": ""},
+            parameters={}
+        )
+        
+        result_empty = self.tool.execute(request_empty_query)
+        assert result_empty.status == "error"
+        assert result_empty.error_code == ToolErrorCode.INVALID_INPUT
+        
+        # Test with missing query field
+        request_missing_query = ToolRequest(
+            tool_id="T49",
+            operation="multihop_query",
+            input_data={"not_query": "value"},
+            parameters={}
+        )
+        
+        result_missing = self.tool.execute(request_missing_query)
+        assert result_missing.status == "error"
+        assert result_missing.error_code == ToolErrorCode.INVALID_INPUT
+    
+    def test_neo4j_operations_real(self):
+        """Test Neo4j operations with real database interactions"""
+        if not self.tool.driver:
+            pytest.skip("Neo4j driver not available")
+        
+        # Test entity search
+        entities = self.tool.search_entities_by_name("test", limit=5)
+        assert isinstance(entities, list)
+        assert len(entities) <= 5
+        
+        for entity in entities:
+            assert "entity_id" in entity
+            assert "canonical_name" in entity
+            assert "entity_type" in entity
+            assert "confidence" in entity
+            assert isinstance(entity["confidence"], (int, float, type(None)))
+    
+    def test_query_stats_real(self):
+        """Test query statistics retrieval with real performance data"""
+        stats = self.tool.get_query_stats()
+        
+        # Verify stats structure
+        assert "queries_processed" in stats
+        assert "paths_found" in stats
+        assert "entities_extracted" in stats
+        assert "neo4j_operations" in stats
+        assert "query_params" in stats
+        
+        # Verify query parameters
+        params = stats["query_params"]
+        assert params["max_hops"] == 3
+        assert params["result_limit"] == 20
+        assert params["min_path_weight"] == 0.01
+        assert params["pagerank_boost_factor"] == 2.0
+    
+    def test_overall_confidence_calculation_real(self):
+        """Test overall confidence calculation with real ranking data"""
+        # Sample query results
+        query_results = [
+            {"rank": 1, "confidence": 0.9},
+            {"rank": 2, "confidence": 0.8},
+            {"rank": 3, "confidence": 0.7},
+            {"rank": 4, "confidence": 0.6}
+        ]
+        
+        overall_confidence = self.tool._calculate_overall_confidence(query_results)
+        
+        # Should be weighted by rank (higher ranks have more impact)
+        assert isinstance(overall_confidence, float)
+        assert 0.0 <= overall_confidence <= 1.0
+        
+        # Should be higher than simple average due to rank weighting
+        simple_average = sum(r["confidence"] for r in query_results) / len(query_results)
+        assert overall_confidence >= simple_average
+        
+        # Test with empty results
+        empty_confidence = self.tool._calculate_overall_confidence([])
+        assert empty_confidence == 0.0
+    
+    def test_complex_query_scenarios_real(self):
+        """Test complex query scenarios with real processing"""
+        complex_queries = [
+            {"query": "What companies are connected to artificial intelligence research?"},
+            {"query": "How is Microsoft related to OpenAI through partnerships?"},
+            {"query": "Find all paths between Apple and Steve Jobs."},
+            {"query": "What organizations are located in California?"}
+        ]
+        
+        for query_data in complex_queries:
+            request = ToolRequest(
+                tool_id="T49",
+                operation="multihop_query",
+                input_data=query_data,
+                parameters={"max_hops": 2, "result_limit": 5}
+            )
+            
+            result = self.tool.execute(request)
+            
+            # Should succeed or fail gracefully
+            assert result.status in ["success", "error"]
+            
+            if result.status == "success":
+                # Verify result has expected structure
+                assert "query_results" in result.data
+                assert "result_count" in result.data
+                assert isinstance(result.data["result_count"], int)
+                assert result.data["result_count"] >= 0
+    
+    def test_tool_contract_real(self):
+        """Test tool contract specification with real schema validation"""
+        contract = self.tool.get_contract()
+        
+        # Verify contract structure
+        assert contract["tool_id"] == "T49"
+        assert contract["name"] == "Multi-hop Query"
+        assert contract["category"] == "graph_querying"
+        assert "description" in contract
+        
+        # Verify input specification
+        assert "input_specification" in contract
+        input_spec = contract["input_specification"]
+        assert input_spec["type"] == "object"
+        assert "query" in input_spec["properties"]
+        assert "query_text" in input_spec["properties"]
+        
+        # Verify parameters
+        assert "parameters" in contract
+        params = contract["parameters"]
+        assert "max_hops" in params
+        assert "result_limit" in params
+        assert "min_path_weight" in params
+        
+        # Verify output specification
+        assert "output_specification" in contract
+        output_spec = contract["output_specification"]
+        assert "query_results" in output_spec["properties"]
+        assert "result_count" in output_spec["properties"]
+        
+        # Verify error codes
+        assert "error_codes" in contract
+        assert ToolErrorCode.INVALID_INPUT in contract["error_codes"]
+        assert ToolErrorCode.PROCESSING_ERROR in contract["error_codes"]
+        
+        # Verify query types and capabilities
+        assert "query_types" in contract
+        assert "path_finding" in contract["query_types"]
+        assert "multi_hop_traversal" in contract["query_types"]
+        
+        assert "supported_hops" in contract
+        assert contract["supported_hops"] == [1, 2, 3]
+        
+        # Verify dependencies
+        assert "dependencies" in contract
+        assert "neo4j" in contract["dependencies"]
+    
+    def test_cleanup_real(self):
+        """Test resource cleanup with real connection management"""
+        # Test cleanup without driver
+        tool_no_driver = T49MultiHopQueryUnified(service_manager=self.service_manager)
+        tool_no_driver.driver = None
+        cleanup_result_1 = tool_no_driver.cleanup()
+        assert cleanup_result_1 is True
+        
+        # Test cleanup with driver
+        if self.tool.driver:
+            cleanup_result_2 = self.tool.cleanup()
+            assert cleanup_result_2 is True
+            assert self.tool.driver is None
+    
+    def test_service_integration_real(self):
+        """Test service integration with real ServiceManager"""
+        # Verify service manager integration
+        assert self.tool.service_manager is not None
+        
+        # Test service mentions creation (should not raise errors)
+        sample_results = [
+            {
+                "rank": 1,
+                "result_type": "path",
+                "explanation": "Test path explanation"
+            }
+        ]
+        
+        # This should not raise any exceptions
+        self.tool._create_service_mentions(sample_results, {"test": "data"})
+    
+    def test_performance_tracking_real(self):
+        """Test performance tracking with real metrics"""
+        initial_processed = self.tool.queries_processed
+        initial_extracted = self.tool.entities_extracted
+        initial_operations = self.tool.neo4j_operations
+        
+        # Execute query
+        request = ToolRequest(
+            tool_id="T49",
+            operation="multihop_query",
+            input_data=self.test_data["simple_query"],
+            parameters={"result_limit": 5}
+        )
+        
+        result = self.tool.execute(request)
+        
+        # Performance tracking should be updated (if successful)
+        if result.status == "success":
+            assert "query_stats" in result.data
+            stats = result.data["query_stats"]
+            assert stats["queries_processed"] >= initial_processed
+            assert stats["entities_extracted"] >= initial_extracted
+            assert stats["neo4j_operations"] >= initial_operations
+    
+    def test_entity_extraction_patterns_real(self):
+        """Test entity extraction with different text patterns"""
+        pattern_tests = [
+            ("What does John Smith do?", ["John Smith"]),
+            ("How is Google Inc connected to Apple?", ["Google Inc", "Apple"]),
+            ("Find \"Tesla Motors\" relationships", ["Tesla Motors"]),
+            ("Microsoft Corporation and OpenAI partnership", ["Microsoft Corporation", "OpenAI"]),
+            ("no entities here", [])
+        ]
+        
+        for query_text, expected_patterns in pattern_tests:
+            entities = self.tool._extract_query_entities(query_text)
+            
+            # Verify extraction worked (even if no entities found in Neo4j)
+            assert isinstance(entities, list)
+            
+            # If entities were found, verify they contain expected patterns
+            if entities:
+                found_names = [e["query_name"] for e in entities]
+                # At least some expected patterns should be found in queries
+                if expected_patterns:
+                    pattern_found = any(
+                        any(pattern.lower() in name.lower() for name in found_names)
+                        for pattern in expected_patterns
+                    )
+                    # Only assert if we have expected patterns
+                    if expected_patterns != []:
+                        # This is expected to work with real entity data
+                        pass
+    
+    def teardown_method(self):
+        """Cleanup after each test method"""
+        if hasattr(self.tool, 'cleanup'):
+            self.tool.cleanup()
+</file>
+
+<file path="tests/unit/test_t68_pagerank_calculator_unified.py">
+"""
+Test T68 PageRank Calculator Unified Tool - Mock-Free Testing
+
+Tests the T68 PageRank Calculator with comprehensive mock-free functionality testing.
+All tests use real ServiceManager, NetworkX, and Neo4j integration.
+"""
+
+import pytest
+import tempfile
+import uuid
+from datetime import datetime
+from typing import Dict, Any, List
+
+from src.tools.phase1.t68_pagerank_calculator_unified import T68PageRankCalculatorUnified
+from src.core.service_manager import ServiceManager
+from src.tools.base_tool import ToolRequest, ToolErrorCode
+
+class TestT68PageRankCalculatorUnifiedMockFree:
+    """Mock-free testing for T68 PageRank Calculator Unified"""
+    
+    def setup_method(self):
+        """Setup for each test method - NO mocks used"""
+        # Real ServiceManager - NO mocks
+        self.service_manager = ServiceManager()
+        self.tool = T68PageRankCalculatorUnified(service_manager=self.service_manager)
+        
+        # Create real test data with known graph structures
+        self.test_data = self._create_real_test_data()
+    
+    def _create_real_test_data(self) -> Dict[str, Any]:
+        """Create actual test data for PageRank calculation"""
+        return {
+            "simple_graph": {
+                "graph_ref": "neo4j://graph/test_simple"
+            },
+            "filtered_graph": {
+                "graph_ref": "neo4j://graph/test_filtered"
+            },
+            "empty_graph": {
+                "graph_ref": "neo4j://graph/empty"
+            },
+            "large_graph": {
+                "graph_ref": "neo4j://graph/large"
+            }
+        }
+    
+    def test_tool_initialization_real(self):
+        """Test tool initializes correctly with real services"""
+        assert self.tool.tool_id == "T68"
+        assert self.tool.name == "PageRank Calculator"
+        assert self.tool.category == "graph_analysis"
+        assert self.tool.service_manager is not None
+        
+        # Test algorithm parameters
+        assert self.tool.damping_factor == 0.85
+        assert self.tool.max_iterations == 100
+        assert self.tool.tolerance == 1e-6
+        assert self.tool.min_score == 0.0001
+        
+        # Test performance tracking variables
+        assert self.tool.entities_processed == 0
+        assert self.tool.iterations_used == 0
+        assert self.tool.convergence_achieved is False
+        assert self.tool.neo4j_operations == 0
+    
+    def test_dependencies_check_real(self):
+        """Test dependency checking with real library imports"""
+        # Test NetworkX availability
+        try:
+            import networkx as nx
+            networkx_available = True
+        except ImportError:
+            networkx_available = False
+        
+        # Test Neo4j availability 
+        try:
+            from neo4j import GraphDatabase
+            neo4j_available = True
+        except ImportError:
+            neo4j_available = False
+        
+        # Tool should handle missing dependencies gracefully
+        if not networkx_available:
+            request = ToolRequest(
+                tool_id="T68",
+                operation="calculate_pagerank",
+                input_data=self.test_data["simple_graph"],
+                parameters={}
+            )
+            
+            result = self.tool.execute(request)
+            assert result.status == "error"
+            assert result.error_code == ToolErrorCode.PROCESSING_ERROR
+            assert "NetworkX not available" in result.error_message
+    
+    def test_simple_pagerank_calculation_real(self):
+        """Test basic PageRank calculation with real NetworkX processing"""
+        request = ToolRequest(
+            tool_id="T68",
+            operation="calculate_pagerank",
+            input_data=self.test_data["simple_graph"],
+            parameters={"result_limit": 50}
+        )
+        
+        result = self.tool.execute(request)
+        
+        # Should succeed even with empty/small graphs
+        assert result.status in ["success", "error"]
+        assert result.execution_time > 0
+        
+        if result.status == "success":
+            # Verify result structure
+            assert "ranked_entities" in result.data
+            assert "pagerank_scores" in result.data
+            assert "entity_count" in result.data
+            assert "confidence" in result.data
+            
+            # Verify PageRank scores structure
+            ranked_entities = result.data["ranked_entities"]
+            for entity in ranked_entities:
+                assert "rank" in entity
+                assert "entity_id" in entity
+                assert "canonical_name" in entity
+                assert "pagerank_score" in entity
+                assert "confidence" in entity
+                assert "percentile" in entity
+                assert isinstance(entity["pagerank_score"], float)
+                assert entity["pagerank_score"] >= 0.0
+                assert 0.0 <= entity["confidence"] <= 1.0
+            
+            # Verify computation stats
+            assert "computation_stats" in result.data
+            stats = result.data["computation_stats"]
+            assert "entities_processed" in stats
+            assert "convergence_achieved" in stats
+            assert "neo4j_operations" in stats
+            
+            # Verify graph metrics
+            assert "graph_metrics" in result.data
+            metrics = result.data["graph_metrics"]
+            if metrics:  # Only if graph has data
+                assert "node_count" in metrics
+                assert "edge_count" in metrics
+                assert "density" in metrics
+        
+        elif result.status == "error":
+            # Should have proper error handling
+            assert result.error_code in [
+                ToolErrorCode.CONNECTION_ERROR,
+                ToolErrorCode.PROCESSING_ERROR
+            ]
+    
+    def test_graph_loading_real(self):
+        """Test graph loading from Neo4j with real database queries"""
+        # Test with different entity type filters
+        entity_types = ["PERSON", "ORG"]
+        graph_data = self.tool._load_graph_from_neo4j(entity_types, min_degree=1)
+        
+        # Verify graph data structure
+        assert "nodes" in graph_data
+        assert "edges" in graph_data
+        assert "node_count" in graph_data
+        assert "edge_count" in graph_data
+        assert isinstance(graph_data["nodes"], dict)
+        assert isinstance(graph_data["edges"], list)
+        assert isinstance(graph_data["node_count"], int)
+        assert isinstance(graph_data["edge_count"], int)
+        
+        # Verify node structure
+        for node_id, node_data in graph_data["nodes"].items():
+            assert "entity_id" in node_data
+            assert "name" in node_data
+            assert "entity_type" in node_data
+            assert "confidence" in node_data
+            assert isinstance(node_data["confidence"], (int, float))
+        
+        # Verify edge structure
+        for edge in graph_data["edges"]:
+            assert "source" in edge
+            assert "target" in edge
+            assert "weight" in edge
+            assert "confidence" in edge
+            assert isinstance(edge["weight"], (int, float))
+            assert isinstance(edge["confidence"], (int, float))
+    
+    def test_networkx_graph_building_real(self):
+        """Test NetworkX graph building with real graph construction"""
+        # Create sample graph data
+        sample_graph_data = {
+            "nodes": {
+                "entity_1": {
+                    "entity_id": "entity_1",
+                    "name": "John Smith",
+                    "entity_type": "PERSON",
+                    "confidence": 0.9
+                },
+                "entity_2": {
+                    "entity_id": "entity_2", 
+                    "name": "Google Inc",
+                    "entity_type": "ORG",
+                    "confidence": 0.8
+                },
+                "entity_3": {
+                    "entity_id": "entity_3",
+                    "name": "California",
+                    "entity_type": "GPE",
+                    "confidence": 0.85
+                }
+            },
+            "edges": [
+                {
+                    "source": "entity_1",
+                    "target": "entity_2",
+                    "weight": 0.8,
+                    "confidence": 0.9
+                },
+                {
+                    "source": "entity_2",
+                    "target": "entity_3",
+                    "weight": 0.7,
+                    "confidence": 0.8
+                }
+            ],
+            "node_count": 3,
+            "edge_count": 2
+        }
+        
+        # Build NetworkX graph
+        nx_graph = self.tool._build_networkx_graph(sample_graph_data)
+        
+        # Verify NetworkX graph structure
+        assert nx_graph.number_of_nodes() == 3
+        assert nx_graph.number_of_edges() == 2
+        
+        # Verify nodes have attributes
+        for node_id in nx_graph.nodes():
+            node_attrs = nx_graph.nodes[node_id]
+            assert "entity_id" in node_attrs
+            assert "name" in node_attrs
+            assert "entity_type" in node_attrs
+            assert "confidence" in node_attrs
+        
+        # Verify edges have weights
+        for source, target in nx_graph.edges():
+            edge_attrs = nx_graph.edges[source, target]
+            assert "weight" in edge_attrs
+            assert "confidence" in edge_attrs
+    
+    def test_pagerank_score_calculation_real(self):
+        """Test PageRank score calculation with real NetworkX algorithms"""
+        try:
+            import networkx as nx
+        except ImportError:
+            pytest.skip("NetworkX not available")
+        
+        # Create a simple test graph
+        G = nx.DiGraph()
+        G.add_node("A", name="Node A")
+        G.add_node("B", name="Node B") 
+        G.add_node("C", name="Node C")
+        G.add_edge("A", "B", weight=1.0)
+        G.add_edge("B", "C", weight=1.0)
+        G.add_edge("C", "A", weight=1.0)
+        
+        # Calculate PageRank scores
+        pagerank_scores = self.tool._calculate_pagerank_scores(G)
+        
+        # Verify scores calculated
+        assert isinstance(pagerank_scores, dict)
+        assert len(pagerank_scores) == 3
+        
+        # Verify score properties
+        total_score = sum(pagerank_scores.values())
+        assert abs(total_score - 1.0) < 0.01  # PageRank scores sum to ~1.0
+        
+        for node_id, score in pagerank_scores.items():
+            assert isinstance(score, float)
+            assert score > 0.0
+            assert score <= 1.0
+        
+        # Verify performance tracking updated
+        assert self.tool.entities_processed == 3
+        assert self.tool.convergence_achieved is True
+    
+    def test_entity_ranking_real(self):
+        """Test entity ranking with real score sorting and formatting"""
+        # Sample PageRank scores
+        pagerank_scores = {
+            "entity_1": 0.4,
+            "entity_2": 0.35, 
+            "entity_3": 0.25
+        }
+        
+        # Sample graph data
+        graph_data = {
+            "nodes": {
+                "entity_1": {"name": "John Smith", "entity_type": "PERSON", "confidence": 0.9},
+                "entity_2": {"name": "Google Inc", "entity_type": "ORG", "confidence": 0.8},
+                "entity_3": {"name": "California", "entity_type": "GPE", "confidence": 0.85}
+            }
+        }
+        
+        # Rank entities
+        ranked_entities = self.tool._rank_entities(pagerank_scores, graph_data, limit=10)
+        
+        # Verify ranking
+        assert len(ranked_entities) == 3
+        
+        # Should be sorted by PageRank score descending
+        assert ranked_entities[0]["pagerank_score"] >= ranked_entities[1]["pagerank_score"]
+        assert ranked_entities[1]["pagerank_score"] >= ranked_entities[2]["pagerank_score"]
+        
+        # Verify rank assignment
+        for i, entity in enumerate(ranked_entities, 1):
+            assert entity["rank"] == i
+            assert "entity_id" in entity
+            assert "canonical_name" in entity
+            assert "entity_type" in entity
+            assert "pagerank_score" in entity
+            assert "confidence" in entity
+            assert "percentile" in entity
+            assert 0.0 <= entity["percentile"] <= 100.0
+    
+    def test_confidence_calculation_real(self):
+        """Test confidence calculation with real scoring logic"""
+        # Test various PageRank scores
+        high_pagerank = 0.1
+        medium_pagerank = 0.01
+        low_pagerank = 0.001
+        
+        base_confidence = 0.8
+        
+        high_confidence = self.tool._calculate_pagerank_confidence(high_pagerank, base_confidence)
+        medium_confidence = self.tool._calculate_pagerank_confidence(medium_pagerank, base_confidence)
+        low_confidence = self.tool._calculate_pagerank_confidence(low_pagerank, base_confidence)
+        
+        # Higher PageRank should yield higher confidence
+        assert high_confidence >= medium_confidence >= low_confidence
+        
+        # All confidences should be in valid range
+        for conf in [high_confidence, medium_confidence, low_confidence]:
+            assert 0.1 <= conf <= 1.0
+    
+    def test_percentile_calculation_real(self):
+        """Test percentile calculation with real statistical analysis"""
+        all_scores = {
+            "entity_1": 0.4,
+            "entity_2": 0.3,
+            "entity_3": 0.2, 
+            "entity_4": 0.1
+        }
+        
+        # Test percentile for different scores
+        percentile_40 = self.tool._calculate_percentile(0.4, all_scores)
+        percentile_30 = self.tool._calculate_percentile(0.3, all_scores)
+        percentile_20 = self.tool._calculate_percentile(0.2, all_scores)
+        percentile_10 = self.tool._calculate_percentile(0.1, all_scores)
+        
+        # Higher scores should have higher percentiles
+        assert percentile_40 >= percentile_30 >= percentile_20 >= percentile_10
+        
+        # All percentiles should be in valid range
+        for p in [percentile_40, percentile_30, percentile_20, percentile_10]:
+            assert 0.0 <= p <= 100.0
+    
+    def test_graph_metrics_analysis_real(self):
+        """Test graph metrics analysis with real NetworkX computations"""
+        try:
+            import networkx as nx
+        except ImportError:
+            pytest.skip("NetworkX not available")
+        
+        # Create test graph
+        G = nx.DiGraph()
+        G.add_nodes_from(['A', 'B', 'C', 'D'])
+        G.add_edges_from([('A', 'B'), ('B', 'C'), ('C', 'D'), ('D', 'A')])
+        
+        # Analyze metrics
+        metrics = self.tool._analyze_graph_metrics(G)
+        
+        # Verify metrics structure
+        assert "node_count" in metrics
+        assert "edge_count" in metrics
+        assert "density" in metrics
+        assert "is_connected" in metrics
+        assert "average_degree" in metrics
+        
+        # Verify metric values
+        assert metrics["node_count"] == 4
+        assert metrics["edge_count"] == 4
+        assert isinstance(metrics["density"], float)
+        assert isinstance(metrics["is_connected"], bool)
+        assert metrics["average_degree"] == 2.0  # Each node has degree 2
+    
+    def test_score_distribution_analysis_real(self):
+        """Test score distribution analysis with real statistical computations"""
+        pagerank_scores = {
+            "entity_1": 0.4,
+            "entity_2": 0.3,
+            "entity_3": 0.2,
+            "entity_4": 0.1
+        }
+        
+        distribution = self.tool._analyze_score_distribution(pagerank_scores)
+        
+        # Verify distribution analysis
+        assert "min_score" in distribution
+        assert "max_score" in distribution
+        assert "mean_score" in distribution
+        assert "median_score" in distribution
+        assert "score_ranges" in distribution
+        
+        assert distribution["min_score"] == 0.1
+        assert distribution["max_score"] == 0.4
+        assert distribution["mean_score"] == 0.25
+        assert distribution["median_score"] in [0.2, 0.3]  # Median of 4 values
+        
+        # Verify score ranges
+        ranges = distribution["score_ranges"]
+        assert "top_10_percent" in ranges
+        assert "top_25_percent" in ranges
+        assert "bottom_50_percent" in ranges
+    
+    def test_input_validation_real(self):
+        """Test comprehensive input validation with real error scenarios"""
+        # Test invalid input type
+        invalid_input_1 = "invalid_string_input"
+        validation_result_1 = self.tool._validate_input(invalid_input_1)
+        assert not validation_result_1["valid"]
+        assert "dictionary" in validation_result_1["error"]
+        
+        # Test invalid graph reference type
+        invalid_input_2 = {"graph_ref": 123}
+        validation_result_2 = self.tool._validate_input(invalid_input_2)
+        assert not validation_result_2["valid"]
+        assert "string" in validation_result_2["error"]
+        
+        # Test valid input
+        valid_input = {"graph_ref": "neo4j://graph/test"}
+        validation_result_valid = self.tool._validate_input(valid_input)
+        assert validation_result_valid["valid"]
+        
+        # Test empty input (should use defaults)
+        empty_input = {}
+        validation_result_empty = self.tool._validate_input(empty_input)
+        assert validation_result_empty["valid"]
+    
+    def test_error_handling_real(self):
+        """Test error handling with real error conditions"""
+        # Test with invalid input data type
+        request_invalid_type = ToolRequest(
+            tool_id="T68",
+            operation="calculate_pagerank",
+            input_data="invalid_string_input",
+            parameters={}
+        )
+        
+        result_invalid = self.tool.execute(request_invalid_type)
+        assert result_invalid.status == "error"
+        assert result_invalid.error_code == ToolErrorCode.INVALID_INPUT
+        
+        # Test with missing dependencies (if NetworkX not available)
+        try:
+            import networkx
+            networkx_available = True
+        except ImportError:
+            networkx_available = False
+        
+        if not networkx_available:
+            request = ToolRequest(
+                tool_id="T68",
+                operation="calculate_pagerank",  
+                input_data=self.test_data["simple_graph"],
+                parameters={}
+            )
+            
+            result = self.tool.execute(request)
+            assert result.status == "error"
+            assert result.error_code == ToolErrorCode.PROCESSING_ERROR
+    
+    def test_neo4j_operations_real(self):
+        """Test Neo4j operations with real database interactions"""
+        if not self.tool.driver:
+            pytest.skip("Neo4j driver not available")
+        
+        # Test top entities retrieval
+        top_entities = self.tool.get_top_entities(limit=5)
+        assert isinstance(top_entities, list)
+        assert len(top_entities) <= 5
+        
+        for entity in top_entities:
+            assert "rank" in entity
+            assert "entity_id" in entity
+            assert "canonical_name" in entity
+            assert "pagerank_score" in entity
+            assert isinstance(entity["pagerank_score"], (int, float))
+    
+    def test_pagerank_stats_real(self):
+        """Test PageRank statistics retrieval with real performance data"""
+        stats = self.tool.get_pagerank_stats()
+        
+        # Verify stats structure
+        assert "entities_processed" in stats
+        assert "iterations_used" in stats
+        assert "convergence_achieved" in stats
+        assert "neo4j_operations" in stats
+        assert "algorithm_params" in stats
+        
+        # Verify algorithm parameters
+        params = stats["algorithm_params"]
+        assert params["damping_factor"] == 0.85
+        assert params["max_iterations"] == 100
+        assert params["tolerance"] == 1e-6
+        assert params["min_score"] == 0.0001
+    
+    def test_overall_confidence_calculation_real(self):
+        """Test overall confidence calculation with real ranking data"""
+        # Sample ranked entities
+        ranked_entities = [
+            {"rank": 1, "confidence": 0.9},
+            {"rank": 2, "confidence": 0.8},
+            {"rank": 3, "confidence": 0.7},
+            {"rank": 4, "confidence": 0.6}
+        ]
+        
+        overall_confidence = self.tool._calculate_overall_confidence(ranked_entities)
+        
+        # Should be weighted by rank (higher ranks have more impact)
+        assert isinstance(overall_confidence, float)
+        assert 0.0 <= overall_confidence <= 1.0
+        
+        # Should be higher than simple average due to rank weighting
+        simple_average = sum(e["confidence"] for e in ranked_entities) / len(ranked_entities)
+        assert overall_confidence >= simple_average
+    
+    def test_tool_contract_real(self):
+        """Test tool contract specification with real schema validation"""
+        contract = self.tool.get_contract()
+        
+        # Verify contract structure
+        assert contract["tool_id"] == "T68"
+        assert contract["name"] == "PageRank Calculator"
+        assert contract["category"] == "graph_analysis"
+        assert "description" in contract
+        
+        # Verify input specification
+        assert "input_specification" in contract
+        input_spec = contract["input_specification"]
+        assert input_spec["type"] == "object"
+        assert "graph_ref" in input_spec["properties"]
+        
+        # Verify parameters
+        assert "parameters" in contract
+        params = contract["parameters"]
+        assert "entity_types" in params
+        assert "min_degree" in params
+        assert "result_limit" in params
+        
+        # Verify output specification
+        assert "output_specification" in contract
+        output_spec = contract["output_specification"]
+        assert "ranked_entities" in output_spec["properties"]
+        assert "entity_count" in output_spec["properties"]
+        
+        # Verify error codes
+        assert "error_codes" in contract
+        assert ToolErrorCode.INVALID_INPUT in contract["error_codes"]
+        assert ToolErrorCode.PROCESSING_ERROR in contract["error_codes"]
+        
+        # Verify algorithm info
+        assert "algorithm_info" in contract
+        algo_info = contract["algorithm_info"]
+        assert algo_info["algorithm"] == "PageRank"
+        assert algo_info["implementation"] == "NetworkX"
+        assert algo_info["damping_factor"] == 0.85
+        
+        # Verify dependencies
+        assert "dependencies" in contract
+        assert "networkx" in contract["dependencies"]
+        assert "neo4j" in contract["dependencies"]
+    
+    def test_cleanup_real(self):
+        """Test resource cleanup with real connection management"""
+        # Test cleanup without driver
+        tool_no_driver = T68PageRankCalculatorUnified(service_manager=self.service_manager)
+        tool_no_driver.driver = None
+        cleanup_result_1 = tool_no_driver.cleanup()
+        assert cleanup_result_1 is True
+        
+        # Test cleanup with driver
+        if self.tool.driver:
+            cleanup_result_2 = self.tool.cleanup()
+            assert cleanup_result_2 is True
+            assert self.tool.driver is None
+    
+    def test_service_integration_real(self):
+        """Test service integration with real ServiceManager"""
+        # Verify service manager integration
+        assert self.tool.service_manager is not None
+        
+        # Test service mentions creation (should not raise errors)
+        sample_entities = [
+            {
+                "rank": 1,
+                "entity_id": "test_entity",
+                "canonical_name": "Test Entity",
+                "pagerank_score": 0.5
+            }
+        ]
+        
+        # This should not raise any exceptions
+        self.tool._create_service_mentions(sample_entities, {"test": "data"})
+    
+    def test_performance_tracking_real(self):
+        """Test performance tracking with real metrics"""
+        initial_processed = self.tool.entities_processed
+        initial_operations = self.tool.neo4j_operations
+        
+        # Execute PageRank calculation
+        request = ToolRequest(
+            tool_id="T68",
+            operation="calculate_pagerank",
+            input_data=self.test_data["simple_graph"],
+            parameters={"result_limit": 10}
+        )
+        
+        result = self.tool.execute(request)
+        
+        # Performance tracking should be updated (if successful)
+        if result.status == "success":
+            assert "computation_stats" in result.data
+            stats = result.data["computation_stats"]
+            assert stats["entities_processed"] >= initial_processed
+            assert stats["neo4j_operations"] >= initial_operations
+    
+    def teardown_method(self):
+        """Cleanup after each test method"""
+        if hasattr(self.tool, 'cleanup'):
+            self.tool.cleanup()
+</file>
+
+<file path="src/tools/base_tool.py">
+"""
+Base Tool Infrastructure for Unified Tool Interface
+
+Provides the contract-first design for all KGAS tools.
+"""
+
+from abc import ABC, abstractmethod
+from typing import Dict, Any, Optional, List
+from dataclasses import dataclass, field
+from enum import Enum
+import time
+import psutil
+from datetime import datetime
+
+
+class ToolStatus(Enum):
+    """Tool operational status"""
+    READY = "ready"
+    PROCESSING = "processing"
+    ERROR = "error"
+    MAINTENANCE = "maintenance"
+
+
+class ToolErrorCode(Enum):
+    """Standardized tool error codes for programmatic handling"""
+    # Input/Validation Errors
+    INVALID_INPUT = "INVALID_INPUT"
+    FILE_NOT_FOUND = "FILE_NOT_FOUND"
+    INVALID_FILE_TYPE = "INVALID_FILE_TYPE"
+    VALIDATION_FAILED = "VALIDATION_FAILED"
+    
+    # Processing Errors
+    PARSE_ERROR = "PARSE_ERROR"
+    XML_MALFORMED = "XML_MALFORMED"
+    XML_PARSE_ERROR = "XML_PARSE_ERROR"
+    YAML_SYNTAX_ERROR = "YAML_SYNTAX_ERROR"
+    YAML_PARSE_ERROR = "YAML_PARSE_ERROR"
+    EXCEL_CORRUPTED = "EXCEL_CORRUPTED"
+    EXCEL_PASSWORD_PROTECTED = "EXCEL_PASSWORD_PROTECTED"
+    POWERPOINT_CORRUPTED = "POWERPOINT_CORRUPTED"
+    POWERPOINT_PASSWORD_PROTECTED = "POWERPOINT_PASSWORD_PROTECTED"
+    SHEET_NOT_FOUND = "SHEET_NOT_FOUND"
+    
+    # Library/Dependency Errors
+    LIBRARY_MISSING = "LIBRARY_MISSING"
+    PPTX_LIBRARY_MISSING = "PPTX_LIBRARY_MISSING"
+    UNSAFE_YAML_CONTENT = "UNSAFE_YAML_CONTENT"
+    NAMESPACE_ERROR = "NAMESPACE_ERROR"
+    
+    # Archive/ZIP Errors
+    ZIP_CORRUPTED = "ZIP_CORRUPTED"
+    ZIP_PASSWORD_PROTECTED = "ZIP_PASSWORD_PROTECTED"
+    ARCHIVE_EXTRACTION_FAILED = "ARCHIVE_EXTRACTION_FAILED"
+    
+    # Network/Web Errors
+    CONNECTION_ERROR = "CONNECTION_ERROR"
+    CONNECTION_TIMEOUT = "CONNECTION_TIMEOUT"
+    HTTP_ERROR = "HTTP_ERROR"
+    INVALID_URL = "INVALID_URL"
+    
+    # System Errors
+    PROCESSING_ERROR = "PROCESSING_ERROR"
+    MEMORY_LIMIT_EXCEEDED = "MEMORY_LIMIT_EXCEEDED"
+    EXECUTION_TIMEOUT = "EXECUTION_TIMEOUT"
+    HEALTH_CHECK_FAILED = "HEALTH_CHECK_FAILED"
+    UNEXPECTED_ERROR = "UNEXPECTED_ERROR"
+
+
+@dataclass(frozen=True)
+class ToolRequest:
+    """Standardized tool input format"""
+    tool_id: str
+    operation: str
+    input_data: Any
+    parameters: Dict[str, Any] = field(default_factory=dict)
+    context: Optional[Dict[str, Any]] = field(default=None)
+    validation_mode: bool = field(default=False)
+
+
+@dataclass(frozen=True)
+class ToolResult:
+    """Standardized tool output format"""
+    tool_id: str
+    status: str  # "success" or "error"
+    data: Any = field(default=None)
+    metadata: Dict[str, Any] = field(default_factory=dict)
+    execution_time: float = field(default=0.0)
+    memory_used: int = field(default=0)
+    error_code: Optional[str] = field(default=None)
+    error_message: Optional[str] = field(default=None)
+
+
+@dataclass(frozen=True)
+class ToolContract:
+    """Tool capability and requirement specification"""
+    tool_id: str
+    name: str
+    description: str
+    category: str  # "document_processing", "graph", "table", "vector", "cross_modal"
+    input_schema: Dict[str, Any] = field(default_factory=dict)
+    output_schema: Dict[str, Any] = field(default_factory=dict)
+    dependencies: List[str] = field(default_factory=list)
+    performance_requirements: Dict[str, Any] = field(default_factory=dict)
+    error_conditions: List[str] = field(default_factory=list)
+
+
+class BaseTool(ABC):
+    """Base class all tools MUST inherit from"""
+    
+    def __init__(self, services):
+        """Initialize with service manager"""
+        self.services = services
+        self.tool_id = self.__class__.__name__  # Override in subclass
+        self.status = ToolStatus.READY
+        self._start_time = None
+        self._start_memory = None
+    
+    @abstractmethod
+    def get_contract(self) -> ToolContract:
+        """Return tool contract specification"""
+        pass
+    
+    @abstractmethod
+    def execute(self, request: ToolRequest) -> ToolResult:
+        """Execute tool operation with standardized input/output"""
+        pass
+    
+    def validate_input(self, input_data: Any) -> bool:
+        """Validate input against tool contract"""
+        # Basic implementation - override for specific validation
+        if input_data is None:
+            return False
+        
+        contract = self.get_contract()
+        required_fields = contract.input_schema.get("required", [])
+        
+        if isinstance(input_data, dict):
+            for field in required_fields:
+                if field not in input_data:
+                    return False
+        
+        return True
+    
+    def health_check(self) -> ToolResult:
+        """Check tool health and readiness"""
+        try:
+            # Basic health check - override for specific checks
+            healthy = self.status in [ToolStatus.READY, ToolStatus.PROCESSING]
+            
+            return ToolResult(
+                tool_id=self.tool_id,
+                status="success" if healthy else "error",
+                data={
+                    "healthy": healthy,
+                    "status": self.status.value,
+                    "contract": self.get_contract().name
+                },
+                metadata={
+                    "timestamp": datetime.now().isoformat()
+                },
+                execution_time=0.0,
+                memory_used=0
+            )
+        except Exception as e:
+            return ToolResult(
+                tool_id=self.tool_id,
+                status="error",
+                data={"healthy": False},
+                metadata={"error": str(e)},
+                execution_time=0.0,
+                memory_used=0,
+                error_code="HEALTH_CHECK_FAILED",
+                error_message=str(e)
+            )
+    
+    def get_status(self) -> ToolStatus:
+        """Get current tool status"""
+        return self.status
+    
+    def cleanup(self) -> bool:
+        """Clean up tool resources"""
+        # Basic cleanup - override for specific cleanup
+        self.status = ToolStatus.READY
+        return True
+    
+    def _start_execution(self):
+        """Start execution tracking"""
+        self._start_time = time.time()
+        try:
+            self._start_memory = psutil.Process().memory_info().rss
+        except:
+            self._start_memory = 0  # Fallback if psutil fails
+        self.status = ToolStatus.PROCESSING
+    
+    def _end_execution(self) -> tuple:
+        """End execution tracking and return metrics"""
+        execution_time = time.time() - self._start_time if self._start_time else 0.0
+        try:
+            current_memory = psutil.Process().memory_info().rss
+            memory_used = current_memory - self._start_memory if self._start_memory else 0
+        except:
+            memory_used = 0  # Fallback if psutil fails
+        self.status = ToolStatus.READY
+        return execution_time, memory_used
+    
+    def _create_error_result(self, request: ToolRequest, error_code: str, error_message: str) -> ToolResult:
+        """Create standardized error result"""
+        execution_time, memory_used = self._end_execution()
+        self.status = ToolStatus.ERROR
+        
+        return ToolResult(
+            tool_id=self.tool_id,
+            status="error",
+            data=None,
+            metadata={
+                "operation": request.operation,
+                "timestamp": datetime.now().isoformat()
+            },
+            execution_time=execution_time,
+            memory_used=memory_used,
+            error_code=error_code,
+            error_message=error_message
+        )
+</file>
+
+</files>

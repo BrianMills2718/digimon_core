@@ -1,0 +1,82 @@
+project_name: "Phase 1 Tools Implementation Validation"
+
+include_patterns:
+  - "src/tools/phase1/t27_relationship_extractor_unified.py"
+  - "src/tools/phase1/t31_entity_builder_unified.py"
+  - "src/tools/phase1/t34_edge_builder_unified.py"
+  - "src/tools/base_tool.py"
+  - "tests/unit/test_t27_relationship_extractor_unified.py"
+  - "tests/unit/test_t31_entity_builder_unified.py"
+
+exclude_patterns:
+  - "**/*.md"
+  - "**/*log*"
+  - "**/Evidence*"
+  - "**/*cache*"
+  - "**/outputs/**"
+
+custom_prompt: |
+  You are validating specific implementation claims for Phase 1 tools in the KGAS system.
+  
+  VALIDATION CRITERIA:
+  1. **Implementation Present**: Does the method/feature exist where claimed?
+  2. **Functionality Complete**: Is it fully implemented (not stub/placeholder)?
+  3. **Requirements Met**: Does it satisfy specific requirements mentioned?
+  4. **Interface Compliance**: Does it properly implement BaseTool interface?
+  5. **Real Integration**: Does it use real libraries (spaCy, Neo4j) not mocks?
+
+  For each claim, examine the specific files and provide a verdict:
+  - ✅ FULLY RESOLVED - Implementation present, complete, meets requirements
+  - ⚠️ PARTIALLY RESOLVED - Implementation present but incomplete
+  - ❌ NOT RESOLVED - Implementation missing or inadequate
+
+  Be specific about line numbers and actual implementation details found.
+
+claims_of_success:
+  - claim: "T27 Relationship Extractor implements unified BaseTool interface with real spaCy processing"
+    expected_files: ["src/tools/phase1/t27_relationship_extractor_unified.py"]
+    verification_criteria:
+      - "Class T27RelationshipExtractorUnified inherits from BaseTool"
+      - "Implements execute() method that returns ToolResult"
+      - "Uses real spaCy nlp processing (not mocked)"
+      - "Implements get_contract() method"
+      - "Has comprehensive relationship extraction with pattern matching and dependency parsing"
+
+  - claim: "T27 has comprehensive mock-free test suite with 93% coverage"
+    expected_files: ["tests/unit/test_t27_relationship_extractor_unified.py"]
+    verification_criteria:
+      - "Test class TestT27RelationshipExtractorUnifiedMockFree exists"
+      - "Contains 15+ test methods"
+      - "Uses real ServiceManager (not mocked)"
+      - "Tests real spaCy processing functionality"
+      - "Has zero_mocking_verification test"
+
+  - claim: "T31 Entity Builder implements unified BaseTool interface with Neo4j integration"
+    expected_files: ["src/tools/phase1/t31_entity_builder_unified.py"]
+    verification_criteria:
+      - "Class T31EntityBuilderUnified inherits from BaseTool"
+      - "Implements execute() method that returns ToolResult"
+      - "Has real Neo4j driver initialization"
+      - "Implements get_contract() method"
+      - "Has entity building with mention aggregation"
+
+  - claim: "T31 has comprehensive mock-free test suite"
+    expected_files: ["tests/unit/test_t31_entity_builder_unified.py"]
+    verification_criteria:
+      - "Test class TestT31EntityBuilderUnifiedMockFree exists"
+      - "Contains 15+ test methods"  
+      - "Uses real ServiceManager (not mocked)"
+      - "Has zero_mocking_verification test"
+
+  - claim: "T34 Edge Builder implements unified BaseTool interface with Neo4j relationship creation"
+    expected_files: ["src/tools/phase1/t34_edge_builder_unified.py"]
+    verification_criteria:
+      - "Class T34EdgeBuilderUnified inherits from BaseTool"
+      - "Implements execute() method that returns ToolResult"
+      - "Has real Neo4j driver initialization"
+      - "Implements get_contract() method"
+      - "Has relationship edge creation with weight calculation"
+
+format: markdown
+line_numbers: true
+no_remove_empty_lines: true

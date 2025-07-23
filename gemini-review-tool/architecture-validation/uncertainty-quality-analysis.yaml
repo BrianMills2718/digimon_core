@@ -1,0 +1,75 @@
+# Uncertainty and Quality System Analysis
+# Purpose: Evaluate the academic rigor of uncertainty handling and quality metrics
+
+validation_type: academic_quality_analysis
+claim: "The uncertainty and quality systems meet academic research standards"
+
+target_files:
+  - "docs/architecture/adrs/ADR-004-Normative-Confidence-Score-Ontology.md"
+  - "docs/architecture/adrs/ADR-007-uncertainty-metrics.md"
+  - "docs/architecture/adrs/ADR-016-Bayesian-Uncertainty-Aggregation.md"
+  - "docs/architecture/concepts/uncertainty-architecture.md"
+  - "docs/architecture/diagrams/uncertainty-propagation-flow.md"
+  - "docs/architecture/adrs/ADR-010-Quality-System-Design.md"
+
+prompt: |
+  Critically evaluate the uncertainty quantification and quality assurance systems:
+  
+  **1. THEORETICAL FOUNDATION**
+  - Is the uncertainty framework theoretically sound?
+  - Are the mathematical foundations rigorous?
+  - How well does it align with academic best practices?
+  - Are there gaps in the theoretical approach?
+  
+  **2. UNCERTAINTY PROPAGATION**
+  - How is uncertainty propagated through the pipeline?
+  - Are dependencies and correlations properly handled?
+  - Can the system distinguish aleatory vs epistemic uncertainty?
+  - Are aggregation methods mathematically justified?
+  
+  **3. CONFIDENCE SCORING**
+  - Is the confidence score ontology well-designed?
+  - Are scores interpretable and meaningful?
+  - How are different types of confidence combined?
+  - Can researchers trust the confidence metrics?
+  
+  **4. QUALITY METRICS**
+  - Are quality metrics comprehensive and relevant?
+  - How are they validated against ground truth?
+  - Do they support reproducible research?
+  - Are there missing quality dimensions?
+  
+  **5. BAYESIAN FRAMEWORK**
+  - Is the Bayesian approach properly implemented?
+  - Are priors justified and documented?
+  - How are posteriors updated with evidence?
+  - Is the computational complexity manageable?
+  
+  **6. ACADEMIC STANDARDS**
+  - Does this meet publication standards?
+  - Would peer reviewers accept these methods?
+  - Are results statistically rigorous?
+  - What would academics critique?
+  
+  Critical Assessment:
+  - Greatest theoretical weakness
+  - Most questionable assumption
+  - Biggest gap vs academic standards
+  - Risk to research validity
+  
+  Rate academic rigor: Low/Medium/High
+  What would it take to publish research using this system?
+
+evaluation_criteria:
+  - Mathematical rigor
+  - Theoretical completeness
+  - Practical applicability
+  - Interpretability
+  - Validation methodology
+
+academic_requirements:
+  - Peer review readiness
+  - Statistical soundness
+  - Reproducibility support
+  - Transparency of methods
+  - Limitation acknowledgment

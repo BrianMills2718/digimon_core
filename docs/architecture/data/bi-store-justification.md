@@ -4,6 +4,14 @@
 
 KGAS employs a bi-store architecture with Neo4j and SQLite, each optimized for different analytical modalities required in academic social science research.
 
+## ⚠️ CRITICAL RELIABILITY ISSUE
+
+**IDENTIFIED**: Bi-store operations lack distributed transaction consistency, creating risk of data corruption where Neo4j entities are created but SQLite identity tracking fails, leaving orphaned graph nodes.
+
+**STATUS**: Phase RELIABILITY Issue C2 - requires distributed transaction implementation across both stores.
+
+**IMPACT**: Current implementation unsuitable for production use until transaction consistency is implemented.
+
 ## Architectural Decision
 
 ### Neo4j (Graph + Vector Store)
