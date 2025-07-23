@@ -224,4 +224,16 @@ def distributed_transaction():
 - **ADR-006**: Cross-Modal Analysis (requires graph and metadata coordination)
 - **ADR-003**: Vector Store Consolidation (Neo4j vector capabilities)
 
+## Implementation Status
+
+This ADR describes the **target bi-store database architecture** - the intended Neo4j + SQLite design. For current database implementation status and data layer progress, see:
+
+- **[Roadmap Overview](../../roadmap/ROADMAP_OVERVIEW.md)** - Current database implementation status
+- **[Core Service Implementation](../../roadmap/phases/phase-2-implementation-evidence.md)** - Database service completion status
+- **[Data Architecture Progress](../../roadmap/initiatives/clear-implementation-roadmap.md)** - Bi-store implementation timeline
+
+*This ADR contains no implementation status information by design - all status tracking occurs in the roadmap documentation.*
+
+---
+
 This bi-store strategy optimizes for both analytical capabilities and operational reliability required for rigorous academic research while maintaining the simplicity appropriate for single-node research environments.

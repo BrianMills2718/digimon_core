@@ -70,10 +70,12 @@ Comprehensive stress testing in `/home/brian/projects/Digimons/uncertainty_stres
 
 ### Key Design Principles
 
-1. **Augmentation, Not Automation**: LLM suggests when techniques might help
-2. **Transparent Reasoning**: Always explain why (e.g., why dismiss a theory)
-3. **Flexible Application**: Agentic interface applies techniques when valuable
-4. **Academic Context**: Adapt IC methods for research vs intelligence needs
+1. **LLM as Intelligent Analyst**: The system leverages frontier LLMs to act as intelligent, flexible analysts rather than rule-following automata
+2. **Adaptive Intelligence Over Hard-Coded Rules**: LLMs dynamically adapt IC techniques to context rather than following rigid implementations
+3. **Human-Like Judgment**: LLMs exercise judgment about when and how to apply techniques, similar to expert human analysts
+4. **Transparent Reasoning**: Always explain analytical decisions and adaptations
+5. **Graceful Degradation**: When full analysis isn't feasible, LLMs intelligently simplify like humans would
+6. **Academic Context Awareness**: LLMs understand and adapt to academic vs intelligence contexts
 
 ## Consequences
 
@@ -98,6 +100,85 @@ Comprehensive stress testing in `/home/brian/projects/Digimons/uncertainty_stres
 2. **Education**: Clear documentation and examples from academic contexts
 3. **Transparency**: Always show reasoning for analytical judgments
 4. **Optional Usage**: Agentic interface only suggests, never requires
+
+## LLM-Driven Implementation Philosophy
+
+### Intelligent Flexibility Over Rigid Rules
+
+Rather than hard-coding analytical paths, KGAS leverages frontier LLMs' capabilities to:
+
+1. **Contextual Adaptation**: LLMs assess each situation and adapt IC techniques appropriately
+   - Simplify ACH for 3 theories vs full matrix for 50 theories
+   - Skip information value assessment when sources are pre-curated
+   - Adjust calibration based on domain expertise
+
+2. **Human-Like Problem Solving**: When faced with complexity or ambiguity, LLMs:
+   - Simplify methods while maintaining analytical rigor
+   - Provide appropriate caveats and limitations
+   - Suggest alternative approaches or next steps
+   - Never fail silently - always provide useful output
+
+3. **Dynamic Semantic Understanding**: For entity disambiguation and concept resolution:
+   ```python
+   # NOT hard-coded rules like:
+   # if context == "computer_science": entity = "information_processing_cs"
+   
+   # BUT intelligent LLM reasoning:
+   result = llm.analyze(f"""
+   Given the text "{text}" in context "{context}", determine:
+   1. What specific concept/entity is being referenced?
+   2. How should it be distinguished from similar concepts in other domains?
+   3. What domain-specific qualifier would prevent ambiguity?
+   
+   Reason step-by-step like a domain expert would.
+   """)
+   ```
+
+4. **Evolving Analysis**: Support for hypotheses that change during research:
+   - LLMs track conceptual evolution, not just text changes
+   - Understand when refinements require evidence re-evaluation
+   - Maintain analytical continuity across hypothesis versions
+
+### Examples of LLM Flexibility
+
+#### Information Value Assessment
+```python
+# LLM acts as intelligent research analyst
+assessment = llm.analyze(f"""
+As an expert research analyst, evaluate this information:
+{source_info}
+
+Given these competing hypotheses:
+{hypotheses}
+
+Determine:
+1. Does this information help distinguish between hypotheses? (Diagnostic)
+2. Does it support multiple hypotheses equally? (Consistent)
+3. Does it contradict all current hypotheses? (Anomalous)
+4. Is it irrelevant to the hypotheses? (Irrelevant)
+
+Consider the research context and exercise judgment as a human expert would.
+""")
+```
+
+#### Graceful Degradation
+```python
+# LLM handles complexity like a human analyst
+approach = llm.determine_approach(f"""
+Analytical situation:
+- Number of theories: {len(theories)}
+- Evidence pieces: {len(evidence)}
+- Time constraints: {deadline}
+- Domain expertise: {expertise_level}
+
+As an expert analyst, determine the most appropriate approach:
+1. Full ACH analysis if manageable
+2. Simplified comparison of top theories if too complex
+3. Narrative analysis with caveats if resources limited
+
+Explain your reasoning and any limitations of the chosen approach.
+""")
+```
 
 ## Implementation Plan
 

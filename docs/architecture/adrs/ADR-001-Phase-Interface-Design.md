@@ -250,6 +250,15 @@ class KGASTool(ABC):
 
 ---
 
+## Implementation Status
+
+This ADR describes the **target tool interface design** - the intended contract-first architecture. For current tool interface implementation status and migration progress, see:
+
+- **[Roadmap Overview](../../roadmap/ROADMAP_OVERVIEW.md)** - Current tool interface status and unified tool completion
+- **[Phase TDD Progress](../../roadmap/phases/phase-tdd/tdd-implementation-progress.md)** - Active tool interface migration progress
+- **[Tool Implementation Evidence](../../roadmap/phases/phase-1-implementation-evidence.md)** - Completed unified interface implementations
+
 **Related ADRs**: None (first ADR)  
-**Related Documentation**: `ROADMAP_v2.md`, `ARCHITECTURE.md`, `KGAS_EVERGREEN_DOCUMENTATION.md` -e 
-<br><sup>See `docs/roadmap/ROADMAP_OVERVIEW.md` for master plan.</sup>
+**Related Documentation**: `ARCHITECTURE_OVERVIEW.md`, `contract-system.md`
+
+*This ADR contains no implementation status information by design - all status tracking occurs in the roadmap documentation.*

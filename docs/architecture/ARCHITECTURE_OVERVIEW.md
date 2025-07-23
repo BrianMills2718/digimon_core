@@ -180,6 +180,25 @@ KGAS implements a sophisticated uncertainty management framework that handles bo
 
 See **[Uncertainty Architecture](concepts/uncertainty-architecture.md)** for detailed implementation.
 
+## Research Enhancement Features
+
+### Analysis Version Control ([ADR-018](adrs/ADR-018-Analysis-Version-Control.md))
+KGAS implements Git-like version control for all analyses, enabling:
+- **Checkpoint & Branching**: Save analysis states and explore alternatives
+- **History Tracking**: Document how understanding evolved
+- **Collaboration**: Share specific versions with reviewers or collaborators
+- **Safe Exploration**: Try new approaches without losing work
+
+### Research Assistant Personas ([ADR-019](adrs/ADR-019-Research-Assistant-Personas.md))
+Configurable LLM personas provide task-appropriate expertise:
+- **Methodologist**: Statistical rigor and research design
+- **Domain Expert**: Deep field-specific knowledge
+- **Skeptical Reviewer**: Critical analysis and weakness identification
+- **Collaborative Colleague**: Supportive ideation and synthesis
+- **Thesis Advisor**: Patient guidance for students
+
+These features enhance the research workflow by supporting iterative exploration and providing diverse analytical perspectives.
+
 ## MCP Integration Architecture
 
 KGAS exposes all system capabilities through the Model Context Protocol (MCP) for comprehensive external tool access:
@@ -325,6 +344,8 @@ Key architectural decisions are documented in ADRs:
 - **[ADR-007](adrs/adr-004-uncertainty-metrics.md)**: Comprehensive uncertainty metrics framework
 - **[ADR-016](adrs/ADR-016-Bayesian-Uncertainty-Aggregation.md)**: Bayesian aggregation for multiple sources
 - **[ADR-017](adrs/ADR-017-IC-Analytical-Techniques-Integration.md)**: Intelligence Community analytical techniques for academic research
+- **[ADR-018](adrs/ADR-018-Analysis-Version-Control.md)**: Git-like version control for research analyses
+- **[ADR-019](adrs/ADR-019-Research-Assistant-Personas.md)**: Configurable LLM personas for different research needs
 
 ## Related Documentation
 
@@ -361,4 +382,13 @@ Key architectural decisions are documented in ADRs:
 
 ---
 
-This architecture represents our target system design. For current implementation status and development plans, see the [Roadmap Overview](../../ROADMAP_OVERVIEW.md).
+## Implementation Status
+
+This document describes the **target architecture** - the intended final system design. For current implementation status, development progress, and phase completion details, see:
+
+- **[Roadmap Overview](../roadmap/ROADMAP_OVERVIEW.md)** - Current status and major milestones
+- **[Phase TDD Implementation](../roadmap/phases/phase-tdd/tdd-implementation-progress.md)** - Active development phase progress  
+- **[Clear Implementation Roadmap](../roadmap/initiatives/clear-implementation-roadmap.md)** - Master implementation plan
+- **[Tool Implementation Status](../roadmap/initiatives/uncertainty-implementation-plan.md)** - Tool-by-tool completion tracking
+
+*This architecture document contains no implementation status information by design - all status tracking occurs in the roadmap documentation.*

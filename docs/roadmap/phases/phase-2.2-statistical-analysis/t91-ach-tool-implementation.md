@@ -7,17 +7,27 @@
 
 ## Overview
 
-Implement the Analysis of Competing Hypotheses (ACH) methodology adapted from CIA techniques for academic theory evaluation. This tool provides systematic comparison of multiple theories focusing on disconfirmation rather than confirmation.
+Implement the Analysis of Competing Hypotheses (ACH) methodology adapted from CIA techniques for academic theory evaluation. This tool leverages frontier LLMs to apply ACH with human-like intelligence and flexibility, adapting the methodology to research contexts rather than following rigid rules.
+
+## LLM-Driven Implementation Philosophy
+
+Rather than hard-coding ACH procedures, T91 uses LLMs as intelligent research analysts who:
+
+1. **Adapt complexity to context**: Full matrix for 5 theories, simplified comparison for 50
+2. **Handle evolving hypotheses**: Track conceptual evolution, not just text changes
+3. **Exercise judgment**: Know when to simplify, when to caveat, when to seek help
+4. **Provide transparent reasoning**: Always explain analytical decisions
+5. **Degrade gracefully**: Never fail - always provide useful analysis with appropriate limitations
 
 ## Tool Design
 
-### Core Functionality
+### Core Functionality - LLM as Intelligent Analyst
 
 ```python
 class T91_ACHAnalyzer(BaseTool):
     """
-    Systematic theory comparison using IC-proven ACH methodology
-    Adapted for academic research contexts
+    LLM applies ACH methodology with human-like flexibility and judgment
+    Adapts analysis to research context rather than following rigid rules
     """
     
     def __init__(self, service_manager: ServiceManager):
@@ -25,55 +35,102 @@ class T91_ACHAnalyzer(BaseTool):
         self.tool_id = "T91"
         self.name = "ACH Theory Competition Analyzer"
         self.category = "advanced_analytics"
+        self.llm_analyst = LLMAnalyst()  # Frontier LLM as intelligent analyst
         
     def execute(self, request: ToolRequest) -> ToolResult:
         """
-        Execute ACH analysis on competing theories
+        LLM intelligently applies ACH based on research context
         
         Input:
-            theories: List[Theory] - Competing theories to evaluate
-            evidence: List[Evidence] - Available evidence
-            context: ResearchContext - Domain and research context
+            theories: List[Theory] - Competing theories (can evolve during analysis)
+            evidence: List[Evidence] - Available evidence  
+            context: ResearchContext - Domain, stage, constraints
             
         Output:
-            theory_ranking: Ranked theories by disconfirmation resistance
-            evidence_matrix: Theory-evidence consistency matrix
-            diagnosticity_scores: Which evidence best discriminates
-            sensitivity_analysis: Critical evidence identification
+            Adaptive based on context:
+            - Full ACH matrix for manageable cases
+            - Simplified comparison for complex cases
+            - Phased analysis for evolving research
+            - Always includes reasoning and limitations
         """
+        # LLM determines appropriate approach
+        approach = self.llm_analyst.assess_situation(
+            theories, evidence, context
+        )
+        
+        if approach.can_do_full_ach:
+            return self.full_ach_analysis(theories, evidence)
+        else:
+            return self.adaptive_analysis(theories, evidence, approach)
 ```
 
-### Key Components
+### Key Components with LLM Intelligence
 
-#### 1. Theory-Evidence Matrix Builder
+#### 1. Intelligent Theory-Evidence Assessment
 ```python
-class TheoryEvidenceMatrix:
-    """Build and manage the core ACH matrix"""
+class LLMTheoryEvidenceAnalyzer:
+    """LLM assesses theory-evidence relationships like expert researcher"""
     
-    def add_theory(self, theory: Theory) -> None
-    def add_evidence(self, evidence: Evidence) -> None
-    def assess_consistency(self, theory: Theory, evidence: Evidence) -> Consistency
-    def calculate_diagnosticity(self, evidence: Evidence) -> float
+    def assess_consistency(self, theory: Theory, evidence: Evidence) -> ConsistencyAnalysis:
+        """LLM reasons about consistency like human expert"""
+        return self.llm.analyze(f"""
+        As an expert in {theory.domain}, assess how this evidence relates to the theory:
+        Theory: {theory}
+        Evidence: {evidence}
+        
+        Consider:
+        - Is this evidence consistent, inconsistent, or irrelevant?
+        - How strong is the support/contradiction?
+        - Are there alternative interpretations?
+        - What caveats should we note?
+        
+        Reason step-by-step as a domain expert would.
+        """)
+    
+    def handle_evolving_theory(self, original: Theory, refined: Theory):
+        """LLM handles theory evolution intelligently"""
+        return self.llm.determine_continuity(original, refined)
 ```
 
-#### 2. Disconfirmation Analyzer
+#### 2. Adaptive Disconfirmation Analysis
 ```python
-class DisconfirmationAnalyzer:
-    """Focus on disconfirming rather than confirming evidence"""
+class AdaptiveDisconfirmationAnalyzer:
+    """LLM applies disconfirmation principle flexibly"""
     
-    def identify_disconfirming_evidence(self, theory: Theory) -> List[Evidence]
-    def calculate_disconfirmation_resistance(self, theory: Theory) -> float
-    def rank_by_survivability(self, theories: List[Theory]) -> TheoryRanking
+    def analyze_based_on_context(self, theories: List[Theory], 
+                                evidence: List[Evidence],
+                                constraints: ResearchConstraints):
+        """Adapt analysis to research situation"""
+        if len(theories) * len(evidence) > 500:
+            # Too complex for full matrix
+            return self.llm.simplified_disconfirmation_analysis(
+                top_theories=self.select_most_promising(theories, n=5),
+                critical_evidence=self.find_most_diagnostic(evidence, n=20)
+            )
+        else:
+            return self.full_disconfirmation_matrix(theories, evidence)
 ```
 
-#### 3. Evidence Diagnosticity Calculator
+#### 3. Intelligent Evidence Prioritization
 ```python
-class DiagnosticityCalculator:
-    """Identify evidence that best distinguishes between theories"""
+class LLMEvidencePrioritizer:
+    """LLM identifies most valuable evidence like experienced researcher"""
     
-    def calculate_discrimination_power(self, evidence: Evidence) -> float
-    def identify_critical_evidence(self) -> List[Evidence]
-    def suggest_next_evidence_collection(self) -> CollectionPriorities
+    def suggest_next_evidence(self, current_state: ACHState) -> EvidenceRecommendations:
+        """What would an expert look for next?"""
+        return self.llm.analyze(f"""
+        Current ACH state:
+        - Leading theories: {current_state.top_theories}
+        - Key uncertainties: {current_state.uncertainties}
+        - Available resources: {current_state.resources}
+        
+        As a senior researcher, what evidence would you seek next to:
+        1. Best distinguish between leading theories?
+        2. Test critical assumptions?
+        3. Resolve key uncertainties?
+        
+        Consider feasibility and value of different evidence types.
+        """)
 ```
 
 ## Implementation Plan

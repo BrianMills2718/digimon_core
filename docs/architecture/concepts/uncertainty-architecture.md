@@ -827,85 +827,147 @@ Enhanced integration with uncertainty quantification research:
 
 ## 11. IC-Inspired Analytical Features
 
-### Intelligence Community Techniques Adapted for Academic Research
+### Intelligence Community Techniques via Intelligent LLM Analysis
 
-Based on extensive validation (see ADR-017), KGAS integrates proven analytical techniques from the Intelligence Community, adapted for academic research contexts:
+Based on extensive validation (see ADR-017), KGAS leverages frontier LLMs to apply IC analytical techniques with human-like intelligence and flexibility. Rather than rigid implementations, LLMs act as expert analysts who understand when and how to apply these methods:
 
-#### Information Value Assessment Framework
+#### Information Value Assessment via LLM Intelligence
 
 ```python
-class InformationValueAssessor:
-    """Implements Heuer's 4-type information categorization"""
+class LLMInformationValueAssessor:
+    """LLM acts as intelligent analyst applying Heuer's insights flexibly"""
     
     def categorize_information(self, 
                              info: Information, 
-                             hypotheses: List[Hypothesis]) -> InformationType:
+                             hypotheses: List[Hypothesis],
+                             context: ResearchContext) -> InformationType:
         """
-        Categorize information by its value for hypothesis discrimination
-        
-        Returns:
-            - DIAGNOSTIC: Supports one hypothesis, contradicts others (highest value)
-            - CONSISTENT: Supports multiple hypotheses equally (low value)
-            - ANOMALOUS: Contradicts all hypotheses (signals need for new theory)
-            - IRRELEVANT: No bearing on hypotheses (lowest value)
+        LLM intelligently categorizes information value like expert analyst
         """
-        support_pattern = self.analyze_hypothesis_support(info, hypotheses)
+        # LLM reasoning, not rigid rules
+        analysis = self.llm.analyze(f"""
+        As an expert research analyst, evaluate this information's value:
         
-        if support_pattern.is_discriminating:
-            return InformationType.DIAGNOSTIC
-        elif support_pattern.is_anomalous:
-            return InformationType.ANOMALOUS
-        elif support_pattern.is_consistent:
-            return InformationType.CONSISTENT
-        else:
-            return InformationType.IRRELEVANT
+        Information: {info}
+        Research Context: {context}
+        Competing Hypotheses: {hypotheses}
+        
+        Apply Heuer's framework flexibly:
+        1. DIAGNOSTIC - Helps distinguish between hypotheses
+        2. CONSISTENT - Supports multiple hypotheses equally  
+        3. ANOMALOUS - Contradicts all hypotheses (new theory needed?)
+        4. IRRELEVANT - No bearing on current analysis
+        
+        Consider:
+        - The specific research domain and its standards
+        - Quality and reliability of the source
+        - How a human expert would judge this information
+        
+        Provide your assessment and reasoning.
+        """)
+        
+        return InformationType(
+            category=analysis.category,
+            confidence=analysis.confidence,
+            reasoning=analysis.reasoning,
+            suggestions=analysis.next_steps
+        )
 ```
 
-#### Analysis of Competing Hypotheses (ACH)
+#### Analysis of Competing Hypotheses with Evolving Support
 
 ```python
-class ACHAnalyzer:
+class LLMACHAnalyzer:
     """
-    Systematic theory comparison focusing on disconfirmation
-    Adapted from CIA methodology for academic theory evaluation
+    LLM applies ACH methodology with human-like flexibility
+    Supports hypotheses that evolve during research
     """
     
     def analyze_theories(self, 
                         theories: List[Theory], 
-                        evidence: List[Evidence]) -> TheoryRanking:
-        # Build evidence-theory consistency matrix
-        matrix = self.build_consistency_matrix(theories, evidence)
+                        evidence: List[Evidence],
+                        research_stage: str) -> TheoryAnalysis:
+        # LLM adapts approach based on complexity and stage
+        approach = self.llm.determine_approach(f"""
+        Research situation:
+        - {len(theories)} competing theories
+        - {len(evidence)} pieces of evidence
+        - Research stage: {research_stage}
         
-        # Focus on disconfirming evidence (IC insight)
-        disconfirmation_scores = self.calculate_disconfirmation_resistance(matrix)
+        As an expert analyst, determine the appropriate ACH approach:
+        1. Full matrix analysis if manageable (<10 theories, <50 evidence)
+        2. Focused analysis on top theories if many candidates
+        3. Simplified narrative comparison if early stage
         
-        # Rank theories by resistance to disconfirmation
-        return self.rank_by_survivability(theories, disconfirmation_scores)
+        Consider how a senior researcher would handle this.
+        """)
+        
+        if approach.use_full_ach:
+            return self.full_ach_analysis(theories, evidence)
+        else:
+            return self.adaptive_analysis(theories, evidence, approach)
+    
+    def handle_evolving_hypothesis(self, 
+                                 original: Theory,
+                                 refined: Theory,
+                                 reason: str) -> EvolutionHandling:
+        """LLM intelligently handles hypothesis evolution"""
+        handling = self.llm.analyze(f"""
+        A research hypothesis has evolved:
+        Original: {original}
+        Refined: {refined}
+        Reason: {reason}
+        
+        As an expert analyst, determine:
+        1. Is this a refinement or fundamental change?
+        2. Which evidence needs re-evaluation?
+        3. Can we maintain analytical continuity?
+        4. What caveats should we note?
+        
+        Think like an experienced researcher would.
+        """)
+        
+        return handling
 ```
 
-#### Collection Stopping Rules
+#### Intelligent Collection Stopping Decisions
 
 ```python
-class CollectionStoppingRules:
-    """Know when to stop collecting information"""
+class LLMCollectionAdvisor:
+    """LLM acts as experienced researcher advising on collection"""
     
-    def should_stop_collecting(self, collection_state: CollectionState) -> Tuple[bool, str]:
-        rules = [
-            self.check_diminishing_returns(),      # Information not changing conclusions
-            self.check_confidence_plateau(),       # Confidence stabilized
-            self.check_discrimination_sufficient(), # Can distinguish between theories
-            self.check_cost_benefit(),             # Cost exceeds expected value
-            self.check_time_constraints(),         # Deadline approaching
-            self.check_convergence()               # Multiple indicators agree
-        ]
+    def should_stop_collecting(self, collection_state: CollectionState) -> StoppingDecision:
+        # LLM reasoning like senior researcher
+        decision = self.llm.analyze(f"""
+        As an experienced researcher, evaluate this collection state:
         
-        # Configurable combination strategy
-        if self.strategy == "conservative":
-            return self.all_rules_satisfied(rules)
-        elif self.strategy == "balanced":
-            return self.majority_rules_satisfied(rules)
-        else:  # "aggressive"
-            return self.any_rule_satisfied(rules)
+        Current situation:
+        - Papers reviewed: {collection_state.papers_count}
+        - Time spent: {collection_state.duration}
+        - Confidence in conclusions: {collection_state.confidence}
+        - Recent changes to conclusions: {collection_state.recent_changes}
+        - Deadline: {collection_state.deadline}
+        
+        Consider:
+        - Diminishing returns (are new papers changing conclusions?)
+        - Confidence plateau (has confidence stabilized?)
+        - Time constraints (is deadline approaching?)
+        - Completeness (can we distinguish between hypotheses?)
+        
+        What would you advise? Should they:
+        1. Stop collecting - sufficient information gathered
+        2. Continue targeted collection - specify what to look for
+        3. Continue broad collection - more evidence needed
+        
+        Provide reasoning a senior researcher would give a student.
+        """)
+        
+        return StoppingDecision(
+            should_stop=decision.recommendation == "stop",
+            reasoning=decision.reasoning,
+            next_steps=decision.suggested_actions,
+            confidence=decision.confidence_in_recommendation
+        )
 ```
 
 #### Calibration System Integration
@@ -965,6 +1027,119 @@ class MentalModelAuditor:
             biases=biases_detected,
             recommendations=self.generate_debiasing_strategies(biases_detected)
         )
+```
+
+### LLM-Driven Semantic Disambiguation
+
+KGAS relies on LLM intelligence for context-aware entity and concept disambiguation:
+
+```python
+class LLMSemanticDisambiguator:
+    """Intelligent disambiguation using LLM understanding"""
+    
+    def disambiguate_entity(self, 
+                          text: str, 
+                          context: str,
+                          domain_hints: List[str]) -> DisambiguatedEntity:
+        """
+        LLM understands context to disambiguate like human expert
+        """
+        # Fast pre-filter with embeddings
+        candidates = self.vector_store.find_similar(text, limit=10)
+        
+        # LLM intelligent disambiguation
+        result = self.llm.analyze(f"""
+        Text to disambiguate: "{text}"
+        Context: "{context}"
+        Domain hints: {domain_hints}
+        Candidate entities: {candidates}
+        
+        As a domain expert, determine:
+        1. Which specific entity/concept is being referenced?
+        2. If ambiguous across domains, how should we qualify it?
+        3. If it's a new concept, what's the clearest identifier?
+        
+        Examples of good disambiguation:
+        - "Apple" + tech context → "Apple Inc."
+        - "Apple" + nutrition context → "apple (fruit)"
+        - "information processing" + neuroscience → "information_processing_neuroscience"
+        - "information processing" + CS context → "information_processing_computer_science"
+        
+        Think step-by-step as a human expert would.
+        """)
+        
+        return DisambiguatedEntity(
+            original_text=text,
+            canonical_name=result.canonical_name,
+            domain_qualifier=result.domain,
+            confidence=result.confidence,
+            reasoning=result.reasoning
+        )
+    
+    def handle_cross_domain_concepts(self, concept: str, domains: List[str]) -> List[Entity]:
+        """
+        When same concept appears across domains, LLM decides on splitting strategy
+        """
+        strategy = self.llm.analyze(f"""
+        The concept "{concept}" appears in these domains: {domains}
+        
+        Should we:
+        1. Keep as single entity (concept is truly universal)
+        2. Split by domain (concept means different things)
+        3. Create hierarchy (general concept with domain-specific variants)
+        
+        Consider how researchers in these fields would expect to find this concept.
+        """)
+        
+        return self.implement_strategy(concept, domains, strategy)
+```
+
+### Human-Like Graceful Degradation
+
+When full IC analysis isn't feasible, LLMs adapt like experienced researchers:
+
+```python
+class IntelligentDegradationHandler:
+    """Handle analytical challenges like a human expert would"""
+    
+    def handle_complex_analysis(self, 
+                              request: AnalysisRequest,
+                              constraints: Constraints) -> AnalysisResult:
+        """
+        LLM makes intelligent decisions about analytical approach
+        """
+        approach = self.llm.determine_approach(f"""
+        Analysis request: {request}
+        Constraints:
+        - Time available: {constraints.time_limit}
+        - Complexity: {request.theories_count} × {request.evidence_count}
+        - Domain expertise available: {constraints.expertise_level}
+        - Required confidence: {constraints.required_confidence}
+        
+        As a senior researcher, how would you approach this?
+        Options:
+        1. Full systematic analysis (if feasible)
+        2. Simplified analysis with clear limitations
+        3. Phased approach (initial + follow-up)
+        4. Alternative method better suited to constraints
+        
+        Consider:
+        - What would provide most value given constraints?
+        - What caveats/limitations should we communicate?
+        - What follow-up work would you recommend?
+        
+        Reason like an experienced researcher managing limited resources.
+        """)
+        
+        # Execute chosen approach with appropriate caveats
+        if approach.is_simplified:
+            result = self.simplified_analysis(request, approach.simplification_strategy)
+            result.add_caveat(approach.limitations)
+            result.add_recommendations(approach.follow_up_suggestions)
+        else:
+            result = self.full_analysis(request)
+            
+        return result
 ```
 
 ### Integration with Agentic Interface
@@ -1079,4 +1254,15 @@ class ExplainableUncertaintyResult:
 ---
 
 This uncertainty architecture transforms KGAS from a system that produces confident but potentially unreliable results into one that provides honest, calibrated, and actionable uncertainty information that enhances research validity and decision-making quality.
+
+## Implementation Status
+
+This document describes the **target uncertainty architecture** - the intended final uncertainty handling system. For current implementation status and uncertainty-related development progress, see:
+
+- **[ADR-007: CERQual-Based Uncertainty Architecture](../adrs/ADR-007-uncertainty-metrics.md)** - Architectural decision and validation
+- **[Uncertainty Implementation Plan](../../roadmap/initiatives/uncertainty-implementation-plan.md)** - Phased uncertainty feature implementation
+- **[Roadmap Overview](../../roadmap/ROADMAP_OVERVIEW.md)** - Current system status and uncertainty tool progress
+- **[Phase TDD Progress](../../roadmap/phases/phase-tdd/tdd-implementation-progress.md)** - Active uncertainty tool development
+
+*This architecture document contains no implementation status information by design - all status tracking occurs in the roadmap documentation.*
 
