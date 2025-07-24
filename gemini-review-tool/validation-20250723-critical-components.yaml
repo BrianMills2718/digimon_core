@@ -1,0 +1,40 @@
+project_name: "Phase RELIABILITY Critical Components Validation"
+
+include_patterns:
+  - "src/core/distributed_transaction_manager.py"
+  - "src/core/thread_safe_service_manager.py"
+  - "src/core/error_taxonomy.py"
+
+custom_prompt: |
+  Validate that the 3 most critical Phase RELIABILITY components are fully implemented.
+  
+  VALIDATION OBJECTIVE: Verify these critical components have no stubs and meet all requirements.
+  
+  SPECIFIC VALIDATION CRITERIA:
+  
+  1. **Distributed Transaction Manager** (distributed_transaction_manager.py):
+     - CHECK: Two-phase commit protocol fully implemented
+     - CHECK: TransactionState enum with states: PREPARING, PREPARED, COMMITTING, COMMITTED, ROLLING_BACK, ROLLED_BACK
+     - CHECK: All methods present: begin_transaction, prepare_neo4j, prepare_sqlite, commit_all, rollback_all
+     - CHECK: Proper rollback on any failure in prepare or commit phases
+     - EVIDENCE: Look for actual transaction logic, not stubs
+  
+  2. **Thread Safe Service Manager** (thread_safe_service_manager.py):
+     - CHECK: Double-check locking pattern in __new__ method for singleton
+     - CHECK: atomic_operation method has _instance_lock protection when creating service locks (around lines 342-346)
+     - CHECK: _service_locks dictionary for service-specific locks
+     - CHECK: No race conditions in service creation or atomic operations
+     - EVIDENCE: Look for proper lock usage throughout
+  
+  3. **Error Taxonomy** (error_taxonomy.py):
+     - CHECK: ErrorCategory enum with at least 8 categories including DATA_CORRUPTION, NETWORK_FAILURE, etc.
+     - CHECK: ErrorSeverity enum with LOW, MEDIUM, HIGH, CRITICAL levels
+     - CHECK: CentralizedErrorHandler class fully implemented
+     - CHECK: Recovery strategies registered using RecoveryStrategy enum values as keys (around lines 159-164)
+     - CHECK: _attempt_recovery method uses strategy.value to lookup recovery functions
+     - EVIDENCE: Verify the recovery strategy mapping works correctly
+
+claims_of_success:
+  - "Distributed transactions implement full two-phase commit protocol"
+  - "Thread safety fixed with proper locking eliminating race conditions"
+  - "Error recovery strategies correctly mapped and functional"

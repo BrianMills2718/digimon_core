@@ -1,0 +1,11 @@
+{
+  "test_time": "2025-07-23T12:49:12.744772",
+  "api_key_status": "present",
+  "imports_successful": true,
+  "basic_instantiation": true,
+  "test_data_available": true,
+  "errors": [],
+  "test_files_found": 10,
+  "data_structures_working": true,
+  "llm_connectivity": true
+}

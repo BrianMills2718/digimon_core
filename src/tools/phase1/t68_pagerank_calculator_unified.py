@@ -75,7 +75,7 @@ class T68PageRankCalculatorUnified(BaseTool):
             # Use default Neo4j settings - in production these would come from config
             neo4j_uri = "bolt://localhost:7687"
             neo4j_user = "neo4j"
-            neo4j_password = "password"
+            neo4j_password = "testpassword"
             
             self.driver = GraphDatabase.driver(
                 neo4j_uri, 

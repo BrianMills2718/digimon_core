@@ -1,0 +1,32 @@
+project_name: "Real Integration Implementation Validation"
+
+# Only the most critical files for validation
+include_patterns:
+  - "agent_stress_testing/real_claude_integration.py"
+  - "agent_stress_testing/real_mcp_integration.py"
+  - "agent_stress_testing/real_kgas_integration.py"
+
+# Focused validation prompt
+custom_prompt: |
+  Validate 3 specific claims about replacing mocks with real integrations:
+  
+  1. **REAL CLAUDE CODE INTEGRATION**: Does real_claude_integration.py use actual subprocess calls to 'claude' CLI instead of mock responses?
+  
+  2. **REAL MCP INTEGRATION**: Does real_mcp_integration.py use JSON-RPC to communicate with actual MCP servers instead of in-memory mocks?
+  
+  3. **REAL KGAS TOOL INTEGRATION**: Does real_kgas_integration.py import and execute actual KGAS tools from src/ instead of hardcoded responses?
+  
+  For each claim, report: ✅ FULLY RESOLVED, ⚠️ PARTIALLY RESOLVED, or ❌ NOT RESOLVED with specific line number evidence.
+
+claims_of_success:
+  - claim: "Replaced MockClaudeCodeSDK with real Claude CLI integration"
+    evidence: "subprocess calls to actual 'claude' command"
+    files: ["agent_stress_testing/real_claude_integration.py"]
+    
+  - claim: "Replaced MockKnowledgeGraphMCP with real MCP server integration"
+    evidence: "JSON-RPC requests to actual MCP servers"
+    files: ["agent_stress_testing/real_mcp_integration.py"]
+    
+  - claim: "Connected to actual KGAS tools instead of mock responses"
+    evidence: "Real imports from tools.phase1 and actual tool execution"
+    files: ["agent_stress_testing/real_kgas_integration.py"]

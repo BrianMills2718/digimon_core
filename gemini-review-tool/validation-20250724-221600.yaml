@@ -1,0 +1,32 @@
+project_name: "Real Implementation Claims Validation - Final Verification"
+
+include_patterns:
+  - "src/core/service_clients.py"
+  - "src/core/pipeline_orchestrator.py" 
+  - "src/core/checkpoint_store.py"
+  - "src/core/health_monitor.py"
+  - "tests/fixtures/test_services.py"
+  - "tests/integration/test_service_orchestration.py"
+
+custom_prompt: |
+  Critically evaluate whether the implementation claims have been fulfilled. Focus specifically on:
+  
+  1. REAL SERVICE COMMUNICATION: Verify PipelineOrchestrator uses actual HTTP clients (aiohttp) instead of asyncio.sleep()
+  2. PERSISTENT STORAGE: Verify checkpoints are saved to disk/database with real file I/O operations
+  3. LIVE HEALTH MONITORING: Verify health checks make actual HTTP requests to service endpoints
+  4. REAL TEST SERVICES: Verify test services perform computational work (not asyncio.sleep simulation)
+  5. AUTHENTIC FAILURE SCENARIOS: Verify error handling uses real system resources and HTTP failures
+  
+  For each claim, examine the specific file locations and verify:
+  - Implementation is present and complete (not stub/placeholder)
+  - Uses real libraries and system calls (aiohttp, aiofiles, psutil, etc.)
+  - No simulation via asyncio.sleep() or hardcoded fake responses
+  - Actual computational work and resource monitoring
+
+claims_of_success:
+  - "PipelineOrchestrator._process_document() makes real HTTP calls via service clients (not asyncio.sleep)"
+  - "Checkpoint storage uses persistent file I/O with aiofiles or database operations"
+  - "ServiceHealthMonitor performs actual HTTP health checks with aiohttp.ClientSession"
+  - "TestAnalyticsService performs real computational work: numpy, hashlib, regex operations"
+  - "All test services implement check_service_failures() with psutil memory pressure checks"
+  - "Integration tests use real service stops and configurable failure rates (not mock injection)"

@@ -1,0 +1,55 @@
+project_name: "Core Reliability Implementation Validation"
+
+include_patterns:
+  - "src/core/distributed_transaction_manager.py"
+  - "tests/reliability/real_db_managers.py"
+
+custom_prompt: |
+  ## CORE RELIABILITY IMPLEMENTATION VALIDATION
+
+  Validate ONLY the core reliability implementation claims in the distributed transaction manager.
+
+  **FOCUS**: Verify automatic rollback compensation and real database integration.
+
+  ### SPECIFIC CLAIMS TO VALIDATE:
+
+  **CLAIM 1: Automatic Rollback Compensation**
+  - REQUIREMENT: `_attempt_emergency_compensation()` method implements AUTOMATIC rollback of committed participants
+  - EVIDENCE NEEDED: 
+    * Method calls `_execute_automatic_rollback()`
+    * `_rollback_neo4j_operations()` and `_rollback_sqlite_operations()` methods exist
+    * Creates new transactions to reverse committed operations
+    * NOT just logging for manual intervention
+  - CHECK: Lines 682-815 in distributed_transaction_manager.py
+
+  **CLAIM 2: Comprehensive Rollback Data Generation**
+  - REQUIREMENT: `_generate_rollback_data()` method queries current state before modifications
+  - EVIDENCE NEEDED:
+    * Calls `_query_current_neo4j_state()` and `_query_current_sqlite_state()`
+    * Generates rollback data for updates and deletes (not just creates)
+    * Returns complete rollback information including restore_data
+  - CHECK: Lines 524-571 in distributed_transaction_manager.py
+
+  **CLAIM 3: Real Database Manager Implementation**
+  - REQUIREMENT: Database managers use real connections not mocked interfaces
+  - EVIDENCE NEEDED:
+    * `RealNeo4jManager` uses `AsyncGraphDatabase.driver()`
+    * `RealSQLiteManager` uses `aiosqlite.connect()`
+    * Connection pooling with real async database operations
+    * Health monitoring with actual database queries
+  - CHECK: RealNeo4jManager and RealSQLiteManager classes in real_db_managers.py
+
+  ### VALIDATION CRITERIA:
+
+  For each claim:
+  - ✅ **FULLY RESOLVED**: Implementation complete with real database operations
+  - ⚠️ **PARTIALLY RESOLVED**: Implementation present but incomplete or has limitations
+  - ❌ **NOT RESOLVED**: Implementation missing or uses simulation/mocking
+
+  Provide specific line numbers and code evidence for each verdict.
+
+claims_of_success: |
+  Fixed distributed transaction manager 2-phase commit protocol with:
+  - Automatic rollback compensation for partial commit failures
+  - Comprehensive rollback data generation for all operation types
+  - Real database manager integration with actual Neo4j and SQLite connections

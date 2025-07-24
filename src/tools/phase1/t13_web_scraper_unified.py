@@ -236,7 +236,18 @@ class T13WebScraperUnified(BaseTool):
                 
                 # Small delay between requests to be respectful
                 if page_num < max_pages - 1:
-                    time.sleep(0.5)
+                    # Use async sleep if possible
+                    try:
+                        import asyncio
+                        loop = asyncio.get_running_loop()
+                        if loop:
+                            asyncio.create_task(asyncio.sleep(0.1))  # Reduced delay
+                        else:
+                            import time
+                            time.sleep(0.1)  # Reduced to 100ms
+                    except RuntimeError:
+                        import time
+                        time.sleep(0.1)  # Fallback
                     
             except (requests.exceptions.Timeout, requests.exceptions.ConnectTimeout, requests.exceptions.ReadTimeout, requests.exceptions.ConnectionError, requests.exceptions.HTTPError) as e:
                 # Re-raise network-related errors so they can be caught by the execute method

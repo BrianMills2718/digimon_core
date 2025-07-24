@@ -1,0 +1,53 @@
+project_name: "KGAS Adaptive Dual-Agent System Validation"
+
+# SURGICAL INCLUSION - Only adaptive agent demonstration files
+include_patterns:
+  - "agent_stress_testing/real_adaptive_demo.py"
+  - "agent_stress_testing/demo_advanced_adaptation.py"  
+  - "agent_stress_testing/demo_adaptive_planning.py"
+  - "agent_stress_testing/run_adaptive_demo.py"
+  - "agent_stress_testing/ADAPTIVE_AGENT_DEMO_SUMMARY.md"
+  - "agent_stress_testing/demo_data/sample_research_paper2.txt"
+
+# Focused validation on adaptive agent implementation claims
+custom_prompt: |
+  VALIDATION OBJECTIVE: Verify that the adaptive agent demonstration implements genuine artificial intelligence with sophisticated planning, real-time adaptation, and learning capabilities.
+  
+  VALIDATION CRITERIA:
+  For each claim below, verify:
+  1. Implementation Present: Does the feature exist where claimed?
+  2. Functionality Complete: Is it fully implemented with actual intelligence?
+  3. Evidence Clear: Can you show specific code proving the capability?
+  
+  **CLAIM 1: Dual-Agent Coordination with Distinct Roles**
+  FILE: agent_stress_testing/real_adaptive_demo.py
+  REQUIREMENT: Research Agent (strategic planning) and Execution Agent (monitoring/implementation) with different temperatures
+  EXPECTED: Clear role separation, different reasoning patterns, coordinated workflow execution
+  
+  **CLAIM 2: Seven Adaptation Strategies with Decision Logic**
+  FILE: agent_stress_testing/demo_advanced_adaptation.py  
+  REQUIREMENT: RETRY_WITH_FALLBACK, ADD_PREPROCESSING, PARAMETER_ADJUSTMENT, PARALLEL_EXPLORATION, APPROACH_PIVOT, GRACEFUL_DEGRADATION, INTELLIGENT_BACKTRACK
+  EXPECTED: Each strategy has implementation logic, decision criteria, and reasoning explanations
+  
+  **CLAIM 3: Context-Aware Adaptive Decision Making**
+  FILE: agent_stress_testing/demo_advanced_adaptation.py
+  REQUIREMENT: ExecutionContext with quality trends, resource constraints, confidence tracking
+  EXPECTED: Decisions based on execution history, quality patterns, resource awareness
+  
+  **CLAIM 4: Realistic Tool Execution with Quality Assessment**
+  FILE: agent_stress_testing/demo_adaptive_planning.py
+  REQUIREMENT: Multiple execution scenarios per tool with success/partial/failure outcomes
+  EXPECTED: Quality scoring, confidence assessment, context-dependent scenario selection
+  
+  **CLAIM 5: Learning and Pattern Recognition**
+  FILE: agent_stress_testing/demo_advanced_adaptation.py
+  REQUIREMENT: Analysis of adaptation effectiveness and strategic recommendations
+  EXPECTED: Pattern extraction from execution history, effectiveness metrics, actionable insights
+  
+  VALIDATION FORMAT:
+  For each claim, respond with:
+  - ✅ FULLY RESOLVED: [specific evidence from code]
+  - ⚠️ PARTIALLY RESOLVED: [what's implemented, what's missing]  
+  - ❌ NOT RESOLVED: [specific issues found]
+  
+  Focus on verifying genuine AI behavior (adaptive planning, strategic thinking, learning) rather than simple workflow automation.

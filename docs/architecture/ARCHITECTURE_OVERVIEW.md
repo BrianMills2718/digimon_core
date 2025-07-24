@@ -10,7 +10,35 @@
 
 ## System Vision
 
-KGAS (Knowledge Graph Analysis System) is a theory-aware, cross-modal analysis platform for academic social science research. It enables researchers to fluidly analyze documents through graph, table, and vector representations while maintaining theoretical grounding and complete source traceability.
+KGAS (Knowledge Graph Analysis System) is a complete computational social science research platform. It extracts theories from academic literature, converts them into executable analysis specifications, and applies them to datasets at scale. Researchers can validate theories through agent-based simulation, generate statistical models automatically from theoretical frameworks, and discover patterns by converting results between graph, table, and vector representations. The system handles everything from raw documents to publication-ready outputs with full provenance tracking.
+
+## Unique Analytical Capabilities
+
+KGAS enables analytical approaches impossible with traditional research tools:
+
+### Cross-Modal Analysis Integration
+- **Statistical models become networks**: SEM results convert to graph structures for centrality and community analysis
+- **Network topology informs statistics**: Graph structure guides regression model specification and variable selection
+- **Correlation matrices as networks**: Pearson correlations become edge weights for network analysis algorithms
+- **Vector clustering enhances statistics**: Embedding-based clustering improves factor analysis and latent variable identification
+
+### Automated Theory Operationalization  
+- **Theory schemas to statistical models**: Generate SEM specifications, regression models, and experimental designs directly from theoretical frameworks
+- **Theory-driven agent creation**: Convert theoretical propositions into agent behavioral rules for simulation testing
+- **Executable theoretical predictions**: Transform qualitative theories into quantitative, testable hypotheses with measurement specifications
+- **Multi-theory comparison**: Test competing theoretical explanations simultaneously through parallel analysis pipelines
+
+### Scale and Automation
+- **Document processing**: Analyze 1000+ documents compared to 100s possible with manual qualitative coding
+- **Simultaneous multi-mode analysis**: Run graph, statistical, and vector analyses concurrently on the same data
+- **Automated workflow generation**: Create complete analysis pipelines from natural language research questions
+- **Real-time cross-modal conversion**: Transform results between analytical representations without data loss
+
+### Research Workflow Automation
+- **Literature to execution**: Extract theories from papers and apply them to new datasets automatically  
+- **Hypothesis to test**: Generate experimental designs, power analyses, and statistical specifications from theoretical predictions
+- **Analysis to publication**: Produce APA-formatted tables, publication-ready figures, and reproducible analysis reports
+- **Discovery to validation**: Identify patterns through exploratory analysis, then validate through simulation and statistical testing
 
 ## Core Architectural Principles
 
@@ -34,7 +62,19 @@ KGAS (Knowledge Graph Analysis System) is a theory-aware, cross-modal analysis p
 - **Reproducibility first** with complete provenance tracking
 - **Flexibility over performance** for exploratory research
 
-### 5. Fail-Fast Design Philosophy
+### 5. Theory Validation Through Simulation ([ADR-020](adrs/ADR-020-Agent-Based-Modeling-Integration.md))
+- **Generative Agent-Based Modeling (GABM)** for theory testing
+- **Theory-driven agent parameterization** using KGAS theory schemas
+- **Empirical validation** against real behavioral datasets
+- **Synthetic experiment generation** for counterfactual analysis
+
+### 6. Comprehensive Statistical Analysis ([ADR-021](adrs/ADR-021-Statistical-Analysis-Integration.md))
+- **Advanced statistical methods** including SEM, multivariate analysis, and Bayesian inference
+- **Theory-driven model specification** from KGAS theory schemas
+- **Cross-modal integration** converting statistical results to graph/vector representations
+- **Publication-ready outputs** meeting academic statistical reporting standards
+
+### 7. Fail-Fast Design Philosophy
 - **Immediate error exposure**: Problems surface immediately rather than being masked
 - **Input validation**: Rigorous validation at system boundaries
 - **Complete failure**: System fails entirely on critical errors rather than degrading
@@ -64,6 +104,14 @@ KGAS (Knowledge Graph Analysis System) is a theory-aware, cross-modal analysis p
 │  ┌─────────────┐ ┌──────────────┐ ┌───────────────────┐   │
 │  │Graph Analysis│ │Table Analysis│ │Vector Analysis    │   │
 │  └─────────────┘ └──────────────┘ └───────────────────┘   │
+│  ┌─────────────────────────────────────────────────────────┐ │
+│  │              Statistical Analysis Layer                  │ │
+│  │    SEM + Multivariate + Theory-Driven Models            │ │
+│  └─────────────────────────────────────────────────────────┘ │
+│  ┌─────────────────────────────────────────────────────────┐ │
+│  │              Agent-Based Modeling Layer                 │ │
+│  │    Theory Validation + Synthetic Experiments            │ │
+│  └─────────────────────────────────────────────────────────┘ │
 └─────────────────────────────────────────────────────────────┘
                               │
 ┌─────────────────────────────────────────────────────────────┐
@@ -74,7 +122,11 @@ KGAS (Knowledge Graph Analysis System) is a theory-aware, cross-modal analysis p
 │  │AnalyticsService    │ │TheoryRepository│ │QualityService│ │
 │  ├────────────────────┤ ├────────────────┤ ├─────────────┤ │
 │  │ProvenanceService   │ │WorkflowEngine  │ │SecurityMgr  │ │
-│  └────────────────────┘ └────────────────┘ └─────────────┘ │
+│  ├────────────────────┤ ├────────────────┤ ├─────────────┤ │
+│  │    ABMService      │ │ValidationEngine│ │UncertaintyMgr│ │
+│  ├────────────────────┤ └────────────────┘ └─────────────┘ │
+│  │StatisticalService  │                                    │
+│  └────────────────────┘                                    │
 └─────────────────────────────────────────────────────────────┘
                               │
 ┌─────────────────────────────────────────────────────────────┐
@@ -89,6 +141,8 @@ KGAS (Knowledge Graph Analysis System) is a theory-aware, cross-modal analysis p
 ## Component Architecture
 
 **📝 [See Detailed Component Architecture](systems/COMPONENT_ARCHITECTURE_DETAILED.md)** for complete specifications including interfaces, algorithms, and pseudo-code examples.
+
+**📊 [See Statistical Analysis Architecture](systems/statistical-analysis-architecture.md)** for comprehensive statistical capabilities including SEM, multivariate analysis, and cross-modal integration.
 
 ### User Interface Layer
 - **[Agent Interface](agent-interface.md)**: Three-layer interface (automated, assisted, manual)
@@ -122,6 +176,7 @@ KGAS (Knowledge Graph Analysis System) is a theory-aware, cross-modal analysis p
 - **[Identity Service](systems/COMPONENT_ARCHITECTURE_DETAILED.md#3-identity-service)**: Context-aware entity resolution with multi-factor scoring
 - **[Theory Repository](systems/COMPONENT_ARCHITECTURE_DETAILED.md#4-theory-repository)**: Theory schema management and validation
 - **[Provenance Service](systems/COMPONENT_ARCHITECTURE_DETAILED.md#5-provenance-service)**: Complete lineage tracking for reproducibility
+- **[ABM Service](adrs/ADR-020-Agent-Based-Modeling-Integration.md)**: Theory validation through generative agent-based modeling and synthetic experiments
 
 ### Data Storage Layer
 - **[Bi-Store Architecture](data/bi-store-justification.md)**: Neo4j + SQLite design with trade-off analysis
@@ -199,6 +254,98 @@ Configurable LLM personas provide task-appropriate expertise:
 
 These features enhance the research workflow by supporting iterative exploration and providing diverse analytical perspectives.
 
+## Agent-Based Modeling Integration ([ADR-020](adrs/ADR-020-Agent-Based-Modeling-Integration.md))
+
+KGAS incorporates Generative Agent-Based Modeling (GABM) capabilities to enable theory validation through controlled simulation and synthetic experiment generation:
+
+### Theory-Driven Agent Simulation
+- **Theory-to-Agent Translation**: Convert KGAS theory schemas directly into agent behavioral rules and psychological profiles
+- **Cross-Modal Environments**: Use knowledge graphs, demographic data, and vector embeddings to create rich simulation environments
+- **Uncertainty-Aware Agents**: Agents make decisions considering uncertainty levels, mimicking real cognitive processes
+- **Empirical Validation**: Validate simulation results against real behavioral datasets (e.g., COVID conspiracy theory dataset)
+
+### Research Applications
+- **Theory Testing**: Test competing social science theories through controlled virtual experiments
+- **Counterfactual Analysis**: Explore "what if" scenarios impossible to study with real subjects
+- **Synthetic Data Generation**: Generate realistic social behavior data for training and testing analytical tools
+- **Emergent Behavior Detection**: Discover unexpected patterns arising from theoretical assumptions
+
+### Validation Framework
+- **Level 1: Behavioral Pattern Validation**: Compare simulated behaviors to real engagement patterns
+- **Level 2: Psychological Construct Validation**: Validate agent psychological states against psychometric scales
+- **COVID Dataset Integration**: Use 2,506-person COVID conspiracy theory dataset as ground truth for validation
+
+### ABM-Specific Tools
+- **T122_TheoryToAgentTranslator**: Convert theory schemas to agent configurations
+- **T123_SimulationDesigner**: Design controlled experiments for theory testing
+- **T124_AgentPopulationGenerator**: Generate diverse agent populations from demographic data
+- **T125_SimulationValidator**: Validate simulation results against empirical data
+- **T126_CounterfactualExplorer**: Explore alternative scenarios through simulation
+- **T127_SyntheticDataGenerator**: Generate synthetic datasets for theory testing
+
+## Statistical Analysis Integration ([ADR-021](adrs/ADR-021-Statistical-Analysis-Integration.md))
+
+KGAS provides comprehensive statistical analysis capabilities integrated with its cross-modal architecture:
+
+### Core Statistical Capabilities
+
+- **Descriptive Statistics**: Comprehensive descriptive analysis including distribution tests
+- **Inferential Statistics**: Hypothesis testing, confidence intervals, and effect sizes  
+- **Regression Modeling**: Linear, logistic, GLM, mixed-effects, and regularized models
+- **Multivariate Analysis**: MANOVA, discriminant analysis, canonical correlation
+- **Time Series Analysis**: ARIMA, VAR, state space models, and cointegration tests
+
+### Structural Equation Modeling (SEM)
+
+- **Theory-Driven SEM**: Automatically generate SEM specifications from KGAS theory schemas
+- **Latent Variable Modeling**: Factor analysis (EFA/CFA), latent class/profile analysis
+- **Model Diagnostics**: Comprehensive fit indices, modification indices, and bootstrap CIs
+- **Cross-Modal Integration**: Convert SEM results to graph structures for network analysis
+
+### Advanced Statistical Methods
+
+- **Bayesian Analysis**: MCMC, variational inference, and Bayesian SEM
+- **Causal Inference**: Propensity scores, instrumental variables, and DAG analysis
+- **Meta-Analysis**: Effect size aggregation, heterogeneity tests, and network meta-analysis
+- **Machine Learning Statistics**: Regularization, feature selection, and interpretable ML
+
+### Statistical Tool Suite (T43-T60)
+
+**Basic Statistics (T43-T45)**:
+- **T43_DescriptiveStatistics**: Mean, median, variance, distribution analysis
+- **T44_CorrelationAnalysis**: Pearson, Spearman, partial correlations
+- **T45_RegressionAnalysis**: Linear, logistic, mixed-effects models
+
+**SEM & Factor Analysis (T46-T48)**:
+- **T46_StructuralEquationModeling**: Full SEM with lavaan/semopy integration
+- **T47_FactorAnalysis**: EFA, CFA, reliability analysis
+- **T48_LatentVariableModeling**: Latent class, IRT, multilevel SEM
+
+**Multivariate Analysis (T49-T52)**:
+- **T49_MultivariateAnalysis**: MANOVA, discriminant analysis
+- **T50_ClusterAnalysis**: Hierarchical, k-means, DBSCAN clustering
+- **T51_TimeSeriesAnalysis**: ARIMA, VAR, Granger causality
+- **T52_SurvivalAnalysis**: Cox regression, Kaplan-Meier, competing risks
+
+**Research Design (T53-T55)**:
+- **T53_ExperimentalDesign**: Power analysis, sample size calculation
+- **T54_HypothesisTesting**: Parametric/non-parametric tests, multiple comparisons
+- **T55_MetaAnalysis**: Effect size aggregation, forest plots
+
+**Advanced Methods (T56-T60)**:
+- **T56_BayesianAnalysis**: MCMC, prior specification, model comparison
+- **T57_MachineLearningStats**: Statistical ML methods with interpretability
+- **T58_CausalInference**: Propensity scores, instrumental variables
+- **T59_StatisticalReporting**: APA tables, publication-ready figures
+- **T60_CrossModalStatistics**: Statistical-graph-vector integration
+
+### Cross-Modal Statistical Innovation
+
+- **Statistical Results as Graphs**: Convert correlation matrices and SEM models to analyzable networks
+- **Graph-Informed Statistics**: Use network structure to inform statistical model specification
+- **Theory-Statistical Integration**: Generate statistical models directly from theory schemas
+- **Uncertainty Propagation**: Track statistical uncertainty through cross-modal transformations
+
 ## MCP Integration Architecture
 
 KGAS exposes all system capabilities through the Model Context Protocol (MCP) for comprehensive external tool access:
@@ -219,25 +366,35 @@ See [MCP Architecture Details](systems/mcp-integration-architecture.md) for comp
 
 ## Quality Attributes
 
+### Research Capabilities
+- **Scale**: Process 1000+ documents with maintained analytical quality
+- **Integration**: 121+ tools accessible through unified interface protocols
+- **Reproducibility**: Complete provenance tracking from source documents to final outputs
+- **Academic standards**: APA-formatted tables, publication-ready figures, statistical diagnostics
+
 ### Performance
-- **Single-node optimization**: Vertical scaling approach
-- **Async processing**: Non-blocking operations where possible
-- **Intelligent caching**: Expensive computation results
+- **Cross-modal conversion**: Real-time transformation between graph, table, and vector representations
+- **Parallel analysis**: Concurrent execution of multiple analytical modes on the same dataset
+- **Intelligent caching**: Reuse expensive computations across analysis sessions
+- **Async processing**: Non-blocking operations for long-running statistical and simulation tasks
 
 ### Security  
-- **PII encryption**: AES-GCM for sensitive data
-- **Local processing**: No cloud dependencies
-- **API key management**: Secure credential handling
+- **PII encryption**: AES-GCM for sensitive research data
+- **Local processing**: Complete data control without cloud dependencies
+- **API key management**: Secure credential handling for LLM services
+- **Research ethics**: Built-in safeguards for human subjects data
 
 ### Reliability
-- **ACID transactions**: Neo4j transactional guarantees
-- **Error recovery**: Graceful degradation strategies
-- **Checkpoint/restart**: Workflow state persistence
+- **ACID transactions**: Guaranteed data consistency across bi-store architecture
+- **Error recovery**: Graceful degradation with analysis checkpoint restoration
+- **Uncertainty tracking**: Confidence propagation through all analytical pipelines
+- **Validation frameworks**: Built-in checks for statistical assumptions and model validity
 
 ### Maintainability
-- **Service modularity**: Clear separation of concerns
-- **Contract-first design**: Stable interfaces
-- **Comprehensive logging**: Structured operational logs
+- **Theory schema evolution**: Versioned theory specifications with backward compatibility
+- **Service modularity**: Independent scaling and updating of analytical components
+- **Contract-first design**: Stable interfaces enabling tool ecosystem growth
+- **Analysis version control**: Git-like branching for exploratory research workflows
 
 ## Key Architectural Trade-offs
 
@@ -267,18 +424,23 @@ See [MCP Architecture Details](systems/mcp-integration-architecture.md) for comp
 
 **Rationale**: The bi-store provides the right balance of capability and complexity. See [ADR-003](adrs/ADR-003-Vector-Store-Consolidation.md) for detailed analysis.
 
-### 3. Theory-First vs Data-First Processing
+### 3. Multi-Paradigm Research Support
 
-**Decision**: Theory-aware extraction with domain ontologies
+**Decision**: Support both theory-driven and data-driven research paradigms
+
+**Capabilities**:
+- ✅ **Theory-First**: Theory schemas guide extraction and analysis for hypothesis testing
+- ✅ **Data-First**: Grounded theory and exploratory analysis for emergent pattern discovery
+- ✅ **Mixed Methods**: Seamless integration of quantitative (SEM, statistics) and qualitative approaches
+- ✅ **Cross-Modal Discovery**: Graph/vector analysis reveals patterns missed by single-mode approaches
 
 **Trade-offs**:
-- ✅ **Quality**: Higher quality extractions aligned with domain knowledge
-- ✅ **Research Value**: Enables theory validation and testing
-- ✅ **Consistency**: Standardized concepts across analyses
-- ❌ **Complexity**: Requires theory schema management
-- ❌ **Coverage**: May miss emergent patterns not in theories
+- ✅ **Flexibility**: Supports diverse research methodologies and paradigms
+- ✅ **Discovery**: Emergent behavior detection (T128) finds novel patterns
+- ✅ **Validation**: Theory validation through simulation and statistical testing
+- ❌ **Complexity**: Multiple analytical pathways require sophisticated orchestration
 
-**Rationale**: KGAS targets theory-driven research where quality and theoretical alignment matter more than discovering completely novel patterns.
+**Rationale**: KGAS serves the full spectrum of social science research, from exploratory grounded theory to confirmatory theory testing, enabling researchers to move fluidly between paradigms as research questions evolve.
 
 ### 4. Contract-First Tool Design vs Flexible Interfaces
 
@@ -328,7 +490,6 @@ See [MCP Architecture Details](systems/mcp-integration-architecture.md) for comp
 - ✅ **Standardization**: Industry-standard protocol
 - ✅ **External Access**: Tools available to any MCP client
 - ❌ **Overhead**: Additional protocol layer
-- ❌ **Limitations**: MCP's 40-tool discovery limit
 
 **Rationale**: MCP provides immediate integration with LLM ecosystems, outweighing protocol overhead.
 
@@ -346,6 +507,7 @@ Key architectural decisions are documented in ADRs:
 - **[ADR-017](adrs/ADR-017-IC-Analytical-Techniques-Integration.md)**: Intelligence Community analytical techniques for academic research
 - **[ADR-018](adrs/ADR-018-Analysis-Version-Control.md)**: Git-like version control for research analyses
 - **[ADR-019](adrs/ADR-019-Research-Assistant-Personas.md)**: Configurable LLM personas for different research needs
+- **[ADR-020](adrs/ADR-020-Agent-Based-Modeling-Integration.md)**: Theory validation through generative agent-based modeling
 
 ## Related Documentation
 

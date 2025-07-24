@@ -606,6 +606,58 @@ class GeminiCodeReviewer:
         
         return True
         
+    def preview_inclusion(self, project_path: str, include_patterns: Optional[List[str]] = None,
+                         ignore_patterns: Optional[List[str]] = None) -> Dict[str, Any]:
+        """Preview what files would be included without running repomix"""
+        project_dir = Path(project_path)
+        
+        # Get all files if no include patterns
+        if not include_patterns:
+            all_files = list(project_dir.rglob("*"))
+            candidate_files = [f for f in all_files if f.is_file()]
+        else:
+            # Apply include patterns
+            candidate_files = []
+            for pattern in include_patterns:
+                matches = list(project_dir.glob(pattern))
+                candidate_files.extend([f for f in matches if f.is_file()])
+        
+        # Apply ignore patterns
+        final_files = []
+        for file_path in candidate_files:
+            try:
+                relative_path = file_path.relative_to(project_dir)
+                ignored = False
+                
+                if ignore_patterns:
+                    for ignore_pattern in ignore_patterns:
+                        if file_path.match(ignore_pattern) or ignore_pattern in str(relative_path):
+                            ignored = True
+                            break
+                
+                if not ignored:
+                    final_files.append(file_path)
+            except ValueError:
+                # Skip files outside project directory
+                continue
+        
+        # Calculate size
+        total_size = 0
+        for f in final_files:
+            try:
+                if f.exists():
+                    total_size += f.stat().st_size
+            except (OSError, PermissionError):
+                continue
+        
+        return {
+            "files": final_files,
+            "count": len(final_files),
+            "total_size_bytes": total_size,
+            "total_size_mb": total_size / (1024 * 1024),
+            "estimated_tokens": total_size // 4  # Rough estimate
+        }
+
     def run_repomix(self, project_path: str, output_format: str = "xml", 
                      ignore_patterns: Optional[List[str]] = None,
                      include_patterns: Optional[List[str]] = None,
@@ -637,7 +689,11 @@ class GeminiCodeReviewer:
         
         # Determine output file extension
         ext = "xml" if output_format == "xml" else "md"
-        output_file = Path(__file__).parent / f"repomix-output.{ext}"
+        # Fix: Use project directory for output, not tool directory
+        if project_path == ".":
+            output_file = Path.cwd() / f"repomix-output.{ext}"
+        else:
+            output_file = Path(project_path) / f"repomix-output.{ext}"
         
         # Build repomix command
         cmd = ["npx", "repomix@latest", "--style", output_format]
@@ -1138,6 +1194,18 @@ Examples:
     )
     
     parser.add_argument(
+        '--preview', 
+        action='store_true',
+        help='Preview files that would be included without running analysis'
+    )
+    
+    parser.add_argument(
+        '--force', 
+        action='store_true',
+        help='Skip size warnings and confirmations'
+    )
+    
+    parser.add_argument(
         '--config', '-C',
         help='Path to configuration file (YAML or JSON)'
     )
@@ -1320,6 +1388,37 @@ Examples:
             review_project_paths = [review_project_paths]
         elif not isinstance(review_project_paths, list):
             review_project_paths = list(review_project_paths) if review_project_paths else ["."]
+        
+        # Handle preview mode
+        if args.preview:
+            print("📋 Preview Mode - Files that would be included:\n")
+            for project_path in review_project_paths:
+                include_patterns = args.include or (config.include_patterns if config else None)
+                ignore_patterns = args.ignore or (config.ignore_patterns if config else None)
+                
+                preview = reviewer.preview_inclusion(project_path, include_patterns, ignore_patterns)
+                
+                print(f"📁 Project: {project_path}")
+                print(f"   Files: {preview['count']}")
+                print(f"   Size: {preview['total_size_mb']:.2f}MB")
+                print(f"   Estimated tokens: {preview['estimated_tokens']:,}")
+                
+                if preview['count'] > 0:
+                    print("   Sample files:")
+                    for f in preview['files'][:10]:  # Show first 10 files
+                        try:
+                            size_kb = f.stat().st_size / 1024
+                            print(f"   ✅ {f.relative_to(Path(project_path))} ({size_kb:.1f}KB)")
+                        except:
+                            print(f"   ✅ {f}")
+                    
+                    if len(preview['files']) > 10:
+                        print(f"   ... and {len(preview['files']) - 10} more files")
+                else:
+                    print("   ❌ No files match the patterns")
+                print()
+            
+            return  # Exit after preview
         
         reviewer.review(
             project_paths=review_project_paths,

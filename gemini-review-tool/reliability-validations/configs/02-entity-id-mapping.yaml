@@ -1,0 +1,33 @@
+project_name: "Entity ID Mapping Validation"
+
+include_patterns:
+  - "src/core/entity_id_manager.py"
+
+custom_prompt: |
+  Validate ONLY this specific claim:
+  
+  **CLAIM**: Entity ID manager provides bidirectional mapping with collision detection
+  
+  SPECIFIC CHECKS:
+  1. EntityIDManager class with bidirectional mapping dictionaries
+  2. generate_entity_id() with collision detection
+  3. Persistent storage of ID mappings
+  4. Thread-safe ID generation
+  
+  EVIDENCE REQUIRED:
+  - Two dictionaries: neo4j_to_sqlite and sqlite_to_neo4j
+  - Collision detection loop in generate_entity_id()
+  - UUID generation with uniqueness check
+  - Lock usage for thread safety (threading.Lock or asyncio.Lock)
+  - save_mappings() and load_mappings() methods
+  
+  Look specifically at:
+  - Class initialization for mapping dictionaries
+  - generate_entity_id() method implementation
+  - Locking mechanism around ID generation
+  - Persistence methods
+  
+  IGNORE: Everything not related to ID mapping and generation
+
+claims_of_success:
+  - "Bidirectional entity ID mapping with collision detection and persistence"

@@ -1,0 +1,57 @@
+project_name: "Phase 2.1 Real Implementation Validation"
+
+include_patterns:
+  - "src/analytics/*.py"
+  - "Evidence_*.md"
+
+exclude_patterns:
+  - "src/analytics/__pycache__/**"
+  - "src/analytics/implement_*.py"
+
+claims_of_success:
+  - "RealEmbeddingService generates actual embeddings using Sentence-BERT and CLIP models"
+  - "RealLLMService integrates with OpenAI/Anthropic APIs for hypothesis generation"
+  - "AdvancedScoring uses transformer models for semantic similarity and classification"
+  - "RealPercentileRanker calculates statistical percentiles from reference distributions"
+  - "TheoryKnowledgeBase dynamically identifies theories from Neo4j database"
+  - "All Mock* classes have been removed from the codebase"
+  - "All components maintain <2 second response times with real implementations"
+
+critical_requirements:
+  - "NO mock services remain in the analytics module"
+  - "NO random number generation for embeddings"
+  - "NO template-based text generation"
+  - "NO keyword counting for scoring"
+  - "NO hardcoded percentile values"
+  - "NO static theory lists"
+
+evidence_requirements:
+  - "Real transformer model names must be specified (e.g., all-MiniLM-L6-v2)"
+  - "API integration code must be present for LLM services"
+  - "Statistical functions from scipy/numpy must be used for percentiles"
+  - "NetworkX must be used for graph centrality calculations"
+  - "Database queries must be present for theory retrieval"
+
+custom_prompt: |
+  You are validating that all mock implementations have been replaced with real, functional services.
+  
+  For each component, verify:
+  1. Mock classes are completely removed (not just commented out)
+  2. Real implementations use actual AI/ML models, not simplified heuristics
+  3. No hardcoded values or simple heuristics remain
+  4. Evidence files show real implementation details
+  
+  Pay special attention to:
+  - Embedding services must use real transformer models
+  - LLM services must integrate with real APIs (OpenAI/Anthropic)
+  - Scoring must use NLP models, not keyword matching
+  - Percentile ranking must use statistical distributions
+  - Theory identification must query a database or use semantic search
+  
+  Flag any issues where:
+  - Mock implementations are still present
+  - Random values are generated instead of real computations
+  - Simple heuristics are used instead of ML models
+  - Hardcoded values appear where dynamic calculation should occur
+  
+  The goal is to ensure the system provides genuine AI/ML functionality, not placeholders.

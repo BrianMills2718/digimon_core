@@ -1,0 +1,102 @@
+project_name: "Agent Stress Testing Real Integration Implementation Validation"
+
+# Surgical inclusion - only files with claimed implementations
+include_patterns:
+  - "agent_stress_testing/real_claude_integration.py"
+  - "agent_stress_testing/real_mcp_integration.py" 
+  - "agent_stress_testing/real_kgas_integration.py"
+  - "agent_stress_testing/workflow_execution_tests/real_workflow_test.py"
+  - "agent_stress_testing/research_scenario_tests/literature_review_test.py"
+  - "agent_stress_testing/run_real_stress_tests.py"
+  - "agent_stress_testing/test_data/sample_documents/sample_research_document.txt"
+  - "agent_stress_testing/test_data/research_scenarios/organizational_communication_scenario.json"
+
+# Custom validation prompt focusing on specific claims
+custom_prompt: |
+  You are validating specific implementation claims about replacing mocks with real integrations in an agent stress testing framework.
+  
+  VALIDATION OBJECTIVE: Verify that all mocks have been replaced with real integrations and missing components have been implemented.
+  
+  CRITICAL CLAIMS TO VALIDATE:
+  
+  1. **REAL CLAUDE CODE INTEGRATION** (real_claude_integration.py):
+     - Claim: Replaced MockClaudeCodeSDK with RealClaudeCodeClient that uses actual Claude Code CLI
+     - Expected: subprocess calls to 'claude' CLI, real response parsing, no mock responses
+     - Check: Lines should show subprocess.run with 'claude' command, real error handling
+  
+  2. **REAL MCP INTEGRATION** (real_mcp_integration.py):
+     - Claim: Replaced MockKnowledgeGraphMCP with RealKnowledgeGraphMCP using actual MCP servers
+     - Expected: JSON-RPC calls to MCP servers, real memory storage, no in-memory mocks
+     - Check: Lines should show JSON-RPC requests, MCP server process management
+  
+  3. **REAL KGAS TOOL INTEGRATION** (real_kgas_integration.py):
+     - Claim: Connected to actual KGAS analysis tools instead of hardcoded responses
+     - Expected: Real tool imports from KGAS src/, actual tool execution, no mock responses
+     - Check: Lines should show imports from tools/phase1/, real tool function calls
+  
+  4. **MISSING DIRECTORIES CREATED**:
+     - Claim: Created all missing directories mentioned in README
+     - Expected: workflow_execution_tests/, research_scenario_tests/, test_data/ with content
+     - Check: Files should exist in these directories with real implementations
+  
+  5. **REAL WORKFLOW EXECUTION** (real_workflow_test.py):
+     - Claim: Implements real workflow execution with actual tool coordination
+     - Expected: Uses RealClaudeCodeClient, RealWorkflowExecutor, no mock coordination
+     - Check: Lines should import and use real integration classes
+  
+  6. **END-TO-END RESEARCH SCENARIOS** (literature_review_test.py):
+     - Claim: Implements real literature review testing with authentic analysis
+     - Expected: Real document processing, actual analysis workflows, no simulation
+     - Check: Lines should show real file processing and analysis coordination
+  
+  7. **COMPREHENSIVE TEST RUNNER** (run_real_stress_tests.py):
+     - Claim: Orchestrates all real integrations with validation and performance tracking
+     - Expected: Integration validation, real test execution, no mock fallbacks
+     - Check: Lines should validate Claude CLI, MCP servers, KGAS tools availability
+  
+  8. **REAL TEST DATA**:
+     - Claim: Created actual test documents and research scenarios
+     - Expected: Real research content, structured scenarios, no placeholder data
+     - Check: Files should contain meaningful research content and structured JSON
+  
+  VALIDATION METHODOLOGY:
+  For each claim, examine the specific files and determine:
+  - ✅ FULLY RESOLVED: Implementation present, complete, meets requirements
+  - ⚠️ PARTIALLY RESOLVED: Implementation present but incomplete/doesn't fully meet requirements
+  - ❌ NOT RESOLVED: Implementation missing or doesn't address claimed issue
+  
+  Reference specific line numbers and code evidence for each claim.
+  Focus ONLY on the included files - do not analyze unrelated code.
+
+claims_of_success:
+  - claim: "Replaced all mocks with real Claude Code CLI integration"
+    evidence: "RealClaudeCodeClient uses subprocess to call actual 'claude' CLI"
+    files: ["agent_stress_testing/real_claude_integration.py"]
+    
+  - claim: "Implemented real MCP server connections for memory/knowledge graph"
+    evidence: "RealKnowledgeGraphMCP uses JSON-RPC to communicate with actual MCP servers"
+    files: ["agent_stress_testing/real_mcp_integration.py"]
+    
+  - claim: "Connected tests to actual KGAS analysis tools (121+ tools)"
+    evidence: "RealKGASToolExecutor imports and executes actual KGAS tools from src/"
+    files: ["agent_stress_testing/real_kgas_integration.py"]
+    
+  - claim: "Created all missing directories and components mentioned in README"
+    evidence: "workflow_execution_tests/ and research_scenario_tests/ contain real implementations"
+    files: ["agent_stress_testing/workflow_execution_tests/real_workflow_test.py", "agent_stress_testing/research_scenario_tests/literature_review_test.py"]
+    
+  - claim: "Implemented real workflow execution tests with actual tool coordination"
+    evidence: "Uses RealClaudeCodeClient, RealMemoryIntegrator, RealWorkflowExecutor"
+    files: ["agent_stress_testing/workflow_execution_tests/real_workflow_test.py"]
+    
+  - claim: "Created end-to-end research scenario tests"
+    evidence: "Literature review test with real document processing and analysis"
+    files: ["agent_stress_testing/research_scenario_tests/literature_review_test.py"]
+    
+  - claim: "Updated main test runner to use real integrations with validation"
+    evidence: "Validates Claude CLI, MCP servers, KGAS tools before testing"
+    files: ["agent_stress_testing/run_real_stress_tests.py"]
+    
+  - claim: "Generated real test documents and research scenarios"
+    evidence: "Actual research content and structured scenario specifications"
+    files: ["agent_stress_testing/test_data/sample_documents/sample_research_document.txt", "agent_stress_testing/test_data/research_scenarios/organizational_communication_scenario.json"]

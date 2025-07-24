@@ -1,0 +1,35 @@
+validation_config:
+  name: "Health Monitoring System"
+  timestamp: "2025-07-23T16:00:00"
+  
+target_files:
+  - src/core/health_monitor.py
+  
+claims:
+  - "Health Monitor provides real-time service health status"
+  - "Degraded state detection with thresholds"
+  - "Metrics collection for CPU, memory, and disk usage"
+  
+specific_checks:
+  - check: "Service health endpoints"
+    evidence: "Methods to check individual service health"
+  - check: "System-wide health aggregation"
+    evidence: "Combines individual service health into system status"
+  - check: "Resource metrics collection"
+    evidence: "Tracks CPU, memory, disk usage with MetricsCollector"
+  - check: "Degradation detection"
+    evidence: "Thresholds for healthy/degraded/unhealthy states"
+    
+validation_prompt: |
+  Validate Health Monitoring System:
+  
+  REQUIREMENTS:
+  1. Individual service health check methods
+  2. System-wide health aggregation and scoring
+  3. Resource metrics (CPU, memory, disk) collection
+  4. Degradation detection with configurable thresholds
+  5. Real-time health status endpoints
+  
+  FOCUS: Health check methods, metrics collection, and status determination
+  
+  EVIDENCE: Show health check logic and threshold-based status

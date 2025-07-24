@@ -98,7 +98,18 @@ class MemoryManager:
             except RuntimeError:
                 # Non-async fallback - use shorter intervals to reduce blocking
                 import time
-                time.sleep(1)  # Reduced from 30s to 1s for responsiveness
+                # Use async sleep if possible to avoid blocking
+                try:
+                    import asyncio
+                    loop = asyncio.get_running_loop()
+                    if loop:
+                        asyncio.create_task(asyncio.sleep(1.0))
+                    else:
+                        import time
+                        time.sleep(0.1)  # Reduced to 100ms for better responsiveness
+                except RuntimeError:
+                    import time
+                    time.sleep(0.1)  # Minimal blocking fallback
     
     def get_memory_stats(self) -> MemoryStats:
         """Get current memory statistics"""

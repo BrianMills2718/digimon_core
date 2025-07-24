@@ -1,0 +1,158 @@
+{
+  "test_suite": "SocialMaze_Inspired_Uncertainty_Analysis",
+  "timestamp": "2025-07-24T00:09:34.463080",
+  "duration_seconds": 9e-05,
+  "mock_mode": true,
+  "tests": {
+    "social_intent_inference": {
+      "test_name": "social_intent_inference",
+      "scenarios_tested": 2,
+      "results": [
+        {
+          "scenario_id": "workplace_deadline",
+          "claim": "Alice is genuinely overwhelmed and needs help",
+          "model_confidence": 0.75,
+          "ground_truth": 0.6,
+          "calibration_error": 0.15000000000000002,
+          "uncertainty_type": "theory_of_mind",
+          "dimensions": {
+            "methodological_quality": 0.8,
+            "relevance": 0.85,
+            "coherence": 0.9,
+            "adequacy": 0.7
+          }
+        },
+        {
+          "scenario_id": "team_collaboration",
+          "claim": "Everyone will agree and share openly",
+          "model_confidence": 0.75,
+          "ground_truth": 0.1,
+          "calibration_error": 0.65,
+          "uncertainty_type": "group_dynamics",
+          "dimensions": {
+            "methodological_quality": 0.8,
+            "relevance": 0.85,
+            "coherence": 0.9,
+            "adequacy": 0.7
+          }
+        }
+      ],
+      "mean_calibration_error": 0.4
+    },
+    "bayesian_social_updates": {
+      "test_name": "bayesian_social_updates",
+      "prior": 0.5,
+      "updated_belief": 0.75,
+      "belief_change": 0.25,
+      "evidence_count": 4,
+      "high_reliability_evidence": 0.875,
+      "low_reliability_evidence": 0.725,
+      "claim": "Alice and Bob have a collaborative and trusting working relationship"
+    },
+    "social_bias_detection": {
+      "test_name": "social_bias_detection",
+      "scenarios_tested": 2,
+      "bias_results": [
+        {
+          "scenario_id": "authority_dynamics",
+          "expected_bias": "authority_bias",
+          "detected_biases": [
+            "authority_bias"
+          ],
+          "bias_severity": 0.4,
+          "ground_truth_probabilities": [
+            0.65,
+            0.1,
+            0.2,
+            0.05
+          ],
+          "bias_correctly_identified": true
+        },
+        {
+          "scenario_id": "conformity_pressure",
+          "expected_bias": "conformity_bias",
+          "detected_biases": [
+            "conformity_bias"
+          ],
+          "bias_severity": 0.35,
+          "ground_truth_probabilities": [
+            0.6,
+            0.15,
+            0.2,
+            0.05
+          ],
+          "bias_correctly_identified": true
+        }
+      ],
+      "detection_accuracy": 1.0,
+      "mean_bias_severity": 0.375
+    },
+    "social_prediction_calibration": {
+      "test_name": "social_prediction_calibration",
+      "scenarios": [
+        {
+          "scenario_id": "workplace_deadline",
+          "prediction": "Alice is genuinely overwhelmed and needs help",
+          "predicted_probability": 0.7,
+          "actual_probability": 0.6,
+          "brier_score": 0.009999999999999995,
+          "calibration_error": 0.09999999999999998,
+          "uncertainty_type": "theory_of_mind"
+        },
+        {
+          "scenario_id": "team_collaboration",
+          "prediction": "Sarah, Mike, Tom will agree; Alex will resist",
+          "predicted_probability": 0.7,
+          "actual_probability": 0.7,
+          "brier_score": 0.0,
+          "calibration_error": 0.0,
+          "uncertainty_type": "group_dynamics"
+        },
+        {
+          "scenario_id": "social_deception",
+          "prediction": "Jamie wanted to reduce competition by misleading Chris",
+          "predicted_probability": 0.55,
+          "actual_probability": 0.55,
+          "brier_score": 0.0,
+          "calibration_error": 0.0,
+          "uncertainty_type": "deception_detection"
+        },
+        {
+          "scenario_id": "authority_dynamics",
+          "prediction": "Sarah gets credit, her version is implemented",
+          "predicted_probability": 0.55,
+          "actual_probability": 0.65,
+          "brier_score": 0.009999999999999995,
+          "calibration_error": 0.09999999999999998,
+          "uncertainty_type": "authority_bias"
+        },
+        {
+          "scenario_id": "conformity_pressure",
+          "prediction": "Choose approach A due to majority preference",
+          "predicted_probability": 0.5,
+          "actual_probability": 0.6,
+          "brier_score": 0.009999999999999995,
+          "calibration_error": 0.09999999999999998,
+          "uncertainty_type": "conformity_bias"
+        }
+      ],
+      "mean_brier_score": 0.005999999999999997,
+      "mean_calibration_error": 0.059999999999999984,
+      "calibration_quality": "excellent"
+    }
+  },
+  "summary": {
+    "total_tests": 4,
+    "scenarios_analyzed": 5,
+    "mean_calibration_error": 0.059999999999999984,
+    "bias_detection_accuracy": 1.0,
+    "calibration_quality": "excellent",
+    "uncertainty_types_tested": [
+      "theory_of_mind",
+      "group_dynamics",
+      "deception_detection",
+      "authority_bias",
+      "conformity_bias"
+    ]
+  }
+}

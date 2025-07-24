@@ -23,14 +23,14 @@ from src.core.service_manager import get_service_manager
 from src.core.config_manager import ConfigurationManager
 
 # Import Phase 1 tools
-from src.tools.phase1.t01_pdf_loader import PDFLoader
-from src.tools.phase1.t15a_text_chunker import TextChunker
-from src.tools.phase1.t23a_spacy_ner import SpacyNER
-from src.tools.phase1.t27_relationship_extractor import RelationshipExtractor
-from src.tools.phase1.t31_entity_builder import EntityBuilder
-from src.tools.phase1.t34_edge_builder import EdgeBuilder
-from src.tools.phase1.t68_pagerank import PageRankCalculator
-from src.tools.phase1.t49_multihop_query import MultiHopQuery
+from src.tools.phase1.t01_pdf_loader_unified import T01PDFLoaderUnified
+from src.tools.phase1.t15a_text_chunker_unified import T15ATextChunkerUnified
+from src.tools.phase1.t23a_spacy_ner_unified import T23ASpacyNERUnified
+from src.tools.phase1.t27_relationship_extractor_unified import T27RelationshipExtractorUnified
+from src.tools.phase1.t31_entity_builder_unified import T31EntityBuilderUnified
+from src.tools.phase1.t34_edge_builder_unified import T34EdgeBuilderUnified
+from src.tools.phase1.t68_pagerank_calculator_unified import T68PageRankCalculatorUnified
+from src.tools.phase1.t49_multihop_query_unified import T49MultiHopQueryUnified
 from src.core.config_manager import get_config
 
 
@@ -38,32 +38,18 @@ from src.core.config_manager import get_config
 def create_phase1_mcp_tools(mcp: FastMCP):
     """Add Phase 1 pipeline tools to an existing MCP server"""
     
-    # Get shared service manager and configuration
+    # Get shared service manager
     service_manager = get_service_manager()
-    config_manager = get_config()
-    config = config_manager.get_config()
     
-    # Use shared services from manager
-    identity_service = service_manager.identity_service
-    provenance_service = service_manager.provenance_service
-    quality_service = service_manager.quality_service
-    
-    # Initialize Phase 1 tools
-    pdf_loader = PDFLoader(identity_service, provenance_service, quality_service)
-    text_chunker = TextChunker(identity_service, provenance_service, quality_service)
-    entity_extractor = SpacyNER(identity_service, provenance_service, quality_service)
-    relationship_extractor = RelationshipExtractor(identity_service, provenance_service, quality_service)
-    
-    # Neo4j connection parameters from unified ConfigurationManager
-    neo4j_config = config_manager.get_neo4j_config()
-    neo4j_uri = neo4j_config['uri']
-    neo4j_user = neo4j_config['user']
-    neo4j_password = neo4j_config['password']
-    
-    entity_builder = EntityBuilder(identity_service, provenance_service, quality_service, neo4j_uri, neo4j_user, neo4j_password)
-    edge_builder = EdgeBuilder(identity_service, provenance_service, quality_service, neo4j_uri, neo4j_user, neo4j_password)
-    pagerank_calculator = PageRankCalculator(identity_service, provenance_service, quality_service, neo4j_uri, neo4j_user, neo4j_password)
-    query_engine = MultiHopQuery(identity_service, provenance_service, quality_service, neo4j_uri, neo4j_user, neo4j_password)
+    # Initialize Phase 1 tools with service manager
+    pdf_loader = T01PDFLoaderUnified(service_manager)
+    text_chunker = T15ATextChunkerUnified(service_manager)
+    entity_extractor = T23ASpacyNERUnified(service_manager)
+    relationship_extractor = T27RelationshipExtractorUnified(service_manager)
+    entity_builder = T31EntityBuilderUnified(service_manager)
+    edge_builder = T34EdgeBuilderUnified(service_manager)
+    pagerank_calculator = T68PageRankCalculatorUnified(service_manager)
+    query_engine = T49MultiHopQueryUnified(service_manager)
     
     # =============================================================================
     # T01: PDF Loading Tools
@@ -76,10 +62,18 @@ def create_phase1_mcp_tools(mcp: FastMCP):
         Args:
             document_paths: List of paths to document files to load
         """
+        from src.tools.base_tool import ToolRequest
+        
         results = []
         for path in document_paths:
-            result = pdf_loader.load_pdf(path)  # pdf_loader can handle various formats
-            results.append(result)
+            request = ToolRequest(
+                tool_id="T01",
+                operation="load_document",
+                input_data={"file_path": path},
+                parameters={}
+            )
+            result = pdf_loader.execute(request)
+            results.append(result.data if result.status == "success" else {"error": result.error_message})
         return {"documents": results, "total_loaded": len(results)}
     
     @mcp.tool()

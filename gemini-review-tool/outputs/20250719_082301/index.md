@@ -1,1 +1,0 @@
-- [validations/tool-functionality-validation-results.md](validations/tool-functionality-validation-results.md) ‒ 2025-07-19 08:23

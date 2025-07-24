@@ -139,6 +139,84 @@ This file documents the rationale for archiving files and directories to maintai
 - Tool factory and orchestrator configurations updated to reference unified versions only
 - Legacy patterns completely eliminated from active codebase
 
+## ADR-007 Research Documents Archive - 2025-07-23
+
+### Archived: `/archived/adr-007-research-documents_2025_07_23/`
+
+**Files Archived:**
+- `adr-004-research/` (18 research documents)
+  - `notes_on_handling_uncertainty_2025.07201658.md` - Primary research notes
+  - `current_uncertainty_framework_synthesis_2025_07_20.md` - Framework synthesis
+  - `configurable_uncertainty_framework_2025_07_20.md` - Implementation design
+  - `uncertainty_clarifications_academic_context_2025_07_20.md` - Academic requirements
+  - `cerqual_unified_approach_2025_07_20.md` - CERQual methodology integration
+  - `research_validation_and_next_steps_2025_07_20.md` - Validation strategies
+  - `discourse_analysis_uncertainty_framework_2025_07_20.md` - Domain applications
+  - `foundational_discourse_transformations_uncertainty_2025_07_20.md` - Core transformations
+  - `uncertainty_framework_discourse_analysis_context_2025_07_20.md` - Context considerations
+  - `uncertainty_framework_stress_tests_2025_07_20.md` - Framework validation
+  - `advanced_framework_stress_tests_2025_07_20.md` - Advanced testing
+  - `uncertainty_analysis_examples_2025_07_20.md` - Practical examples
+  - `uncertainty_stress_test_examples_2025_07_20.md` - Test cases
+  - `advanced_uncertainty_research_insights_2025_07_20.md` - Research insights
+  - `uncertainty_best_practices_synthesis_2025_07_20.md` - Best practices
+  - `remaining_uncertainty_research_prompt_2025_07_20.md` - Outstanding questions
+  - `uncertainty_corrections_feedback_2025_07_20.md` - Feedback incorporation
+  - `uncertainty_clarifications_2025_07_20.md` - Framework clarifications
+- `validation/framework-validation.md` - ADR validation evidence
+
+**Original Location:** `/docs/architecture/adrs/ADR-007-uncertainty-metrics/`
+
+**Justification:**
+1. **Completed Research Phase**: ADR-007 is now "Accepted" status, making these working research documents historical
+2. **Working Documents**: These files were development/research notes used to create the formal ADR-007 decision document
+3. **Point-in-Time Content**: All files dated July 20, 2025, representing a specific research sprint that has concluded
+4. **Decision Finalized**: The research culminated in the accepted ADR-007 CERQual-based uncertainty architecture
+5. **Architectural Focus**: Architecture directory should contain decisions and specifications, not working research notes
+6. **Implementation Reference**: The final ADR-007 document contains all necessary architectural guidance
+
+**Impact:**
+- Cleaner ADR directory focused on accepted architectural decisions
+- Preserves research history that led to ADR-007 acceptance
+- Maintains focus on implementation-ready architectural guidance
+- Research insights captured in the formal ADR-007 document
+
+## Implementation Planning Documents Archive - 2025-07-23
+
+### Archived: `ARCHITECTURE_PHASES.md`
+
+**Original Location:** `/docs/architecture/`
+
+**Justification:**
+1. **Implementation Planning**: Document contains "Active Planning" status and implementation timelines, not architectural design
+2. **Status Information**: Contains "Last Updated: 2025-07-22" and phase timelines with tool assignments
+3. **Mixed Concerns**: Combines architectural concepts with specific implementation phases and dates
+4. **Roadmap Content**: Implementation phases are better tracked in roadmap documentation
+5. **Clean Separation**: Architecture docs should define design; roadmap docs should track implementation progress
+
+**Impact:**
+- Cleaner separation between architecture design and implementation planning
+- Eliminates status/timeline content from pure architecture documentation
+- Implementation phase information available in roadmap documentation
+
+### Archived: `validation/` (from ADR-006)
+
+**Files Archived:**
+- `stress-test-evidence.md` - Cross-modal analysis validation evidence
+
+**Original Location:** `/docs/architecture/adrs/ADR-006-cross-modal-analysis/validation/`
+
+**Justification:**
+1. **Historical Validation**: Document contains validation evidence from a completed decision process
+2. **Point-in-Time Evidence**: Represents specific testing/validation that was used to accept ADR-006
+3. **Completed Process**: ADR-006 is accepted; validation evidence now historical
+4. **Decision Focus**: ADR directory should contain decisions, not implementation validation artifacts
+
+**Impact:**
+- Cleaner ADR structure focused on architectural decisions
+- Historical validation evidence preserved for reference
+- Maintains focus on decision rationale rather than validation artifacts
+
 ---
 
 *Archive Policy: Files are archived rather than deleted to preserve project history while maintaining clean active workspace. All archived content can be restored if needed.*

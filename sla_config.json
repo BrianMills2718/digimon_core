@@ -1,0 +1,63 @@
+{
+  "thresholds": {
+    "tool_execution": {
+      "operation": "tool_execution",
+      "max_duration": 5.0,
+      "warning_duration": 4.0,
+      "critical_duration": 10.0,
+      "max_error_rate": 0.05,
+      "min_success_rate": 0.95,
+      "evaluation_window": 100
+    },
+    "database_query": {
+      "operation": "database_query",
+      "max_duration": 1.0,
+      "warning_duration": 0.8,
+      "critical_duration": 3.0,
+      "max_error_rate": 0.01,
+      "min_success_rate": 0.99,
+      "evaluation_window": 1000
+    },
+    "api_request": {
+      "operation": "api_request",
+      "max_duration": 2.0,
+      "warning_duration": 1.5,
+      "critical_duration": 5.0,
+      "max_error_rate": 0.02,
+      "min_success_rate": 0.98,
+      "evaluation_window": 500
+    },
+    "document_processing": {
+      "operation": "document_processing",
+      "max_duration": 30.0,
+      "warning_duration": 25.0,
+      "critical_duration": 60.0,
+      "max_error_rate": 0.1,
+      "min_success_rate": 0.9,
+      "evaluation_window": 50
+    },
+    "pipeline_execution": {
+      "operation": "pipeline_execution",
+      "max_duration": 120.0,
+      "warning_duration": 100.0,
+      "critical_duration": 300.0,
+      "max_error_rate": 0.15,
+      "min_success_rate": 0.85,
+      "evaluation_window": 20
+    },
+    "demo_operation": {
+      "operation": "demo_operation",
+      "max_duration": 0.1,
+      "warning_duration": 0.08,
+      "critical_duration": 0.2,
+      "max_error_rate": 0.1,
+      "min_success_rate": 0.9,
+      "evaluation_window": 10
+    }
+  },
+  "stats": {
+    "total_checks": 5,
+    "total_violations": 1,
+    "critical_violations": 0
+  }
+}

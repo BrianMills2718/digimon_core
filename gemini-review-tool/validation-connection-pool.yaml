@@ -1,0 +1,35 @@
+validation_config:
+  name: "Connection Pool Management"
+  timestamp: "2025-07-23T16:00:00"
+  
+target_files:
+  - src/core/connection_pool_manager.py
+  
+claims:
+  - "Connection pool implements dynamic sizing with min/max limits"
+  - "Health checks automatically remove unhealthy connections"
+  - "Graceful handling of pool exhaustion with queuing"
+  
+specific_checks:
+  - check: "Dynamic pool sizing"
+    evidence: "Methods for resize_pool with min_size and max_size"
+  - check: "Automatic health monitoring"
+    evidence: "Background health checks that remove bad connections"
+  - check: "Exhaustion handling"
+    evidence: "Queue mechanism when pool is exhausted, not immediate failure"
+  - check: "Connection lifecycle"
+    evidence: "Proper acquire/release with timeout support"
+    
+validation_prompt: |
+  Validate Connection Pool Manager:
+  
+  REQUIREMENTS:
+  1. Dynamic pool sizing between min and max limits
+  2. Automatic health checks removing unhealthy connections
+  3. Graceful exhaustion handling with request queuing
+  4. Timeout support for connection acquisition
+  5. Proper connection lifecycle (acquire/release)
+  
+  FOCUS: Pool management logic, health checking, and exhaustion handling
+  
+  EVIDENCE: Show pool sizing, health check, and queue mechanisms

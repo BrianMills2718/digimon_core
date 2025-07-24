@@ -1,0 +1,3522 @@
+This file is a merged representation of a subset of the codebase, containing specifically included files, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of a subset of the repository's contents that is considered the most important context.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Only files matching these patterns are included: src/analytics/__init__.py, src/analytics/graph_centrality_analyzer.py, src/analytics/community_detector.py, src/analytics/cross_modal_linker.py, src/analytics/knowledge_synthesizer.py, src/analytics/citation_impact_analyzer.py
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+src/
+  analytics/
+    __init__.py
+    citation_impact_analyzer.py
+    community_detector.py
+    cross_modal_linker.py
+    graph_centrality_analyzer.py
+    knowledge_synthesizer.py
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="src/analytics/__init__.py">
+"""
+Advanced Graph Analytics Module
+
+Implements sophisticated graph analytics capabilities for the KGAS Phase 2.1 system,
+providing entity relationship analysis, community detection, cross-modal linking,
+and research impact assessment on the bulletproof reliability foundation.
+"""
+
+from .graph_centrality_analyzer import GraphCentralityAnalyzer, AnalyticsError
+from .community_detector import CommunityDetector
+from .cross_modal_linker import CrossModalEntityLinker  
+from .knowledge_synthesizer import ConceptualKnowledgeSynthesizer
+from .citation_impact_analyzer import CitationImpactAnalyzer
+
+__all__ = [
+    'GraphCentralityAnalyzer',
+    'CommunityDetector', 
+    'CrossModalEntityLinker',
+    'ConceptualKnowledgeSynthesizer',
+    'CitationImpactAnalyzer',
+    'AnalyticsError'
+]
+</file>
+
+<file path="src/analytics/citation_impact_analyzer.py">
+#!/usr/bin/env python3
+"""
+Citation Impact Analyzer - Analyze citation networks for research impact assessment
+
+Implements comprehensive citation analysis including h-index, citation velocity,
+cross-disciplinary impact, and temporal patterns with error handling.
+"""
+
+import asyncio
+import time
+import logging
+import numpy as np
+from typing import Dict, List, Any, Optional, Tuple, Set
+from datetime import datetime, timedelta
+from collections import defaultdict, Counter
+import statistics
+
+from .graph_centrality_analyzer import AnalyticsError
+
+logger = logging.getLogger(__name__)
+
+
+class CitationImpactAnalyzer:
+    """Analyze citation networks for research impact assessment"""
+    
+    def __init__(self, neo4j_manager, distributed_tx_manager):
+        self.neo4j_manager = neo4j_manager
+        self.dtm = distributed_tx_manager
+        
+        # Impact metrics configuration
+        self.impact_metrics = [
+            'h_index',
+            'citation_velocity',
+            'cross_disciplinary_impact',
+            'temporal_impact_pattern',
+            'collaboration_network_centrality',
+            'i10_index',
+            'citation_half_life',
+            'field_normalized_citation'
+        ]
+        
+        # Time windows for analysis
+        self.time_windows = {
+            'recent': 2,      # 2 years
+            'medium': 5,      # 5 years
+            'long': 10,       # 10 years
+            'career': None    # All time
+        }
+        
+        logger.info("CitationImpactAnalyzer initialized")
+    
+    async def analyze_research_impact(self, entity_id: str, 
+                                    entity_type: str,
+                                    time_window_years: int = 10,
+                                    include_self_citations: bool = False) -> Dict[str, Any]:
+        """Comprehensive research impact analysis"""
+        
+        tx_id = f"impact_analysis_{entity_id}_{int(time.time())}"
+        logger.info(f"Starting research impact analysis - entity: {entity_id}, type: {entity_type}, tx_id: {tx_id}")
+        
+        try:
+            await self.dtm.begin_distributed_transaction(tx_id)
+            
+            # Gather citation network data
+            citation_network = await self._build_citation_network(
+                entity_id, entity_type, time_window_years, include_self_citations
+            )
+            
+            if not citation_network or not citation_network.get('papers'):
+                logger.warning(f"No citation data found for entity {entity_id}")
+                await self.dtm.commit_distributed_transaction(tx_id)
+                return {
+                    'entity_id': entity_id,
+                    'entity_type': entity_type,
+                    'impact_scores': {metric: 0 for metric in self.impact_metrics},
+                    'temporal_analysis': {},
+                    'influence_analysis': {},
+                    'composite_impact_score': 0,
+                    'metadata': {
+                        'time_window_years': time_window_years,
+                        'total_papers': 0,
+                        'total_citations': 0
+                    }
+                }
+            
+            # Calculate comprehensive impact metrics
+            impact_scores = {}
+            for metric in self.impact_metrics:
+                score = await self._calculate_impact_metric(
+                    metric, citation_network, entity_id
+                )
+                impact_scores[metric] = score
+            
+            # Analyze temporal impact evolution
+            temporal_analysis = await self._analyze_temporal_impact(
+                citation_network, time_window_years
+            )
+            
+            # Identify key influential papers/collaborators
+            influence_analysis = await self._analyze_influence_patterns(citation_network)
+            
+            # Generate impact report
+            impact_report = await self._generate_impact_report(
+                entity_id, entity_type, impact_scores, temporal_analysis, influence_analysis
+            )
+            
+            # Store results
+            await self._store_impact_analysis(tx_id, entity_id, impact_scores, temporal_analysis, influence_analysis)
+            
+            await self.dtm.commit_distributed_transaction(tx_id)
+            
+            result = {
+                'entity_id': entity_id,
+                'entity_type': entity_type,
+                'impact_scores': impact_scores,
+                'temporal_analysis': temporal_analysis,
+                'influence_analysis': influence_analysis,
+                'impact_report': impact_report,
+                'composite_impact_score': await self._calculate_composite_score(impact_scores),
+                'metadata': {
+                    'time_window_years': time_window_years,
+                    'total_papers': len(citation_network.get('papers', [])),
+                    'total_citations': citation_network.get('total_citations', 0),
+                    'analysis_timestamp': datetime.now().isoformat()
+                }
+            }
+            
+            logger.info(f"Research impact analysis completed for entity {entity_id}")
+            return result
+            
+        except Exception as e:
+            logger.error(f"Research impact analysis failed: {e}", exc_info=True)
+            await self.dtm.rollback_distributed_transaction(tx_id)
+            raise AnalyticsError(f"Research impact analysis failed: {e}")
+    
+    async def _build_citation_network(self, entity_id: str, entity_type: str,
+                                    time_window_years: int,
+                                    include_self_citations: bool) -> Dict[str, Any]:
+        """Build citation network for the entity"""
+        
+        logger.info(f"Building citation network for {entity_type} {entity_id}")
+        
+        # Determine the appropriate query based on entity type
+        if entity_type.lower() in ['author', 'researcher']:
+            papers_query = """
+            MATCH (author:Author {id: $entity_id})-[:AUTHORED]->(paper:Paper)
+            WHERE paper.year >= $start_year OR $start_year IS NULL
+            RETURN paper.id as paper_id, paper.title as title, 
+                   paper.year as year, paper.field as field,
+                   paper.abstract as abstract
+            """
+        elif entity_type.lower() in ['institution', 'organization']:
+            papers_query = """
+            MATCH (inst:Institution {id: $entity_id})-[:AFFILIATED]->(author:Author)-[:AUTHORED]->(paper:Paper)
+            WHERE paper.year >= $start_year OR $start_year IS NULL
+            RETURN DISTINCT paper.id as paper_id, paper.title as title,
+                   paper.year as year, paper.field as field,
+                   paper.abstract as abstract
+            """
+        elif entity_type.lower() in ['paper', 'publication']:
+            papers_query = """
+            MATCH (paper:Paper {id: $entity_id})
+            RETURN paper.id as paper_id, paper.title as title,
+                   paper.year as year, paper.field as field,
+                   paper.abstract as abstract
+            """
+        else:
+            # Generic entity query
+            papers_query = """
+            MATCH (entity {id: $entity_id})-[*1..2]-(paper:Paper)
+            WHERE paper.year >= $start_year OR $start_year IS NULL
+            RETURN DISTINCT paper.id as paper_id, paper.title as title,
+                   paper.year as year, paper.field as field,
+                   paper.abstract as abstract
+            LIMIT 1000
+            """
+        
+        # Calculate start year
+        start_year = datetime.now().year - time_window_years if time_window_years else None
+        
+        params = {
+            'entity_id': entity_id,
+            'start_year': start_year
+        }
+        
+        # Execute query for papers
+        await self.dtm.add_operation(self.dtm.current_tx_id, 'read', 'neo4j', 'papers_data', {
+            'query': papers_query,
+            'params': params,
+            'operation_type': 'citation_papers_fetch'
+        })
+        
+        papers_data = await self.neo4j_manager.execute_read_query(papers_query, params)
+        
+        if not papers_data:
+            return {'papers': [], 'citations': [], 'total_citations': 0}
+        
+        # Get citations for all papers
+        paper_ids = [p['paper_id'] for p in papers_data]
+        
+        citations_query = """
+        MATCH (citing_paper:Paper)-[:CITES]->(cited_paper:Paper)
+        WHERE cited_paper.id IN $paper_ids
+        """ + ("AND citing_paper.id NOT IN $paper_ids" if not include_self_citations else "") + """
+        RETURN citing_paper.id as citing_id, cited_paper.id as cited_id,
+               citing_paper.year as citing_year, citing_paper.field as citing_field,
+               citing_paper.title as citing_title
+        """
+        
+        citation_params = {'paper_ids': paper_ids}
+        
+        await self.dtm.add_operation(self.dtm.current_tx_id, 'read', 'neo4j', 'citations_data', {
+            'query': citations_query,
+            'params': citation_params,
+            'operation_type': 'citation_network_fetch'
+        })
+        
+        citations_data = await self.neo4j_manager.execute_read_query(citations_query, citation_params)
+        
+        # Build citation network structure
+        papers = {}
+        for paper in papers_data:
+            papers[paper['paper_id']] = {
+                'id': paper['paper_id'],
+                'title': paper['title'],
+                'year': paper['year'],
+                'field': paper['field'],
+                'abstract': paper['abstract'],
+                'citations': [],
+                'citation_count': 0
+            }
+        
+        # Add citation information
+        total_citations = 0
+        for citation in citations_data:
+            cited_id = citation['cited_id']
+            if cited_id in papers:
+                papers[cited_id]['citations'].append({
+                    'citing_id': citation['citing_id'],
+                    'citing_year': citation['citing_year'],
+                    'citing_field': citation['citing_field'],
+                    'citing_title': citation['citing_title']
+                })
+                papers[cited_id]['citation_count'] += 1
+                total_citations += 1
+        
+        return {
+            'papers': list(papers.values()),
+            'citations': citations_data,
+            'total_citations': total_citations,
+            'paper_count': len(papers)
+        }
+    
+    async def _calculate_impact_metric(self, metric: str, citation_network: Dict,
+                                     entity_id: str) -> float:
+        """Calculate specific impact metric"""
+        
+        papers = citation_network.get('papers', [])
+        
+        if metric == 'h_index':
+            return await self._calculate_h_index(papers)
+        elif metric == 'i10_index':
+            return await self._calculate_i10_index(papers)
+        elif metric == 'citation_velocity':
+            return await self._calculate_citation_velocity(papers)
+        elif metric == 'cross_disciplinary_impact':
+            return await self._calculate_cross_disciplinary_impact(papers)
+        elif metric == 'temporal_impact_pattern':
+            return await self._calculate_temporal_impact_pattern(papers)
+        elif metric == 'collaboration_network_centrality':
+            return await self._calculate_collaboration_centrality(entity_id)
+        elif metric == 'citation_half_life':
+            return await self._calculate_citation_half_life(papers)
+        elif metric == 'field_normalized_citation':
+            return await self._calculate_field_normalized_citation(papers)
+        else:
+            logger.warning(f"Unknown impact metric: {metric}")
+            return 0.0
+    
+    async def _calculate_h_index(self, papers: List[Dict]) -> int:
+        """Calculate h-index: h papers with at least h citations each"""
+        
+        if not papers:
+            return 0
+        
+        # Sort papers by citation count in descending order
+        citation_counts = sorted([p['citation_count'] for p in papers], reverse=True)
+        
+        h_index = 0
+        for i, citations in enumerate(citation_counts, 1):
+            if citations >= i:
+                h_index = i
+            else:
+                break
+        
+        return h_index
+    
+    async def _calculate_i10_index(self, papers: List[Dict]) -> int:
+        """Calculate i10-index: number of papers with at least 10 citations"""
+        
+        return sum(1 for p in papers if p['citation_count'] >= 10)
+    
+    async def _calculate_citation_velocity(self, papers: List[Dict]) -> float:
+        """Calculate citation velocity (citations per year in recent period)"""
+        
+        if not papers:
+            return 0.0
+        
+        current_year = datetime.now().year
+        recent_years = 3  # Look at last 3 years
+        
+        recent_citations = 0
+        for paper in papers:
+            for citation in paper.get('citations', []):
+                citing_year = citation.get('citing_year')
+                if citing_year and current_year - citing_year <= recent_years:
+                    recent_citations += 1
+        
+        return recent_citations / recent_years
+    
+    async def _calculate_cross_disciplinary_impact(self, papers: List[Dict]) -> float:
+        """Calculate impact across different research fields"""
+        
+        if not papers:
+            return 0.0
+        
+        # Count citations from different fields
+        field_citations = defaultdict(int)
+        total_citations = 0
+        
+        for paper in papers:
+            paper_field = paper.get('field', 'unknown')
+            for citation in paper.get('citations', []):
+                citing_field = citation.get('citing_field', 'unknown')
+                if citing_field != paper_field:
+                    field_citations[citing_field] += 1
+                total_citations += 1
+        
+        if total_citations == 0:
+            return 0.0
+        
+        # Calculate diversity index (Shannon entropy)
+        cross_disciplinary_ratio = len(field_citations) / max(len(set(p.get('field') for p in papers)), 1)
+        
+        # Calculate entropy
+        entropy = 0.0
+        for field_count in field_citations.values():
+            p = field_count / total_citations
+            if p > 0:
+                entropy -= p * np.log2(p)
+        
+        # Normalize by maximum possible entropy
+        max_entropy = np.log2(len(field_citations)) if len(field_citations) > 0 else 1
+        normalized_entropy = entropy / max_entropy if max_entropy > 0 else 0
+        
+        return (cross_disciplinary_ratio + normalized_entropy) / 2
+    
+    async def _calculate_temporal_impact_pattern(self, papers: List[Dict]) -> float:
+        """Calculate temporal pattern score (sustained vs. declining impact)"""
+        
+        if not papers:
+            return 0.0
+        
+        current_year = datetime.now().year
+        
+        # Group citations by year
+        citations_by_year = defaultdict(int)
+        for paper in papers:
+            for citation in paper.get('citations', []):
+                citing_year = citation.get('citing_year')
+                if citing_year:
+                    citations_by_year[citing_year] += 1
+        
+        if not citations_by_year:
+            return 0.0
+        
+        # Calculate trend over last 5 years
+        recent_years = sorted([year for year in citations_by_year.keys() 
+                             if current_year - year <= 5])
+        
+        if len(recent_years) < 2:
+            return 0.5  # Neutral if insufficient data
+        
+        # Calculate linear regression slope
+        x = np.array(range(len(recent_years)))
+        y = np.array([citations_by_year[year] for year in recent_years])
+        
+        if len(x) > 1:
+            slope = np.polyfit(x, y, 1)[0]
+            # Normalize slope to 0-1 range
+            normalized_slope = (np.tanh(slope / 10) + 1) / 2
+            return normalized_slope
+        
+        return 0.5
+    
+    async def _calculate_collaboration_centrality(self, entity_id: str) -> float:
+        """Calculate centrality in collaboration network"""
+        
+        # Query collaboration network
+        collab_query = """
+        MATCH (entity {id: $entity_id})-[:COLLABORATES_WITH]-(collaborator)
+        RETURN count(DISTINCT collaborator) as collaborator_count
+        """
+        
+        await self.dtm.add_operation(self.dtm.current_tx_id, 'read', 'neo4j', 'collaboration_data', {
+            'query': collab_query,
+            'params': {'entity_id': entity_id},
+            'operation_type': 'collaboration_network_fetch'
+        })
+        
+        result = await self.neo4j_manager.execute_read_query(collab_query, {'entity_id': entity_id})
+        
+        if result:
+            collaborator_count = result[0].get('collaborator_count', 0)
+            # Normalize using logarithmic scale
+            return min(np.log1p(collaborator_count) / 10, 1.0)
+        
+        return 0.0
+    
+    async def _calculate_citation_half_life(self, papers: List[Dict]) -> float:
+        """Calculate citation half-life (years for citations to drop by half)"""
+        
+        if not papers:
+            return 0.0
+        
+        current_year = datetime.now().year
+        
+        # Group citations by years since publication
+        citations_by_age = defaultdict(int)
+        
+        for paper in papers:
+            paper_year = paper.get('year')
+            if not paper_year:
+                continue
+                
+            for citation in paper.get('citations', []):
+                citing_year = citation.get('citing_year')
+                if citing_year:
+                    age = citing_year - paper_year
+                    if age >= 0:
+                        citations_by_age[age] += 1
+        
+        if not citations_by_age:
+            return 0.0
+        
+        # Find half-life
+        total_citations = sum(citations_by_age.values())
+        half_citations = total_citations / 2
+        
+        cumulative = 0
+        for age in sorted(citations_by_age.keys()):
+            cumulative += citations_by_age[age]
+            if cumulative >= half_citations:
+                return float(age)
+        
+        # If we haven't reached half, estimate based on trend
+        max_age = max(citations_by_age.keys())
+        return float(max_age * 2)  # Rough estimate
+    
+    async def _calculate_field_normalized_citation(self, papers: List[Dict]) -> float:
+        """Calculate field-normalized citation impact"""
+        
+        if not papers:
+            return 0.0
+        
+        # Group papers by field
+        field_groups = defaultdict(list)
+        for paper in papers:
+            field = paper.get('field', 'unknown')
+            field_groups[field].append(paper['citation_count'])
+        
+        # Calculate normalized scores
+        normalized_scores = []
+        
+        for field, citation_counts in field_groups.items():
+            if citation_counts:
+                # Simple normalization by field average
+                field_avg = np.mean(citation_counts)
+                field_std = np.std(citation_counts)
+                
+                for count in citation_counts:
+                    if field_std > 0:
+                        z_score = (count - field_avg) / field_std
+                        normalized_score = (np.tanh(z_score / 2) + 1) / 2
+                    else:
+                        normalized_score = 0.5
+                    
+                    normalized_scores.append(normalized_score)
+        
+        return np.mean(normalized_scores) if normalized_scores else 0.0
+    
+    async def _analyze_temporal_impact(self, citation_network: Dict,
+                                     time_window_years: int) -> Dict[str, Any]:
+        """Analyze temporal evolution of research impact"""
+        
+        papers = citation_network.get('papers', [])
+        current_year = datetime.now().year
+        
+        # Analyze citation patterns over time
+        yearly_citations = defaultdict(int)
+        yearly_papers = defaultdict(int)
+        
+        for paper in papers:
+            paper_year = paper.get('year')
+            if paper_year:
+                yearly_papers[paper_year] += 1
+            
+            for citation in paper.get('citations', []):
+                citing_year = citation.get('citing_year')
+                if citing_year:
+                    yearly_citations[citing_year] += 1
+        
+        # Calculate metrics for different time windows
+        temporal_metrics = {}
+        
+        for window_name, window_years in self.time_windows.items():
+            if window_years is None or window_years <= time_window_years:
+                start_year = current_year - window_years if window_years else min(yearly_citations.keys(), default=current_year)
+                
+                window_citations = sum(count for year, count in yearly_citations.items() 
+                                     if year >= start_year)
+                window_papers = sum(count for year, count in yearly_papers.items() 
+                                  if year >= start_year)
+                
+                temporal_metrics[window_name] = {
+                    'total_citations': window_citations,
+                    'total_papers': window_papers,
+                    'citations_per_paper': window_citations / window_papers if window_papers > 0 else 0,
+                    'years_included': window_years or (current_year - start_year + 1)
+                }
+        
+        # Identify peak impact years
+        peak_years = sorted(yearly_citations.items(), key=lambda x: x[1], reverse=True)[:5]
+        
+        return {
+            'yearly_citations': dict(yearly_citations),
+            'yearly_papers': dict(yearly_papers),
+            'temporal_metrics': temporal_metrics,
+            'peak_impact_years': peak_years,
+            'citation_trend': await self._calculate_citation_trend(yearly_citations)
+        }
+    
+    async def _calculate_citation_trend(self, yearly_citations: Dict[int, int]) -> str:
+        """Calculate overall citation trend (increasing, stable, declining)"""
+        
+        if len(yearly_citations) < 3:
+            return 'insufficient_data'
+        
+        # Get last 5 years of data
+        recent_years = sorted(yearly_citations.keys())[-5:]
+        recent_counts = [yearly_citations[year] for year in recent_years]
+        
+        if len(recent_counts) < 2:
+            return 'insufficient_data'
+        
+        # Calculate linear regression
+        x = np.arange(len(recent_counts))
+        slope = np.polyfit(x, recent_counts, 1)[0]
+        
+        # Determine trend based on slope
+        avg_citations = np.mean(recent_counts)
+        slope_ratio = slope / avg_citations if avg_citations > 0 else 0
+        
+        if slope_ratio > 0.1:
+            return 'increasing'
+        elif slope_ratio < -0.1:
+            return 'declining'
+        else:
+            return 'stable'
+    
+    async def _analyze_influence_patterns(self, citation_network: Dict) -> Dict[str, Any]:
+        """Analyze patterns of research influence"""
+        
+        papers = citation_network.get('papers', [])
+        
+        # Find most cited papers
+        top_papers = sorted(papers, key=lambda p: p['citation_count'], reverse=True)[:10]
+        
+        # Analyze citing fields
+        citing_fields = Counter()
+        citing_years = Counter()
+        
+        for paper in papers:
+            for citation in paper.get('citations', []):
+                field = citation.get('citing_field')
+                year = citation.get('citing_year')
+                
+                if field:
+                    citing_fields[field] += 1
+                if year:
+                    citing_years[year] += 1
+        
+        # Identify breakthrough papers (sudden citation increase)
+        breakthrough_papers = []
+        for paper in papers:
+            if paper['citation_count'] > 20:  # Minimum threshold
+                citations_by_year = defaultdict(int)
+                for citation in paper.get('citations', []):
+                    year = citation.get('citing_year')
+                    if year:
+                        citations_by_year[year] += 1
+                
+                # Check for sudden increase
+                if citations_by_year:
+                    years = sorted(citations_by_year.keys())
+                    for i in range(1, len(years)):
+                        prev_citations = citations_by_year[years[i-1]]
+                        curr_citations = citations_by_year[years[i]]
+                        
+                        if prev_citations > 0 and curr_citations / prev_citations > 3:
+                            breakthrough_papers.append({
+                                'paper_id': paper['id'],
+                                'title': paper['title'],
+                                'breakthrough_year': years[i],
+                                'citation_increase': curr_citations / prev_citations
+                            })
+                            break
+        
+        return {
+            'top_cited_papers': [
+                {
+                    'id': p['id'],
+                    'title': p['title'],
+                    'citations': p['citation_count'],
+                    'year': p['year']
+                }
+                for p in top_papers
+            ],
+            'citing_field_distribution': dict(citing_fields.most_common(10)),
+            'temporal_citation_distribution': dict(citing_years),
+            'breakthrough_papers': breakthrough_papers[:5],
+            'interdisciplinary_reach': len(citing_fields)
+        }
+    
+    async def _generate_impact_report(self, entity_id: str, entity_type: str,
+                                    impact_scores: Dict[str, float],
+                                    temporal_analysis: Dict[str, Any],
+                                    influence_analysis: Dict[str, Any]) -> Dict[str, Any]:
+        """Generate comprehensive impact report"""
+        
+        # Calculate percentile rankings (mock implementation)
+        percentile_rankings = {
+            'h_index': await self._calculate_percentile_rank(impact_scores['h_index'], 'h_index'),
+            'citation_velocity': await self._calculate_percentile_rank(impact_scores['citation_velocity'], 'citation_velocity'),
+            'cross_disciplinary_impact': await self._calculate_percentile_rank(impact_scores['cross_disciplinary_impact'], 'cross_disciplinary_impact')
+        }
+        
+        # Generate summary
+        summary = {
+            'entity_id': entity_id,
+            'entity_type': entity_type,
+            'overall_impact': 'high' if impact_scores['h_index'] > 20 else 'medium' if impact_scores['h_index'] > 10 else 'emerging',
+            'key_strengths': [],
+            'growth_areas': [],
+            'recommendations': []
+        }
+        
+        # Identify strengths
+        if impact_scores['h_index'] > 15:
+            summary['key_strengths'].append('Strong publication impact with high h-index')
+        if impact_scores['citation_velocity'] > 50:
+            summary['key_strengths'].append('High recent citation velocity indicates growing influence')
+        if impact_scores['cross_disciplinary_impact'] > 0.7:
+            summary['key_strengths'].append('Significant cross-disciplinary research impact')
+        
+        # Identify growth areas
+        if impact_scores['collaboration_network_centrality'] < 0.3:
+            summary['growth_areas'].append('Expand collaboration network')
+        if temporal_analysis.get('citation_trend') == 'declining':
+            summary['growth_areas'].append('Revitalize research impact through new directions')
+        
+        # Generate recommendations
+        if impact_scores['citation_velocity'] < 20:
+            summary['recommendations'].append('Increase research visibility through conferences and social media')
+        if impact_scores['cross_disciplinary_impact'] < 0.5:
+            summary['recommendations'].append('Explore interdisciplinary collaboration opportunities')
+        
+        return {
+            'summary': summary,
+            'percentile_rankings': percentile_rankings,
+            'impact_trajectory': temporal_analysis.get('citation_trend', 'unknown'),
+            'breakthrough_potential': len(influence_analysis.get('breakthrough_papers', [])) > 0
+        }
+    
+    async def _calculate_percentile_rank(self, score: float, metric: str) -> float:
+        """Calculate percentile rank for a given metric (mock implementation)"""
+        
+        # In practice, this would query a database of metric distributions
+        # For now, use simple heuristics
+        
+        if metric == 'h_index':
+            if score >= 40:
+                return 95.0
+            elif score >= 20:
+                return 80.0
+            elif score >= 10:
+                return 60.0
+            elif score >= 5:
+                return 40.0
+            else:
+                return 20.0
+        
+        elif metric == 'citation_velocity':
+            if score >= 100:
+                return 95.0
+            elif score >= 50:
+                return 80.0
+            elif score >= 20:
+                return 60.0
+            elif score >= 10:
+                return 40.0
+            else:
+                return 20.0
+        
+        else:
+            # Generic percentile based on 0-1 score
+            return score * 100
+    
+    async def _calculate_composite_score(self, impact_scores: Dict[str, float]) -> float:
+        """Calculate composite impact score from individual metrics"""
+        
+        # Weight different metrics
+        weights = {
+            'h_index': 0.25,
+            'citation_velocity': 0.20,
+            'cross_disciplinary_impact': 0.15,
+            'temporal_impact_pattern': 0.10,
+            'collaboration_network_centrality': 0.10,
+            'i10_index': 0.10,
+            'field_normalized_citation': 0.10
+        }
+        
+        # Normalize h_index and i10_index to 0-1 scale
+        normalized_scores = {}
+        normalized_scores['h_index'] = min(impact_scores.get('h_index', 0) / 50, 1.0)
+        normalized_scores['i10_index'] = min(impact_scores.get('i10_index', 0) / 100, 1.0)
+        normalized_scores['citation_velocity'] = min(impact_scores.get('citation_velocity', 0) / 100, 1.0)
+        
+        # Other scores already in 0-1 range
+        for metric in ['cross_disciplinary_impact', 'temporal_impact_pattern', 
+                      'collaboration_network_centrality', 'field_normalized_citation']:
+            normalized_scores[metric] = impact_scores.get(metric, 0)
+        
+        # Calculate weighted composite
+        composite = sum(normalized_scores.get(metric, 0) * weight 
+                       for metric, weight in weights.items())
+        
+        return round(composite, 3)
+    
+    async def _store_impact_analysis(self, tx_id: str, entity_id: str,
+                                   impact_scores: Dict[str, float],
+                                   temporal_analysis: Dict[str, Any],
+                                   influence_analysis: Dict[str, Any]) -> None:
+        """Store impact analysis results with provenance"""
+        
+        await self.dtm.add_operation(tx_id, 'write', 'neo4j', 'impact_analysis', {
+            'entity_id': entity_id,
+            'impact_scores': impact_scores,
+            'temporal_analysis': temporal_analysis,
+            'influence_analysis': influence_analysis,
+            'operation_type': 'impact_analysis_storage',
+            'timestamp': datetime.now().isoformat()
+        })
+        
+        logger.info(f"Impact analysis results prepared for storage - entity {entity_id}")
+</file>
+
+<file path="src/analytics/community_detector.py">
+#!/usr/bin/env python3
+"""
+Community Detector - Advanced community detection for academic knowledge graphs
+
+Implements Louvain, Leiden, and label propagation algorithms for discovering
+research communities and thematic clusters with comprehensive error handling.
+"""
+
+import asyncio
+import time
+import logging
+import networkx as nx
+import numpy as np
+from typing import Dict, List, Any, Optional, Tuple, Set
+from datetime import datetime
+from collections import defaultdict, Counter
+
+# Import community detection algorithms
+try:
+    import networkx.algorithms.community as nx_community
+    from networkx.algorithms.community import louvain_communities, label_propagation_communities
+except ImportError:
+    logger.warning("Advanced community detection modules not available")
+
+from .graph_centrality_analyzer import AnalyticsError
+
+logger = logging.getLogger(__name__)
+
+
+class CommunityDetector:
+    """Advanced community detection for academic knowledge graphs"""
+    
+    def __init__(self, neo4j_manager, distributed_tx_manager):
+        self.neo4j_manager = neo4j_manager
+        self.dtm = distributed_tx_manager
+        self.community_cache = {}
+        
+        # Performance thresholds
+        self.max_nodes_for_exact = 10000
+        self.min_community_size = 3
+        self.max_communities = 100
+        
+        # Algorithm configurations
+        self.community_algorithms = {
+            'louvain': self._louvain_clustering,
+            'leiden': self._leiden_clustering,
+            'label_propagation': self._label_propagation_clustering,
+            'greedy_modularity': self._greedy_modularity_clustering
+        }
+        
+        logger.info("CommunityDetector initialized")
+    
+    async def detect_research_communities(self, algorithm: str = 'louvain', 
+                                        entity_types: List[str] = None,
+                                        min_community_size: int = 5,
+                                        resolution: float = 1.0,
+                                        max_communities: int = 50) -> Dict[str, Any]:
+        """Detect research communities using specified algorithm"""
+        
+        tx_id = f"community_detection_{algorithm}_{int(time.time())}"
+        logger.info(f"Starting community detection - algorithm: {algorithm}, tx_id: {tx_id}")
+        
+        try:
+            await self.dtm.begin_distributed_transaction(tx_id)
+            
+            # Build collaboration/citation network
+            network_data = await self._build_research_network(entity_types)
+            
+            if not network_data or not network_data.get('edges'):
+                logger.warning("No network data found for community detection")
+                await self.dtm.commit_distributed_transaction(tx_id)
+                return {
+                    'algorithm': algorithm,
+                    'communities': [],
+                    'analysis': {},
+                    'metadata': {
+                        'total_communities': 0,
+                        'total_nodes': 0,
+                        'total_edges': 0,
+                        'execution_time': 0
+                    }
+                }
+            
+            # Apply selected community detection algorithm
+            start_time = time.time()
+            communities = await self.community_algorithms[algorithm](
+                network_data, min_community_size, resolution
+            )
+            execution_time = time.time() - start_time
+            
+            # Filter communities by size
+            filtered_communities = [
+                comm for comm in communities 
+                if len(comm['members']) >= min_community_size
+            ][:max_communities]
+            
+            # Analyze community characteristics
+            community_analysis = await self._analyze_communities(filtered_communities, network_data)
+            
+            # Store results with provenance tracking
+            await self._store_community_results(tx_id, filtered_communities, community_analysis)
+            
+            await self.dtm.commit_distributed_transaction(tx_id)
+            
+            result = {
+                'algorithm': algorithm,
+                'communities': filtered_communities,
+                'analysis': community_analysis,
+                'metadata': {
+                    'total_communities': len(filtered_communities),
+                    'total_nodes': len(network_data.get('nodes', {})),
+                    'total_edges': len(network_data.get('edges', [])),
+                    'largest_community_size': max(len(c['members']) for c in filtered_communities) if filtered_communities else 0,
+                    'modularity_score': community_analysis.get('modularity', 0),
+                    'clustering_coefficient': community_analysis.get('clustering', 0),
+                    'execution_time': execution_time,
+                    'min_community_size': min_community_size,
+                    'resolution': resolution
+                }
+            }
+            
+            logger.info(f"Community detection completed - found {len(filtered_communities)} communities in {execution_time:.2f}s")
+            return result
+            
+        except Exception as e:
+            logger.error(f"Community detection failed: {e}", exc_info=True)
+            await self.dtm.rollback_distributed_transaction(tx_id)
+            raise AnalyticsError(f"Community detection failed: {e}")
+    
+    async def _build_research_network(self, entity_types: List[str] = None) -> Dict[str, Any]:
+        """Build collaboration/citation network for community detection"""
+        
+        logger.info("Building research network for community detection")
+        
+        # Build query based on entity types
+        if entity_types:
+            type_filter = "WHERE any(label IN labels(a) WHERE label IN $entity_types)"
+            params = {'entity_types': entity_types}
+        else:
+            type_filter = ""
+            params = {}
+        
+        # Query for network structure with weights
+        query = f"""
+        MATCH (a)-[r]-(b)
+        {type_filter}
+        RETURN DISTINCT 
+            id(a) as node_a, 
+            id(b) as node_b,
+            labels(a) as labels_a,
+            labels(b) as labels_b,
+            a.name as name_a,
+            b.name as name_b,
+            type(r) as relationship_type,
+            count(r) as edge_weight,
+            collect(r.confidence) as confidences
+        LIMIT 50000
+        """
+        
+        await self.dtm.add_operation(self.dtm.current_tx_id, 'read', 'neo4j', 'network_data', {
+            'query': query,
+            'params': params,
+            'operation_type': 'community_network_fetch'
+        })
+        
+        network_data = await self.neo4j_manager.execute_read_query(query, params)
+        
+        # Process network data into structured format
+        nodes = {}
+        edges = []
+        
+        for record in network_data:
+            node_a_id = record['node_a']
+            node_b_id = record['node_b']
+            
+            # Add nodes with metadata
+            if node_a_id not in nodes:
+                nodes[node_a_id] = {
+                    'id': node_a_id,
+                    'name': record['name_a'] or f'Entity_{node_a_id}',
+                    'labels': record['labels_a'],
+                    'degree': 0
+                }
+            
+            if node_b_id not in nodes:
+                nodes[node_b_id] = {
+                    'id': node_b_id,
+                    'name': record['name_b'] or f'Entity_{node_b_id}',
+                    'labels': record['labels_b'],
+                    'degree': 0
+                }
+            
+            # Calculate edge weight
+            edge_weight = record['edge_weight']
+            confidences = [c for c in record['confidences'] if c is not None]
+            avg_confidence = np.mean(confidences) if confidences else 0.5
+            
+            final_weight = edge_weight * avg_confidence
+            
+            edges.append({
+                'source': node_a_id,
+                'target': node_b_id,
+                'weight': final_weight,
+                'relationship_type': record['relationship_type'],
+                'edge_count': edge_weight,
+                'avg_confidence': avg_confidence
+            })
+            
+            # Update node degrees
+            nodes[node_a_id]['degree'] += 1
+            nodes[node_b_id]['degree'] += 1
+        
+        logger.info(f"Built network with {len(nodes)} nodes and {len(edges)} edges")
+        
+        return {
+            'nodes': nodes,
+            'edges': edges
+        }
+    
+    async def _louvain_clustering(self, network_data: Dict, min_size: int, 
+                                resolution: float) -> List[Dict]:
+        """Louvain algorithm for community detection"""
+        
+        logger.info("Applying Louvain community detection algorithm")
+        
+        G = self._build_networkx_graph(network_data)
+        
+        try:
+            # Apply Louvain algorithm
+            communities = louvain_communities(G, resolution=resolution, weight='weight')
+            
+            # Convert to structured format
+            structured_communities = []
+            for i, community in enumerate(communities):
+                if len(community) >= min_size:
+                    community_data = await self._enrich_community_data(
+                        community_id=i,
+                        members=list(community),
+                        algorithm='louvain',
+                        network_data=network_data
+                    )
+                    structured_communities.append(community_data)
+            
+            logger.info(f"Louvain found {len(structured_communities)} communities (min_size >= {min_size})")
+            return structured_communities
+            
+        except Exception as e:
+            logger.error(f"Louvain clustering failed: {e}")
+            # Fallback to greedy modularity
+            return await self._greedy_modularity_clustering(network_data, min_size, resolution)
+    
+    async def _leiden_clustering(self, network_data: Dict, min_size: int, 
+                               resolution: float) -> List[Dict]:
+        """Leiden algorithm for community detection (fallback to Louvain)"""
+        
+        logger.info("Leiden algorithm not available, falling back to Louvain")
+        return await self._louvain_clustering(network_data, min_size, resolution)
+    
+    async def _label_propagation_clustering(self, network_data: Dict, min_size: int, 
+                                          resolution: float) -> List[Dict]:
+        """Label propagation algorithm for community detection"""
+        
+        logger.info("Applying label propagation community detection algorithm")
+        
+        G = self._build_networkx_graph(network_data)
+        
+        try:
+            # Apply label propagation
+            communities = label_propagation_communities(G)
+            
+            # Convert to structured format
+            structured_communities = []
+            for i, community in enumerate(communities):
+                if len(community) >= min_size:
+                    community_data = await self._enrich_community_data(
+                        community_id=i,
+                        members=list(community),
+                        algorithm='label_propagation',
+                        network_data=network_data
+                    )
+                    structured_communities.append(community_data)
+            
+            logger.info(f"Label propagation found {len(structured_communities)} communities (min_size >= {min_size})")
+            return structured_communities
+            
+        except Exception as e:
+            logger.error(f"Label propagation clustering failed: {e}")
+            # Fallback to greedy modularity
+            return await self._greedy_modularity_clustering(network_data, min_size, resolution)
+    
+    async def _greedy_modularity_clustering(self, network_data: Dict, min_size: int, 
+                                          resolution: float) -> List[Dict]:
+        """Greedy modularity optimization for community detection"""
+        
+        logger.info("Applying greedy modularity community detection algorithm")
+        
+        G = self._build_networkx_graph(network_data)
+        
+        try:
+            # Apply greedy modularity maximization
+            communities = nx_community.greedy_modularity_communities(G, weight='weight')
+            
+            # Convert to structured format
+            structured_communities = []
+            for i, community in enumerate(communities):
+                if len(community) >= min_size:
+                    community_data = await self._enrich_community_data(
+                        community_id=i,
+                        members=list(community),
+                        algorithm='greedy_modularity',
+                        network_data=network_data
+                    )
+                    structured_communities.append(community_data)
+            
+            logger.info(f"Greedy modularity found {len(structured_communities)} communities (min_size >= {min_size})")
+            return structured_communities
+            
+        except Exception as e:
+            logger.error(f"Greedy modularity clustering failed: {e}")
+            raise AnalyticsError(f"All community detection algorithms failed: {e}")
+    
+    def _build_networkx_graph(self, network_data: Dict) -> nx.Graph:
+        """Build NetworkX graph from network data"""
+        
+        G = nx.Graph()
+        
+        # Add nodes with attributes
+        for node_id, node_data in network_data['nodes'].items():
+            G.add_node(node_id, **node_data)
+        
+        # Add edges with weights
+        for edge in network_data['edges']:
+            G.add_edge(
+                edge['source'], 
+                edge['target'], 
+                weight=edge['weight'],
+                relationship_type=edge['relationship_type']
+            )
+        
+        return G
+    
+    async def _enrich_community_data(self, community_id: int, members: List[int], 
+                                   algorithm: str, network_data: Dict) -> Dict[str, Any]:
+        """Enrich community data with metadata and analysis"""
+        
+        # Get member names and metadata
+        member_data = []
+        labels_counter = Counter()
+        
+        for member_id in members:
+            node_data = network_data['nodes'].get(member_id, {})
+            member_data.append({
+                'id': member_id,
+                'name': node_data.get('name', f'Entity_{member_id}'),
+                'labels': node_data.get('labels', []),
+                'degree': node_data.get('degree', 0)
+            })
+            
+            # Count labels for community characterization
+            for label in node_data.get('labels', []):
+                labels_counter[label] += 1
+        
+        # Calculate internal connectivity
+        internal_edges = [
+            edge for edge in network_data['edges']
+            if edge['source'] in members and edge['target'] in members
+        ]
+        
+        # Calculate external connectivity
+        external_edges = [
+            edge for edge in network_data['edges']
+            if (edge['source'] in members) != (edge['target'] in members)
+        ]
+        
+        # Community theme analysis
+        dominant_labels = labels_counter.most_common(3)
+        
+        return {
+            'id': community_id,
+            'algorithm': algorithm,
+            'members': member_data,
+            'size': len(members),
+            'internal_edges': len(internal_edges),
+            'external_edges': len(external_edges),
+            'density': len(internal_edges) / (len(members) * (len(members) - 1) / 2) if len(members) > 1 else 0,
+            'dominant_labels': dominant_labels,
+            'avg_degree': np.mean([m['degree'] for m in member_data]) if member_data else 0,
+            'total_internal_weight': sum(e['weight'] for e in internal_edges),
+            'total_external_weight': sum(e['weight'] for e in external_edges)
+        }
+    
+    async def _analyze_communities(self, communities: List[Dict], 
+                                 network_data: Dict) -> Dict[str, Any]:
+        """Analyze community characteristics and research themes"""
+        
+        logger.info("Analyzing community characteristics")
+        
+        analysis = {
+            'community_themes': {},
+            'cross_community_connections': {},
+            'size_distribution': {},
+            'research_impact_metrics': {},
+            'modularity': 0.0,
+            'clustering': 0.0
+        }
+        
+        if not communities:
+            return analysis
+        
+        # Build graph for modularity calculation
+        G = self._build_networkx_graph(network_data)
+        
+        # Create partition for modularity calculation
+        partition = {}
+        for i, community in enumerate(communities):
+            for member in community['members']:
+                partition[member['id']] = i
+        
+        # Calculate modularity
+        try:
+            analysis['modularity'] = nx_community.modularity(G, [
+                set(member['id'] for member in comm['members']) 
+                for comm in communities
+            ], weight='weight')
+        except:
+            analysis['modularity'] = 0.0
+        
+        # Calculate clustering coefficient
+        try:
+            analysis['clustering'] = nx.average_clustering(G, weight='weight')
+        except:
+            analysis['clustering'] = 0.0
+        
+        # Analyze each community
+        for community in communities:
+            community_id = community['id']
+            
+            # Extract research themes
+            themes = await self._extract_community_themes(community)
+            analysis['community_themes'][community_id] = themes
+            
+            # Calculate community-specific metrics
+            impact_metrics = await self._calculate_community_impact(community)
+            analysis['research_impact_metrics'][community_id] = impact_metrics
+        
+        # Analyze cross-community connections
+        analysis['cross_community_connections'] = await self._analyze_cross_community_links(
+            communities, network_data
+        )
+        
+        # Size distribution analysis
+        sizes = [comm['size'] for comm in communities]
+        analysis['size_distribution'] = {
+            'mean': np.mean(sizes),
+            'std': np.std(sizes),
+            'min': min(sizes),
+            'max': max(sizes),
+            'median': np.median(sizes)
+        }
+        
+        return analysis
+    
+    async def _extract_community_themes(self, community: Dict) -> Dict[str, Any]:
+        """Extract research themes from community members"""
+        
+        # Analyze dominant labels
+        label_counts = Counter()
+        for member in community['members']:
+            for label in member.get('labels', []):
+                label_counts[label] += 1
+        
+        # Get top themes based on labels
+        top_themes = label_counts.most_common(5)
+        
+        # Calculate theme coherence
+        total_members = len(community['members'])
+        theme_coherence = {}
+        
+        for theme, count in top_themes:
+            coherence = count / total_members
+            theme_coherence[theme] = coherence
+        
+        return {
+            'dominant_themes': top_themes,
+            'theme_coherence': theme_coherence,
+            'diversity_score': len(label_counts) / total_members if total_members > 0 else 0
+        }
+    
+    async def _calculate_community_impact(self, community: Dict) -> Dict[str, Any]:
+        """Calculate research impact metrics for a community"""
+        
+        # Basic structural metrics
+        size = community['size']
+        density = community['density']
+        internal_strength = community['total_internal_weight']
+        external_strength = community['total_external_weight']
+        
+        # Calculate cohesion score
+        cohesion = internal_strength / (internal_strength + external_strength) if (internal_strength + external_strength) > 0 else 0
+        
+        # Calculate influence score (based on external connections)
+        influence = external_strength / size if size > 0 else 0
+        
+        # Calculate activity score (based on average degree)
+        activity = community['avg_degree']
+        
+        return {
+            'cohesion_score': cohesion,
+            'influence_score': influence,
+            'activity_score': activity,
+            'size_impact': size,
+            'density_score': density,
+            'internal_strength': internal_strength,
+            'external_strength': external_strength
+        }
+    
+    async def _analyze_cross_community_links(self, communities: List[Dict], 
+                                           network_data: Dict) -> Dict[str, Any]:
+        """Analyze connections between communities"""
+        
+        # Create community membership mapping
+        member_to_community = {}
+        for i, community in enumerate(communities):
+            for member in community['members']:
+                member_to_community[member['id']] = i
+        
+        # Analyze cross-community edges
+        cross_community_edges = []
+        community_connections = defaultdict(lambda: defaultdict(float))
+        
+        for edge in network_data['edges']:
+            source_comm = member_to_community.get(edge['source'])
+            target_comm = member_to_community.get(edge['target'])
+            
+            if source_comm is not None and target_comm is not None and source_comm != target_comm:
+                cross_community_edges.append({
+                    'source_community': source_comm,
+                    'target_community': target_comm,
+                    'weight': edge['weight'],
+                    'relationship_type': edge['relationship_type']
+                })
+                community_connections[source_comm][target_comm] += edge['weight']
+                community_connections[target_comm][source_comm] += edge['weight']
+        
+        # Find strongest inter-community connections
+        strongest_connections = []
+        for source_comm, targets in community_connections.items():
+            for target_comm, weight in targets.items():
+                if source_comm < target_comm:  # Avoid duplicates
+                    strongest_connections.append({
+                        'community_1': source_comm,
+                        'community_2': target_comm,
+                        'connection_strength': weight
+                    })
+        
+        strongest_connections.sort(key=lambda x: x['connection_strength'], reverse=True)
+        
+        return {
+            'total_cross_community_edges': len(cross_community_edges),
+            'community_connections': dict(community_connections),
+            'strongest_connections': strongest_connections[:10]  # Top 10
+        }
+    
+    async def _store_community_results(self, tx_id: str, communities: List[Dict], 
+                                     analysis: Dict[str, Any]) -> None:
+        """Store community detection results with provenance"""
+        
+        # Add storage operation to distributed transaction
+        await self.dtm.add_operation(tx_id, 'write', 'neo4j', 'community_results', {
+            'communities': communities,
+            'analysis': analysis,
+            'operation_type': 'community_detection_storage',
+            'timestamp': datetime.now().isoformat()
+        })
+        
+        logger.info(f"Community detection results prepared for storage - {len(communities)} communities")
+</file>
+
+<file path="src/analytics/cross_modal_linker.py">
+#!/usr/bin/env python3
+"""
+Cross-Modal Entity Linker - Link entities across text, image, and structured data modalities
+
+Implements multi-modal entity linking using embeddings and graph structure analysis
+with comprehensive error handling and integration with the distributed transaction system.
+"""
+
+import asyncio
+import time
+import logging
+import numpy as np
+from typing import Dict, List, Any, Optional, Tuple, Set
+from datetime import datetime
+from collections import defaultdict
+import json
+
+from .graph_centrality_analyzer import AnalyticsError
+
+logger = logging.getLogger(__name__)
+
+
+class EntityResolver:
+    """Entity resolution algorithm for cross-modal linking"""
+    
+    def __init__(self, similarity_matrices: Dict[str, np.ndarray], 
+                 graph_contexts: Dict[str, Any],
+                 similarity_threshold: float = 0.85,
+                 modality_weights: Dict[str, float] = None):
+        self.similarity_matrices = similarity_matrices
+        self.graph_contexts = graph_contexts
+        self.similarity_threshold = similarity_threshold
+        self.modality_weights = modality_weights or {
+            'text': 0.4, 'image': 0.3, 'structured': 0.3
+        }
+    
+    async def resolve_entities(self) -> List[Dict[str, Any]]:
+        """Resolve entities using similarity and graph context"""
+        
+        logger.info("Starting entity resolution")
+        
+        # Find high-confidence cross-modal matches
+        cross_modal_matches = await self._find_cross_modal_matches()
+        
+        # Apply graph-based validation
+        validated_matches = await self._validate_with_graph_context(cross_modal_matches)
+        
+        # Create entity clusters
+        entity_clusters = await self._create_entity_clusters(validated_matches)
+        
+        logger.info(f"Resolved {len(entity_clusters)} entity clusters")
+        return entity_clusters
+    
+    async def _find_cross_modal_matches(self) -> List[Dict[str, Any]]:
+        """Find high-confidence matches across modalities"""
+        
+        matches = []
+        
+        # Compare each pair of modalities
+        modalities = list(self.similarity_matrices.keys())
+        
+        for i, mod1 in enumerate(modalities):
+            for j, mod2 in enumerate(modalities[i+1:], i+1):
+                # Calculate cross-modal similarity
+                sim_matrix = await self._calculate_cross_modal_similarity(mod1, mod2)
+                
+                # Find high-confidence matches
+                high_conf_matches = await self._extract_high_confidence_matches(
+                    sim_matrix, mod1, mod2
+                )
+                
+                matches.extend(high_conf_matches)
+        
+        return matches
+    
+    async def _calculate_cross_modal_similarity(self, mod1: str, mod2: str) -> np.ndarray:
+        """Calculate similarity matrix between two modalities"""
+        
+        emb1 = self.similarity_matrices[mod1]
+        emb2 = self.similarity_matrices[mod2]
+        
+        # Cosine similarity
+        norm1 = np.linalg.norm(emb1, axis=1)
+        norm2 = np.linalg.norm(emb2, axis=1)
+        
+        similarity = np.dot(emb1, emb2.T) / np.outer(norm1, norm2)
+        
+        return similarity
+    
+    async def _extract_high_confidence_matches(self, sim_matrix: np.ndarray, 
+                                             mod1: str, mod2: str) -> List[Dict[str, Any]]:
+        """Extract high-confidence matches from similarity matrix"""
+        
+        matches = []
+        
+        # Find matches above threshold
+        high_sim_indices = np.where(sim_matrix >= self.similarity_threshold)
+        
+        for i, j in zip(high_sim_indices[0], high_sim_indices[1]):
+            match = {
+                'modality_1': mod1,
+                'modality_2': mod2,
+                'entity_1_idx': i,
+                'entity_2_idx': j,
+                'similarity_score': sim_matrix[i, j],
+                'confidence': sim_matrix[i, j]
+            }
+            matches.append(match)
+        
+        return matches
+    
+    async def _validate_with_graph_context(self, matches: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Validate matches using graph context"""
+        
+        validated_matches = []
+        
+        for match in matches:
+            # Get graph context for both entities
+            entity1_context = self.graph_contexts.get(f"{match['modality_1']}_{match['entity_1_idx']}", {})
+            entity2_context = self.graph_contexts.get(f"{match['modality_2']}_{match['entity_2_idx']}", {})
+            
+            # Calculate context similarity
+            context_similarity = await self._calculate_context_similarity(
+                entity1_context, entity2_context
+            )
+            
+            # Adjust confidence based on context
+            adjusted_confidence = (match['confidence'] + context_similarity) / 2
+            
+            if adjusted_confidence >= self.similarity_threshold * 0.8:  # Slightly lower threshold after context
+                match['context_similarity'] = context_similarity
+                match['adjusted_confidence'] = adjusted_confidence
+                validated_matches.append(match)
+        
+        return validated_matches
+    
+    async def _calculate_context_similarity(self, context1: Dict, context2: Dict) -> float:
+        """Calculate similarity between graph contexts"""
+        
+        # Compare connected entities
+        conn1 = set(context1.get('connected_entities', []))
+        conn2 = set(context2.get('connected_entities', []))
+        
+        if not conn1 and not conn2:
+            return 0.5  # Neutral if no context
+        
+        if not conn1 or not conn2:
+            return 0.1  # Low if only one has context
+        
+        # Jaccard similarity of connected entities
+        intersection = len(conn1.intersection(conn2))
+        union = len(conn1.union(conn2))
+        
+        jaccard_similarity = intersection / union if union > 0 else 0
+        
+        return jaccard_similarity
+    
+    async def _create_entity_clusters(self, validated_matches: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Create entity clusters from validated matches"""
+        
+        # Build graph of entity matches
+        match_graph = defaultdict(set)
+        
+        for match in validated_matches:
+            entity1_key = f"{match['modality_1']}_{match['entity_1_idx']}"
+            entity2_key = f"{match['modality_2']}_{match['entity_2_idx']}"
+            
+            match_graph[entity1_key].add(entity2_key)
+            match_graph[entity2_key].add(entity1_key)
+        
+        # Find connected components (entity clusters)
+        visited = set()
+        clusters = []
+        
+        for entity_key in match_graph:
+            if entity_key not in visited:
+                cluster = await self._dfs_cluster(entity_key, match_graph, visited)
+                if len(cluster) > 1:  # Only multi-entity clusters
+                    clusters.append(cluster)
+        
+        # Enrich clusters with metadata
+        enriched_clusters = []
+        for i, cluster in enumerate(clusters):
+            enriched_cluster = await self._enrich_entity_cluster(i, cluster)
+            enriched_clusters.append(enriched_cluster)
+        
+        return enriched_clusters
+    
+    async def _dfs_cluster(self, start_entity: str, match_graph: Dict, visited: Set[str]) -> List[str]:
+        """DFS to find connected entity cluster"""
+        
+        cluster = []
+        stack = [start_entity]
+        
+        while stack:
+            entity = stack.pop()
+            if entity not in visited:
+                visited.add(entity)
+                cluster.append(entity)
+                
+                # Add connected entities to stack
+                for connected in match_graph[entity]:
+                    if connected not in visited:
+                        stack.append(connected)
+        
+        return cluster
+    
+    async def _enrich_entity_cluster(self, cluster_id: int, cluster: List[str]) -> Dict[str, Any]:
+        """Enrich entity cluster with metadata"""
+        
+        # Parse cluster entities by modality
+        modality_entities = defaultdict(list)
+        
+        for entity_key in cluster:
+            modality, idx = entity_key.split('_', 1)
+            modality_entities[modality].append(int(idx))
+        
+        return {
+            'cluster_id': cluster_id,
+            'entities': dict(modality_entities),
+            'size': len(cluster),
+            'modalities': list(modality_entities.keys()),
+            'cross_modal_count': len(modality_entities)
+        }
+
+
+class CrossModalEntityLinker:
+    """Link entities across text, image, and structured data modalities"""
+    
+    def __init__(self, neo4j_manager, distributed_tx_manager, embedding_service=None):
+        self.neo4j_manager = neo4j_manager
+        self.dtm = distributed_tx_manager
+        self.embedding_service = embedding_service or MockEmbeddingService()
+        
+        # Configuration
+        self.similarity_threshold = 0.85
+        self.modality_weights = {
+            'text': 0.4,
+            'image': 0.3,
+            'structured': 0.3
+        }
+        self.max_entities_per_modality = 1000
+        
+        logger.info("CrossModalEntityLinker initialized")
+    
+    async def link_cross_modal_entities(self, entity_candidates: Dict[str, List[Dict]]) -> Dict[str, Any]:
+        """Link entities across different modalities using embeddings and graph structure"""
+        
+        tx_id = f"cross_modal_linking_{int(time.time())}"
+        logger.info(f"Starting cross-modal entity linking - tx_id: {tx_id}")
+        
+        try:
+            await self.dtm.begin_distributed_transaction(tx_id)
+            
+            # Validate and limit input
+            filtered_candidates = await self._filter_entity_candidates(entity_candidates)
+            
+            if not filtered_candidates:
+                logger.warning("No valid entity candidates found")
+                await self.dtm.commit_distributed_transaction(tx_id)
+                return {
+                    'linked_entities': [],
+                    'cross_modal_graph': {},
+                    'linking_metrics': {'total_entities': 0, 'linked_entities': 0}
+                }
+            
+            # Generate embeddings for all entity candidates
+            modal_embeddings = await self._generate_modal_embeddings(filtered_candidates)
+            
+            # Calculate cross-modal similarity matrices
+            similarity_matrices = await self._calculate_cross_modal_similarities(modal_embeddings)
+            
+            # Get graph context for entities
+            graph_contexts = await self._get_graph_contexts(filtered_candidates)
+            
+            # Apply graph-based entity resolution
+            linked_entities = await self._resolve_entities_with_graph_context(
+                filtered_candidates, similarity_matrices, graph_contexts
+            )
+            
+            # Create cross-modal entity graph
+            cross_modal_graph = await self._build_cross_modal_graph(linked_entities)
+            
+            # Store results with full provenance
+            await self._store_cross_modal_links(tx_id, linked_entities, cross_modal_graph)
+            
+            await self.dtm.commit_distributed_transaction(tx_id)
+            
+            result = {
+                'linked_entities': linked_entities,
+                'cross_modal_graph': cross_modal_graph,
+                'linking_metrics': await self._calculate_linking_metrics(
+                    filtered_candidates, linked_entities
+                )
+            }
+            
+            logger.info(f"Cross-modal entity linking completed - found {len(linked_entities)} entity clusters")
+            return result
+            
+        except Exception as e:
+            logger.error(f"Cross-modal entity linking failed: {e}", exc_info=True)
+            await self.dtm.rollback_distributed_transaction(tx_id)
+            raise AnalyticsError(f"Cross-modal entity linking failed: {e}")
+    
+    async def _filter_entity_candidates(self, entity_candidates: Dict[str, List[Dict]]) -> Dict[str, List[Dict]]:
+        """Filter and validate entity candidates"""
+        
+        filtered = {}
+        
+        for modality, entities in entity_candidates.items():
+            if modality in self.modality_weights:
+                # Limit entities per modality for performance
+                limited_entities = entities[:self.max_entities_per_modality]
+                
+                # Validate entity structure
+                valid_entities = []
+                for entity in limited_entities:
+                    if await self._validate_entity(entity, modality):
+                        valid_entities.append(entity)
+                
+                if valid_entities:
+                    filtered[modality] = valid_entities
+        
+        return filtered
+    
+    async def _validate_entity(self, entity: Dict, modality: str) -> bool:
+        """Validate entity structure based on modality"""
+        
+        if modality == 'text':
+            return 'text_content' in entity and entity['text_content'].strip()
+        elif modality == 'image':
+            return 'image_path' in entity or 'image_data' in entity
+        elif modality == 'structured':
+            return 'structured_data' in entity and entity['structured_data']
+        
+        return False
+    
+    async def _generate_modal_embeddings(self, entity_candidates: Dict[str, List[Dict]]) -> Dict[str, np.ndarray]:
+        """Generate embeddings for entities in each modality"""
+        
+        logger.info("Generating embeddings for all modalities")
+        modal_embeddings = {}
+        
+        for modality, entities in entity_candidates.items():
+            if modality == 'text':
+                embeddings = await self.embedding_service.generate_text_embeddings([
+                    entity['text_content'] for entity in entities
+                ])
+            elif modality == 'image':
+                embeddings = await self.embedding_service.generate_image_embeddings([
+                    entity.get('image_path', entity.get('image_data', '')) for entity in entities
+                ])
+            elif modality == 'structured':
+                embeddings = await self.embedding_service.generate_structured_embeddings([
+                    entity['structured_data'] for entity in entities
+                ])
+            else:
+                logger.warning(f"Unknown modality: {modality}")
+                continue
+            
+            modal_embeddings[modality] = embeddings
+            logger.info(f"Generated {len(embeddings)} embeddings for {modality} modality")
+        
+        return modal_embeddings
+    
+    async def _calculate_cross_modal_similarities(self, modal_embeddings: Dict[str, np.ndarray]) -> Dict[str, np.ndarray]:
+        """Calculate cross-modal similarity matrices"""
+        
+        logger.info("Calculating cross-modal similarity matrices")
+        
+        similarity_matrices = {}
+        modalities = list(modal_embeddings.keys())
+        
+        for i, mod1 in enumerate(modalities):
+            for j, mod2 in enumerate(modalities[i+1:], i+1):
+                key = f"{mod1}_{mod2}"
+                
+                emb1 = modal_embeddings[mod1]
+                emb2 = modal_embeddings[mod2]
+                
+                # Calculate cosine similarity matrix
+                norm1 = np.linalg.norm(emb1, axis=1, keepdims=True)
+                norm2 = np.linalg.norm(emb2, axis=1, keepdims=True)
+                
+                normalized_emb1 = emb1 / norm1
+                normalized_emb2 = emb2 / norm2
+                
+                similarity_matrix = np.dot(normalized_emb1, normalized_emb2.T)
+                similarity_matrices[key] = similarity_matrix
+        
+        # Store individual modality embeddings for resolver
+        for modality, embeddings in modal_embeddings.items():
+            similarity_matrices[modality] = embeddings
+        
+        return similarity_matrices
+    
+    async def _get_graph_contexts(self, entity_candidates: Dict[str, List[Dict]]) -> Dict[str, Dict]:
+        """Get graph context for each entity candidate"""
+        
+        logger.info("Retrieving graph contexts for entity candidates")
+        
+        graph_contexts = {}
+        
+        for modality, entities in entity_candidates.items():
+            for i, entity in enumerate(entities):
+                entity_key = f"{modality}_{i}"
+                
+                # Query for connected entities based on entity ID or name
+                context = await self._query_entity_context(entity, modality)
+                graph_contexts[entity_key] = context
+        
+        return graph_contexts
+    
+    async def _query_entity_context(self, entity: Dict, modality: str) -> Dict[str, Any]:
+        """Query graph context for a single entity"""
+        
+        try:
+            # Determine entity identifier
+            entity_id = entity.get('entity_id')
+            entity_name = entity.get('name') or entity.get('title')
+            
+            if entity_id:
+                query = """
+                MATCH (e)-[r]-(connected)
+                WHERE id(e) = $entity_id
+                RETURN collect(DISTINCT id(connected)) as connected_entities,
+                       collect(DISTINCT type(r)) as relationship_types
+                LIMIT 100
+                """
+                params = {'entity_id': entity_id}
+            elif entity_name:
+                query = """
+                MATCH (e)-[r]-(connected)
+                WHERE e.name = $entity_name OR e.title = $entity_name
+                RETURN collect(DISTINCT id(connected)) as connected_entities,
+                       collect(DISTINCT type(r)) as relationship_types
+                LIMIT 100
+                """
+                params = {'entity_name': entity_name}
+            else:
+                return {'connected_entities': [], 'relationship_types': []}
+            
+            await self.dtm.add_operation(self.dtm.current_tx_id, 'read', 'neo4j', 'entity_context', {
+                'query': query,
+                'params': params,
+                'operation_type': 'cross_modal_context_fetch'
+            })
+            
+            result = await self.neo4j_manager.execute_read_query(query, params)
+            
+            if result:
+                return {
+                    'connected_entities': result[0].get('connected_entities', []),
+                    'relationship_types': result[0].get('relationship_types', [])
+                }
+            else:
+                return {'connected_entities': [], 'relationship_types': []}
+                
+        except Exception as e:
+            logger.warning(f"Failed to get context for entity: {e}")
+            return {'connected_entities': [], 'relationship_types': []}
+    
+    async def _resolve_entities_with_graph_context(self, entity_candidates: Dict, 
+                                                 similarity_matrices: Dict,
+                                                 graph_contexts: Dict) -> List[Dict]:
+        """Resolve entity links using both similarity and graph context"""
+        
+        logger.info("Resolving entities with graph context")
+        
+        # Create entity resolver
+        resolver = EntityResolver(
+            similarity_matrices=similarity_matrices,
+            graph_contexts=graph_contexts,
+            similarity_threshold=self.similarity_threshold,
+            modality_weights=self.modality_weights
+        )
+        
+        # Resolve entities
+        linked_entities = await resolver.resolve_entities()
+        
+        # Enrich with original entity data
+        enriched_entities = []
+        for cluster in linked_entities:
+            enriched_cluster = await self._enrich_linked_cluster(cluster, entity_candidates)
+            enriched_entities.append(enriched_cluster)
+        
+        return enriched_entities
+    
+    async def _enrich_linked_cluster(self, cluster: Dict, entity_candidates: Dict) -> Dict:
+        """Enrich linked entity cluster with original entity data"""
+        
+        enriched_entities = {}
+        
+        for modality, entity_indices in cluster['entities'].items():
+            enriched_entities[modality] = []
+            
+            for idx in entity_indices:
+                if idx < len(entity_candidates.get(modality, [])):
+                    original_entity = entity_candidates[modality][idx].copy()
+                    original_entity['cluster_id'] = cluster['cluster_id']
+                    enriched_entities[modality].append(original_entity)
+        
+        return {
+            'cluster_id': cluster['cluster_id'],
+            'entities': enriched_entities,
+            'size': cluster['size'],
+            'modalities': cluster['modalities'],
+            'cross_modal_count': cluster['cross_modal_count']
+        }
+    
+    async def _build_cross_modal_graph(self, linked_entities: List[Dict]) -> Dict[str, Any]:
+        """Build cross-modal entity graph"""
+        
+        nodes = []
+        edges = []
+        
+        for cluster in linked_entities:
+            cluster_id = cluster['cluster_id']
+            
+            # Create cluster node
+            cluster_node = {
+                'id': f"cluster_{cluster_id}",
+                'type': 'entity_cluster',
+                'size': cluster['size'],
+                'modalities': cluster['modalities']
+            }
+            nodes.append(cluster_node)
+            
+            # Create edges between entities in the cluster
+            all_entities = []
+            for modality, entities in cluster['entities'].items():
+                for i, entity in enumerate(entities):
+                    entity_node = {
+                        'id': f"{modality}_{cluster_id}_{i}",
+                        'type': 'entity',
+                        'modality': modality,
+                        'cluster_id': cluster_id,
+                        'data': entity
+                    }
+                    nodes.append(entity_node)
+                    all_entities.append(entity_node['id'])
+                    
+                    # Edge from entity to cluster
+                    edges.append({
+                        'source': entity_node['id'],
+                        'target': cluster_node['id'],
+                        'type': 'belongs_to'
+                    })
+            
+            # Edges between entities in the same cluster
+            for i, entity1_id in enumerate(all_entities):
+                for entity2_id in all_entities[i+1:]:
+                    edges.append({
+                        'source': entity1_id,
+                        'target': entity2_id,
+                        'type': 'linked_entity'
+                    })
+        
+        return {
+            'nodes': nodes,
+            'edges': edges,
+            'total_clusters': len(linked_entities),
+            'total_nodes': len(nodes),
+            'total_edges': len(edges)
+        }
+    
+    async def _calculate_linking_metrics(self, entity_candidates: Dict, 
+                                       linked_entities: List[Dict]) -> Dict[str, Any]:
+        """Calculate linking performance metrics"""
+        
+        total_entities = sum(len(entities) for entities in entity_candidates.values())
+        linked_entity_count = sum(cluster['size'] for cluster in linked_entities)
+        
+        modality_coverage = {}
+        for modality in entity_candidates.keys():
+            entities_in_clusters = sum(
+                len(cluster['entities'].get(modality, []))
+                for cluster in linked_entities
+            )
+            total_in_modality = len(entity_candidates[modality])
+            coverage = entities_in_clusters / total_in_modality if total_in_modality > 0 else 0
+            modality_coverage[modality] = coverage
+        
+        return {
+            'total_entities': total_entities,
+            'linked_entities': linked_entity_count,
+            'linking_rate': linked_entity_count / total_entities if total_entities > 0 else 0,
+            'total_clusters': len(linked_entities),
+            'avg_cluster_size': np.mean([cluster['size'] for cluster in linked_entities]) if linked_entities else 0,
+            'modality_coverage': modality_coverage,
+            'cross_modal_clusters': sum(1 for cluster in linked_entities if cluster['cross_modal_count'] > 1)
+        }
+    
+    async def _store_cross_modal_links(self, tx_id: str, linked_entities: List[Dict], 
+                                     cross_modal_graph: Dict[str, Any]) -> None:
+        """Store cross-modal linking results with provenance"""
+        
+        await self.dtm.add_operation(tx_id, 'write', 'neo4j', 'cross_modal_links', {
+            'linked_entities': linked_entities,
+            'cross_modal_graph': cross_modal_graph,
+            'operation_type': 'cross_modal_linking_storage',
+            'timestamp': datetime.now().isoformat()
+        })
+        
+        logger.info(f"Cross-modal linking results prepared for storage - {len(linked_entities)} clusters")
+
+
+class MockEmbeddingService:
+    """Mock embedding service for testing"""
+    
+    async def generate_text_embeddings(self, texts: List[str]) -> np.ndarray:
+        """Generate mock text embeddings"""
+        return np.random.rand(len(texts), 384)  # Typical embedding dimension
+    
+    async def generate_image_embeddings(self, images: List[str]) -> np.ndarray:
+        """Generate mock image embeddings"""
+        return np.random.rand(len(images), 512)  # Typical image embedding dimension
+    
+    async def generate_structured_embeddings(self, structured_data: List[Dict]) -> np.ndarray:
+        """Generate mock structured data embeddings"""
+        return np.random.rand(len(structured_data), 256)  # Smaller for structured data
+</file>
+
+<file path="src/analytics/graph_centrality_analyzer.py">
+#!/usr/bin/env python3
+"""
+Graph Centrality Analyzer - Advanced centrality analysis for academic knowledge graphs
+
+Implements PageRank, betweenness centrality, and closeness centrality algorithms
+with comprehensive error handling and integration with the distributed transaction system.
+"""
+
+import asyncio
+import time
+import logging
+import networkx as nx
+import numpy as np
+from typing import Dict, List, Any, Optional, Tuple
+from datetime import datetime
+
+logger = logging.getLogger(__name__)
+
+
+class AnalyticsError(Exception):
+    """Base exception for analytics operations"""
+    pass
+
+
+class GraphCentralityAnalyzer:
+    """Advanced centrality analysis for academic knowledge graphs"""
+    
+    def __init__(self, neo4j_manager, distributed_tx_manager):
+        self.neo4j_manager = neo4j_manager
+        self.dtm = distributed_tx_manager
+        self.centrality_cache = {}
+        
+        # Performance thresholds
+        self.max_nodes_for_exact = 10000
+        self.max_nodes_for_betweenness = 5000
+        self.sampling_ratio = 0.1
+        
+        logger.info("GraphCentralityAnalyzer initialized")
+    
+    async def calculate_pagerank_centrality(self, entity_type: str = None, 
+                                          damping_factor: float = 0.85,
+                                          max_iterations: int = 100,
+                                          tolerance: float = 1e-6) -> Dict[str, Any]:
+        """Calculate PageRank centrality for entities in knowledge graph"""
+        
+        tx_id = f"pagerank_{entity_type}_{int(time.time())}"
+        logger.info(f"Starting PageRank calculation - tx_id: {tx_id}")
+        
+        try:
+            await self.dtm.begin_distributed_transaction(tx_id)
+            
+            # Query graph structure with optional entity type filter
+            if entity_type:
+                query = """
+                MATCH (source)-[r]->(target)
+                WHERE labels(source) = [$entity_type]
+                RETURN id(source) as source_id, id(target) as target_id, 
+                       type(r) as relationship_type, properties(r) as props,
+                       labels(source) as source_labels, labels(target) as target_labels
+                """
+                params = {'entity_type': entity_type}
+            else:
+                query = """
+                MATCH (source)-[r]->(target)
+                RETURN id(source) as source_id, id(target) as target_id, 
+                       type(r) as relationship_type, properties(r) as props,
+                       labels(source) as source_labels, labels(target) as target_labels
+                LIMIT 50000
+                """
+                params = {}
+            
+            # Execute with transaction safety
+            await self.dtm.add_operation(tx_id, 'read', 'neo4j', 'graph_structure', {
+                'query': query,
+                'params': params,
+                'operation_type': 'pagerank_data_fetch'
+            })
+            
+            graph_data = await self.neo4j_manager.execute_read_query(query, params)
+            
+            if not graph_data:
+                logger.warning("No graph data found for PageRank calculation")
+                await self.dtm.commit_distributed_transaction(tx_id)
+                return {
+                    'algorithm': 'pagerank',
+                    'entity_type': entity_type,
+                    'scores': {},
+                    'metadata': {
+                        'total_nodes': 0,
+                        'total_edges': 0,
+                        'damping_factor': damping_factor,
+                        'execution_time': 0,
+                        'method': 'exact'
+                    }
+                }
+            
+            # Build NetworkX graph for PageRank calculation
+            G = nx.DiGraph()
+            node_metadata = {}
+            
+            for record in graph_data:
+                source = record['source_id']
+                target = record['target_id']
+                weight = self._calculate_edge_weight(record['relationship_type'], record['props'])
+                
+                G.add_edge(source, target, weight=weight)
+                
+                # Store node metadata for enrichment
+                if source not in node_metadata:
+                    node_metadata[source] = {
+                        'labels': record['source_labels'],
+                        'id': source
+                    }
+                if target not in node_metadata:
+                    node_metadata[target] = {
+                        'labels': record['target_labels'],
+                        'id': target
+                    }
+            
+            logger.info(f"Built graph with {G.number_of_nodes()} nodes and {G.number_of_edges()} edges")
+            
+            # Choose algorithm based on graph size
+            start_time = time.time()
+            if G.number_of_nodes() > self.max_nodes_for_exact:
+                pagerank_scores = await self._calculate_approximate_pagerank(
+                    G, damping_factor, max_iterations, tolerance
+                )
+                method = 'approximate'
+            else:
+                pagerank_scores = nx.pagerank(
+                    G, alpha=damping_factor, max_iter=max_iterations, 
+                    tol=tolerance, weight='weight'
+                )
+                method = 'exact'
+            
+            execution_time = time.time() - start_time
+            
+            # Enrich results with entity names and metadata
+            enriched_scores = await self._enrich_pagerank_results(pagerank_scores, node_metadata)
+            
+            await self.dtm.commit_distributed_transaction(tx_id)
+            
+            result = {
+                'algorithm': 'pagerank',
+                'entity_type': entity_type,
+                'scores': enriched_scores,
+                'metadata': {
+                    'total_nodes': G.number_of_nodes(),
+                    'total_edges': G.number_of_edges(),
+                    'damping_factor': damping_factor,
+                    'execution_time': execution_time,
+                    'method': method,
+                    'max_iterations': max_iterations,
+                    'tolerance': tolerance
+                }
+            }
+            
+            logger.info(f"PageRank calculation completed in {execution_time:.2f}s using {method} method")
+            return result
+            
+        except Exception as e:
+            logger.error(f"PageRank calculation failed: {e}", exc_info=True)
+            await self.dtm.rollback_distributed_transaction(tx_id)
+            raise AnalyticsError(f"PageRank calculation failed: {e}")
+    
+    async def calculate_betweenness_centrality(self, entity_type: str = None,
+                                             normalized: bool = True,
+                                             k: Optional[int] = None) -> Dict[str, Any]:
+        """Calculate betweenness centrality to identify bridge entities"""
+        
+        tx_id = f"betweenness_{entity_type}_{int(time.time())}"
+        logger.info(f"Starting betweenness centrality calculation - tx_id: {tx_id}")
+        
+        try:
+            await self.dtm.begin_distributed_transaction(tx_id)
+            
+            # Fetch undirected graph structure for betweenness
+            if entity_type:
+                query = """
+                MATCH (a)-[r]-(b)
+                WHERE labels(a) = [$entity_type]
+                RETURN DISTINCT id(a) as node_a, id(b) as node_b,
+                       collect(type(r)) as relationship_types,
+                       labels(a) as labels_a, labels(b) as labels_b
+                """
+                params = {'entity_type': entity_type}
+            else:
+                query = """
+                MATCH (a)-[r]-(b)
+                RETURN DISTINCT id(a) as node_a, id(b) as node_b,
+                       collect(type(r)) as relationship_types,
+                       labels(a) as labels_a, labels(b) as labels_b
+                LIMIT 25000
+                """
+                params = {}
+            
+            await self.dtm.add_operation(tx_id, 'read', 'neo4j', 'graph_structure', {
+                'query': query,
+                'params': params,
+                'operation_type': 'betweenness_data_fetch'
+            })
+            
+            graph_data = await self.neo4j_manager.execute_read_query(query, params)
+            
+            if not graph_data:
+                logger.warning("No graph data found for betweenness centrality calculation")
+                await self.dtm.commit_distributed_transaction(tx_id)
+                return {
+                    'algorithm': 'betweenness_centrality',
+                    'entity_type': entity_type,
+                    'scores': {},
+                    'metadata': {
+                        'total_nodes': 0,
+                        'total_edges': 0,
+                        'normalized': normalized,
+                        'execution_time': 0,
+                        'method': 'exact'
+                    }
+                }
+            
+            # Build undirected graph
+            G = nx.Graph()
+            node_metadata = {}
+            
+            for record in graph_data:
+                node_a = record['node_a']
+                node_b = record['node_b']
+                
+                G.add_edge(node_a, node_b)
+                
+                # Store node metadata
+                if node_a not in node_metadata:
+                    node_metadata[node_a] = {
+                        'labels': record['labels_a'],
+                        'id': node_a
+                    }
+                if node_b not in node_metadata:
+                    node_metadata[node_b] = {
+                        'labels': record['labels_b'],
+                        'id': node_b
+                    }
+            
+            logger.info(f"Built undirected graph with {G.number_of_nodes()} nodes and {G.number_of_edges()} edges")
+            
+            # Choose algorithm based on graph size
+            start_time = time.time()
+            if G.number_of_nodes() > self.max_nodes_for_betweenness:
+                # Use approximation with sampling
+                sample_k = k or max(100, int(G.number_of_nodes() * self.sampling_ratio))
+                betweenness_scores = nx.betweenness_centrality(
+                    G, k=sample_k, normalized=normalized
+                )
+                method = 'approximate'
+                logger.info(f"Using approximate betweenness with k={sample_k} samples")
+            else:
+                betweenness_scores = nx.betweenness_centrality(
+                    G, normalized=normalized
+                )
+                method = 'exact'
+            
+            execution_time = time.time() - start_time
+            
+            # Enrich with entity metadata
+            enriched_scores = await self._enrich_centrality_results(betweenness_scores, node_metadata)
+            
+            await self.dtm.commit_distributed_transaction(tx_id)
+            
+            result = {
+                'algorithm': 'betweenness_centrality',
+                'entity_type': entity_type,
+                'scores': enriched_scores,
+                'metadata': {
+                    'total_nodes': G.number_of_nodes(),
+                    'total_edges': G.number_of_edges(),
+                    'normalized': normalized,
+                    'execution_time': execution_time,
+                    'method': method,
+                    'k_samples': k if method == 'approximate' else None
+                }
+            }
+            
+            logger.info(f"Betweenness centrality calculation completed in {execution_time:.2f}s using {method} method")
+            return result
+            
+        except Exception as e:
+            logger.error(f"Betweenness centrality calculation failed: {e}", exc_info=True)
+            await self.dtm.rollback_distributed_transaction(tx_id)
+            raise AnalyticsError(f"Betweenness centrality calculation failed: {e}")
+    
+    async def calculate_closeness_centrality(self, entity_type: str = None,
+                                           distance: Optional[str] = None,
+                                           wf_improved: bool = True) -> Dict[str, Any]:
+        """Calculate closeness centrality to identify central entities"""
+        
+        tx_id = f"closeness_{entity_type}_{int(time.time())}"
+        logger.info(f"Starting closeness centrality calculation - tx_id: {tx_id}")
+        
+        try:
+            await self.dtm.begin_distributed_transaction(tx_id)
+            
+            # Use same query as betweenness for undirected graph
+            if entity_type:
+                query = """
+                MATCH (a)-[r]-(b)
+                WHERE labels(a) = [$entity_type]
+                RETURN DISTINCT id(a) as node_a, id(b) as node_b,
+                       collect(type(r)) as relationship_types,
+                       labels(a) as labels_a, labels(b) as labels_b
+                """
+                params = {'entity_type': entity_type}
+            else:
+                query = """
+                MATCH (a)-[r]-(b)
+                RETURN DISTINCT id(a) as node_a, id(b) as node_b,
+                       collect(type(r)) as relationship_types,
+                       labels(a) as labels_a, labels(b) as labels_b
+                LIMIT 25000
+                """
+                params = {}
+            
+            await self.dtm.add_operation(tx_id, 'read', 'neo4j', 'graph_structure', {
+                'query': query,
+                'params': params,
+                'operation_type': 'closeness_data_fetch'
+            })
+            
+            graph_data = await self.neo4j_manager.execute_read_query(query, params)
+            
+            if not graph_data:
+                logger.warning("No graph data found for closeness centrality calculation")
+                await self.dtm.commit_distributed_transaction(tx_id)
+                return {
+                    'algorithm': 'closeness_centrality',
+                    'entity_type': entity_type,
+                    'scores': {},
+                    'metadata': {
+                        'total_nodes': 0,
+                        'total_edges': 0,
+                        'execution_time': 0
+                    }
+                }
+            
+            # Build undirected graph
+            G = nx.Graph()
+            node_metadata = {}
+            
+            for record in graph_data:
+                node_a = record['node_a']
+                node_b = record['node_b']
+                
+                G.add_edge(node_a, node_b)
+                
+                # Store node metadata
+                if node_a not in node_metadata:
+                    node_metadata[node_a] = {
+                        'labels': record['labels_a'],
+                        'id': node_a
+                    }
+                if node_b not in node_metadata:
+                    node_metadata[node_b] = {
+                        'labels': record['labels_b'],
+                        'id': node_b
+                    }
+            
+            logger.info(f"Built undirected graph with {G.number_of_nodes()} nodes and {G.number_of_edges()} edges")
+            
+            # Calculate closeness centrality
+            start_time = time.time()
+            closeness_scores = nx.closeness_centrality(
+                G, distance=distance, wf_improved=wf_improved
+            )
+            execution_time = time.time() - start_time
+            
+            # Enrich with entity metadata
+            enriched_scores = await self._enrich_centrality_results(closeness_scores, node_metadata)
+            
+            await self.dtm.commit_distributed_transaction(tx_id)
+            
+            result = {
+                'algorithm': 'closeness_centrality',
+                'entity_type': entity_type,
+                'scores': enriched_scores,
+                'metadata': {
+                    'total_nodes': G.number_of_nodes(),
+                    'total_edges': G.number_of_edges(),
+                    'execution_time': execution_time,
+                    'distance_metric': distance,
+                    'wf_improved': wf_improved
+                }
+            }
+            
+            logger.info(f"Closeness centrality calculation completed in {execution_time:.2f}s")
+            return result
+            
+        except Exception as e:
+            logger.error(f"Closeness centrality calculation failed: {e}", exc_info=True)
+            await self.dtm.rollback_distributed_transaction(tx_id)
+            raise AnalyticsError(f"Closeness centrality calculation failed: {e}")
+    
+    async def _calculate_approximate_pagerank(self, G: nx.DiGraph, alpha: float, 
+                                            max_iter: int, tol: float) -> Dict[int, float]:
+        """Calculate approximate PageRank using power iteration with early stopping"""
+        
+        logger.info("Using approximate PageRank with power iteration")
+        
+        # Initialize with uniform distribution
+        nodes = list(G.nodes())
+        n = len(nodes)
+        scores = {node: 1.0 / n for node in nodes}
+        
+        # Power iteration
+        for iteration in range(max_iter):
+            new_scores = {}
+            
+            for node in nodes:
+                # Calculate PageRank contribution from incoming edges
+                incoming_score = 0.0
+                for predecessor in G.predecessors(node):
+                    out_degree = G.out_degree(predecessor, weight='weight')
+                    if out_degree > 0:
+                        edge_weight = G[predecessor][node].get('weight', 1.0)
+                        incoming_score += (scores[predecessor] * edge_weight) / out_degree
+                
+                # Apply damping factor
+                new_scores[node] = (1 - alpha) / n + alpha * incoming_score
+            
+            # Check convergence
+            diff = sum(abs(new_scores[node] - scores[node]) for node in nodes)
+            scores = new_scores
+            
+            if diff < tol:
+                logger.info(f"PageRank converged after {iteration + 1} iterations")
+                break
+        
+        return scores
+    
+    def _calculate_edge_weight(self, relationship_type: str, properties: Dict[str, Any]) -> float:
+        """Calculate edge weight based on relationship type and properties"""
+        
+        # Base weights by relationship type
+        type_weights = {
+            'CITES': 1.0,
+            'AUTHORED_BY': 0.8,
+            'MENTIONS': 0.6,
+            'RELATES_TO': 0.4,
+            'SIMILAR_TO': 0.3
+        }
+        
+        base_weight = type_weights.get(relationship_type, 0.5)
+        
+        # Adjust based on properties
+        if properties:
+            # Confidence score adjustment
+            confidence = properties.get('confidence', 0.5)
+            base_weight *= confidence
+            
+            # Frequency adjustment
+            frequency = properties.get('frequency', 1)
+            base_weight *= min(frequency / 10.0, 2.0)  # Cap at 2x multiplier
+            
+            # Recency adjustment (if timestamp available)
+            if 'timestamp' in properties:
+                try:
+                    timestamp = datetime.fromisoformat(properties['timestamp'])
+                    days_old = (datetime.now() - timestamp).days
+                    recency_factor = max(0.1, 1.0 - (days_old / 365.0))  # Decay over a year
+                    base_weight *= recency_factor
+                except:
+                    pass  # Use base weight if timestamp parsing fails
+        
+        return max(0.01, base_weight)  # Minimum weight threshold
+    
+    async def _enrich_pagerank_results(self, pagerank_scores: Dict[int, float], 
+                                     node_metadata: Dict[int, Dict]) -> List[Dict[str, Any]]:
+        """Enrich PageRank results with entity names and metadata"""
+        
+        enriched_results = []
+        
+        # Sort by PageRank score
+        sorted_scores = sorted(pagerank_scores.items(), key=lambda x: x[1], reverse=True)
+        
+        for node_id, score in sorted_scores[:1000]:  # Top 1000 results
+            metadata = node_metadata.get(node_id, {})
+            
+            # Get entity name from Neo4j
+            entity_name = await self._get_entity_name(node_id)
+            
+            enriched_results.append({
+                'node_id': node_id,
+                'entity_name': entity_name,
+                'pagerank_score': score,
+                'labels': metadata.get('labels', []),
+                'rank': len(enriched_results) + 1
+            })
+        
+        return enriched_results
+    
+    async def _enrich_centrality_results(self, centrality_scores: Dict[int, float], 
+                                       node_metadata: Dict[int, Dict]) -> List[Dict[str, Any]]:
+        """Enrich centrality results with entity names and metadata"""
+        
+        enriched_results = []
+        
+        # Sort by centrality score
+        sorted_scores = sorted(centrality_scores.items(), key=lambda x: x[1], reverse=True)
+        
+        for node_id, score in sorted_scores[:1000]:  # Top 1000 results
+            metadata = node_metadata.get(node_id, {})
+            
+            # Get entity name from Neo4j
+            entity_name = await self._get_entity_name(node_id)
+            
+            enriched_results.append({
+                'node_id': node_id,
+                'entity_name': entity_name,
+                'centrality_score': score,
+                'labels': metadata.get('labels', []),
+                'rank': len(enriched_results) + 1
+            })
+        
+        return enriched_results
+    
+    async def _get_entity_name(self, node_id: int) -> str:
+        """Get entity name from Neo4j node"""
+        
+        try:
+            query = """
+            MATCH (n)
+            WHERE id(n) = $node_id
+            RETURN coalesce(n.name, n.title, n.surface_form, toString(id(n))) as name
+            """
+            
+            result = await self.neo4j_manager.execute_read_query(query, {'node_id': node_id})
+            if result:
+                return result[0]['name']
+            else:
+                return f"Entity_{node_id}"
+                
+        except Exception as e:
+            logger.warning(f"Failed to get entity name for node {node_id}: {e}")
+            return f"Entity_{node_id}"
+</file>
+
+<file path="src/analytics/knowledge_synthesizer.py">
+#!/usr/bin/env python3
+"""
+Conceptual Knowledge Synthesizer - Synthesize knowledge across modalities to generate research insights
+
+Implements abductive, inductive, and deductive reasoning to synthesize cross-modal knowledge
+and generate novel research hypotheses with comprehensive error handling.
+"""
+
+import asyncio
+import time
+import logging
+import numpy as np
+from typing import Dict, List, Any, Optional, Tuple, Set
+from datetime import datetime
+from collections import defaultdict, Counter
+import json
+
+from .graph_centrality_analyzer import AnalyticsError
+
+logger = logging.getLogger(__name__)
+
+
+class HypothesisGenerator:
+    """Generate research hypotheses using various reasoning strategies"""
+    
+    def __init__(self, llm_service=None):
+        self.llm_service = llm_service or MockLLMService()
+        
+    async def generate_hypotheses(self, prompt: str, max_hypotheses: int = 5, 
+                                creativity_level: float = 0.7) -> List[Dict[str, Any]]:
+        """Generate research hypotheses using LLM"""
+        
+        # Generate hypotheses
+        raw_hypotheses = await self.llm_service.generate_text(
+            prompt, max_length=500, temperature=creativity_level
+        )
+        
+        # Parse and structure hypotheses
+        hypotheses = await self._parse_hypotheses(raw_hypotheses, max_hypotheses)
+        
+        return hypotheses
+    
+    async def _parse_hypotheses(self, raw_text: str, max_count: int) -> List[Dict[str, Any]]:
+        """Parse raw hypothesis text into structured format"""
+        
+        # Simple parsing - split by numbers or bullet points
+        lines = raw_text.strip().split('\n')
+        hypotheses = []
+        
+        current_hypothesis = ""
+        for line in lines:
+            line = line.strip()
+            if not line:
+                continue
+                
+            # Check if it's a new hypothesis (starts with number or bullet)
+            if (line.startswith(('1.', '2.', '3.', '4.', '5.', '•', '-', '*')) or
+                len(hypotheses) == 0):
+                
+                if current_hypothesis:
+                    # Save previous hypothesis
+                    hypothesis = await self._structure_hypothesis(current_hypothesis, len(hypotheses))
+                    hypotheses.append(hypothesis)
+                    
+                    if len(hypotheses) >= max_count:
+                        break
+                
+                # Start new hypothesis
+                current_hypothesis = line.lstrip('123456789.•-* ')
+            else:
+                # Continue current hypothesis
+                current_hypothesis += " " + line
+        
+        # Add final hypothesis
+        if current_hypothesis and len(hypotheses) < max_count:
+            hypothesis = await self._structure_hypothesis(current_hypothesis, len(hypotheses))
+            hypotheses.append(hypothesis)
+        
+        return hypotheses[:max_count]
+    
+    async def _structure_hypothesis(self, text: str, index: int) -> Dict[str, Any]:
+        """Structure hypothesis text into formal format"""
+        
+        return {
+            'id': f'hypothesis_{index}',
+            'text': text.strip(),
+            'confidence_score': 0.7,  # Default confidence
+            'novelty_score': 0.6,     # Default novelty
+            'testability_score': 0.8, # Default testability
+            'evidence_support': [],
+            'reasoning_type': 'abductive'
+        }
+
+
+class MockLLMService:
+    """Mock LLM service for testing"""
+    
+    async def generate_text(self, prompt: str, max_length: int = 500, 
+                          temperature: float = 0.7) -> str:
+        """Generate mock research hypotheses"""
+        
+        # Simple template-based generation
+        templates = [
+            "The relationship between {} and {} suggests that increased {} leads to enhanced {} through {} mechanisms.",
+            "Cross-modal analysis reveals that {} patterns in {} data correlate with {} outcomes, indicating {}.",
+            "The observed {} phenomenon may be explained by underlying {} processes that influence {} dynamics.",
+            "Novel connections between {} and {} domains suggest potential for {} applications in {} contexts.",
+            "The integration of {} with {} approaches could address current limitations in {} research."
+        ]
+        
+        # Extract key terms from prompt
+        key_terms = self._extract_key_terms(prompt)
+        
+        hypotheses = []
+        for i, template in enumerate(templates[:3]):  # Generate 3 hypotheses
+            try:
+                # Fill template with key terms
+                hypothesis = template.format(*key_terms[:template.count('{}')])
+                hypotheses.append(f"{i+1}. {hypothesis}")
+            except:
+                # Fallback hypothesis
+                hypotheses.append(f"{i+1}. Novel research hypothesis based on cross-modal analysis.")
+        
+        return '\n'.join(hypotheses)
+    
+    def _extract_key_terms(self, prompt: str) -> List[str]:
+        """Extract key terms from prompt"""
+        
+        # Simple keyword extraction
+        common_terms = [
+            'entity relationships', 'research patterns', 'cross-modal',
+            'knowledge integration', 'academic networks', 'citation patterns',
+            'collaborative structures', 'research domains', 'theoretical frameworks',
+            'empirical evidence', 'methodological approaches', 'conceptual models'
+        ]
+        
+        return common_terms
+
+
+class ConceptualKnowledgeSynthesizer:
+    """Synthesize knowledge across modalities to generate research insights"""
+    
+    def __init__(self, neo4j_manager, distributed_tx_manager, llm_service=None):
+        self.neo4j_manager = neo4j_manager
+        self.dtm = distributed_tx_manager
+        self.llm_service = llm_service or MockLLMService()
+        self.hypothesis_generator = HypothesisGenerator(self.llm_service)
+        
+        # Synthesis strategies
+        self.synthesis_strategies = {
+            'inductive': self._inductive_synthesis,
+            'deductive': self._deductive_synthesis,
+            'abductive': self._abductive_synthesis
+        }
+        
+        # Configuration
+        self.max_evidence_items = 100
+        self.anomaly_threshold = 2.0  # Standard deviations
+        self.confidence_threshold = 0.7
+        
+        logger.info("ConceptualKnowledgeSynthesizer initialized")
+    
+    async def synthesize_research_insights(self, domain: str, 
+                                         synthesis_strategy: str = 'abductive',
+                                         confidence_threshold: float = 0.7,
+                                         max_hypotheses: int = 5) -> Dict[str, Any]:
+        """Synthesize cross-modal knowledge to generate research insights"""
+        
+        tx_id = f"knowledge_synthesis_{domain}_{int(time.time())}"
+        logger.info(f"Starting knowledge synthesis - domain: {domain}, strategy: {synthesis_strategy}, tx_id: {tx_id}")
+        
+        try:
+            await self.dtm.begin_distributed_transaction(tx_id)
+            
+            # Gather cross-modal evidence for domain
+            evidence_base = await self._gather_cross_modal_evidence(domain)
+            
+            if not evidence_base or not evidence_base.get('entities'):
+                logger.warning(f"No evidence found for domain: {domain}")
+                await self.dtm.commit_distributed_transaction(tx_id)
+                return {
+                    'domain': domain,
+                    'synthesis_strategy': synthesis_strategy,
+                    'evidence_base': {'entities': [], 'relationships': []},
+                    'synthesis_results': {},
+                    'generated_hypotheses': [],
+                    'confidence_metrics': {'overall_confidence': 0.0}
+                }
+            
+            # Apply synthesis strategy
+            start_time = time.time()
+            synthesis_results = await self.synthesis_strategies[synthesis_strategy](
+                evidence_base, confidence_threshold
+            )
+            execution_time = time.time() - start_time
+            
+            # Generate research hypotheses
+            hypotheses = await self._generate_research_hypotheses(
+                synthesis_results, max_hypotheses
+            )
+            
+            # Validate hypotheses against existing knowledge
+            validated_hypotheses = await self._validate_hypotheses(hypotheses, evidence_base)
+            
+            # Store synthesis results with full provenance
+            await self._store_synthesis_results(tx_id, synthesis_results, validated_hypotheses)
+            
+            await self.dtm.commit_distributed_transaction(tx_id)
+            
+            result = {
+                'domain': domain,
+                'synthesis_strategy': synthesis_strategy,
+                'evidence_base': evidence_base,
+                'synthesis_results': synthesis_results,
+                'generated_hypotheses': validated_hypotheses,
+                'confidence_metrics': await self._calculate_synthesis_confidence(synthesis_results),
+                'metadata': {
+                    'execution_time': execution_time,
+                    'evidence_count': len(evidence_base.get('entities', [])),
+                    'hypothesis_count': len(validated_hypotheses),
+                    'confidence_threshold': confidence_threshold
+                }
+            }
+            
+            logger.info(f"Knowledge synthesis completed in {execution_time:.2f}s - generated {len(validated_hypotheses)} hypotheses")
+            return result
+            
+        except Exception as e:
+            logger.error(f"Knowledge synthesis failed: {e}", exc_info=True)
+            await self.dtm.rollback_distributed_transaction(tx_id)
+            raise AnalyticsError(f"Knowledge synthesis failed: {e}")
+    
+    async def _gather_cross_modal_evidence(self, domain: str) -> Dict[str, Any]:
+        """Gather cross-modal evidence for the specified domain"""
+        
+        logger.info(f"Gathering cross-modal evidence for domain: {domain}")
+        
+        # Query for entities and relationships in the domain
+        entity_query = """
+        MATCH (e)
+        WHERE any(label IN labels(e) WHERE toLower(label) CONTAINS toLower($domain))
+           OR any(prop IN keys(e) WHERE toLower(toString(e[prop])) CONTAINS toLower($domain))
+        RETURN id(e) as entity_id, labels(e) as labels, properties(e) as props
+        LIMIT $max_entities
+        """
+        
+        relationship_query = """
+        MATCH (a)-[r]->(b)
+        WHERE any(label IN labels(a) WHERE toLower(label) CONTAINS toLower($domain))
+           OR any(label IN labels(b) WHERE toLower(label) CONTAINS toLower($domain))
+        RETURN id(a) as source_id, id(b) as target_id, type(r) as rel_type,
+               properties(r) as rel_props, labels(a) as source_labels, 
+               labels(b) as target_labels
+        LIMIT $max_relationships
+        """
+        
+        params = {
+            'domain': domain,
+            'max_entities': self.max_evidence_items,
+            'max_relationships': self.max_evidence_items * 2
+        }
+        
+        # Execute queries
+        await self.dtm.add_operation(self.dtm.current_tx_id, 'read', 'neo4j', 'evidence_entities', {
+            'query': entity_query,
+            'params': params,
+            'operation_type': 'synthesis_evidence_fetch'
+        })
+        
+        await self.dtm.add_operation(self.dtm.current_tx_id, 'read', 'neo4j', 'evidence_relationships', {
+            'query': relationship_query,
+            'params': params,
+            'operation_type': 'synthesis_evidence_fetch'
+        })
+        
+        entities_data = await self.neo4j_manager.execute_read_query(entity_query, params)
+        relationships_data = await self.neo4j_manager.execute_read_query(relationship_query, params)
+        
+        # Process evidence
+        entities = []
+        for record in entities_data:
+            entity = {
+                'id': record['entity_id'],
+                'labels': record['labels'],
+                'properties': record['props'],
+                'modality': self._determine_modality(record['labels'], record['props'])
+            }
+            entities.append(entity)
+        
+        relationships = []
+        for record in relationships_data:
+            relationship = {
+                'source_id': record['source_id'],
+                'target_id': record['target_id'],
+                'type': record['rel_type'],
+                'properties': record['rel_props'],
+                'source_labels': record['source_labels'],
+                'target_labels': record['target_labels']
+            }
+            relationships.append(relationship)
+        
+        logger.info(f"Gathered {len(entities)} entities and {len(relationships)} relationships")
+        
+        return {
+            'domain': domain,
+            'entities': entities,
+            'relationships': relationships,
+            'modality_distribution': self._analyze_modality_distribution(entities)
+        }
+    
+    def _determine_modality(self, labels: List[str], properties: Dict[str, Any]) -> str:
+        """Determine the modality of an entity based on labels and properties"""
+        
+        # Check labels for modality indicators
+        text_indicators = ['Text', 'Document', 'Paper', 'Article', 'Content']
+        image_indicators = ['Image', 'Figure', 'Photo', 'Visual', 'Diagram']
+        structured_indicators = ['Data', 'Table', 'Schema', 'Metadata', 'Structure']
+        
+        for label in labels:
+            if any(indicator in label for indicator in text_indicators):
+                return 'text'
+            elif any(indicator in label for indicator in image_indicators):
+                return 'image'
+            elif any(indicator in label for indicator in structured_indicators):
+                return 'structured'
+        
+        # Check properties for modality indicators
+        if properties:
+            if any(prop in ['text', 'content', 'title', 'abstract'] for prop in properties.keys()):
+                return 'text'
+            elif any(prop in ['image_path', 'image_url', 'visual_data'] for prop in properties.keys()):
+                return 'image'
+            elif any(prop in ['data', 'metadata', 'schema'] for prop in properties.keys()):
+                return 'structured'
+        
+        return 'unknown'
+    
+    def _analyze_modality_distribution(self, entities: List[Dict]) -> Dict[str, int]:
+        """Analyze the distribution of entities across modalities"""
+        
+        modality_counts = Counter()
+        for entity in entities:
+            modality_counts[entity['modality']] += 1
+        
+        return dict(modality_counts)
+    
+    async def _abductive_synthesis(self, evidence_base: Dict, 
+                                 confidence_threshold: float) -> Dict[str, Any]:
+        """Abductive reasoning to generate best explanatory hypotheses"""
+        
+        logger.info("Applying abductive synthesis strategy")
+        
+        # Extract surprising patterns and anomalies
+        anomalies = await self._detect_knowledge_anomalies(evidence_base)
+        
+        # Generate explanatory hypotheses for anomalies
+        explanatory_hypotheses = []
+        
+        for anomaly in anomalies:
+            # Create hypothesis prompt
+            hypothesis_prompt = await self._create_hypothesis_prompt(anomaly, evidence_base)
+            
+            # Generate hypotheses using LLM
+            generated_hypotheses = await self.hypothesis_generator.generate_hypotheses(
+                prompt=hypothesis_prompt,
+                max_hypotheses=3,
+                creativity_level=0.7
+            )
+            
+            # Score hypotheses based on explanatory power and simplicity
+            scored_hypotheses = await self._score_explanatory_hypotheses(
+                generated_hypotheses, anomaly, evidence_base
+            )
+            
+            # Filter by confidence threshold
+            high_confidence_hypotheses = [
+                h for h in scored_hypotheses 
+                if h['confidence_score'] >= confidence_threshold
+            ]
+            
+            explanatory_hypotheses.extend(high_confidence_hypotheses)
+        
+        # Calculate overall synthesis confidence
+        synthesis_confidence = np.mean([h['confidence_score'] for h in explanatory_hypotheses]) if explanatory_hypotheses else 0.0
+        
+        return {
+            'strategy': 'abductive',
+            'anomalies_detected': len(anomalies),
+            'hypotheses_generated': len(explanatory_hypotheses),
+            'hypotheses': explanatory_hypotheses,
+            'synthesis_confidence': synthesis_confidence,
+            'anomalies': anomalies
+        }
+    
+    async def _inductive_synthesis(self, evidence_base: Dict, 
+                                 confidence_threshold: float) -> Dict[str, Any]:
+        """Inductive reasoning to generate patterns from evidence"""
+        
+        logger.info("Applying inductive synthesis strategy")
+        
+        # Extract patterns from evidence
+        patterns = await self._extract_inductive_patterns(evidence_base)
+        
+        # Generate generalizations from patterns
+        generalizations = await self._generate_generalizations(patterns, evidence_base)
+        
+        # Score generalizations
+        scored_generalizations = await self._score_generalizations(
+            generalizations, evidence_base, confidence_threshold
+        )
+        
+        synthesis_confidence = np.mean([g['confidence_score'] for g in scored_generalizations]) if scored_generalizations else 0.0
+        
+        return {
+            'strategy': 'inductive',
+            'patterns_found': len(patterns),
+            'generalizations_generated': len(scored_generalizations),
+            'hypotheses': scored_generalizations,
+            'synthesis_confidence': synthesis_confidence,
+            'patterns': patterns
+        }
+    
+    async def _deductive_synthesis(self, evidence_base: Dict, 
+                                 confidence_threshold: float) -> Dict[str, Any]:
+        """Deductive reasoning to apply known theories to evidence"""
+        
+        logger.info("Applying deductive synthesis strategy")
+        
+        # Identify applicable theories
+        applicable_theories = await self._identify_applicable_theories(evidence_base)
+        
+        # Apply theories to generate predictions
+        predictions = await self._apply_theories_to_evidence(applicable_theories, evidence_base)
+        
+        # Score predictions
+        scored_predictions = await self._score_predictions(
+            predictions, evidence_base, confidence_threshold
+        )
+        
+        synthesis_confidence = np.mean([p['confidence_score'] for p in scored_predictions]) if scored_predictions else 0.0
+        
+        return {
+            'strategy': 'deductive',
+            'theories_applied': len(applicable_theories),
+            'predictions_generated': len(scored_predictions),
+            'hypotheses': scored_predictions,
+            'synthesis_confidence': synthesis_confidence,
+            'applicable_theories': applicable_theories
+        }
+    
+    async def _detect_knowledge_anomalies(self, evidence_base: Dict) -> List[Dict[str, Any]]:
+        """Detect surprising patterns and anomalies in the evidence"""
+        
+        anomalies = []
+        entities = evidence_base['entities']
+        relationships = evidence_base['relationships']
+        
+        # Detect entity degree anomalies
+        entity_degrees = Counter()
+        for rel in relationships:
+            entity_degrees[rel['source_id']] += 1
+            entity_degrees[rel['target_id']] += 1
+        
+        degrees = list(entity_degrees.values())
+        if degrees:
+            mean_degree = np.mean(degrees)
+            std_degree = np.std(degrees)
+            
+            # Find entities with unusually high or low degrees
+            for entity_id, degree in entity_degrees.items():
+                z_score = abs(degree - mean_degree) / std_degree if std_degree > 0 else 0
+                if z_score > self.anomaly_threshold:
+                    anomalies.append({
+                        'type': 'degree_anomaly',
+                        'entity_id': entity_id,
+                        'degree': degree,
+                        'z_score': z_score,
+                        'description': f'Entity has unusually {"high" if degree > mean_degree else "low"} connectivity'
+                    })
+        
+        # Detect cross-modal relationship anomalies
+        cross_modal_rels = []
+        for rel in relationships:
+            source_entity = next((e for e in entities if e['id'] == rel['source_id']), None)
+            target_entity = next((e for e in entities if e['id'] == rel['target_id']), None)
+            
+            if source_entity and target_entity:
+                source_modality = source_entity['modality']
+                target_modality = target_entity['modality']
+                
+                if source_modality != target_modality and source_modality != 'unknown' and target_modality != 'unknown':
+                    cross_modal_rels.append(rel)
+        
+        if cross_modal_rels:
+            # High number of cross-modal relationships might be anomalous
+            cross_modal_ratio = len(cross_modal_rels) / len(relationships)
+            if cross_modal_ratio > 0.3:  # More than 30% cross-modal
+                anomalies.append({
+                    'type': 'cross_modal_anomaly',
+                    'cross_modal_count': len(cross_modal_rels),
+                    'total_relationships': len(relationships),
+                    'ratio': cross_modal_ratio,
+                    'description': 'Unusually high proportion of cross-modal relationships'
+                })
+        
+        # Detect isolated entity clusters
+        # Simple clustering based on connectivity
+        entity_clusters = await self._find_entity_clusters(entities, relationships)
+        isolated_clusters = [cluster for cluster in entity_clusters if len(cluster) < 3]
+        
+        if len(isolated_clusters) > len(entity_clusters) * 0.2:  # More than 20% isolated
+            anomalies.append({
+                'type': 'fragmentation_anomaly',
+                'isolated_clusters': len(isolated_clusters),
+                'total_clusters': len(entity_clusters),
+                'description': 'High degree of knowledge fragmentation detected'
+            })
+        
+        logger.info(f"Detected {len(anomalies)} knowledge anomalies")
+        return anomalies
+    
+    async def _find_entity_clusters(self, entities: List[Dict], 
+                                  relationships: List[Dict]) -> List[List[int]]:
+        """Find connected components in the entity graph"""
+        
+        # Build adjacency list
+        adjacency = defaultdict(set)
+        for rel in relationships:
+            adjacency[rel['source_id']].add(rel['target_id'])
+            adjacency[rel['target_id']].add(rel['source_id'])
+        
+        # Find connected components using DFS
+        visited = set()
+        clusters = []
+        
+        for entity in entities:
+            entity_id = entity['id']
+            if entity_id not in visited:
+                cluster = []
+                stack = [entity_id]
+                
+                while stack:
+                    current = stack.pop()
+                    if current not in visited:
+                        visited.add(current)
+                        cluster.append(current)
+                        
+                        # Add connected entities
+                        for neighbor in adjacency[current]:
+                            if neighbor not in visited:
+                                stack.append(neighbor)
+                
+                if cluster:
+                    clusters.append(cluster)
+        
+        return clusters
+    
+    async def _create_hypothesis_prompt(self, anomaly: Dict, evidence_base: Dict) -> str:
+        """Create a prompt for hypothesis generation based on anomaly"""
+        
+        domain = evidence_base['domain']
+        modality_dist = evidence_base['modality_distribution']
+        
+        prompt = f"""
+        Research Domain: {domain}
+        
+        Anomaly Detected: {anomaly['description']}
+        Anomaly Type: {anomaly['type']}
+        
+        Evidence Context:
+        - Total entities: {len(evidence_base['entities'])}
+        - Total relationships: {len(evidence_base['relationships'])}
+        - Modality distribution: {modality_dist}
+        
+        Generate research hypotheses that could explain this anomaly. Consider:
+        1. What underlying mechanisms could cause this pattern?
+        2. How might this relate to known research phenomena?
+        3. What implications does this have for the field?
+        
+        Provide testable hypotheses that explain the observed anomaly.
+        """
+        
+        return prompt.strip()
+    
+    async def _score_explanatory_hypotheses(self, hypotheses: List[Dict], 
+                                          anomaly: Dict, evidence_base: Dict) -> List[Dict]:
+        """Score hypotheses based on explanatory power and simplicity"""
+        
+        scored_hypotheses = []
+        
+        for hypothesis in hypotheses:
+            # Calculate explanatory power (how well it explains the anomaly)
+            explanatory_power = await self._calculate_explanatory_power(hypothesis, anomaly)
+            
+            # Calculate simplicity (Occam's razor)
+            simplicity = await self._calculate_simplicity(hypothesis)
+            
+            # Calculate testability
+            testability = await self._calculate_testability(hypothesis, evidence_base)
+            
+            # Combined confidence score
+            confidence_score = (explanatory_power * 0.4 + simplicity * 0.3 + testability * 0.3)
+            
+            scored_hypothesis = hypothesis.copy()
+            scored_hypothesis.update({
+                'explanatory_power': explanatory_power,
+                'simplicity': simplicity,
+                'testability': testability,
+                'confidence_score': confidence_score,
+                'anomaly_explained': anomaly['type']
+            })
+            
+            scored_hypotheses.append(scored_hypothesis)
+        
+        # Sort by confidence score
+        scored_hypotheses.sort(key=lambda x: x['confidence_score'], reverse=True)
+        
+        return scored_hypotheses
+    
+    async def _calculate_explanatory_power(self, hypothesis: Dict, anomaly: Dict) -> float:
+        """Calculate how well the hypothesis explains the anomaly"""
+        
+        # Simple heuristic based on text analysis
+        hypothesis_text = hypothesis.get('text', '').lower()
+        anomaly_desc = anomaly.get('description', '').lower()
+        
+        # Check for relevant keywords
+        relevant_keywords = ['relationship', 'connection', 'pattern', 'unusual', 'high', 'low']
+        
+        keyword_matches = sum(1 for keyword in relevant_keywords if keyword in hypothesis_text)
+        keyword_score = min(keyword_matches / len(relevant_keywords), 1.0)
+        
+        # Check for direct reference to anomaly type
+        direct_reference = 1.0 if anomaly['type'].replace('_', ' ') in hypothesis_text else 0.5
+        
+        return (keyword_score + direct_reference) / 2
+    
+    async def _calculate_simplicity(self, hypothesis: Dict) -> float:
+        """Calculate hypothesis simplicity (fewer assumptions = higher score)"""
+        
+        text = hypothesis.get('text', '')
+        
+        # Simple heuristic: shorter text with fewer complex terms = simpler
+        complexity_indicators = ['mechanism', 'process', 'interaction', 'framework', 'system']
+        
+        complexity_count = sum(1 for indicator in complexity_indicators if indicator in text.lower())
+        text_length = len(text.split())
+        
+        # Normalize scores
+        complexity_score = max(0, 1 - (complexity_count / 10))  # Penalize complexity
+        length_score = max(0, 1 - (text_length / 100))  # Penalize length
+        
+        return (complexity_score + length_score) / 2
+    
+    async def _calculate_testability(self, hypothesis: Dict, evidence_base: Dict) -> float:
+        """Calculate how testable the hypothesis is given available evidence"""
+        
+        text = hypothesis.get('text', '').lower()
+        
+        # Check for testable indicators
+        testable_indicators = ['measure', 'compare', 'analyze', 'correlate', 'predict', 'test']
+        empirical_indicators = ['data', 'evidence', 'result', 'outcome', 'observation']
+        
+        testable_count = sum(1 for indicator in testable_indicators if indicator in text)
+        empirical_count = sum(1 for indicator in empirical_indicators if indicator in text)
+        
+        testable_score = min(testable_count / len(testable_indicators), 1.0)
+        empirical_score = min(empirical_count / len(empirical_indicators), 1.0)
+        
+        return (testable_score + empirical_score) / 2
+    
+    async def _extract_inductive_patterns(self, evidence_base: Dict) -> List[Dict[str, Any]]:
+        """Extract patterns from evidence for inductive reasoning"""
+        
+        patterns = []
+        entities = evidence_base['entities']
+        relationships = evidence_base['relationships']
+        
+        # Pattern 1: Label co-occurrence patterns
+        label_pairs = Counter()
+        for rel in relationships:
+            source_entity = next((e for e in entities if e['id'] == rel['source_id']), None)
+            target_entity = next((e for e in entities if e['id'] == rel['target_id']), None)
+            
+            if source_entity and target_entity:
+                for source_label in source_entity['labels']:
+                    for target_label in target_entity['labels']:
+                        if source_label != target_label:
+                            pair = tuple(sorted([source_label, target_label]))
+                            label_pairs[pair] += 1
+        
+        # Find frequent label pairs
+        total_relationships = len(relationships)
+        for pair, count in label_pairs.most_common(10):
+            frequency = count / total_relationships
+            if frequency > 0.1:  # Appears in more than 10% of relationships
+                patterns.append({
+                    'type': 'label_co_occurrence',
+                    'pattern': f'{pair[0]} often connects to {pair[1]}',
+                    'frequency': frequency,
+                    'support_count': count
+                })
+        
+        # Pattern 2: Modality interaction patterns
+        modality_pairs = Counter()
+        for rel in relationships:
+            source_entity = next((e for e in entities if e['id'] == rel['source_id']), None)
+            target_entity = next((e for e in entities if e['id'] == rel['target_id']), None)
+            
+            if source_entity and target_entity:
+                source_modality = source_entity['modality']
+                target_modality = target_entity['modality']
+                
+                if source_modality != 'unknown' and target_modality != 'unknown':
+                    pair = tuple(sorted([source_modality, target_modality]))
+                    modality_pairs[pair] += 1
+        
+        for pair, count in modality_pairs.most_common(5):
+            frequency = count / total_relationships
+            patterns.append({
+                'type': 'modality_interaction',
+                'pattern': f'{pair[0]} and {pair[1]} modalities frequently interact',
+                'frequency': frequency,
+                'support_count': count
+            })
+        
+        return patterns
+    
+    async def _generate_generalizations(self, patterns: List[Dict], 
+                                      evidence_base: Dict) -> List[Dict[str, Any]]:
+        """Generate generalizations from detected patterns"""
+        
+        generalizations = []
+        
+        for pattern in patterns:
+            if pattern['type'] == 'label_co_occurrence':
+                generalization = {
+                    'text': f"In {evidence_base['domain']} research, {pattern['pattern']} occurs in {pattern['frequency']:.1%} of cases, suggesting a systematic relationship between these concepts.",
+                    'pattern_type': pattern['type'],
+                    'evidence_strength': pattern['frequency'],
+                    'reasoning_type': 'inductive'
+                }
+                generalizations.append(generalization)
+            
+            elif pattern['type'] == 'modality_interaction':
+                generalization = {
+                    'text': f"Cross-modal analysis reveals that {pattern['pattern']}, indicating integrated knowledge representation across data types.",
+                    'pattern_type': pattern['type'],
+                    'evidence_strength': pattern['frequency'],
+                    'reasoning_type': 'inductive'
+                }
+                generalizations.append(generalization)
+        
+        return generalizations
+    
+    async def _score_generalizations(self, generalizations: List[Dict], 
+                                   evidence_base: Dict, threshold: float) -> List[Dict]:
+        """Score inductive generalizations"""
+        
+        scored = []
+        
+        for gen in generalizations:
+            # Score based on evidence strength and generalizability
+            evidence_strength = gen.get('evidence_strength', 0)
+            
+            # Higher evidence strength = higher confidence
+            confidence_score = min(evidence_strength * 2, 1.0)  # Cap at 1.0
+            
+            if confidence_score >= threshold:
+                scored_gen = gen.copy()
+                scored_gen['confidence_score'] = confidence_score
+                scored_gen['novelty_score'] = 0.6  # Default novelty
+                scored_gen['testability_score'] = 0.8  # Inductive patterns are generally testable
+                scored.append(scored_gen)
+        
+        return scored
+    
+    async def _identify_applicable_theories(self, evidence_base: Dict) -> List[Dict[str, Any]]:
+        """Identify theories applicable to the evidence"""
+        
+        # Mock implementation - in practice, this would access a theory database
+        applicable_theories = [
+            {
+                'name': 'Network Theory',
+                'applicability': 0.8,
+                'description': 'Applies to entity relationship patterns'
+            },
+            {
+                'name': 'Information Integration Theory',
+                'applicability': 0.7,
+                'description': 'Relevant to cross-modal knowledge synthesis'
+            }
+        ]
+        
+        return applicable_theories
+    
+    async def _apply_theories_to_evidence(self, theories: List[Dict], 
+                                        evidence_base: Dict) -> List[Dict[str, Any]]:
+        """Apply theories to generate predictions"""
+        
+        predictions = []
+        
+        for theory in theories:
+            prediction = {
+                'text': f"Based on {theory['name']}, we predict that {evidence_base['domain']} entities will exhibit {theory['description']} with measurable outcomes.",
+                'theory_applied': theory['name'],
+                'applicability_score': theory['applicability'],
+                'reasoning_type': 'deductive'
+            }
+            predictions.append(prediction)
+        
+        return predictions
+    
+    async def _score_predictions(self, predictions: List[Dict], 
+                               evidence_base: Dict, threshold: float) -> List[Dict]:
+        """Score deductive predictions"""
+        
+        scored = []
+        
+        for pred in predictions:
+            # Score based on theory applicability
+            applicability = pred.get('applicability_score', 0)
+            confidence_score = applicability  # Direct mapping for simplicity
+            
+            if confidence_score >= threshold:
+                scored_pred = pred.copy()
+                scored_pred['confidence_score'] = confidence_score
+                scored_pred['novelty_score'] = 0.5  # Deductive reasoning is less novel
+                scored_pred['testability_score'] = 0.9  # Theory-based predictions are highly testable
+                scored.append(scored_pred)
+        
+        return scored
+    
+    async def _generate_research_hypotheses(self, synthesis_results: Dict, 
+                                          max_hypotheses: int) -> List[Dict[str, Any]]:
+        """Generate research hypotheses from synthesis results"""
+        
+        # Return hypotheses from synthesis results
+        hypotheses = synthesis_results.get('hypotheses', [])
+        
+        # Limit to max_hypotheses
+        return hypotheses[:max_hypotheses]
+    
+    async def _validate_hypotheses(self, hypotheses: List[Dict], 
+                                 evidence_base: Dict) -> List[Dict[str, Any]]:
+        """Validate hypotheses against existing knowledge"""
+        
+        validated = []
+        
+        for hypothesis in hypotheses:
+            # Simple validation - check if hypothesis is supported by evidence
+            validation_score = await self._calculate_evidence_support(hypothesis, evidence_base)
+            
+            validated_hypothesis = hypothesis.copy()
+            validated_hypothesis['validation_score'] = validation_score
+            validated_hypothesis['evidence_support'] = validation_score > 0.5
+            
+            validated.append(validated_hypothesis)
+        
+        # Sort by validation score
+        validated.sort(key=lambda x: x.get('validation_score', 0), reverse=True)
+        
+        return validated
+    
+    async def _calculate_evidence_support(self, hypothesis: Dict, 
+                                        evidence_base: Dict) -> float:
+        """Calculate how well the evidence supports the hypothesis"""
+        
+        # Simple heuristic based on keyword matching
+        hypothesis_text = hypothesis.get('text', '').lower()
+        
+        # Count entities and relationships that might support the hypothesis
+        support_count = 0
+        total_items = len(evidence_base['entities']) + len(evidence_base['relationships'])
+        
+        # Check entity labels and properties
+        for entity in evidence_base['entities']:
+            for label in entity['labels']:
+                if label.lower() in hypothesis_text:
+                    support_count += 1
+                    break
+        
+        # Check relationship types
+        for rel in evidence_base['relationships']:
+            if rel['type'].lower().replace('_', ' ') in hypothesis_text:
+                support_count += 1
+        
+        return min(support_count / max(total_items, 1), 1.0)
+    
+    async def _calculate_synthesis_confidence(self, synthesis_results: Dict) -> Dict[str, float]:
+        """Calculate overall confidence metrics for synthesis"""
+        
+        hypotheses = synthesis_results.get('hypotheses', [])
+        
+        if not hypotheses:
+            return {'overall_confidence': 0.0}
+        
+        # Calculate various confidence metrics
+        confidence_scores = [h.get('confidence_score', 0) for h in hypotheses]
+        novelty_scores = [h.get('novelty_score', 0) for h in hypotheses]
+        testability_scores = [h.get('testability_score', 0) for h in hypotheses]
+        
+        return {
+            'overall_confidence': np.mean(confidence_scores),
+            'average_novelty': np.mean(novelty_scores),
+            'average_testability': np.mean(testability_scores),
+            'confidence_std': np.std(confidence_scores),
+            'high_confidence_count': sum(1 for score in confidence_scores if score > 0.8)
+        }
+    
+    async def _store_synthesis_results(self, tx_id: str, synthesis_results: Dict, 
+                                     hypotheses: List[Dict]) -> None:
+        """Store synthesis results with provenance"""
+        
+        await self.dtm.add_operation(tx_id, 'write', 'neo4j', 'synthesis_results', {
+            'synthesis_results': synthesis_results,
+            'hypotheses': hypotheses,
+            'operation_type': 'knowledge_synthesis_storage',
+            'timestamp': datetime.now().isoformat()
+        })
+        
+        logger.info(f"Knowledge synthesis results prepared for storage - {len(hypotheses)} hypotheses")
+</file>
+
+</files>

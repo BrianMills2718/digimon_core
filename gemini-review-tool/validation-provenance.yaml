@@ -1,0 +1,33 @@
+validation_config:
+  name: "Citation and Provenance Tracking"
+  timestamp: "2025-07-23T16:00:00"
+  
+target_files:
+  - src/core/provenance_manager.py
+  - src/core/citation_validator.py
+  
+claims:
+  - "Provenance Manager tracks full citation lineage and source verification"
+  - "Citation Validator prevents fabrication through source verification"
+  - "Audit trail maintained for all citation modifications"
+  
+specific_checks:
+  - check: "Full provenance chain tracking"
+    evidence: "Methods to track citation from creation to current state"
+  - check: "Source verification on citation creation"
+    evidence: "Validates citations against original sources"
+  - check: "Immutable audit trail"
+    evidence: "Records all modifications with timestamps and actors"
+    
+validation_prompt: |
+  Validate Citation/Provenance implementation:
+  
+  REQUIREMENTS:
+  1. Every citation has verifiable source tracking
+  2. Full modification history with who/when/why
+  3. Fabrication detection through source validation
+  4. Immutable audit trail that cannot be tampered
+  
+  FOCUS: Citation creation, validation, and audit methods
+  
+  EVIDENCE: Show source verification and audit trail code

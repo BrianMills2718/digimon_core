@@ -139,8 +139,12 @@ class ReviewConfig:
         return self.review_templates.get(template_name)
 
 
-def create_default_config(project_path: str = ".") -> ReviewConfig:
+def create_default_config(project_path) -> ReviewConfig:
     """Create a default configuration for a project"""
+    # Handle case where project_path is a list (take first element)
+    if isinstance(project_path, list):
+        project_path = project_path[0] if project_path else "."
+    
     project_name = Path(project_path).resolve().name
     
     config = ReviewConfig(
@@ -162,7 +166,7 @@ def create_default_config(project_path: str = ".") -> ReviewConfig:
     return config
 
 
-def find_config_file(start_path: str = ".") -> Optional[str]:
+def find_config_file(start_path) -> Optional[str]:
     """Search for config file in current and parent directories"""
     search_names = [
         ".gemini-review.yaml",
@@ -172,6 +176,10 @@ def find_config_file(start_path: str = ".") -> Optional[str]:
         "gemini-review.yml",
         "gemini-review.json"
     ]
+    
+    # Handle case where start_path is a list (take first element)
+    if isinstance(start_path, list):
+        start_path = start_path[0] if start_path else "."
     
     current = Path(start_path).resolve()
     

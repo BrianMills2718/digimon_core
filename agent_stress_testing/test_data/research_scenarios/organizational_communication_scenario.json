@@ -1,0 +1,47 @@
+{
+  "scenario_id": "org_comm_001",
+  "name": "Organizational Communication Analysis",
+  "description": "Comprehensive analysis of communication patterns during organizational change",
+  "research_question": "How do communication patterns evolve during organizational restructuring?",
+  "domain": "organizational_behavior",
+  "complexity": "high",
+  "expected_duration_minutes": 15,
+  "data_sources": [
+    {
+      "type": "documents",
+      "path": "test_data/sample_documents/sample_research_document.txt",
+      "description": "Research document on organizational communication"
+    },
+    {
+      "type": "web_content",
+      "url": "https://example.com/org-communication-case-study",
+      "description": "Case study on communication during change"
+    }
+  ],
+  "expected_methodology": [
+    "discourse_analysis",
+    "network_analysis", 
+    "statistical_analysis",
+    "sentiment_analysis"
+  ],
+  "expected_outputs": [
+    "communication_patterns",
+    "network_metrics",
+    "statistical_correlations",
+    "research_insights",
+    "methodology_documentation"
+  ],
+  "success_criteria": {
+    "min_quality_score": 0.8,
+    "max_execution_time_seconds": 900,
+    "required_analysis_types": ["quantitative", "qualitative"],
+    "min_insight_count": 5
+  },
+  "context": {
+    "organization_type": "corporate",
+    "change_type": "restructuring",
+    "stakeholder_groups": ["executives", "managers", "employees"],
+    "time_period": "6_months",
+    "data_volume": "medium"
+  }
+}

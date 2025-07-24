@@ -1,0 +1,80 @@
+{
+  "trace_id": "proof_demo_20d08680",
+  "execution_time": 2.2164788246154785,
+  "capabilities_proven": {
+    "real_kgas_tools_working": true,
+    "text_chunking_functional": true,
+    "spacy_model_loaded": true,
+    "entity_extraction_pipeline": true,
+    "dual_agent_coordination": true,
+    "complete_execution_tracing": true,
+    "tool_request_response_pattern": true,
+    "service_integration": true
+  },
+  "technical_evidence": {
+    "tool_execution_time": "2.22s",
+    "real_tools_used": [
+      "T15A Text Chunker",
+      "T23A spaCy NER"
+    ],
+    "spacy_entities_found": 12,
+    "chunks_created": 1,
+    "kgas_integration": "Functional",
+    "service_manager": "Operational",
+    "tool_request_pattern": "Working",
+    "async_execution": "Working",
+    "error_handling": "Robust"
+  },
+  "raw_entities_found": [
+    [
+      "Apple Inc.",
+      "ORG"
+    ],
+    [
+      "Tim Cook",
+      "PERSON"
+    ],
+    [
+      "Microsoft Corporation",
+      "ORG"
+    ],
+    [
+      "Microsoft",
+      "ORG"
+    ],
+    [
+      "Satya Nadella",
+      "PERSON"
+    ],
+    [
+      "Cupertino",
+      "GPE"
+    ],
+    [
+      "California",
+      "GPE"
+    ],
+    [
+      "LLC",
+      "ORG"
+    ],
+    [
+      "Sundar Pichai",
+      "PERSON"
+    ],
+    [
+      "Amazon",
+      "ORG"
+    ],
+    [
+      "Andy Jassy",
+      "PERSON"
+    ],
+    [
+      "Seattle",
+      "GPE"
+    ]
+  ],
+  "chunks_created": 1,
+  "conclusion": "AGENT_STRESS_TESTING_SYSTEM_FUNCTIONAL"
+}

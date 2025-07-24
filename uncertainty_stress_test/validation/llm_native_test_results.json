@@ -1,0 +1,306 @@
+{
+  "test_results": [
+    {
+      "case": 1,
+      "confidence": 0.8,
+      "prior": 0.7,
+      "reasoning": "The final confidence is determined by combining the prior belief and the strength of the evidence. The prior belief is strong, at 0.7, and the evidence is even stronger, at 0.9. However, there are sig...",
+      "full_assessment": {
+        "value": 0.8,
+        "reasoning": "The final confidence is determined by combining the prior belief and the strength of the evidence. The prior belief is strong, at 0.7, and the evidence is even stronger, at 0.9. However, there are significant uncertainties, particularly the lack of replication and unknown long-term effects, which moderate the final confidence to 0.8.",
+        "quality_assessment": {
+          "study_design": {
+            "score": 1.0,
+            "importance": 1.0,
+            "reasoning": "The study is a randomized controlled trial, which is the gold standard in medical research. It was also double-blinded and multi-center, which reduces bias and increases generalizability."
+          },
+          "sample_size": {
+            "score": 0.8,
+            "importance": 0.8,
+            "reasoning": "The sample size of 500 is relatively large, which increases the statistical power of the study and the reliability of the results."
+          },
+          "statistical_significance": {
+            "score": 1.0,
+            "importance": 1.0,
+            "reasoning": "The p-value is less than 0.001, which indicates a very low probability that the observed effect is due to chance."
+          },
+          "publication": {
+            "score": 1.0,
+            "importance": 0.7,
+            "reasoning": "The study was published in a reputable journal, which suggests it underwent rigorous peer review."
+          }
+        },
+        "uncertainty_factors": {
+          "replication": {
+            "magnitude": 0.7,
+            "importance": 1.0,
+            "description": "This is a single study. The results need to be replicated by independent researchers to confirm the findings."
+          },
+          "long_term_effects": {
+            "magnitude": 0.6,
+            "importance": 0.8,
+            "description": "The study followed patients for 2 years. Longer-term effects of the drug are unknown."
+          }
+        },
+        "epistemic_prior": 0.7,
+        "prior_reasoning": "Given the context, the claim is based on a randomized controlled trial, which is the gold standard in medical research for determining the efficacy of a new treatment. The study was published in a reputable journal, was double-blinded, multi-center, and had independent data monitoring, all of which increase the reliability of the results. However, it is important to note that this is a single study and replication is a key aspect of scientific research. Therefore, while the claim is supported by strong evidence, it is not yet fully established until replicated by independent researchers.",
+        "evidence_synthesis": "The strong evidence substantially updated the prior belief. The robust study design, statistically significant results, and publication in a reputable journal all contribute to the strength of the evidence. However, the single study and unknown long-term effects limit the extent to which the prior can be updated.",
+        "key_strengths": [
+          "Robust study design",
+          "Statistically significant results",
+          "Published in a reputable journal"
+        ],
+        "key_limitations": [
+          "Single study",
+          "Unknown long-term effects"
+        ],
+        "assessment_context": {
+          "prior_assessment": {
+            "epistemic_prior": 0.7,
+            "reasoning": "Given the context, the claim is based on a randomized controlled trial, which is the gold standard in medical research for determining the efficacy of a new treatment. The study was published in a reputable journal, was double-blinded, multi-center, and had independent data monitoring, all of which increase the reliability of the results. However, it is important to note that this is a single study and replication is a key aspect of scientific research. Therefore, while the claim is supported by strong evidence, it is not yet fully established until replicated by independent researchers.",
+            "claim_type": "causal",
+            "extraordinariness": "ordinary",
+            "domain_base_rate": "In medical research, the success rate for new drugs is relatively low due to the rigorous testing and regulatory approval processes. However, the success rate for drugs that have reached the stage of randomized controlled trials is higher.",
+            "theoretical_constraints": "The claim is within the realm of existing medical knowledge and theory. It is well-established that drugs can influence heart attack risk.",
+            "confidence_in_prior": 0.7
+          },
+          "evidence_assessment": {
+            "evidence_strength": 0.9,
+            "quality_dimensions": {
+              "study_design": {
+                "score": 1.0,
+                "importance": 1.0,
+                "reasoning": "The study is a randomized controlled trial, which is the gold standard in medical research. It was also double-blinded and multi-center, which reduces bias and increases generalizability."
+              },
+              "sample_size": {
+                "score": 0.8,
+                "importance": 0.8,
+                "reasoning": "The sample size of 500 is relatively large, which increases the statistical power of the study and the reliability of the results."
+              },
+              "statistical_significance": {
+                "score": 1.0,
+                "importance": 1.0,
+                "reasoning": "The p-value is less than 0.001, which indicates a very low probability that the observed effect is due to chance."
+              },
+              "publication": {
+                "score": 1.0,
+                "importance": 0.7,
+                "reasoning": "The study was published in a reputable journal, which suggests it underwent rigorous peer review."
+              }
+            },
+            "uncertainty_factors": {
+              "replication": {
+                "magnitude": 0.7,
+                "importance": 1.0,
+                "description": "This is a single study. The results need to be replicated by independent researchers to confirm the findings."
+              },
+              "long_term_effects": {
+                "magnitude": 0.6,
+                "importance": 0.8,
+                "description": "The study followed patients for 2 years. Longer-term effects of the drug are unknown."
+              }
+            },
+            "key_strengths": [
+              "Robust study design",
+              "Statistically significant results",
+              "Published in a reputable journal"
+            ],
+            "key_limitations": [
+              "Single study",
+              "Unknown long-term effects"
+            ],
+            "methodological_assessment": "The study is methodologically sound, with a robust design, large sample size, and statistically significant results. However, it is a single study and the long-term effects of the drug are unknown.",
+            "relevance_assessment": "The evidence directly addresses the claim that the new drug significantly reduces heart attack risk.",
+            "overall_reasoning": "The evidence is strong and directly relevant to the claim. However, the claim is not yet fully established until the results are replicated and the long-term effects of the drug are known.",
+            "confidence_in_assessment": 0.85
+          },
+          "confidence_synthesis": {
+            "final_confidence": 0.8,
+            "confidence_reasoning": "The final confidence is determined by combining the prior belief and the strength of the evidence. The prior belief is strong, at 0.7, and the evidence is even stronger, at 0.9. However, there are significant uncertainties, particularly the lack of replication and unknown long-term effects, which moderate the final confidence to 0.8.",
+            "prior_to_posterior_update": "The strong evidence substantially updated the prior belief. The robust study design, statistically significant results, and publication in a reputable journal all contribute to the strength of the evidence. However, the single study and unknown long-term effects limit the extent to which the prior can be updated.",
+            "key_factors": [
+              "Robust study design",
+              "Statistically significant results",
+              "Single study",
+              "Unknown long-term effects"
+            ],
+            "uncertainty_synthesis": "The uncertainties were integrated by considering their magnitude and importance. The lack of replication is a significant uncertainty, with a magnitude of 0.7 and importance of 1.0. The unknown long-term effects is also a significant uncertainty, with a magnitude of 0.6 and importance of 0.8. These uncertainties moderate the final confidence.",
+            "sensitivity_analysis": "The final confidence is sensitive to the assumptions about the importance of replication and long-term effects. If these uncertainties were considered less important, the final confidence would be higher. Conversely, if these uncertainties were considered more important, the final confidence would be lower.",
+            "meta_uncertainty": 0.1,
+            "meta_reasoning": "The meta-uncertainty is low because the methodology for combining the prior belief and evidence strength is well-established in Bayesian reasoning. However, there is some uncertainty about the uncertainty estimates themselves, particularly the importance assigned to replication and long-term effects.",
+            "alternative_interpretations": [
+              "If the importance of replication and long-term effects were considered lower, the final confidence could be as high as 0.9. Conversely, if the importance of replication and long-term effects were considered higher, the final confidence could be as low as 0.7."
+            ],
+            "confidence_bounds": {
+              "lower_bound": 0.7,
+              "upper_bound": 0.9,
+              "reasoning": "The lower bound represents a conservative estimate that takes into account the significant uncertainties. The upper bound represents an optimistic estimate that gives more weight to the strength of the evidence."
+            }
+          }
+        },
+        "creation_timestamp": "2025-07-23T15:07:10.853142",
+        "last_updated": "2025-07-23T15:07:10.853143",
+        "evidence_count": 1,
+        "update_history": [],
+        "domain": "medical_research",
+        "claim_type": "causal"
+      }
+    },
+    {
+      "case": 2,
+      "confidence": 0.05,
+      "prior": 0.05,
+      "reasoning": "The final confidence remains at the level of the prior, as the evidence provided does not significantly update our belief. The study has a small sample size, lacks a control group, and relies on self-...",
+      "full_assessment": {
+        "value": 0.05,
+        "reasoning": "The final confidence remains at the level of the prior, as the evidence provided does not significantly update our belief. The study has a small sample size, lacks a control group, and relies on self-reported data, all of which significantly reduce its credibility. Furthermore, the lead author's history of making similar extraordinary claims raises doubts about the reliability of the findings.",
+        "quality_assessment": {
+          "sample_size": {
+            "score": 0.1,
+            "importance": 1.0,
+            "reasoning": "The sample size of the study is very small (N=20), which significantly reduces the reliability and generalizability of the findings."
+          },
+          "control_group": {
+            "score": 0.0,
+            "importance": 1.0,
+            "reasoning": "The study lacks a control group, which is crucial for establishing a causal relationship."
+          },
+          "data_collection": {
+            "score": 0.1,
+            "importance": 1.0,
+            "reasoning": "The study relies on self-reported data, which is subject to bias and may not accurately reflect actual memory performance."
+          },
+          "author_credibility": {
+            "score": 0.2,
+            "importance": 0.8,
+            "reasoning": "The lead author has a history of making similar extraordinary claims, which raises doubts about the reliability of the findings."
+          }
+        },
+        "uncertainty_factors": {
+          "unknown_university": {
+            "magnitude": 0.9,
+            "importance": 0.8,
+            "description": "The study comes from an unknown university, which adds uncertainty to the credibility and quality of the research."
+          },
+          "extraordinary_claim": {
+            "magnitude": 1.0,
+            "importance": 1.0,
+            "description": "The claim is extraordinary and lacks a strong theoretical foundation in the domain of cognitive science, which significantly increases uncertainty."
+          }
+        },
+        "epistemic_prior": 0.05,
+        "prior_reasoning": "The claim is extraordinary and lacks a strong theoretical foundation in the domain of cognitive science. The base rate of similar claims being true is very low. The study mentioned has a small sample size, lacks a control group, and relies on self-reported data, which are all factors that significantly reduce its credibility. The lead author's history of making similar extraordinary claims also raises doubts about the reliability of the findings.",
+        "evidence_synthesis": "The evidence did not significantly update the prior. The evidence strength was low and the quality dimensions of the study were poor, which did not provide a strong basis for updating the prior belief.",
+        "key_strengths": [
+          "None"
+        ],
+        "key_limitations": [
+          "Small sample size",
+          "Lack of control group",
+          "Reliance on self-reported data",
+          "Author's history of extraordinary claims"
+        ],
+        "assessment_context": {
+          "prior_assessment": {
+            "epistemic_prior": 0.05,
+            "reasoning": "The claim is extraordinary and lacks a strong theoretical foundation in the domain of cognitive science. The base rate of similar claims being true is very low. The study mentioned has a small sample size, lacks a control group, and relies on self-reported data, which are all factors that significantly reduce its credibility. The lead author's history of making similar extraordinary claims also raises doubts about the reliability of the findings.",
+            "claim_type": "causal",
+            "extraordinariness": "extraordinary",
+            "domain_base_rate": "Extraordinary claims in cognitive science, especially those lacking strong theoretical foundations and robust empirical evidence, have a very low success rate.",
+            "theoretical_constraints": "Existing theories in cognitive science do not support the idea that standing on one foot while drinking coffee could have such a dramatic effect on memory. The claim is not well-constrained by existing theory.",
+            "confidence_in_prior": 0.9
+          },
+          "evidence_assessment": {
+            "evidence_strength": 0.1,
+            "quality_dimensions": {
+              "sample_size": {
+                "score": 0.1,
+                "importance": 1.0,
+                "reasoning": "The sample size of the study is very small (N=20), which significantly reduces the reliability and generalizability of the findings."
+              },
+              "control_group": {
+                "score": 0.0,
+                "importance": 1.0,
+                "reasoning": "The study lacks a control group, which is crucial for establishing a causal relationship."
+              },
+              "data_collection": {
+                "score": 0.1,
+                "importance": 1.0,
+                "reasoning": "The study relies on self-reported data, which is subject to bias and may not accurately reflect actual memory performance."
+              },
+              "author_credibility": {
+                "score": 0.2,
+                "importance": 0.8,
+                "reasoning": "The lead author has a history of making similar extraordinary claims, which raises doubts about the reliability of the findings."
+              }
+            },
+            "uncertainty_factors": {
+              "unknown_university": {
+                "magnitude": 0.9,
+                "importance": 0.8,
+                "description": "The study comes from an unknown university, which adds uncertainty to the credibility and quality of the research."
+              },
+              "extraordinary_claim": {
+                "magnitude": 1.0,
+                "importance": 1.0,
+                "description": "The claim is extraordinary and lacks a strong theoretical foundation in the domain of cognitive science, which significantly increases uncertainty."
+              }
+            },
+            "key_strengths": [
+              "None"
+            ],
+            "key_limitations": [
+              "Small sample size",
+              "Lack of control group",
+              "Reliance on self-reported data",
+              "Author's history of extraordinary claims"
+            ],
+            "methodological_assessment": "The study's methodology is severely flawed. It has a small sample size, lacks a control group, and relies on self-reported data. These factors significantly reduce the reliability and validity of the findings.",
+            "relevance_assessment": "The evidence is directly relevant to the claim, but its quality is so poor that it provides little support for the claim.",
+            "overall_reasoning": "Given the poor quality of the evidence and the extraordinary nature of the claim, there is very little reason to believe that standing on one foot while drinking coffee dramatically improves memory.",
+            "confidence_in_assessment": 0.9
+          },
+          "confidence_synthesis": {
+            "final_confidence": 0.05,
+            "confidence_reasoning": "The final confidence remains at the level of the prior, as the evidence provided does not significantly update our belief. The study has a small sample size, lacks a control group, and relies on self-reported data, all of which significantly reduce its credibility. Furthermore, the lead author's history of making similar extraordinary claims raises doubts about the reliability of the findings.",
+            "prior_to_posterior_update": "The evidence did not significantly update the prior. The evidence strength was low and the quality dimensions of the study were poor, which did not provide a strong basis for updating the prior belief.",
+            "key_factors": [
+              "Small sample size",
+              "Lack of control group",
+              "Reliance on self-reported data",
+              "Author's history of extraordinary claims"
+            ],
+            "uncertainty_synthesis": "The sources of uncertainty, including the unknown university and the extraordinary nature of the claim, further reduce confidence in the claim. These factors interact to create a high level of uncertainty about the claim.",
+            "sensitivity_analysis": "This confidence is highly sensitive to the quality of the study. If the study had a larger sample size, a control group, and did not rely on self-reported data, the confidence could be significantly higher.",
+            "meta_uncertainty": 0.9,
+            "meta_reasoning": "There is high uncertainty about this confidence estimate due to the extraordinary nature of the claim and the poor quality of the study.",
+            "alternative_interpretations": [
+              "If the study had a larger sample size, a control group, and did not rely on self-reported data, the confidence could be significantly higher."
+            ],
+            "confidence_bounds": {
+              "lower_bound": 0.01,
+              "upper_bound": 0.1,
+              "reasoning": "The lower bound reflects the possibility that the claim is completely false, while the upper bound reflects the possibility that the claim is true but the evidence is not strong enough to support it."
+            }
+          }
+        },
+        "creation_timestamp": "2025-07-23T15:08:09.805842",
+        "last_updated": "2025-07-23T15:08:09.805843",
+        "evidence_count": 1,
+        "update_history": [],
+        "domain": "cognitive_science",
+        "claim_type": "causal"
+      }
+    }
+  ],
+  "performance_metrics": {
+    "api_calls_made": 6,
+    "total_processing_time": 120.834294,
+    "average_call_time": 20.139049,
+    "cache_hits": 0,
+    "cache_hit_rate": 0.0,
+    "assessments_completed": 2,
+    "cached_analyses": 0
+  },
+  "test_timestamp": "2025-07-23T15:08:09.806709"
+}

@@ -1,0 +1,8 @@
+{
+  "sequential_time": 43.40078330039978,
+  "parallel_time": 24.661985158920288,
+  "with_cache_time": 21.67770711898804,
+  "speed_improvement": 43.17617498232315,
+  "total_improvement": 50.05226756175076,
+  "confidence": 0.85
+}

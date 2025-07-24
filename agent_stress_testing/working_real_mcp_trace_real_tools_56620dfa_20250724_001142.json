@@ -1,0 +1,120 @@
+{
+  "trace_metadata": {
+    "trace_id": "real_tools_56620dfa",
+    "total_duration": 2.1668541431427,
+    "real_mcp_tools": true,
+    "tools_used": [
+      "T15A",
+      "T23A",
+      "T27"
+    ]
+  },
+  "input_document": {
+    "content": "\n    Apple Inc. CEO Tim Cook announced a major strategic partnership with Microsoft Corporation \n    during a meeting in Cupertino, California. The agreement was signed by Microsoft CEO \n    Satya Nadella and Apple's Chief Operating Officer Jeff Williams.\n    \n    Google LLC CEO Sundar Pichai also met with IBM CEO Arvind Krishna to discuss AI partnerships. \n    Amazon Web Services CEO Andy Jassy announced new cloud infrastructure collaborations with \n    Oracle Corporation CEO Safra Catz at Amazon's headquarters in Seattle, Washington.\n    \n    These strategic alliances demonstrate how technology companies like Apple, Microsoft, Google, \n    IBM, Amazon, and Oracle are forming partnerships to compete in the enterprise market.\n    ",
+    "length": 740
+  },
+  "tool_calls": [
+    {
+      "call_id": "tool_001",
+      "timestamp": "2025-07-24T00:11:42.208626",
+      "elapsed_time": 1.8685276508331299,
+      "tool_name": "chunk_text",
+      "inputs": {
+        "document_ref": "storage://demo/corporate_partnerships.txt",
+        "text_length": 740,
+        "confidence": 0.8
+      },
+      "outputs": {
+        "status": "success",
+        "data": {
+          "chunks": [
+            {
+              "chunk_id": "chunk_89e38d8b",
+              "chunk_ref": "storage://chunk/chunk_89e38d8b",
+              "chunk_index": 0,
+              "text": "Apple Inc. CEO Tim Cook announced a major strategic partnership with Microsoft Corporation \n    during a meeting in Cupertino, California. The agreement was signed by Microsoft CEO \n    Satya Nadella and Apple's Chief Operating Officer Jeff Williams.\n    \n    Google LLC CEO Sundar Pichai also met with IBM CEO Arvind Krishna to discuss AI partnerships. \n    Amazon Web Services CEO Andy Jassy announced new cloud infrastructure collaborations with \n    Oracle Corporation CEO Safra Catz at Amazon's headquarters in Seattle, Washington.\n    \n    These strategic alliances demonstrate how technology companies like Apple, Microsoft, Google, \n    IBM, Amazon, and Oracle are forming partnerships to compete in the enterprise market",
+              "token_count": 100,
+              "char_start": 0,
+              "char_end": 729,
+              "source_document": "storage://demo/corporate_partnerships.txt",
+              "confidence": 0.6264140625000001,
+              "created_at": "2025-07-24T00:11:42.208433",
+              "chunking_method": "sliding_window",
+              "overlap_with_previous": 0,
+              "quality_tier": "MEDIUM"
+            }
+          ],
+          "total_chunks": 1,
+          "total_tokens": 100,
+          "chunk_statistics": {
+            "total_chunks": 1,
+            "total_tokens": 100,
+            "average_tokens_per_chunk": 100.0,
+            "min_tokens": 100,
+            "max_tokens": 100,
+            "average_text_length": 729.0,
+            "total_text_length": 729
+          }
+        },
+        "tool_id": "T15A"
+      },
+      "execution_time": 0.0007402896881103516,
+      "status": "success"
+    },
+    {
+      "call_id": "tool_002",
+      "timestamp": "2025-07-24T00:11:42.506936",
+      "elapsed_time": 2.1668381690979004,
+      "tool_name": "extract_entities",
+      "inputs": {
+        "chunk_ref": "storage://chunk/chunk_89e38d8b",
+        "text_length": 729,
+        "confidence": 0.3
+      },
+      "outputs": {
+        "status": "success",
+        "data": {
+          "entities": [],
+          "total_entities": 0,
+          "entity_types": {},
+          "processing_stats": {
+            "text_length": 729,
+            "entities_found": 26,
+            "entities_extracted": 0,
+            "confidence_threshold": 0.8
+          }
+        },
+        "tool_id": "T23A"
+      },
+      "execution_time": 0.29828906059265137,
+      "status": "success"
+    }
+  ],
+  "results": {
+    "chunks": [
+      {
+        "chunk_id": "chunk_89e38d8b",
+        "chunk_ref": "storage://chunk/chunk_89e38d8b",
+        "chunk_index": 0,
+        "text": "Apple Inc. CEO Tim Cook announced a major strategic partnership with Microsoft Corporation \n    during a meeting in Cupertino, California. The agreement was signed by Microsoft CEO \n    Satya Nadella and Apple's Chief Operating Officer Jeff Williams.\n    \n    Google LLC CEO Sundar Pichai also met with IBM CEO Arvind Krishna to discuss AI partnerships. \n    Amazon Web Services CEO Andy Jassy announced new cloud infrastructure collaborations with \n    Oracle Corporation CEO Safra Catz at Amazon's headquarters in Seattle, Washington.\n    \n    These strategic alliances demonstrate how technology companies like Apple, Microsoft, Google, \n    IBM, Amazon, and Oracle are forming partnerships to compete in the enterprise market",
+        "token_count": 100,
+        "char_start": 0,
+        "char_end": 729,
+        "source_document": "storage://demo/corporate_partnerships.txt",
+        "confidence": 0.6264140625000001,
+        "created_at": "2025-07-24T00:11:42.208433",
+        "chunking_method": "sliding_window",
+        "overlap_with_previous": 0,
+        "quality_tier": "MEDIUM"
+      }
+    ],
+    "entities": [],
+    "relationships": [],
+    "summary": {
+      "chunks_created": 1,
+      "entities_extracted": 0,
+      "relationships_found": 0,
+      "processing_time": 2.1668541431427
+    }
+  }
+}

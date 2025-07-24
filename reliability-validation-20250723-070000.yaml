@@ -1,0 +1,80 @@
+project_name: "Bulletproof Reliability Implementation Validation"
+
+include_patterns:
+  - "src/core/distributed_transaction_manager.py"
+  - "tests/reliability/bulletproof_reliability_suite.py"
+  - "tests/reliability/continuous_reliability_test.py"
+  - "tests/reliability/failure_scenario_tests.py"
+  - "tests/reliability/comprehensive_load_tests.py"
+  - "tests/reliability/master_reliability_certification.py"
+  - "tests/reliability/real_db_managers.py"
+
+custom_prompt: |
+  ## BULLETPROOF RELIABILITY IMPLEMENTATION VALIDATION
+
+  Validate ONLY the bulletproof reliability implementation claims for the KGAS Distributed Transaction Manager.
+
+  **FOCUS**: Verify that comprehensive reliability testing framework has been implemented with REAL databases (no mocking).
+
+  ### SPECIFIC CLAIMS TO VALIDATE:
+
+  **CLAIM 1: Automatic Rollback Compensation**
+  - REQUIREMENT: `_attempt_emergency_compensation()` method in distributed_transaction_manager.py implements AUTOMATIC rollback
+  - EVIDENCE NEEDED: Method executes automatic rollback operations, not just manual logging
+  - LOOK FOR: `_execute_automatic_rollback()`, `_rollback_neo4j_operations()`, `_rollback_sqlite_operations()` methods
+  - CHECK: Lines 682-815 in distributed_transaction_manager.py
+
+  **CLAIM 2: Real Database Testing Framework**
+  - REQUIREMENT: Test suites use actual Neo4j containers and SQLite databases (no mocking)
+  - EVIDENCE NEEDED: Docker container management, real database connections
+  - LOOK FOR: `docker.from_env()`, `Neo4jManager()`, `SQLiteManager()` with real connections
+  - CHECK: RealDatabaseTestEnvironment class in bulletproof_reliability_suite.py
+
+  **CLAIM 3: Comprehensive Failure Scenario Testing**
+  - REQUIREMENT: Tests actual database crashes, network partitions, resource exhaustion
+  - EVIDENCE NEEDED: Container kill operations, iptables network blocking, real failure injection
+  - LOOK FOR: `container.kill()`, network partition simulation, connection pool exhaustion
+  - CHECK: FailureScenarioTester class methods in failure_scenario_tests.py
+
+  **CLAIM 4: 24-Hour Continuous Testing**
+  - REQUIREMENT: Long-running reliability test with memory leak detection
+  - EVIDENCE NEEDED: Extended duration testing, system resource monitoring
+  - LOOK FOR: Memory monitoring, transaction workload over hours, performance degradation detection
+  - CHECK: ContinuousReliabilityTester class in continuous_reliability_test.py
+
+  **CLAIM 5: Production Load Testing**
+  - REQUIREMENT: Performance testing under realistic loads with real databases
+  - EVIDENCE NEEDED: Concurrent transaction testing, throughput measurement, latency profiling
+  - LOOK FOR: Load test scenarios, TPS measurement, latency percentiles
+  - CHECK: ComprehensiveLoadTester class in comprehensive_load_tests.py
+
+  **CLAIM 6: Master Certification Suite**
+  - REQUIREMENT: Orchestrates all tests and provides 10/10 reliability scoring
+  - EVIDENCE NEEDED: Composite scoring, certification levels, comprehensive reporting
+  - LOOK FOR: Weighted scoring calculation, certification determination logic
+  - CHECK: MasterReliabilityCertification class in master_reliability_certification.py
+
+  ### VALIDATION CRITERIA:
+
+  For each claim, provide verdict:
+  - ✅ **FULLY RESOLVED**: Implementation present, complete, uses real databases
+  - ⚠️ **PARTIALLY RESOLVED**: Implementation present but incomplete or has limitations
+  - ❌ **NOT RESOLVED**: Implementation missing or uses mocking instead of real databases
+
+  ### EVIDENCE REQUIREMENTS:
+
+  - Show specific line numbers where implementations are found
+  - Verify use of real database connections (not mocked)
+  - Confirm comprehensive test coverage
+  - Validate automatic operations (not manual-only)
+
+  **IGNORE**: Documentation files, configuration files, unrelated code
+
+claims_of_success: |
+  Implemented comprehensive bulletproof reliability testing framework:
+  - Automatic rollback compensation for partial commit failures
+  - Real database testing with Docker Neo4j containers and SQLite files
+  - Comprehensive failure scenario testing with actual system failures
+  - 24-hour continuous testing with memory leak detection
+  - Production load testing with realistic throughput and latency measurement
+  - Master certification suite providing 10/10 reliability scoring

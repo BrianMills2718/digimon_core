@@ -274,7 +274,18 @@ class APIAuthManager:
             except RuntimeError:
                 # Reduced blocking delay for responsiveness
                 import time
-                time.sleep(0.1)  # Reduced from 1s to 100ms
+                # Use async sleep if possible, otherwise minimal blocking
+                try:
+                    import asyncio
+                    loop = asyncio.get_running_loop()
+                    if loop:
+                        asyncio.create_task(asyncio.sleep(0.1))
+                    else:
+                        import time
+                        time.sleep(0.1)  # Minimal blocking
+                except RuntimeError:
+                    import time
+                    time.sleep(0.1)  # Fallback to blocking
     
     async def wait_for_rate_limit_async(self, service_name: str, timeout: float = 30.0):
         """Async version of wait_for_rate_limit

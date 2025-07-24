@@ -1,0 +1,1200 @@
+This file is a merged representation of a subset of the codebase, containing specifically included files, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of a subset of the repository's contents that is considered the most important context.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Only files matching these patterns are included: docs/architecture/ARCHITECTURE_OVERVIEW.md, docs/architecture/adrs/ADR-001-Phase-Interface-Design.md, docs/architecture/adrs/ADR-009-Bi-Store-Database-Strategy.md, docs/architecture/systems/contract-system.md
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+docs/
+  architecture/
+    adrs/
+      ADR-001-Phase-Interface-Design.md
+      ADR-009-Bi-Store-Database-Strategy.md
+    systems/
+      contract-system.md
+    ARCHITECTURE_OVERVIEW.md
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="docs/architecture/adrs/ADR-009-Bi-Store-Database-Strategy.md">
+# ADR-009: Bi-Store Database Strategy
+
+**Status**: Accepted  
+**Date**: 2025-07-23  
+**Context**: System requires both graph analysis capabilities and operational metadata storage for academic research workflows.
+
+## Decision
+
+We will implement a **bi-store architecture** using:
+
+1. **Neo4j (v5.13+)**: Primary graph database for entities, relationships, and vector embeddings
+2. **SQLite**: Operational metadata database for provenance, workflow state, and PII vault
+
+```python
+# Unified access pattern
+class DataManager:
+    def __init__(self):
+        self.neo4j = Neo4jManager()      # Graph operations
+        self.sqlite = SQLiteManager()    # Metadata operations
+    
+    def store_entity(self, entity_data):
+        # Store graph data in Neo4j
+        entity_id = self.neo4j.create_entity(entity_data)
+        
+        # Store operational metadata in SQLite
+        self.sqlite.log_provenance(entity_id, "entity_creation", entity_data)
+        
+        return entity_id
+```
+
+## Rationale
+
+### **Why Two Databases Instead of One?**
+
+**1. Graph Analysis Requirements**: Academic research requires complex graph operations:
+- **Entity relationship analysis**: "Find all researchers influenced by Foucault"
+- **Community detection**: Identify research clusters and schools of thought
+- **Path analysis**: "How is theory A connected to theory B?"
+- **Centrality analysis**: Identify most influential concepts/researchers
+
+**Neo4j excels at these operations with Cypher queries like:**
+```cypher
+MATCH (a:Entity {name: "Foucault"})-[:INFLUENCES*1..3]->(influenced)
+RETURN influenced.name, length(path) as degrees_of_separation
+```
+
+**2. Operational Metadata Requirements**: Academic integrity requires detailed operational tracking:
+- **Provenance tracking**: Complete audit trail of every operation
+- **Workflow state**: Long-running research workflow checkpoints
+- **PII protection**: Encrypted storage of sensitive personal information
+- **Configuration state**: Tool settings and parameter tracking
+
+**SQLite excels at these operations with relational queries and ACID transactions.**
+
+**3. Performance Optimization**: 
+- **Graph queries** on Neo4j: Optimized for traversal and pattern matching
+- **Metadata queries** on SQLite: Optimized for joins, aggregations, and transactional consistency
+
+### **Why Not Single Database Solutions?**
+
+**Neo4j Only**:
+- ❌ **Poor relational operations**: Complex joins and aggregations are inefficient
+- ❌ **Metadata bloat**: Operational metadata clutters graph with non-analytical data
+- ❌ **ACID limitations**: Neo4j transactions less robust for operational metadata
+- ❌ **PII security**: Graph databases not optimized for encrypted key-value storage
+
+**SQLite Only**:
+- ❌ **Graph operations**: Recursive CTEs cannot match Neo4j's graph algorithm performance
+- ❌ **Vector operations**: No native vector similarity search capabilities
+- ❌ **Scalability**: Graph traversals become exponentially slow with data growth
+- ❌ **Cypher equivalent**: No domain-specific query language for graph patterns
+
+**PostgreSQL Only**:
+- ❌ **Local deployment**: Requires server setup incompatible with academic research environments
+- ❌ **Graph extensions**: Extensions like AGE add complexity without matching Neo4j performance
+- ❌ **Vector search**: Extensions available but not as mature as Neo4j's native support
+
+## Alternatives Considered
+
+### **1. Neo4j + PostgreSQL**
+- **Rejected**: PostgreSQL server requirement incompatible with single-node academic research
+- **Problem**: Requires database server administration and configuration
+
+### **2. Pure Neo4j with Metadata as Graph Nodes**
+- **Rejected**: Creates graph pollution and performance degradation
+- **Problem**: Provenance metadata would create millions of nodes unrelated to research analysis
+
+### **3. Pure SQLite with Graph Tables**
+- **Rejected**: Recursive graph queries become prohibitively slow
+- **Problem**: Academic research requires complex graph analysis not feasible in pure SQL
+
+### **4. In-Memory Graph (NetworkX) + SQLite**
+- **Rejected**: Memory limitations prevent analysis of large research corpora
+- **Problem**: Cannot handle 1000+ document research projects
+
+## Consequences
+
+### **Positive**
+- **Optimal Performance**: Each database handles operations it's designed for
+- **Data Separation**: Analytical data separate from operational metadata
+- **Local Deployment**: Both databases support single-node academic environments
+- **Specialized Tooling**: Can use Neo4j Browser for graph exploration, SQL tools for metadata
+- **Vector Integration**: Neo4j v5.13+ native vector support for embeddings
+
+### **Negative**
+- **Complexity**: Two database systems to maintain and coordinate
+- **Transaction Coordination**: Cross-database transactions require careful coordination
+- **Data Synchronization**: Entity IDs must remain consistent across both stores
+- **Backup Complexity**: Two separate backup and recovery procedures required
+
+## Data Distribution Strategy
+
+### **Neo4j Store**
+```cypher
+// Entities with vector embeddings
+(:Entity {
+    id: string,
+    canonical_name: string,
+    entity_type: string,
+    confidence: float,
+    embedding: vector[384]
+})
+
+// Relationships
+(:Entity)-[:INFLUENCES {confidence: float, source: string}]->(:Entity)
+
+// Documents
+(:Document {id: string, title: string, source: string})
+
+// Vector indexes for similarity search
+CREATE VECTOR INDEX entity_embedding_index 
+FOR (e:Entity) ON (e.embedding)
+```
+
+### **SQLite Store**
+```sql
+-- Complete provenance tracking
+CREATE TABLE provenance (
+    object_id TEXT,
+    tool_id TEXT,
+    operation TEXT,
+    inputs JSON,
+    outputs JSON,
+    execution_time REAL,
+    created_at TIMESTAMP
+);
+
+-- Workflow state for long-running processes
+CREATE TABLE workflow_states (
+    workflow_id TEXT PRIMARY KEY,
+    state_data JSON,
+    checkpoint_time TIMESTAMP
+);
+
+-- Encrypted PII storage
+CREATE TABLE pii_vault (
+    pii_id TEXT PRIMARY KEY,
+    ciphertext_b64 TEXT NOT NULL,
+    nonce_b64 TEXT NOT NULL
+);
+```
+
+## Transaction Coordination
+
+For operations affecting both databases:
+
+```python
+@contextmanager
+def distributed_transaction():
+    """Coordinate transactions across Neo4j and SQLite"""
+    neo4j_tx = None
+    sqlite_tx = None
+    
+    try:
+        # Start both transactions
+        neo4j_session = neo4j_driver.session()
+        neo4j_tx = neo4j_session.begin_transaction()
+        sqlite_tx = sqlite_conn.begin()
+        
+        yield (neo4j_tx, sqlite_tx)
+        
+        # Commit both if successful
+        neo4j_tx.commit()
+        sqlite_tx.commit()
+        
+    except Exception as e:
+        # Rollback both on any failure
+        if neo4j_tx:
+            neo4j_tx.rollback()
+        if sqlite_tx:
+            sqlite_tx.rollback()
+        raise DistributedTransactionError(f"Transaction failed: {e}")
+```
+
+## Implementation Requirements
+
+### **Consistency Guarantees**
+- Entity IDs must be identical across both databases
+- All graph operations must have corresponding provenance entries
+- Transaction failures must rollback both databases
+
+### **Performance Requirements**
+- Graph queries: < 2 seconds for typical academic research patterns
+- Metadata queries: < 500ms for provenance and workflow operations
+- Cross-database coordination: < 100ms overhead
+
+### **Backup and Recovery**
+- Neo4j: Graph database dumps with entity/relationship preservation
+- SQLite: File-based backups with transaction log consistency
+- Coordinated restoration ensuring ID consistency
+
+## Validation Criteria
+
+- [ ] Graph analysis queries perform within academic research requirements
+- [ ] Metadata operations maintain ACID properties
+- [ ] Cross-database entity ID consistency maintained
+- [ ] Transaction coordination prevents partial failures
+- [ ] Backup/recovery maintains data integrity across both stores
+- [ ] Vector similarity search performs effectively on research corpora
+
+## Related ADRs
+
+- **ADR-008**: Core Service Architecture (services use both databases)
+- **ADR-006**: Cross-Modal Analysis (requires graph and metadata coordination)
+- **ADR-003**: Vector Store Consolidation (Neo4j vector capabilities)
+
+## Implementation Status
+
+This ADR describes the **target bi-store database architecture** - the intended Neo4j + SQLite design. For current database implementation status and data layer progress, see:
+
+- **[Roadmap Overview](../../roadmap/ROADMAP_OVERVIEW.md)** - Current database implementation status
+- **[Core Service Implementation](../../roadmap/phases/phase-2-implementation-evidence.md)** - Database service completion status
+- **[Data Architecture Progress](../../roadmap/initiatives/clear-implementation-roadmap.md)** - Bi-store implementation timeline
+
+*This ADR contains no implementation status information by design - all status tracking occurs in the roadmap documentation.*
+
+---
+
+This bi-store strategy optimizes for both analytical capabilities and operational reliability required for rigorous academic research while maintaining the simplicity appropriate for single-node research environments.
+</file>
+
+<file path="docs/architecture/adrs/ADR-001-Phase-Interface-Design.md">
+**Doc status**: Living – auto-checked by doc-governance CI
+
+# ADR-001: Contract-First Tool Interface Design
+
+**Date**: 2025-01-27  
+**Status**: Partially Implemented - 10 tools use legacy interfaces, 9 tools have unified interface, contract-first design remains architectural goal  
+**Deciders**: Development Team  
+**Context**: Tool integration failures due to incompatible interfaces
+
+---
+
+## 🎯 **Decision**
+
+**Use contract-first design for all tool interfaces with theory schema integration**
+
+All tools must implement standardized contracts with theory schema support to enable agent-orchestrated workflows and cross-modal analysis.
+
+---
+
+## 🚨 **Problem**
+
+### **Current Issues**
+- **API Incompatibility**: Tools have different calling signatures and return formats
+- **Integration Failures**: Tools tested in isolation, breaks discovered at agent runtime
+- **No Theory Integration**: Theoretical concepts defined but not consistently used in processing
+- **Agent Complexity**: Agent needs complex logic to handle different tool interfaces
+
+### **Root Cause**
+- **"Build First, Integrate Later"**: Tools built independently without shared contracts
+- **No Interface Standards**: Each tool evolved its own API without coordination
+- **Missing Theory Awareness**: Processing pipeline doesn't consistently use theoretical foundations
+
+---
+
+## 💡 **Trade-off Analysis**
+
+### Options Considered
+
+#### Option 1: Keep Status Quo (Tool-Specific Interfaces)
+- **Pros**:
+  - No migration effort required
+  - Tools remain independent and specialized
+  - Developers familiar with existing patterns
+  - Quick to add new tools without constraints
+  
+- **Cons**:
+  - Integration complexity grows exponentially with tool count
+  - Agent orchestration requires complex adapter logic
+  - No consistent error handling or confidence tracking
+  - Theory integration would require per-tool implementation
+  - Testing each tool combination separately
+
+#### Option 2: Retrofit with Adapters
+- **Pros**:
+  - Preserve existing tool implementations
+  - Gradual migration possible
+  - Lower initial development effort
+  - Can maintain backward compatibility
+  
+- **Cons**:
+  - Adapter layer adds performance overhead
+  - Theory integration still difficult
+  - Two patterns to maintain (native + adapted)
+  - Technical debt accumulates
+  - Doesn't solve root cause of integration issues
+
+#### Option 3: Contract-First Design [SELECTED]
+- **Pros**:
+  - Clean, consistent interfaces across all tools
+  - Theory integration built into contract
+  - Enables intelligent agent orchestration
+  - Simplified testing and validation
+  - Future tools automatically compatible
+  - Cross-modal analysis becomes straightforward
+  
+- **Cons**:
+  - Significant refactoring of existing tools
+  - Higher upfront design effort
+  - Team learning curve for new patterns
+  - Risk of over-engineering contracts
+
+#### Option 4: Microservice Architecture
+- **Pros**:
+  - Tools completely decoupled
+  - Independent scaling and deployment
+  - Technology agnostic (tools in any language)
+  - Industry-standard pattern
+  
+- **Cons**:
+  - Massive complexity increase for research platform
+  - Network overhead for local processing
+  - Distributed system challenges
+  - Overkill for single-user academic use case
+
+### Decision Rationale
+
+Contract-First Design (Option 3) was selected because:
+
+1. **Agent Enablement**: Standardized interfaces are essential for intelligent agent orchestration of tool workflows.
+
+2. **Theory Integration**: Built-in support for theory schemas ensures consistent application of domain knowledge.
+
+3. **Cross-Modal Requirements**: Consistent interfaces enable seamless conversion between graph, table, and vector representations.
+
+4. **Research Quality**: Standardized confidence scoring and provenance tracking improve research reproducibility.
+
+5. **Long-term Maintenance**: While initial effort is higher, the reduced integration complexity pays dividends over time.
+
+6. **Testing Efficiency**: Integration tests can validate tool combinations systematically rather than ad-hoc.
+
+### When to Reconsider
+
+This decision should be revisited if:
+- Moving from research platform to production service
+- Need to integrate external tools not under our control
+- Performance overhead of contracts exceeds 10%
+- Team size grows beyond 5 developers
+- Requirements shift from batch to real-time processing
+
+The contract abstraction provides flexibility to evolve the implementation while maintaining interface stability.
+
+---
+
+## ✅ **Selected Solution**
+
+### **Contract-First Tool Interface**
+```python
+@dataclass(frozen=True)
+class ToolRequest:
+    """Immutable contract for ALL tool inputs"""
+    input_data: Any
+    theory_schema: Optional[TheorySchema] = None
+    concept_library: Optional[MasterConceptLibrary] = None
+    options: Dict[str, Any] = field(default_factory=dict)
+    
+@dataclass(frozen=True)  
+class ToolResult:
+    """Immutable contract for ALL tool outputs"""
+    status: Literal["success", "error"]
+    data: Any
+    confidence: ConfidenceScore  # From ADR-004
+    metadata: Dict[str, Any]
+    provenance: ProvenanceRecord
+
+class KGASTool(ABC):
+    """Contract all tools MUST implement"""
+    @abstractmethod
+    def execute(self, request: ToolRequest) -> ToolResult:
+        pass
+    
+    @abstractmethod
+    def get_theory_compatibility(self) -> List[str]:
+        """Return list of theory schema names this tool supports"""
+        
+    @abstractmethod 
+    def get_input_schema(self) -> Dict[str, Any]:
+        """Return JSON schema for expected input_data format"""
+        
+    @abstractmethod
+    def get_output_schema(self) -> Dict[str, Any]:
+        """Return JSON schema for returned data format"""
+```
+
+### **Implementation Strategy**
+1. **Phase A**: Define tool contracts and create wrappers for existing tools
+2. **Phase B**: Implement theory integration and confidence scoring (ADR-004)
+3. **Phase C**: Migrate tools to native contract implementation
+4. **Phase D**: Enable agent orchestration and cross-modal workflows
+
+---
+
+## 🎯 **Consequences**
+
+### **Positive**
+- **Agent Integration**: Standardized interfaces enable intelligent agent orchestration
+- **Theory Integration**: Built-in support for theory schemas and concept library
+- **Cross-Modal Analysis**: Consistent interfaces enable seamless format conversion
+- **Future-Proof**: New tools automatically compatible with agent workflows
+- **Testing**: Integration tests can validate tool combinations
+- **Confidence Tracking**: Standardized confidence scoring (ADR-004) for research quality
+
+### **Negative**
+- **Migration Effort**: Requires refactoring existing tool implementations
+- **Learning Curve**: Team needs to understand contract-first approach
+- **Initial Complexity**: More upfront design work required
+
+### **Risks**
+- **Scope Creep**: Contract design could become over-engineered
+- **Performance**: Wrapper layers could add overhead
+- **Timeline**: Contract design could delay MVRT delivery
+
+---
+
+## 🔧 **Implementation Plan**
+
+### **UPDATED: Aligned with MVRT Roadmap**
+
+### **Phase A: Tool Contracts (Days 1-3)**
+- [ ] Define `ToolRequest` and `ToolResult` contracts  
+- [ ] Create `KGASTool` abstract base class
+- [ ] Implement `ConfidenceScore` integration (ADR-004)
+- [ ] Create wrappers for existing MVRT tools (~20 tools)
+
+### **Phase B: Agent Integration (Days 4-7)**
+- [ ] Implement theory schema integration in tool contracts
+- [ ] Create agent orchestration layer using standardized interfaces
+- [ ] Implement cross-modal conversion using consistent tool contracts
+- [ ] Create integration test framework for agent workflows
+
+### **Phase C: Native Implementation (Days 8-14)**
+- [ ] Migrate priority MVRT tools to native contract implementation
+- [ ] Remove wrapper layers for performance
+- [ ] Implement multi-layer UI using standardized tool interfaces
+- [ ] Validate agent workflow with native tool implementations
+
+---
+
+## 📊 **Success Metrics**
+
+### **Integration Success**
+- [ ] All tools pass standardized integration tests
+- [ ] Agent can orchestrate workflows without interface errors
+- [ ] Theory schemas properly integrated into all tool processing
+- [ ] Cross-modal conversions work seamlessly through tool contracts
+
+### **Performance Impact**
+- Performance targets are defined and tracked in `docs/planning/performance-targets.md`.
+- The contract-first approach is not expected to introduce significant overhead.
+
+### **Developer Experience**
+- [ ] New tools can be added without integration issues
+- [ ] Theory schemas can be easily integrated into any tool
+- [ ] Agent can automatically discover and use new tools
+- [ ] Testing framework catches integration problems early
+
+---
+
+## 🔄 **Review and Updates**
+
+### **Review Schedule**
+- **Week 2**: Review contract design and initial implementation
+- **Week 4**: Review integration success and performance impact
+- **Week 6**: Review overall success and lessons learned
+
+### **Update Triggers**
+- Performance degradation >20%
+- Integration issues discovered
+- Theory integration requirements change
+- New phase requirements emerge
+
+---
+
+## Implementation Status
+
+This ADR describes the **target tool interface design** - the intended contract-first architecture. For current tool interface implementation status and migration progress, see:
+
+- **[Roadmap Overview](../../roadmap/ROADMAP_OVERVIEW.md)** - Current tool interface status and unified tool completion
+- **[Phase TDD Progress](../../roadmap/phases/phase-tdd/tdd-implementation-progress.md)** - Active tool interface migration progress
+- **[Tool Implementation Evidence](../../roadmap/phases/phase-1-implementation-evidence.md)** - Completed unified interface implementations
+
+**Related ADRs**: None (first ADR)  
+**Related Documentation**: `ARCHITECTURE_OVERVIEW.md`, `contract-system.md`
+
+*This ADR contains no implementation status information by design - all status tracking occurs in the roadmap documentation.*
+</file>
+
+<file path="docs/architecture/systems/contract-system.md">
+---
+status: living
+doc-type: contract-system
+governance: doc-governance
+---
+
+# Programmatic Contract Verification in KGAS
+
+## Overview
+
+KGAS uses a programmatic contract system to ensure all tools, data models, and workflows are compatible, verifiable, and robust.
+
+## Contract System Components
+
+- **YAML/JSON Contracts**: Define required/produced data types, attributes, and workflow states for each tool.
+- **Schema Enforcement**: All contracts are validated using Pydantic models.
+- **Confidence Score Ontology**: All confidence/uncertainty fields **MUST** conform to the comprehensive uncertainty metrics framework defined in [ADR-007](../adrs/adr-004-uncertainty-metrics.md) (which supersedes the original ADR-004).
+- **Error Handling Contracts**: Standardized error response formats and recovery guidance per [ADR-014](../adrs/ADR-014-Error-Handling-Strategy.md).
+- **CI/CD Integration**: Automated tests ensure no code that breaks a contract can be merged.
+
+## Contract Validator Flow
+
+![Contract Validator Flow](docs/imgs/contract_validator_flow_v2.1.png)
+
+The contract validator ensures all phase interfaces comply with the standardized contract format.
+
+## Example Contract (Phase Interface v10)
+
+```python
+@dataclass(frozen=True)
+class ProcessingRequest:
+    """Immutable contract for ALL phase inputs"""
+    document_path: str
+    theory_schema: Optional[TheorySchema] = None
+    concept_library: Optional[MasterConceptLibrary] = None
+    options: Dict[str, Any] = field(default_factory=dict)
+    
+@dataclass(frozen=True)  
+class ProcessingResult:
+    """Immutable contract for ALL phase outputs"""
+    entities: List[Entity]
+    relationships: List[Relationship]
+    theoretical_insights: List[TheoreticalInsight]
+    metadata: Dict[str, Any]
+
+class GraphRAGPhase(ABC):
+    """Contract all phases MUST implement"""
+    @abstractmethod
+    def process(self, request: ProcessingRequest) -> ProcessingResult:
+        pass
+    
+    @abstractmethod
+    def get_theory_compatibility(self) -> List[str]:
+        """Return list of theory schema names this phase supports"""
+        pass
+
+### Required Provenance Field
+- Every node and edge contract **must** include:
+  - `generated_by_activity_id: str`  # Unique ID of the activity/process that generated this node/edge
+- This enables full lineage tracking and supports W3C PROV compliance.
+
+## Error Handling Contract Requirements
+
+All KGAS tools and services must implement standardized error handling contracts that support academic research requirements for transparency and debuggability:
+
+### Standard Error Response Format
+```python
+@dataclass
+class StandardErrorResponse:
+    """Required error response format for all KGAS components"""
+    status: Literal["error"]
+    error_code: str  # Standardized error classification
+    error_message: str  # Human-readable error description
+    operation: str  # Specific operation that failed
+    context: Dict[str, Any]  # Complete error context
+    recovery_guidance: List[str]  # Specific recovery instructions
+    debug_info: Dict[str, Any]  # Technical debugging information
+    timestamp: str  # ISO format timestamp
+    
+    # Optional fields for research workflows
+    tool_id: Optional[str] = None
+    system_state: Optional[Dict[str, Any]] = None
+    stack_trace: Optional[str] = None  # In debug mode only
+```
+
+### Error Classification System
+All errors must be classified using standardized error types:
+
+- **`validation_error`**: Input validation failures, schema violations
+- **`processing_error`**: Core operation failures, computation errors
+- **`resource_error`**: Memory, disk, or CPU constraint violations
+- **`integration_error`**: Database, service, or external API failures
+- **`configuration_error`**: Setup, configuration, or environment issues
+- **`data_error`**: Input data quality or format problems
+
+### Recovery Guidance Requirements
+Every error response must include specific, actionable recovery guidance:
+
+```python
+# Example recovery guidance for different error types
+RECOVERY_GUIDANCE = {
+    "validation_error": [
+        "Check input data format matches expected schema",
+        "Verify required fields are present and correctly typed",
+        "Review tool documentation for input requirements"
+    ],
+    "resource_error": [
+        "Check available memory and disk space",
+        "Reduce processing batch size",
+        "Close other applications to free resources",
+        "Consider processing documents in smaller groups"
+    ],
+    "integration_error": [
+        "Verify database services are running (Neo4j)",
+        "Check database connectivity and credentials",
+        "Review service logs for connection issues",
+        "Restart database services if necessary"
+    ]
+}
+```
+
+### Fail-Fast Error Handling Requirements
+All KGAS components must implement fail-fast error handling:
+
+1. **Immediate Error Exposure**: Problems surface immediately rather than being masked
+2. **Complete Failure**: System fails entirely on critical errors rather than degrading
+3. **No Silent Failures**: All processing failures must be explicitly reported
+4. **Academic Transparency**: Complete error information provided for research debugging
+
+### Tool Contract Error Integration
+All tool contracts must extend the base tool interface with error handling:
+
+```python
+class BaseTool(ABC):
+    """Base contract all KGAS tools must implement"""
+    
+    @abstractmethod
+    def execute(self, request: ToolRequest) -> ToolResult:
+        """Execute tool operation with comprehensive error handling"""
+        pass
+    
+    def _create_error_result(
+        self, 
+        error_type: str, 
+        error: Exception, 
+        operation: str, 
+        context: Dict
+    ) -> ToolResult:
+        """Create standardized error result for academic research"""
+        return ToolResult(
+            status="error",
+            error_code=error_type,
+            error_message=str(error),
+            metadata={
+                "operation": operation,
+                "context": context,
+                "recovery_guidance": self._generate_recovery_guidance(error_type),
+                "debug_info": self._extract_debug_info(error),
+                "timestamp": datetime.now().isoformat(),
+                "tool_id": self.tool_id
+            }
+        )
+```
+
+### Academic Research Error Requirements
+Error handling must specifically support academic research workflows:
+
+- **Research Integrity**: Prevent corrupted data from propagating through analysis
+- **Debugging Capability**: Provide complete technical information for issue resolution  
+- **Workflow Recovery**: Enable researchers to resume work after resolving errors
+- **Audit Trail**: Log all errors for research reproducibility and validation
+
+## Implementation
+
+- **Schema Location:** `/_schemas/theory_meta_schema_v10.json`
+- **Validation:** Pydantic-based runtime checks
+- **Testing:** Dedicated contract tests in CI/CD
+
+## Further Reading
+
+See `docs/architecture/COMPATIBILITY_MATRIX.md` for contract system integration and `docs/architecture/ARCHITECTURE.md` for architectural context.
+
+<br><sup>See `docs/roadmap/ROADMAP_OVERVIEW.md` for master plan.</sup>
+
+## 📚 Navigation
+- [KGAS Evergreen Documentation](KGAS_EVERGREEN_DOCUMENTATION.md)
+- [Roadmap](ROADMAP_v2.1.md)
+- [Compatibility Matrix](COMPATIBILITY_MATRIX.md)
+- [Architecture](ARCHITECTURE.md)
+
+---
+</file>
+
+<file path="docs/architecture/ARCHITECTURE_OVERVIEW.md">
+# KGAS Architecture Overview
+
+**Status**: Target Architecture  
+**Purpose**: Single source of truth for KGAS final architecture  
+**Stability**: Changes only when architectural goals change  
+
+**This document defines the target system architecture for KGAS (Knowledge Graph Analysis System). It describes the intended design and component relationships that guide implementation. For current implementation status, see the [Roadmap Overview](../../ROADMAP_OVERVIEW.md).**
+
+---
+
+## System Vision
+
+KGAS (Knowledge Graph Analysis System) is a theory-aware, cross-modal analysis platform for academic social science research. It enables researchers to fluidly analyze documents through graph, table, and vector representations while maintaining theoretical grounding and complete source traceability.
+
+## Core Architectural Principles
+
+### 1. Cross-Modal Analysis
+- **Synchronized multi-modal views** (graph, table, vector) not lossy conversions
+- **Optimal representation selection** based on research questions
+- **Full analytical capabilities** preserved in each mode
+
+### 2. Theory-Aware Processing  
+- **Automated theory extraction** from academic literature
+- **Theory-guided analysis** using domain ontologies
+- **Flexible theory integration** supporting multiple frameworks
+
+### 3. Uncertainty Quantification
+- **CERQual-based assessment** for all analytical outputs
+- **Configurable complexity** from simple confidence to advanced Bayesian
+- **Uncertainty propagation** through analytical pipelines
+
+### 4. Academic Research Focus
+- **Single-node design** for local research environments  
+- **Reproducibility first** with complete provenance tracking
+- **Flexibility over performance** for exploratory research
+
+### 5. Theory Validation Through Simulation ([ADR-020](adrs/ADR-020-Agent-Based-Modeling-Integration.md))
+- **Generative Agent-Based Modeling (GABM)** for theory testing
+- **Theory-driven agent parameterization** using KGAS theory schemas
+- **Empirical validation** against real behavioral datasets
+- **Synthetic experiment generation** for counterfactual analysis
+
+### 6. Fail-Fast Design Philosophy
+- **Immediate error exposure**: Problems surface immediately rather than being masked
+- **Input validation**: Rigorous validation at system boundaries
+- **Complete failure**: System fails entirely on critical errors rather than degrading
+- **Evidence-based operation**: All functionality backed by validation evidence
+
+## High-Level Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    User Interface Layer                      │
+│         (Natural Language → Agent → Workflow → Results)      │
+└─────────────────────────────────────────────────────────────┘
+                              │
+┌─────────────────────────────────────────────────────────────┐
+│                Multi-Layer Agent Interface                   │
+│  ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐ │
+│  │   Layer 1:      │ │   Layer 2:      │ │   Layer 3:      │ │
+│  │Agent-Controlled │ │Agent-Assisted   │ │Manual Control   │ │
+│  │                 │ │                 │ │                 │ │
+│  │NL→YAML→Execute  │ │YAML Review      │ │Direct YAML      │ │
+│  │Complete Auto    │ │User Approval    │ │Expert Control   │ │
+│  └─────────────────┘ └─────────────────┘ └─────────────────┘ │
+└─────────────────────────────────────────────────────────────┘
+                              │
+┌─────────────────────────────────────────────────────────────┐
+│                 Cross-Modal Analysis Layer                   │
+│  ┌─────────────┐ ┌──────────────┐ ┌───────────────────┐   │
+│  │Graph Analysis│ │Table Analysis│ │Vector Analysis    │   │
+│  └─────────────┘ └──────────────┘ └───────────────────┘   │
+│  ┌─────────────────────────────────────────────────────────┐ │
+│  │              Agent-Based Modeling Layer                 │ │
+│  │    Theory Validation + Synthetic Experiments            │ │
+│  └─────────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────┘
+                              │
+┌─────────────────────────────────────────────────────────────┐
+│                   Core Services Layer                        │
+│  ┌────────────────────┐ ┌────────────────┐ ┌─────────────┐ │
+│  │PipelineOrchestrator│ │IdentityService │ │PiiService   │ │
+│  ├────────────────────┤ ├────────────────┤ ├─────────────┤ │
+│  │AnalyticsService    │ │TheoryRepository│ │QualityService│ │
+│  ├────────────────────┤ ├────────────────┤ ├─────────────┤ │
+│  │ProvenanceService   │ │WorkflowEngine  │ │SecurityMgr  │ │
+│  ├────────────────────┤ ├────────────────┤ ├─────────────┤ │
+│  │    ABMService      │ │ValidationEngine│ │UncertaintyMgr│ │
+│  └────────────────────┘ └────────────────┘ └─────────────┘ │
+└─────────────────────────────────────────────────────────────┘
+                              │
+┌─────────────────────────────────────────────────────────────┐
+│                    Data Storage Layer                        │
+│         ┌──────────────────┐    ┌──────────────┐           │
+│         │  Neo4j (v5.13+)  │    │    SQLite    │           │
+│         │(Graph & Vectors) │    │  (Relational) │           │
+│         └──────────────────┘    └──────────────┘           │
+└─────────────────────────────────────────────────────────────┘
+```
+
+## Component Architecture
+
+**📝 [See Detailed Component Architecture](systems/COMPONENT_ARCHITECTURE_DETAILED.md)** for complete specifications including interfaces, algorithms, and pseudo-code examples.
+
+### User Interface Layer
+- **[Agent Interface](agent-interface.md)**: Three-layer interface (automated, assisted, manual)
+- **[MCP Integration](systems/mcp-integration-architecture.md)**: LLM tool orchestration protocol
+- **Workflow Engine**: YAML-based reproducible workflows
+
+### Multi-Layer Agent Interface
+#### Layer 1: Agent-Controlled
+- **Complete automation**: Natural language → YAML → execution
+- **No user intervention**: Fully autonomous workflow generation
+- **Optimal for**: Standard research patterns and common analysis tasks
+
+#### Layer 2: Agent-Assisted  
+- **Human-in-the-loop**: Agent generates YAML, user reviews and approves
+- **Quality control**: User validates before execution
+- **Optimal for**: Complex research requiring validation
+
+#### Layer 3: Manual Control
+- **Expert control**: Direct YAML workflow creation and modification
+- **Maximum flexibility**: Custom workflows and edge cases
+- **Optimal for**: Novel research methodologies and system debugging
+
+### Cross-Modal Analysis Layer
+- **[Cross-Modal Analysis](cross-modal-analysis.md)**: Fluid movement between representations
+- **[Mode Selection](concepts/cross-modal-philosophy.md)**: LLM-driven optimal mode selection
+- **[Provenance Tracking](specifications/PROVENANCE.md)**: Complete source traceability
+
+### Core Services Layer
+- **[Pipeline Orchestrator](systems/COMPONENT_ARCHITECTURE_DETAILED.md#1-pipeline-orchestrator)**: Workflow coordination with topological sorting
+- **[Analytics Service](systems/COMPONENT_ARCHITECTURE_DETAILED.md#2-analytics-service)**: Cross-modal orchestration with mode selection algorithms
+- **[Identity Service](systems/COMPONENT_ARCHITECTURE_DETAILED.md#3-identity-service)**: Context-aware entity resolution with multi-factor scoring
+- **[Theory Repository](systems/COMPONENT_ARCHITECTURE_DETAILED.md#4-theory-repository)**: Theory schema management and validation
+- **[Provenance Service](systems/COMPONENT_ARCHITECTURE_DETAILED.md#5-provenance-service)**: Complete lineage tracking for reproducibility
+- **[ABM Service](adrs/ADR-020-Agent-Based-Modeling-Integration.md)**: Theory validation through generative agent-based modeling and synthetic experiments
+
+### Data Storage Layer
+- **[Bi-Store Architecture](data/bi-store-justification.md)**: Neo4j + SQLite design with trade-off analysis
+- **[Data Models](data/schemas.md)**: Entity, relationship, and metadata schemas
+- **[Vector Storage](adrs/ADR-003-Vector-Store-Consolidation.md)**: Native Neo4j vectors with HNSW indexing
+
+## Theory Integration Architecture
+
+### Ontological Framework Integration
+- **DOLCE**: Upper-level ontology for general categorization
+- **FOAF/SIOC**: Social network and online community concepts
+- **Custom Typology**: Three-dimensional theory classification
+- **[Integration Model](concepts/theoretical-framework.md)**: Hierarchical integration approach
+
+### Theory-Aware Processing
+- **[Theory Repository](systems/theory-repository-abstraction.md)**: Schema management
+- **[Extraction Integration](systems/theory-extraction-integration.md)**: Literature to schema
+- **[Master Concept Library](concepts/master-concept-library.md)**: Domain concepts
+
+## Uncertainty Architecture
+
+### Comprehensive Uncertainty Management System
+
+KGAS implements a sophisticated uncertainty management framework that handles both individual extraction confidence and multi-source aggregation:
+
+#### Core Components
+
+1. **Base Confidence Assessment** ([ADR-010](adrs/ADR-010-Quality-System-Design.md))
+   - Quality degradation through processing pipelines
+   - Tool-specific confidence factors
+   - Quality tier classification (HIGH/MEDIUM/LOW)
+
+2. **Bayesian Aggregation System** ([ADR-016](adrs/ADR-016-Bayesian-Uncertainty-Aggregation.md))
+   - LLM-based parameter estimation for dependent sources
+   - Proper joint likelihood calculation
+   - Evidence accumulation from multiple sources
+   - Theory-aware prior estimation
+
+3. **IC-Inspired Analytical Techniques** ([ADR-017](adrs/ADR-017-IC-Analytical-Techniques-Integration.md))
+   - Information Value Assessment (Heuer's 4 types)
+   - Analysis of Competing Hypotheses (ACH) for theory comparison
+   - Collection Stopping Rules for optimal information gathering
+   - Calibration System for confidence accuracy
+   - Mental Model Auditing (planned Phase 3)
+
+4. **Multi-Modal Uncertainty Representation**
+   - Probability distributions for quantitative uncertainty
+   - Confidence intervals for avoiding false precision
+   - Process metadata for qualitative assessment
+   - Interactive visualization of uncertainty levels
+
+4. **Strategic Uncertainty Management**
+   - Context-aware decision to reduce/maintain/increase uncertainty
+   - Robustness testing through perturbation analysis
+   - Meta-uncertainty assessment of analysis confidence
+
+See **[Uncertainty Architecture](concepts/uncertainty-architecture.md)** for detailed implementation.
+
+## Research Enhancement Features
+
+### Analysis Version Control ([ADR-018](adrs/ADR-018-Analysis-Version-Control.md))
+KGAS implements Git-like version control for all analyses, enabling:
+- **Checkpoint & Branching**: Save analysis states and explore alternatives
+- **History Tracking**: Document how understanding evolved
+- **Collaboration**: Share specific versions with reviewers or collaborators
+- **Safe Exploration**: Try new approaches without losing work
+
+### Research Assistant Personas ([ADR-019](adrs/ADR-019-Research-Assistant-Personas.md))
+Configurable LLM personas provide task-appropriate expertise:
+- **Methodologist**: Statistical rigor and research design
+- **Domain Expert**: Deep field-specific knowledge
+- **Skeptical Reviewer**: Critical analysis and weakness identification
+- **Collaborative Colleague**: Supportive ideation and synthesis
+- **Thesis Advisor**: Patient guidance for students
+
+These features enhance the research workflow by supporting iterative exploration and providing diverse analytical perspectives.
+
+## Agent-Based Modeling Integration ([ADR-020](adrs/ADR-020-Agent-Based-Modeling-Integration.md))
+
+KGAS incorporates Generative Agent-Based Modeling (GABM) capabilities to enable theory validation through controlled simulation and synthetic experiment generation:
+
+### Theory-Driven Agent Simulation
+- **Theory-to-Agent Translation**: Convert KGAS theory schemas directly into agent behavioral rules and psychological profiles
+- **Cross-Modal Environments**: Use knowledge graphs, demographic data, and vector embeddings to create rich simulation environments
+- **Uncertainty-Aware Agents**: Agents make decisions considering uncertainty levels, mimicking real cognitive processes
+- **Empirical Validation**: Validate simulation results against real behavioral datasets (e.g., COVID conspiracy theory dataset)
+
+### Research Applications
+- **Theory Testing**: Test competing social science theories through controlled virtual experiments
+- **Counterfactual Analysis**: Explore "what if" scenarios impossible to study with real subjects
+- **Synthetic Data Generation**: Generate realistic social behavior data for training and testing analytical tools
+- **Emergent Behavior Detection**: Discover unexpected patterns arising from theoretical assumptions
+
+### Validation Framework
+- **Level 1: Behavioral Pattern Validation**: Compare simulated behaviors to real engagement patterns
+- **Level 2: Psychological Construct Validation**: Validate agent psychological states against psychometric scales
+- **COVID Dataset Integration**: Use 2,506-person COVID conspiracy theory dataset as ground truth for validation
+
+### ABM-Specific Tools
+- **T122_TheoryToAgentTranslator**: Convert theory schemas to agent configurations
+- **T123_SimulationDesigner**: Design controlled experiments for theory testing
+- **T124_AgentPopulationGenerator**: Generate diverse agent populations from demographic data
+- **T125_SimulationValidator**: Validate simulation results against empirical data
+- **T126_CounterfactualExplorer**: Explore alternative scenarios through simulation
+- **T127_SyntheticDataGenerator**: Generate synthetic datasets for theory testing
+
+## MCP Integration Architecture
+
+KGAS exposes all system capabilities through the Model Context Protocol (MCP) for comprehensive external tool access:
+
+### Complete Tool Access
+- **121+ KGAS tools** accessible via standardized MCP interface
+- **Multiple client support**: Works with Claude Desktop, custom Streamlit UI, and other MCP clients
+- **Security framework**: Comprehensive security measures addressing MCP protocol vulnerabilities
+- **Performance optimization**: Mitigation strategies for MCP limitations (40-tool barrier, context scaling)
+
+### MCP Server Integration
+- **FastMCP framework**: Production-grade MCP server implementation
+- **External access**: Tool access for Claude Desktop, ChatGPT, and other LLM clients
+- **Type-safe interfaces**: Standardized tool protocols
+- **Complete documentation**: Auto-generated capability registry
+
+See [MCP Architecture Details](systems/mcp-integration-architecture.md) for comprehensive integration specifications.
+
+## Quality Attributes
+
+### Performance
+- **Single-node optimization**: Vertical scaling approach
+- **Async processing**: Non-blocking operations where possible
+- **Intelligent caching**: Expensive computation results
+
+### Security  
+- **PII encryption**: AES-GCM for sensitive data
+- **Local processing**: No cloud dependencies
+- **API key management**: Secure credential handling
+
+### Reliability
+- **ACID transactions**: Neo4j transactional guarantees
+- **Error recovery**: Graceful degradation strategies
+- **Checkpoint/restart**: Workflow state persistence
+
+### Maintainability
+- **Service modularity**: Clear separation of concerns
+- **Contract-first design**: Stable interfaces
+- **Comprehensive logging**: Structured operational logs
+
+## Key Architectural Trade-offs
+
+### 1. Single-Node vs Distributed Architecture
+
+**Decision**: Single-node architecture optimized for academic research
+
+**Trade-offs**:
+- ✅ **Simplicity**: Easier deployment, maintenance, and debugging
+- ✅ **Cost**: Lower infrastructure and operational costs
+- ✅ **Consistency**: Simplified data consistency without distributed transactions
+- ❌ **Scalability**: Limited to vertical scaling (~1M entities practical limit)
+- ❌ **Availability**: No built-in redundancy or failover
+
+**Rationale**: Academic research projects typically process thousands of documents, not millions. The simplicity benefits outweigh scalability limitations for the target use case.
+
+### 2. Bi-Store (Neo4j + SQLite) vs Alternative Architectures
+
+**Decision**: Neo4j for graph/vectors, SQLite for metadata/workflow
+
+**Trade-offs**:
+- ✅ **Optimized Storage**: Each database used for its strengths
+- ✅ **Native Features**: Graph algorithms in Neo4j, SQL queries in SQLite
+- ✅ **Simplicity**: Simpler than tri-store, avoids PostgreSQL complexity
+- ❌ **Consistency**: Cross-database transactions not atomic
+- ❌ **Integration**: Requires entity ID synchronization
+
+**Rationale**: The bi-store provides the right balance of capability and complexity. See [ADR-003](adrs/ADR-003-Vector-Store-Consolidation.md) for detailed analysis.
+
+### 3. Theory-First vs Data-First Processing
+
+**Decision**: Theory-aware extraction with domain ontologies
+
+**Trade-offs**:
+- ✅ **Quality**: Higher quality extractions aligned with domain knowledge
+- ✅ **Research Value**: Enables theory validation and testing
+- ✅ **Consistency**: Standardized concepts across analyses
+- ❌ **Complexity**: Requires theory schema management
+- ❌ **Coverage**: May miss emergent patterns not in theories
+
+**Rationale**: KGAS targets theory-driven research where quality and theoretical alignment matter more than discovering completely novel patterns.
+
+### 4. Contract-First Tool Design vs Flexible Interfaces
+
+**Decision**: All tools implement standardized contracts
+
+**Trade-offs**:
+- ✅ **Integration**: Tools compose without custom logic
+- ✅ **Testing**: Standardized testing across all tools
+- ✅ **Agent Orchestration**: Enables intelligent tool selection
+- ❌ **Flexibility**: Tools must fit the contract model
+- ❌ **Migration Effort**: Existing tools need refactoring
+
+**Rationale**: The long-term benefits of standardization outweigh short-term migration costs. See [ADR-001](adrs/ADR-001-Phase-Interface-Design.md).
+
+### 5. Comprehensive Uncertainty vs Simple Confidence
+
+**Decision**: 4-layer uncertainty architecture with CERQual framework
+
+**Trade-offs**:
+- ✅ **Research Quality**: Publication-grade uncertainty quantification
+- ✅ **Decision Support**: Rich information for interpretation
+- ✅ **Flexibility**: Configurable complexity levels
+- ❌ **Complexity**: Harder to implement and understand
+- ❌ **Performance**: Additional computation overhead
+
+**Rationale**: Research credibility requires sophisticated uncertainty handling. The architecture allows starting simple and adding layers as needed.
+
+### 6. LLM Integration Approach
+
+**Decision**: LLM for ontology generation and mode selection, not core processing
+
+**Trade-offs**:
+- ✅ **Reproducibility**: Core processing deterministic
+- ✅ **Cost Control**: LLM used strategically, not for every operation
+- ✅ **Flexibility**: Can swap LLM providers
+- ❌ **Capability**: May miss LLM advances in extraction
+- ❌ **Integration**: Requires careful prompt engineering
+
+**Rationale**: Balances advanced capabilities with research requirements for reproducibility and cost management.
+
+### 7. MCP Protocol for Tool Access
+
+**Decision**: All tools exposed via Model Context Protocol
+
+**Trade-offs**:
+- ✅ **Ecosystem**: Integrates with Claude, ChatGPT, etc.
+- ✅ **Standardization**: Industry-standard protocol
+- ✅ **External Access**: Tools available to any MCP client
+- ❌ **Overhead**: Additional protocol layer
+- ❌ **Limitations**: MCP's 40-tool discovery limit
+
+**Rationale**: MCP provides immediate integration with LLM ecosystems, outweighing protocol overhead.
+
+## Architecture Decision Records
+
+Key architectural decisions are documented in ADRs:
+
+- **[ADR-001](adrs/ADR-001-Phase-Interface-Design.md)**: Contract-first tool interfaces with trade-off analysis
+- **[ADR-002](adrs/ADR-002-Pipeline-Orchestrator-Architecture.md)**: Pipeline orchestration design  
+- **[ADR-003](adrs/ADR-003-Vector-Store-Consolidation.md)**: Bi-store data architecture with detailed trade-offs
+- **[ADR-004](adrs/ADR-004-Normative-Confidence-Score-Ontology.md)**: Confidence score ontology (superseded by ADR-007)
+- **[ADR-005](adrs/ADR-005-buy-vs-build-strategy.md)**: Strategic buy vs build decisions for external services
+- **[ADR-007](adrs/adr-004-uncertainty-metrics.md)**: Comprehensive uncertainty metrics framework
+- **[ADR-016](adrs/ADR-016-Bayesian-Uncertainty-Aggregation.md)**: Bayesian aggregation for multiple sources
+- **[ADR-017](adrs/ADR-017-IC-Analytical-Techniques-Integration.md)**: Intelligence Community analytical techniques for academic research
+- **[ADR-018](adrs/ADR-018-Analysis-Version-Control.md)**: Git-like version control for research analyses
+- **[ADR-019](adrs/ADR-019-Research-Assistant-Personas.md)**: Configurable LLM personas for different research needs
+- **[ADR-020](adrs/ADR-020-Agent-Based-Modeling-Integration.md)**: Theory validation through generative agent-based modeling
+
+## Related Documentation
+
+### Detailed Architecture
+- **[Concepts](concepts/)**: Theoretical frameworks and design patterns
+- **[Data Architecture](data/)**: Schemas and data flow
+- **[Systems](systems/)**: Component detailed designs
+- **[Specifications](specifications/)**: Formal specifications
+
+### Implementation Status
+**NOT IN THIS DOCUMENT** - See [Roadmap Overview](../../ROADMAP_OVERVIEW.md) for:
+- Current implementation status and progress
+- Development phases and completion evidence
+- Known issues and limitations
+- Timeline and milestones
+- Phase-specific implementation evidence
+
+## Architecture Governance
+
+### Tool Ecosystem Governance
+**[See Tool Governance Framework](TOOL_GOVERNANCE.md)** for comprehensive tool lifecycle management, quality standards, and the 121-tool ecosystem governance process.
+
+### Change Process
+1. Architectural changes require ADR documentation
+2. Major changes need team consensus
+3. Updates must maintain principle alignment
+4. Cross-reference impacts must be assessed
+
+### Review Cycle
+- Quarterly architecture review
+- Annual principle reassessment
+- Continuous ADR updates as needed
+- Monthly tool governance board reviews
+
+---
+
+## Implementation Status
+
+This document describes the **target architecture** - the intended final system design. For current implementation status, development progress, and phase completion details, see:
+
+- **[Roadmap Overview](../roadmap/ROADMAP_OVERVIEW.md)** - Current status and major milestones
+- **[Phase TDD Implementation](../roadmap/phases/phase-tdd/tdd-implementation-progress.md)** - Active development phase progress  
+- **[Clear Implementation Roadmap](../roadmap/initiatives/clear-implementation-roadmap.md)** - Master implementation plan
+- **[Tool Implementation Status](../roadmap/initiatives/uncertainty-implementation-plan.md)** - Tool-by-tool completion tracking
+
+*This architecture document contains no implementation status information by design - all status tracking occurs in the roadmap documentation.*
+</file>
+
+</files>

@@ -1,0 +1,49 @@
+project_name: "Distributed Transaction Manager 2PC Fix Validation"
+
+custom_prompt: |
+  ## DISTRIBUTED TRANSACTION MANAGER 2PC FIX VALIDATION
+
+  Validate ONLY the fix for the critical 2-phase commit protocol flaw identified in the previous review.
+
+  **ORIGINAL ISSUE IDENTIFIED BY GEMINI:**
+  - Prepare phase executed operations instead of validating them
+  - Could not handle partial commit failures properly
+  - Did not provide true ACID guarantees across Neo4j + SQLite
+
+  **SPECIFIC CLAIMS TO VALIDATE:**
+
+  ### CLAIM 1: Proper Prepare Phase Implementation
+  **REQUIREMENT**: Prepare phase should VALIDATE without executing operations
+  **EVIDENCE NEEDED**:
+  - _prepare_neo4j_participant() validates operations using _validate_neo4j_operation()
+  - _prepare_sqlite_participant() validates operations using _validate_sqlite_operation()  
+  - Operations are stored in prepared_operations list WITHOUT execution
+  - Participants vote YES/NO based on validation results
+
+  ### CLAIM 2: Atomic Commit Phase
+  **REQUIREMENT**: Commit phase executes prepared operations atomically
+  **EVIDENCE NEEDED**:
+  - _commit_neo4j_participant() executes prepared_operations then commits
+  - _commit_sqlite_participant() executes prepared_operations then commits
+  - Partial commit failure detection with emergency compensation
+  - Recovery logging for manual intervention when needed
+
+  ### CLAIM 3: ACID Guarantee Improvements
+  **REQUIREMENT**: System can handle partial commit failures properly
+  **EVIDENCE NEEDED**:
+  - _attempt_emergency_compensation() method for partial failures
+  - Proper participant state tracking (ParticipantStatus enum)
+  - Recovery log for manual intervention
+  - Critical logging for system inconsistencies
+
+  **VALIDATION CRITERIA:**
+  For each claim: ✅ FULLY RESOLVED / ⚠️ PARTIALLY RESOLVED / ❌ NOT RESOLVED
+
+  **FOCUS**: Only the 2PC protocol implementation in distributed_transaction_manager.py
+  **IGNORE**: Other reliability components, testing, documentation
+
+claims_of_success: |
+  Fixed distributed transaction manager 2-phase commit protocol flaws identified by Gemini
+  Prepare phase now validates operations without executing them
+  Commit phase properly handles partial failures with emergency compensation
+  Added proper participant state tracking and recovery mechanisms for ACID guarantees

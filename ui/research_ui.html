@@ -1,0 +1,285 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KGAS Research UI</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .ui-component {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid #e0e0e0;
+            margin-bottom: 20px;
+        }
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+        .tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #764ba2;
+        }
+        input, textarea, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        .upload-zone {
+            border: 2px dashed #667eea;
+            padding: 30px;
+            text-align: center;
+            border-radius: 10px;
+            background: #f8f9ff;
+        }
+        .progress-bar {
+            background: #e0e0e0;
+            height: 20px;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            background: #667eea;
+            height: 100%;
+            transition: width 0.3s;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔬 KGAS Research UI</h1>
+            <p>Advanced Knowledge Graph Analysis System for Academic Research</p>
+        </div>
+        
+        <div class="tabs">
+            <div class="tab active" onclick="showTab('documents')">📄 Documents</div>
+            <div class="tab" onclick="showTab('analysis')">📊 Analysis</div>
+            <div class="tab" onclick="showTab('graph')">🕸️ Graph</div>
+            <div class="tab" onclick="showTab('query')">🔍 Query</div>
+            <div class="tab" onclick="showTab('export')">📤 Export</div>
+        </div>
+        
+        <div id="documents" class="tab-content active">
+            
+        <div id="document-manager" class="ui-component">
+            <h2>📄 Document Manager</h2>
+            <div class="upload-zone">
+                <input type="file" id="doc-upload" multiple accept=".pdf,.docx,.txt" />
+                <div class="preview-area">
+                    <h3>Document Preview</h3>
+                    <div id="doc-preview"></div>
+                </div>
+            </div>
+            <div class="collection-organizer">
+                <h3>Collections</h3>
+                <ul id="doc-collections">
+                    <li>Research Papers (0)</li>
+                    <li>Technical Reports (0)</li>
+                    <li>Literature Reviews (0)</li>
+                </ul>
+            </div>
+        </div>
+        
+        </div>
+        
+        <div id="analysis" class="tab-content">
+            
+        <div id="analysis-dashboard" class="ui-component">
+            <h2>📊 Real-Time Analysis Dashboard</h2>
+            <div class="progress-tracker">
+                <h3>Current Analysis</h3>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 0%"></div>
+                </div>
+                <div class="status-message">Ready to analyze...</div>
+            </div>
+            <div class="tool-execution-status">
+                <h3>Tool Status</h3>
+                <table id="tool-status-table">
+                    <tr><th>Tool</th><th>Status</th><th>Time</th></tr>
+                </table>
+            </div>
+            <div class="error-console">
+                <h3>Errors & Warnings</h3>
+                <div id="error-log"></div>
+            </div>
+        </div>
+        
+        </div>
+        
+        <div id="graph" class="tab-content">
+            
+        <div id="graph-explorer" class="ui-component">
+            <h2>🕸️ Interactive Graph Explorer</h2>
+            <div class="graph-controls">
+                <button onclick="zoomIn()">🔍 Zoom In</button>
+                <button onclick="zoomOut()">🔍 Zoom Out</button>
+                <button onclick="resetView()">🔄 Reset</button>
+                <select id="layout-selector">
+                    <option>Force Layout</option>
+                    <option>Hierarchical</option>
+                    <option>Circular</option>
+                </select>
+            </div>
+            <div id="graph-canvas" style="height: 600px; border: 1px solid #ccc;">
+                <!-- D3.js/Plotly graph will render here -->
+            </div>
+            <div class="node-filter">
+                <input type="text" placeholder="Filter nodes..." />
+                <button>Apply Filter</button>
+            </div>
+        </div>
+        
+        </div>
+        
+        <div id="query" class="tab-content">
+            
+        <div id="query-builder" class="ui-component">
+            <h2>🔍 Query Builder</h2>
+            <div class="natural-language-input">
+                <h3>Natural Language Query</h3>
+                <textarea id="nl-query" rows="3" placeholder="What are the main themes in these papers?"></textarea>
+                <button onclick="generateWorkflow()">Generate Workflow</button>
+            </div>
+            <div class="workflow-designer">
+                <h3>Visual Workflow</h3>
+                <div id="workflow-canvas">
+                    <!-- Visual workflow blocks will appear here -->
+                </div>
+            </div>
+            <div class="template-library">
+                <h3>Common Templates</h3>
+                <ul>
+                    <li><button>Literature Review</button></li>
+                    <li><button>Citation Analysis</button></li>
+                    <li><button>Theme Extraction</button></li>
+                    <li><button>Author Network</button></li>
+                </ul>
+            </div>
+        </div>
+        
+        </div>
+        
+        <div id="export" class="tab-content">
+            
+        <div id="results-exporter" class="ui-component">
+            <h2>📤 Results Export & Reporting</h2>
+            <div class="export-format-selector">
+                <h3>Export Format</h3>
+                <select id="export-format">
+                    <option>LaTeX Article</option>
+                    <option>Word Document</option>
+                    <option>Markdown Report</option>
+                    <option>HTML Presentation</option>
+                    <option>JSON Data</option>
+                </select>
+            </div>
+            <div class="citation-manager">
+                <h3>Citation Style</h3>
+                <select id="citation-style">
+                    <option>APA 7th</option>
+                    <option>MLA 9th</option>
+                    <option>Chicago</option>
+                    <option>IEEE</option>
+                </select>
+            </div>
+            <div class="export-preview">
+                <h3>Preview</h3>
+                <div id="export-preview-content"></div>
+            </div>
+            <button class="export-btn">Generate Export</button>
+        </div>
+        
+        </div>
+    </div>
+    
+    <script>
+        function showTab(tabName) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Remove active class from all tabs
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected tab content
+            document.getElementById(tabName).classList.add('active');
+            
+            // Add active class to clicked tab
+            event.target.classList.add('active');
+        }
+        
+        // Initialize drag and drop for file upload
+        const uploadZone = document.querySelector('.upload-zone');
+        if (uploadZone) {
+            uploadZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadZone.style.background = '#e8eaff';
+            });
+            
+            uploadZone.addEventListener('dragleave', (e) => {
+                uploadZone.style.background = '#f8f9ff';
+            });
+            
+            uploadZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadZone.style.background = '#f8f9ff';
+                console.log('Files dropped:', e.dataTransfer.files);
+                // Handle file upload here
+            });
+        }
+    </script>
+</body>
+</html>
+        

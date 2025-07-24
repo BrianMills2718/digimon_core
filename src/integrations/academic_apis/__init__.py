@@ -1,0 +1,1 @@
+"""Academic API integrations package"""

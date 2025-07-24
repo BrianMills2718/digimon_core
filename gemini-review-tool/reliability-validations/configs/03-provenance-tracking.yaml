@@ -1,0 +1,33 @@
+project_name: "Provenance Tracking Validation"
+
+include_patterns:
+  - "src/core/provenance_manager.py"
+
+custom_prompt: |
+  Validate ONLY this specific claim:
+  
+  **CLAIM**: Provenance manager tracks citation sources and prevents fabrication
+  
+  SPECIFIC CHECKS:
+  1. ProvenanceManager class with citation tracking
+  2. create_citation() method with source validation
+  3. Provenance chain tracking for modifications
+  4. Fabrication detection logic
+  
+  EVIDENCE REQUIRED:
+  - Citation data structure with source, timestamp, modifier fields
+  - create_citation() validates source exists
+  - track_modification() creates audit trail
+  - detect_fabrication() checks citation validity
+  - Provenance chains stored persistently
+  
+  Look specifically at:
+  - Citation class/dataclass definition
+  - create_citation() source validation logic
+  - Modification tracking implementation
+  - Fabrication detection algorithm
+  
+  IGNORE: Everything not related to provenance and citations
+
+claims_of_success:
+  - "Complete provenance tracking with fabrication prevention mechanisms"

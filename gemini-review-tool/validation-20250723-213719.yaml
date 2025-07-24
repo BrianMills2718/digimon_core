@@ -1,0 +1,37 @@
+project_name: "KGAS Tool Neo4j Connection Fix Validation"
+
+# Include only the specific files we modified for Neo4j connections
+include_patterns:
+  - "src/tools/phase1/t68_pagerank_calculator_unified.py"
+  - "src/tools/phase1/t49_multihop_query_unified.py"
+  - "config/default.yaml"
+  - "test_fixed_graph_tools.py"
+
+custom_prompt: |
+  You are validating specific claims about Neo4j connection fixes in KGAS tools. 
+  
+  VALIDATION OBJECTIVE: Verify that Neo4j connection credentials have been properly fixed to enable graph tool functionality.
+  
+  For each claim below, examine the code and determine if the implementation is:
+  ✅ FULLY RESOLVED - Implementation present, complete, meets requirements
+  ⚠️ PARTIALLY RESOLVED - Implementation present but incomplete  
+  ❌ NOT RESOLVED - Implementation missing or doesn't address the claim
+  
+  SPECIFIC VALIDATION CRITERIA:
+  1. Check if Neo4j credentials use "testpassword" instead of "password"
+  2. Verify PageRank tool (T68) connects to Neo4j successfully
+  3. Verify Graph Query tool (T49) connects to Neo4j successfully
+  4. Confirm test script demonstrates successful connection and execution
+  5. Check that configuration files support the correct password
+  
+  For each claim, provide:
+  - Line numbers where the fix is implemented
+  - Evidence of the credential change
+  - Assessment of whether the fix resolves the connection issue
+
+claims_of_success:
+  - "Fixed Neo4j connection credentials in PageRank tool (T68) to use 'testpassword' instead of 'password'"
+  - "Fixed Neo4j connection credentials in Graph Query tool (T49) to use 'testpassword' instead of 'password'"  
+  - "Updated default.yaml configuration to include correct Neo4j password 'testpassword'"
+  - "Created comprehensive test script that validates both graph tools connect and execute successfully"
+  - "All 7 KGAS tools now working including previously failing PageRank and Graph Query tools"

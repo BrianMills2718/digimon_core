@@ -271,7 +271,8 @@ class ProductionMonitoring:
                 except RuntimeError:
                     # Non-async fallback with reduced interval
                     import time
-                    time.sleep(min(interval, 1.0))  # Cap at 1 second
+                    # Use async sleep to avoid blocking
+                    await asyncio.sleep(min(interval, 1.0))
                 
             except Exception as e:
                 logger.error(f"Monitoring loop error: {e}")
@@ -283,7 +284,8 @@ class ProductionMonitoring:
                 except RuntimeError:
                     # Non-async fallback with reduced interval
                     import time
-                    time.sleep(min(interval, 1.0))  # Cap at 1 second
+                    # Use async sleep to avoid blocking
+                    await asyncio.sleep(min(interval, 1.0))
     
     def _health_check_loop(self):
         """Health check loop."""
@@ -301,7 +303,8 @@ class ProductionMonitoring:
                 except RuntimeError:
                     # Non-async fallback with reduced interval
                     import time
-                    time.sleep(min(interval, 1.0))  # Cap at 1 second
+                    # Use async sleep to avoid blocking
+                    await asyncio.sleep(min(interval, 1.0))
                 
             except Exception as e:
                 logger.error(f"Health check loop error: {e}")
@@ -313,7 +316,8 @@ class ProductionMonitoring:
                 except RuntimeError:
                     # Non-async fallback with reduced interval
                     import time
-                    time.sleep(min(interval, 1.0))  # Cap at 1 second
+                    # Use async sleep to avoid blocking
+                    await asyncio.sleep(min(interval, 1.0))
     
     def _collect_system_metrics(self) -> Dict[str, Any]:
         """Collect comprehensive system metrics."""

@@ -1,0 +1,33 @@
+project_name: "Audit Trail Immutability Validation"
+
+include_patterns:
+  - "src/core/provenance_manager.py"
+
+custom_prompt: |
+  Validate ONLY this specific claim:
+  
+  **CLAIM**: Audit trails use cryptographic chaining preventing tampering in ProvenanceManager
+  
+  SPECIFIC CHECKS:
+  1. Lines 20-40: AuditEntry dataclass should be frozen (immutable)
+  2. Lines 31-40: SHA256 hash calculation with previous_hash chaining
+  3. Lines 55-66: verify_integrity() method can detect tampering
+  4. Line 93: ProvenanceManager uses ImmutableAuditTrail instead of mutable dictionaries
+  
+  EVIDENCE REQUIRED:
+  - @dataclass(frozen=True) decorator on AuditEntry
+  - Hash calculation includes previous_hash in chain
+  - verify_integrity() checks chain continuity
+  - _audit_trails typed as Dict[str, ImmutableAuditTrail]
+  
+  VERDICT FORMAT:
+  - ✅ FULLY RESOLVED: Implementation complete with evidence
+  - ⚠️ PARTIALLY RESOLVED: What's missing
+  - ❌ NOT RESOLVED: Specific issues found
+  
+  IGNORE: Everything not related to audit trail immutability
+
+claims_of_success:
+  - claim: "Audit trails use cryptographic chaining preventing tampering"
+    evidence: "ImmutableAuditTrail class with SHA256 hash chains"
+    files: ["src/core/provenance_manager.py"]

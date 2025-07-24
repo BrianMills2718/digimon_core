@@ -1,0 +1,520 @@
+This file is a merged representation of a subset of the codebase, containing specifically included files, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of a subset of the repository's contents that is considered the most important context.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Only files matching these patterns are included: src/core/async_rate_limiter.py, src/core/async_error_handler.py
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+src/
+  core/
+    async_error_handler.py
+    async_rate_limiter.py
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="src/core/async_error_handler.py">
+"""
+Async-safe Error Handler for GraphRAG System.
+
+Provides comprehensive error handling with retry logic that doesn't block
+the event loop.
+"""
+
+import asyncio
+import functools
+from typing import Type, Tuple, Optional, Callable, Any, Union
+from datetime import datetime
+import logging
+import traceback
+
+logger = logging.getLogger(__name__)
+
+
+class AsyncErrorHandler:
+    """
+    Asynchronous error handler with retry logic.
+    
+    Features:
+    - Non-blocking retry delays
+    - Exponential backoff
+    - Configurable retry strategies
+    - Detailed error tracking
+    """
+    
+    def __init__(self):
+        """Initialize the error handler."""
+        self.error_counts = {}
+        self.last_errors = {}
+        self.retry_strategies = {
+            ConnectionError: (3, 1.0),  # 3 retries, 1 second initial delay
+            TimeoutError: (2, 0.5),     # 2 retries, 0.5 second initial delay
+            asyncio.TimeoutError: (2, 0.5),
+            Exception: (1, 0.1)         # 1 retry, 0.1 second delay for others
+        }
+    
+    def set_retry_strategy(self, error_type: Type[Exception], 
+                          max_attempts: int, initial_delay: float) -> None:
+        """
+        Set retry strategy for a specific error type.
+        
+        Args:
+            error_type: Type of exception
+            max_attempts: Maximum number of retry attempts
+            initial_delay: Initial delay between retries (seconds)
+        """
+        self.retry_strategies[error_type] = (max_attempts, initial_delay)
+        logger.info(f"Set retry strategy for {error_type.__name__}: "
+                   f"{max_attempts} attempts, {initial_delay}s initial delay")
+    
+    async def handle_error(self, error: Exception, context: Optional[dict] = None) -> dict:
+        """
+        Handle an error with logging and tracking.
+        
+        Args:
+            error: The exception that occurred
+            context: Optional context information
+            
+        Returns:
+            Error information dictionary
+        """
+        error_type = type(error).__name__
+        error_key = f"{error_type}_{str(error)}"
+        
+        # Track error count
+        self.error_counts[error_key] = self.error_counts.get(error_key, 0) + 1
+        self.last_errors[error_type] = {
+            'error': str(error),
+            'timestamp': datetime.now().isoformat(),
+            'context': context,
+            'traceback': traceback.format_exc()
+        }
+        
+        logger.error(f"Error handled: {error_type}: {error}", 
+                    extra={'context': context}, exc_info=True)
+        
+        return {
+            'error_type': error_type,
+            'error_message': str(error),
+            'count': self.error_counts[error_key],
+            'context': context
+        }
+    
+    def with_retry(self, max_attempts: Optional[int] = None, 
+                   delay: Optional[float] = None,
+                   backoff_factor: float = 2.0,
+                   exceptions: Tuple[Type[Exception], ...] = (Exception,)):
+        """
+        Decorator for adding retry logic to async functions.
+        
+        Args:
+            max_attempts: Maximum number of attempts (overrides strategy)
+            delay: Initial delay between retries (overrides strategy)
+            backoff_factor: Factor to multiply delay by after each attempt
+            exceptions: Tuple of exceptions to catch and retry
+            
+        Returns:
+            Decorated function with retry logic
+        """
+        def decorator(func: Callable) -> Callable:
+            @functools.wraps(func)
+            async def wrapper(*args, **kwargs) -> Any:
+                last_exception = None
+                
+                # Determine retry parameters
+                retry_attempts = max_attempts
+                retry_delay = delay
+                
+                if retry_attempts is None or retry_delay is None:
+                    # Find the best matching strategy
+                    for exc_type in exceptions:
+                        if exc_type in self.retry_strategies:
+                            strategy_attempts, strategy_delay = self.retry_strategies[exc_type]
+                            if retry_attempts is None:
+                                retry_attempts = strategy_attempts
+                            if retry_delay is None:
+                                retry_delay = strategy_delay
+                            break
+                    else:
+                        # Use default if no specific strategy found
+                        if retry_attempts is None:
+                            retry_attempts = 1
+                        if retry_delay is None:
+                            retry_delay = 0.1
+                
+                current_delay = retry_delay
+                
+                for attempt in range(retry_attempts + 1):
+                    try:
+                        return await func(*args, **kwargs)
+                    except exceptions as e:
+                        last_exception = e
+                        
+                        if attempt < retry_attempts:
+                            logger.warning(
+                                f"Attempt {attempt + 1}/{retry_attempts + 1} failed for "
+                                f"{func.__name__}: {type(e).__name__}: {e}. "
+                                f"Retrying in {current_delay}s..."
+                            )
+                            
+                            # Use asyncio.sleep for non-blocking delay
+                            await asyncio.sleep(current_delay)
+                            current_delay *= backoff_factor
+                        else:
+                            # Final attempt failed
+                            await self.handle_error(e, {
+                                'function': func.__name__,
+                                'args': args,
+                                'kwargs': kwargs,
+                                'attempts': retry_attempts + 1
+                            })
+                
+                # All attempts failed, re-raise the last exception
+                raise last_exception
+            
+            return wrapper
+        return decorator
+    
+    async def with_timeout(self, coro: Callable, timeout: float, 
+                          error_message: Optional[str] = None) -> Any:
+        """
+        Execute a coroutine with a timeout.
+        
+        Args:
+            coro: Coroutine to execute
+            timeout: Timeout in seconds
+            error_message: Optional custom error message
+            
+        Returns:
+            Result of the coroutine
+            
+        Raises:
+            asyncio.TimeoutError: If timeout is exceeded
+        """
+        try:
+            return await asyncio.wait_for(coro, timeout)
+        except asyncio.TimeoutError:
+            msg = error_message or f"Operation timed out after {timeout}s"
+            await self.handle_error(asyncio.TimeoutError(msg))
+            raise
+    
+    def get_error_statistics(self) -> dict:
+        """
+        Get error statistics.
+        
+        Returns:
+            Dictionary with error counts and recent errors
+        """
+        return {
+            'error_counts': dict(self.error_counts),
+            'recent_errors': dict(self.last_errors),
+            'total_errors': sum(self.error_counts.values())
+        }
+    
+    def reset_statistics(self) -> None:
+        """Reset error statistics."""
+        self.error_counts.clear()
+        self.last_errors.clear()
+        logger.info("Error statistics reset")
+
+
+# Singleton instance
+_error_handler = AsyncErrorHandler()
+
+
+def get_error_handler() -> AsyncErrorHandler:
+    """Get the singleton error handler instance."""
+    return _error_handler
+
+
+# Convenience decorators
+def with_retry(*args, **kwargs):
+    """Convenience decorator using the singleton error handler."""
+    return _error_handler.with_retry(*args, **kwargs)
+
+
+async def handle_error(error: Exception, context: Optional[dict] = None) -> dict:
+    """Convenience function using the singleton error handler."""
+    return await _error_handler.handle_error(error, context)
+</file>
+
+<file path="src/core/async_rate_limiter.py">
+"""
+Async-safe API Rate Limiter for GraphRAG System.
+
+This module provides truly asynchronous rate limiting functionality 
+without blocking the event loop.
+"""
+
+import asyncio
+import time
+from typing import Dict, Optional
+from collections import defaultdict, deque
+from datetime import datetime, timedelta
+import logging
+
+logger = logging.getLogger(__name__)
+
+
+class AsyncRateLimiter:
+    """
+    Truly asynchronous rate limiter using token bucket algorithm.
+    
+    Features:
+    - Non-blocking async operations
+    - Token bucket algorithm for smooth rate limiting
+    - Per-service rate limits
+    - Automatic token refill
+    """
+    
+    def __init__(self):
+        """Initialize the async rate limiter."""
+        self.rate_limits: Dict[str, int] = {}
+        self.token_buckets: Dict[str, Dict] = {}
+        self._lock = asyncio.Lock()
+        self._waiters: Dict[str, list] = defaultdict(list)
+        logger.info("AsyncRateLimiter initialized")
+    
+    async def set_rate_limit(self, service_name: str, calls_per_minute: int) -> None:
+        """
+        Set rate limit for a service.
+        
+        Args:
+            service_name: Name of the service
+            calls_per_minute: Maximum calls allowed per minute
+        """
+        async with self._lock:
+            self.rate_limits[service_name] = calls_per_minute
+            
+            # Initialize token bucket
+            self.token_buckets[service_name] = {
+                'tokens': float(calls_per_minute),
+                'capacity': float(calls_per_minute),
+                'refill_rate': calls_per_minute / 60.0,  # tokens per second
+                'last_refill': time.time()
+            }
+            
+            logger.info(f"Set rate limit for {service_name}: {calls_per_minute} calls/min")
+    
+    async def acquire(self, service_name: str = "default", timeout: Optional[float] = None) -> None:
+        """
+        Acquire permission to make an API call.
+        
+        Args:
+            service_name: Name of the service
+            timeout: Maximum time to wait for permission (seconds)
+            
+        Raises:
+            asyncio.TimeoutError: If timeout is exceeded
+        """
+        if timeout:
+            await asyncio.wait_for(self._acquire(service_name), timeout)
+        else:
+            await self._acquire(service_name)
+    
+    async def _acquire(self, service_name: str) -> None:
+        """Internal method to acquire a token."""
+        while True:
+            async with self._lock:
+                if self._try_consume_token(service_name):
+                    return
+                
+                # No tokens available, need to wait
+                wait_time = self._calculate_wait_time(service_name)
+            
+            # Wait without holding the lock
+            await asyncio.sleep(wait_time)
+    
+    def _try_consume_token(self, service_name: str) -> bool:
+        """
+        Try to consume a token from the bucket.
+        
+        Note: Must be called while holding the lock.
+        
+        Returns:
+            True if token was consumed, False otherwise
+        """
+        if service_name not in self.token_buckets:
+            # No rate limit set, allow the call
+            return True
+        
+        bucket = self.token_buckets[service_name]
+        current_time = time.time()
+        
+        # Refill tokens based on time elapsed
+        time_elapsed = current_time - bucket['last_refill']
+        tokens_to_add = time_elapsed * bucket['refill_rate']
+        
+        # Update token count (cap at capacity)
+        bucket['tokens'] = min(bucket['capacity'], bucket['tokens'] + tokens_to_add)
+        bucket['last_refill'] = current_time
+        
+        # Try to consume a token
+        if bucket['tokens'] >= 1.0:
+            bucket['tokens'] -= 1.0
+            return True
+        
+        return False
+    
+    def _calculate_wait_time(self, service_name: str) -> float:
+        """
+        Calculate how long to wait for the next token.
+        
+        Note: Must be called while holding the lock.
+        
+        Returns:
+            Wait time in seconds
+        """
+        if service_name not in self.token_buckets:
+            return 0.0
+        
+        bucket = self.token_buckets[service_name]
+        
+        # Calculate time until we have at least 1 token
+        tokens_needed = 1.0 - bucket['tokens']
+        wait_time = tokens_needed / bucket['refill_rate']
+        
+        # Add small buffer to avoid race conditions
+        return wait_time + 0.001
+    
+    async def get_availability(self, service_name: str) -> Dict[str, any]:
+        """
+        Get current availability information for a service.
+        
+        Args:
+            service_name: Name of the service
+            
+        Returns:
+            Dict with availability information
+        """
+        async with self._lock:
+            if service_name not in self.token_buckets:
+                return {
+                    'available': True,
+                    'tokens': float('inf'),
+                    'wait_time': 0.0
+                }
+            
+            # Refill tokens to get current state
+            bucket = self.token_buckets[service_name]
+            current_time = time.time()
+            time_elapsed = current_time - bucket['last_refill']
+            tokens_to_add = time_elapsed * bucket['refill_rate']
+            current_tokens = min(bucket['capacity'], bucket['tokens'] + tokens_to_add)
+            
+            wait_time = 0.0
+            if current_tokens < 1.0:
+                wait_time = self._calculate_wait_time(service_name)
+            
+            return {
+                'available': current_tokens >= 1.0,
+                'tokens': current_tokens,
+                'wait_time': wait_time,
+                'capacity': bucket['capacity'],
+                'refill_rate': bucket['refill_rate']
+            }
+    
+    async def reset(self, service_name: Optional[str] = None) -> None:
+        """
+        Reset rate limiter for a service or all services.
+        
+        Args:
+            service_name: Service to reset, or None for all services
+        """
+        async with self._lock:
+            if service_name:
+                if service_name in self.token_buckets:
+                    bucket = self.token_buckets[service_name]
+                    bucket['tokens'] = bucket['capacity']
+                    bucket['last_refill'] = time.time()
+                    logger.info(f"Reset rate limiter for {service_name}")
+            else:
+                for name, bucket in self.token_buckets.items():
+                    bucket['tokens'] = bucket['capacity']
+                    bucket['last_refill'] = time.time()
+                logger.info("Reset all rate limiters")
+
+
+class RateLimiter:
+    """Backwards-compatible wrapper for AsyncRateLimiter."""
+    
+    def __init__(self, calls_per_second: Optional[float] = None):
+        """Initialize with optional calls per second limit."""
+        self._async_limiter = AsyncRateLimiter()
+        self._loop = None
+        self._calls_per_second = calls_per_second
+        
+        if calls_per_second:
+            # Convert to calls per minute
+            calls_per_minute = int(calls_per_second * 60)
+            try:
+                asyncio.get_running_loop()
+                # We're in an async context
+                asyncio.create_task(
+                    self._async_limiter.set_rate_limit("default", calls_per_minute)
+                )
+            except RuntimeError:
+                # Not in async context, will set later
+                pass
+    
+    async def acquire(self) -> None:
+        """Acquire permission to make a call."""
+        # Ensure rate limit is set
+        if self._calls_per_second and "default" not in self._async_limiter.rate_limits:
+            calls_per_minute = int(self._calls_per_second * 60)
+            await self._async_limiter.set_rate_limit("default", calls_per_minute)
+        
+        await self._async_limiter.acquire("default")
+    
+    def __enter__(self):
+        """Context manager entry (for sync compatibility)."""
+        raise RuntimeError("Use 'async with' for RateLimiter context manager")
+    
+    async def __aenter__(self):
+        """Async context manager entry."""
+        await self.acquire()
+        return self
+    
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        """Async context manager exit."""
+        pass
+</file>
+
+</files>

@@ -1,0 +1,101 @@
+project_name: "KGAS Roadmap Architecture Critique"
+
+include_patterns:
+  - "docs/roadmap/ROADMAP_OVERVIEW.md"
+  - "docs/roadmap/phases/phase-2.1-graph-analytics/phase-2.1-completion.md"
+  - "docs/roadmap/phases/phase-7/phase-7-service-architecture-completion.md"
+  - "docs/roadmap/phases/phase-8/phase-8-strategic-external-integrations.md"
+  - "docs/roadmap/phases/phase-reliability/README.md"
+  - "docs/roadmap/phases/phase-tdd/tdd-implementation-progress.md"
+  - "docs/roadmap/initiatives/clear-implementation-roadmap.md"
+  - "docs/roadmap/initiatives/tdd-implementation-plan.md"
+  - "docs/planning/POST_MVP_ROADMAP.md"
+  - "tentative_parallel_roadmap_overview.md"
+  - "docs/architecture/adrs/ADR-019-Research-Assistant-Personas.md"
+  - "docs/architecture/adrs/ADR-005-buy-vs-build-strategy.md"
+  - "docs/architecture/ARCHITECTURE_OVERVIEW.md"
+  - "CLAUDE.md"
+
+ignore_patterns:
+  - "*.pyc"
+  - "__pycache__"
+  - ".git"
+  - "*.log"
+  - "archived/*"
+
+custom_prompt: |
+  Perform a comprehensive architectural and strategic critique of the KGAS project roadmap documentation. Analyze for:
+
+  1. **Strategic Coherence**:
+     - Do the phases build logically on each other?
+     - Are dependencies clearly identified and managed?
+     - Is the overall vision achievable with the proposed timeline?
+     - Does the parallel roadmap align with the sequential roadmap?
+     - Are there contradictions between different planning documents?
+
+  2. **Architectural Alignment**:
+     - Does the roadmap align with the architectural vision in ARCHITECTURE_OVERVIEW.md?
+     - Are the ADRs (Architecture Decision Records) being followed in the implementation?
+     - Is there a clear path from current state to target architecture?
+     - Are architectural risks identified and mitigated?
+
+  3. **Phase Definition Quality**:
+     - Are success criteria clearly defined for each phase?
+     - Are deliverables concrete and measurable?
+     - Is the scope of each phase appropriate (not too large/small)?
+     - Are timelines realistic given the scope?
+
+  4. **Technical Debt & Risk Management**:
+     - Is the Phase RELIABILITY addressing the right critical issues?
+     - Are there unaddressed technical risks in the roadmap?
+     - Is technical debt being managed proactively?
+     - Are there single points of failure in the plan?
+
+  5. **Resource Optimization**:
+     - Is the parallelization strategy actually feasible?
+     - Are the claimed time savings realistic?
+     - Is the solo developer + AI agents model sustainable?
+     - Are there better ways to sequence the work?
+
+  6. **Completeness & Clarity**:
+     - Are there gaps in the roadmap (missing phases, tools, features)?
+     - Is the documentation consistent across all files?
+     - Are success metrics clearly defined?
+     - Is progress tracking methodology adequate?
+
+  7. **TDD Integration**:
+     - Is the TDD philosophy properly integrated throughout?
+     - Are there phases where TDD might be difficult to apply?
+     - Is the TDD rollout plan realistic?
+
+  8. **Buy vs Build Decisions**:
+     - Are the Phase 8 external integrations well justified?
+     - Are there other areas where buy vs build should be considered?
+     - Is the ROI calculation for external integrations realistic?
+
+  9. **Critical Observations**:
+     - What are the biggest risks to project success?
+     - What key decisions need to be made?
+     - What alternative approaches should be considered?
+     - What's missing from the current roadmap?
+
+  10. **Recommendations**:
+      - Provide specific, actionable recommendations for improvement
+      - Suggest alternative phasing or sequencing if beneficial
+      - Identify quick wins that could accelerate progress
+      - Recommend areas for deeper investigation
+
+  Focus on providing strategic insights that will help improve project planning and execution.
+  Be direct and critical where necessary - this is for internal improvement purposes.
+
+claims_of_success:
+  - "Phase organization provides logical progression from foundation to advanced features"
+  - "TDD methodology is properly integrated into development workflow"
+  - "Parallel development strategy with AI agents is feasible and beneficial"
+  - "Phase RELIABILITY addresses all critical architectural issues"
+  - "External integration strategy (Phase 8) provides good ROI"
+  - "Timeline estimates are realistic for solo developer + AI agents"
+  - "Success criteria are clearly defined and measurable"
+  - "Technical risks are identified and mitigation strategies exist"
+  - "Architecture alignment is maintained throughout roadmap"
+  - "Documentation is consistent and comprehensive across all planning files"

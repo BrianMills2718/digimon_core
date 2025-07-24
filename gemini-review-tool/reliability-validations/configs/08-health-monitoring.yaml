@@ -1,0 +1,35 @@
+project_name: "Health Monitoring Validation"
+
+include_patterns:
+  - "src/core/health_monitor.py"
+
+custom_prompt: |
+  Validate ONLY this specific claim:
+  
+  **CLAIM**: Health monitor provides real-time system monitoring with alerts
+  
+  SPECIFIC CHECKS:
+  1. SystemHealthMonitor class with background monitoring
+  2. MetricsCollector for CPU, memory, disk usage
+  3. AlertManager with configurable thresholds
+  4. Health check endpoint decorator
+  5. Service-specific health checks
+  
+  EVIDENCE REQUIRED:
+  - SystemHealthMonitor with start_monitoring() method
+  - Background task/thread for continuous monitoring
+  - collect_metrics() gathering CPU, memory, disk stats
+  - AlertManager.check_thresholds() method
+  - @health_check_endpoint decorator
+  - register_health_check() for custom checks
+  
+  Look specifically at:
+  - Monitoring loop implementation
+  - Metrics collection using psutil or similar
+  - Alert threshold configuration
+  - Health endpoint registration
+  
+  IGNORE: Everything not related to health monitoring
+
+claims_of_success:
+  - "Complete health monitoring with metrics, alerts, and service health checks"

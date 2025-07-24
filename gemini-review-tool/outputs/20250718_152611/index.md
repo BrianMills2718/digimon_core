@@ -1,1 +1,0 @@
-- [validations/documentation-consistency-validation.md](validations/documentation-consistency-validation.md) ‒ 2025-07-18 15:26

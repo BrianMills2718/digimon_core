@@ -1,0 +1,798 @@
+This file is a merged representation of a subset of the codebase, containing specifically included files, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of a subset of the repository's contents that is considered the most important context.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Only files matching these patterns are included: src/core/distributed_transaction_manager.py
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+src/
+  core/
+    distributed_transaction_manager.py
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="src/core/distributed_transaction_manager.py">
+#!/usr/bin/env python3
+"""
+Distributed Transaction Manager - ACID Guarantees for Neo4j + SQLite
+
+Implements 2-phase commit protocol to ensure data consistency across
+Neo4j and SQLite databases, preventing entity ID mapping corruption
+and orphaned data that threatens academic integrity.
+
+Critical architectural fix for Phase RELIABILITY.
+"""
+
+import asyncio
+import time
+import uuid
+import logging
+from typing import Dict, Any, Optional, List, Tuple
+from dataclasses import dataclass
+from enum import Enum
+from datetime import datetime
+import json
+
+logger = logging.getLogger(__name__)
+
+
+class TransactionStatus(Enum):
+    ACTIVE = "active"
+    PREPARING = "preparing"
+    PREPARED = "prepared"
+    COMMITTING = "committing"
+    COMMITTED = "committed"
+    ABORTING = "aborting"
+    ABORTED = "aborted"
+
+
+class ParticipantStatus(Enum):
+    """Status of individual database participant in 2PC"""
+    READY = "ready"           # Voted to commit
+    PREPARED = "prepared"     # Prepared and locked resources
+    COMMITTED = "committed"   # Successfully committed
+    ABORTED = "aborted"       # Aborted/rolled back
+    FAILED = "failed"         # Failed during operation
+
+
+@dataclass
+class TransactionOperation:
+    """Single operation within distributed transaction"""
+    operation_id: str
+    database: str  # "neo4j" or "sqlite"
+    operation_type: str  # "create", "update", "delete"
+    table_or_label: str
+    data: Dict[str, Any]
+    rollback_data: Optional[Dict[str, Any]] = None
+    validation_queries: Optional[List[str]] = None  # For prepare phase validation
+
+
+@dataclass
+class ParticipantState:
+    """State of a database participant in 2PC protocol"""
+    database: str
+    status: ParticipantStatus
+    transaction_handle: Optional[Any] = None
+    prepared_operations: List[TransactionOperation] = None
+    error_message: Optional[str] = None
+    prepare_timestamp: Optional[datetime] = None
+
+
+@dataclass
+class DistributedTransaction:
+    """Distributed transaction across Neo4j and SQLite"""
+    transaction_id: str
+    status: TransactionStatus
+    operations: List[TransactionOperation]
+    participants: Dict[str, ParticipantState]  # "neo4j", "sqlite"
+    started_at: datetime = None
+    completed_at: Optional[datetime] = None
+    error_message: Optional[str] = None
+    recovery_log: List[str] = None  # For manual recovery in extreme cases
+
+
+class TransactionError(Exception):
+    """Distributed transaction error"""
+    pass
+
+
+class DistributedTransactionManager:
+    """
+    Manage ACID transactions across Neo4j and SQLite databases.
+    
+    Implements 2-phase commit protocol:
+    1. Phase 1 (Prepare): All databases prepare transaction
+    2. Phase 2 (Commit): All databases commit if all prepared successfully
+    
+    If any database fails to prepare or commit, all databases rollback.
+    """
+    
+    def __init__(self, neo4j_manager, sqlite_manager):
+        self.neo4j_manager = neo4j_manager
+        self.sqlite_manager = sqlite_manager
+        self.active_transactions: Dict[str, DistributedTransaction] = {}
+        self._lock = asyncio.Lock()
+        
+        # Transaction timeout and cleanup
+        self.transaction_timeout = 300  # 5 minutes
+        self.cleanup_task = None
+        
+        logger.info("DistributedTransactionManager initialized")
+    
+    async def begin_distributed_transaction(self, transaction_id: Optional[str] = None) -> str:
+        """
+        Begin distributed transaction with 2-phase commit support.
+        
+        Returns:
+            str: Transaction ID for subsequent operations
+        """
+        if transaction_id is None:
+            transaction_id = str(uuid.uuid4())
+        
+        async with self._lock:
+            if transaction_id in self.active_transactions:
+                raise TransactionError(f"Transaction {transaction_id} already exists")
+            
+            # Initialize participant states
+            participants = {
+                "neo4j": ParticipantState(
+                    database="neo4j",
+                    status=ParticipantStatus.READY,
+                    prepared_operations=[]
+                ),
+                "sqlite": ParticipantState(
+                    database="sqlite", 
+                    status=ParticipantStatus.READY,
+                    prepared_operations=[]
+                )
+            }
+            
+            try:
+                # Begin transactions but don't store handles in participants yet
+                neo4j_tx = await self.neo4j_manager.begin_transaction()
+                sqlite_tx = await self.sqlite_manager.begin_transaction()
+                
+                # Store transaction handles in participant states
+                participants["neo4j"].transaction_handle = neo4j_tx
+                participants["sqlite"].transaction_handle = sqlite_tx
+                
+                # Create distributed transaction record with participant tracking
+                distributed_tx = DistributedTransaction(
+                    transaction_id=transaction_id,
+                    status=TransactionStatus.ACTIVE,
+                    operations=[],
+                    participants=participants,
+                    started_at=datetime.now(),
+                    recovery_log=[]
+                )
+                
+                self.active_transactions[transaction_id] = distributed_tx
+                
+                # Start cleanup task if not running
+                if self.cleanup_task is None:
+                    self.cleanup_task = asyncio.create_task(self._cleanup_expired_transactions())
+                
+                logger.info(f"Started distributed transaction {transaction_id} with proper 2PC support")
+                return transaction_id
+                
+            except Exception as e:
+                # Cleanup partial transaction on failure
+                await self._rollback_partial_transaction(neo4j_tx, sqlite_tx)
+                raise TransactionError(f"Failed to begin distributed transaction: {e}")
+    
+    async def add_operation(self, transaction_id: str, operation: TransactionOperation):
+        """Add operation to distributed transaction"""
+        async with self._lock:
+            tx = self.active_transactions.get(transaction_id)
+            if not tx:
+                raise TransactionError(f"Transaction {transaction_id} not found")
+            
+            if tx.status != TransactionStatus.ACTIVE:
+                raise TransactionError(f"Transaction {transaction_id} is not active")
+            
+            # Generate rollback data for operation
+            rollback_data = await self._generate_rollback_data(operation)
+            operation.rollback_data = rollback_data
+            
+            tx.operations.append(operation)
+            logger.debug(f"Added operation {operation.operation_id} to transaction {transaction_id}")
+    
+    async def commit_distributed_transaction(self, transaction_id: str) -> bool:
+        """
+        Commit distributed transaction using 2-phase commit protocol.
+        
+        Phase 1: Prepare all databases
+        Phase 2: Commit all databases if all prepared successfully
+        
+        Returns:
+            bool: True if commit successful, False otherwise
+        """
+        async with self._lock:
+            tx = self.active_transactions.get(transaction_id)
+            if not tx:
+                raise TransactionError(f"Transaction {transaction_id} not found")
+            
+            if tx.status != TransactionStatus.ACTIVE:
+                raise TransactionError(f"Transaction {transaction_id} is not in active state")
+            
+            try:
+                # Phase 1: Prepare
+                logger.info(f"Preparing distributed transaction {transaction_id}")
+                tx.status = TransactionStatus.PREPARING
+                
+                prepare_successful = await self._prepare_phase(tx)
+                
+                if not prepare_successful:
+                    logger.error(f"Prepare phase failed for transaction {transaction_id}")
+                    await self._abort_transaction(tx)
+                    return False
+                
+                tx.status = TransactionStatus.PREPARED
+                
+                # Phase 2: Commit
+                logger.info(f"Committing distributed transaction {transaction_id}")
+                tx.status = TransactionStatus.COMMITTING
+                
+                commit_successful = await self._commit_phase(tx)
+                
+                if commit_successful:
+                    tx.status = TransactionStatus.COMMITTED
+                    tx.completed_at = datetime.now()
+                    logger.info(f"Successfully committed distributed transaction {transaction_id}")
+                    return True
+                else:
+                    logger.error(f"Commit phase failed for transaction {transaction_id}")
+                    await self._abort_transaction(tx)
+                    return False
+                
+            except Exception as e:
+                logger.error(f"Error during distributed transaction commit: {e}")
+                tx.error_message = str(e)
+                await self._abort_transaction(tx)
+                return False
+            
+            finally:
+                # Remove from active transactions
+                if transaction_id in self.active_transactions:
+                    del self.active_transactions[transaction_id]
+    
+    async def rollback_distributed_transaction(self, transaction_id: str) -> bool:
+        """Rollback distributed transaction"""
+        async with self._lock:
+            tx = self.active_transactions.get(transaction_id)
+            if not tx:
+                logger.warning(f"Transaction {transaction_id} not found for rollback")
+                return True  # Already gone
+            
+            return await self._abort_transaction(tx)
+    
+    async def _prepare_phase(self, tx: DistributedTransaction) -> bool:
+        """
+        Phase 1: PROPER PREPARE - Validate operations WITHOUT executing them.
+        
+        In true 2PC, prepare phase should:
+        1. Validate all operations can be performed
+        2. Lock necessary resources 
+        3. Log prepare record to disk
+        4. Vote YES/NO to coordinator
+        
+        Returns:
+            bool: True if all databases voted YES to commit
+        """
+        try:
+            # Prepare Neo4j participant
+            neo4j_vote = await self._prepare_neo4j_participant(tx)
+            if not neo4j_vote:
+                logger.error("Neo4j voted NO - prepare failed")
+                tx.participants["neo4j"].status = ParticipantStatus.FAILED
+                return False
+            
+            # Prepare SQLite participant  
+            sqlite_vote = await self._prepare_sqlite_participant(tx)
+            if not sqlite_vote:
+                logger.error("SQLite voted NO - prepare failed")
+                tx.participants["sqlite"].status = ParticipantStatus.FAILED
+                return False
+            
+            # Both participants voted YES
+            tx.participants["neo4j"].status = ParticipantStatus.PREPARED
+            tx.participants["sqlite"].status = ParticipantStatus.PREPARED
+            
+            logger.info(f"All participants voted YES for transaction {tx.transaction_id}")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Prepare phase error: {e}")
+            return False
+    
+    async def _commit_phase(self, tx: DistributedTransaction) -> bool:
+        """
+        Phase 2: ATOMIC COMMIT - Execute prepared operations.
+        
+        Since all participants voted YES in prepare phase, commit should succeed.
+        If any participant fails during commit, system enters recovery mode.
+        
+        Returns:
+            bool: True if all databases committed successfully
+        """
+        committed_participants = []
+        failed_participants = []
+        
+        try:
+            # Execute commit on Neo4j (executes prepared operations)
+            neo4j_success = await self._commit_neo4j_participant(tx)
+            if neo4j_success:
+                committed_participants.append("neo4j")
+                tx.participants["neo4j"].status = ParticipantStatus.COMMITTED
+            else:
+                failed_participants.append("neo4j")
+                tx.participants["neo4j"].status = ParticipantStatus.FAILED
+            
+            # Execute commit on SQLite (executes prepared operations)
+            sqlite_success = await self._commit_sqlite_participant(tx)
+            if sqlite_success:
+                committed_participants.append("sqlite")
+                tx.participants["sqlite"].status = ParticipantStatus.COMMITTED
+            else:
+                failed_participants.append("sqlite")
+                tx.participants["sqlite"].status = ParticipantStatus.FAILED
+            
+            # Check for partial failure - CRITICAL for ACID guarantees
+            if failed_participants and committed_participants:
+                # CRITICAL: Partial commit detected - system inconsistency
+                error_msg = f"PARTIAL COMMIT FAILURE: {committed_participants} committed, {failed_participants} failed"
+                logger.critical(f"CRITICAL SYSTEM INCONSISTENCY: {error_msg}")
+                
+                tx.recovery_log.append(f"PARTIAL_COMMIT: {datetime.now().isoformat()}")
+                tx.recovery_log.append(f"COMMITTED: {committed_participants}")
+                tx.recovery_log.append(f"FAILED: {failed_participants}")
+                
+                # Attempt emergency compensation for committed participants
+                await self._attempt_emergency_compensation(tx, committed_participants)
+                
+                return False
+            
+            # All participants committed successfully
+            if not failed_participants:
+                logger.info(f"All participants committed successfully for transaction {tx.transaction_id}")
+                return True
+            
+            # All participants failed (clean failure)
+            logger.error(f"All participants failed commit for transaction {tx.transaction_id}")
+            return False
+            
+        except Exception as e:
+            logger.critical(f"CRITICAL ERROR during commit phase: {e}")
+            tx.recovery_log.append(f"COMMIT_PHASE_ERROR: {str(e)}")
+            return False
+    
+    async def _prepare_neo4j_participant(self, tx: DistributedTransaction) -> bool:
+        """
+        PROPER Neo4j prepare phase - VALIDATE without executing.
+        
+        Returns:
+            bool: True if Neo4j votes YES (can commit), False if votes NO
+        """
+        try:
+            participant = tx.participants["neo4j"]
+            neo4j_operations = [op for op in tx.operations if op.database == "neo4j"]
+            
+            # Phase 1: Validate all operations can be performed
+            for operation in neo4j_operations:
+                if not await self._validate_neo4j_operation(participant.transaction_handle, operation):
+                    logger.error(f"Neo4j operation validation failed: {operation.operation_id}")
+                    participant.error_message = f"Validation failed for operation {operation.operation_id}"
+                    return False
+            
+            # Phase 2: Acquire locks for all operations (done within transaction)
+            # Neo4j handles locking automatically within transaction scope
+            
+            # Phase 3: Store prepared operations for later execution
+            participant.prepared_operations = neo4j_operations.copy()
+            participant.prepare_timestamp = datetime.now()
+            
+            logger.debug(f"Neo4j participant prepared {len(neo4j_operations)} operations")
+            return True  # Vote YES
+            
+        except Exception as e:
+            logger.error(f"Neo4j prepare error: {e}")
+            tx.participants["neo4j"].error_message = str(e)
+            return False  # Vote NO
+    
+    async def _prepare_sqlite_participant(self, tx: DistributedTransaction) -> bool:
+        """
+        PROPER SQLite prepare phase - VALIDATE without executing.
+        
+        Returns:
+            bool: True if SQLite votes YES (can commit), False if votes NO
+        """
+        try:
+            participant = tx.participants["sqlite"]
+            sqlite_operations = [op for op in tx.operations if op.database == "sqlite"]
+            
+            # Phase 1: Validate all operations can be performed
+            for operation in sqlite_operations:
+                if not await self._validate_sqlite_operation(participant.transaction_handle, operation):
+                    logger.error(f"SQLite operation validation failed: {operation.operation_id}")
+                    participant.error_message = f"Validation failed for operation {operation.operation_id}"
+                    return False
+            
+            # Phase 2: Check for conflicts and acquire locks
+            # SQLite handles locking automatically within transaction scope
+            
+            # Phase 3: Store prepared operations for later execution
+            participant.prepared_operations = sqlite_operations.copy()
+            participant.prepare_timestamp = datetime.now()
+            
+            logger.debug(f"SQLite participant prepared {len(sqlite_operations)} operations")
+            return True  # Vote YES
+            
+        except Exception as e:
+            logger.error(f"SQLite prepare error: {e}")
+            tx.participants["sqlite"].error_message = str(e)
+            return False  # Vote NO
+    
+    async def _commit_neo4j_participant(self, tx: DistributedTransaction) -> bool:
+        """Execute Neo4j commit - runs prepared operations and commits"""
+        try:
+            participant = tx.participants["neo4j"]
+            
+            # Execute all prepared operations
+            for operation in participant.prepared_operations:
+                await self._execute_neo4j_operation(participant.transaction_handle, operation)
+            
+            # Commit the transaction
+            await participant.transaction_handle.commit()
+            logger.debug(f"Neo4j participant committed {len(participant.prepared_operations)} operations")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Neo4j commit error: {e}")
+            tx.participants["neo4j"].error_message = str(e)
+            return False
+    
+    async def _commit_sqlite_participant(self, tx: DistributedTransaction) -> bool:
+        """Execute SQLite commit - runs prepared operations and commits"""
+        try:
+            participant = tx.participants["sqlite"]
+            
+            # Execute all prepared operations
+            for operation in participant.prepared_operations:
+                await self._execute_sqlite_operation(participant.transaction_handle, operation)
+            
+            # Commit the transaction
+            await participant.transaction_handle.commit()
+            logger.debug(f"SQLite participant committed {len(participant.prepared_operations)} operations")
+            return True
+            
+        except Exception as e:
+            logger.error(f"SQLite commit error: {e}")
+            tx.participants["sqlite"].error_message = str(e)
+            return False
+    
+    async def _abort_transaction(self, tx: DistributedTransaction) -> bool:
+        """Abort/rollback distributed transaction with proper participant handling"""
+        tx.status = TransactionStatus.ABORTING
+        
+        rollback_successful = True
+        
+        # Rollback Neo4j participant
+        try:
+            neo4j_participant = tx.participants.get("neo4j")
+            if neo4j_participant and neo4j_participant.transaction_handle:
+                await neo4j_participant.transaction_handle.rollback()
+                neo4j_participant.status = ParticipantStatus.ABORTED
+                logger.info(f"Neo4j participant rolled back for {tx.transaction_id}")
+        except Exception as e:
+            logger.error(f"Neo4j rollback error: {e}")
+            rollback_successful = False
+        
+        # Rollback SQLite participant
+        try:
+            sqlite_participant = tx.participants.get("sqlite")
+            if sqlite_participant and sqlite_participant.transaction_handle:
+                await sqlite_participant.transaction_handle.rollback()
+                sqlite_participant.status = ParticipantStatus.ABORTED
+                logger.info(f"SQLite participant rolled back for {tx.transaction_id}")
+        except Exception as e:
+            logger.error(f"SQLite rollback error: {e}")
+            rollback_successful = False
+        
+        tx.status = TransactionStatus.ABORTED
+        tx.completed_at = datetime.now()
+        
+        return rollback_successful
+    
+    async def _execute_neo4j_operation(self, neo4j_tx, operation: TransactionOperation):
+        """Execute Neo4j operation within transaction"""
+        if operation.operation_type == "create":
+            query = f"CREATE (n:{operation.table_or_label} $props) RETURN n"
+            await neo4j_tx.run(query, props=operation.data)
+        elif operation.operation_type == "update":
+            query = f"MATCH (n:{operation.table_or_label}) WHERE n.id = $id SET n += $props RETURN n"
+            await neo4j_tx.run(query, id=operation.data.get("id"), props=operation.data)
+        elif operation.operation_type == "delete":
+            query = f"MATCH (n:{operation.table_or_label}) WHERE n.id = $id DELETE n"
+            await neo4j_tx.run(query, id=operation.data.get("id"))
+        else:
+            raise TransactionError(f"Unsupported Neo4j operation: {operation.operation_type}")
+    
+    async def _execute_sqlite_operation(self, sqlite_tx, operation: TransactionOperation):
+        """Execute SQLite operation within transaction"""
+        if operation.operation_type == "create":
+            columns = ", ".join(operation.data.keys())
+            placeholders = ", ".join(["?" for _ in operation.data])
+            query = f"INSERT INTO {operation.table_or_label} ({columns}) VALUES ({placeholders})"
+            await sqlite_tx.execute(query, list(operation.data.values()))
+        elif operation.operation_type == "update":
+            set_clause = ", ".join([f"{k} = ?" for k in operation.data.keys() if k != "id"])
+            query = f"UPDATE {operation.table_or_label} SET {set_clause} WHERE id = ?"
+            values = [v for k, v in operation.data.items() if k != "id"] + [operation.data["id"]]
+            await sqlite_tx.execute(query, values)
+        elif operation.operation_type == "delete":
+            query = f"DELETE FROM {operation.table_or_label} WHERE id = ?"
+            await sqlite_tx.execute(query, [operation.data.get("id")])
+        else:
+            raise TransactionError(f"Unsupported SQLite operation: {operation.operation_type}")
+    
+    async def _generate_rollback_data(self, operation: TransactionOperation) -> Optional[Dict[str, Any]]:
+        """Generate rollback data for operation"""
+        # For creates, rollback is deletion
+        if operation.operation_type == "create":
+            return {"operation_type": "delete", "id": operation.data.get("id")}
+        
+        # For updates and deletes, would need to query current state
+        # This is a simplified implementation
+        return None
+    
+    async def _rollback_partial_transaction(self, neo4j_tx, sqlite_tx):
+        """Rollback partially created transaction"""
+        if neo4j_tx:
+            try:
+                await neo4j_tx.rollback()
+            except Exception as e:
+                logger.error(f"Error rolling back partial Neo4j transaction: {e}")
+        
+        if sqlite_tx:
+            try:
+                await sqlite_tx.rollback()
+            except Exception as e:
+                logger.error(f"Error rolling back partial SQLite transaction: {e}")
+    
+    async def _cleanup_expired_transactions(self):
+        """Cleanup expired transactions to prevent resource leaks"""
+        while True:
+            try:
+                await asyncio.sleep(60)  # Check every minute
+                
+                current_time = datetime.now()
+                expired_transactions = []
+                
+                async with self._lock:
+                    for tx_id, tx in self.active_transactions.items():
+                        if tx.started_at:
+                            age = (current_time - tx.started_at).total_seconds()
+                            if age > self.transaction_timeout:
+                                expired_transactions.append(tx_id)
+                
+                # Rollback expired transactions
+                for tx_id in expired_transactions:
+                    logger.warning(f"Rolling back expired transaction {tx_id}")
+                    await self.rollback_distributed_transaction(tx_id)
+                
+            except Exception as e:
+                logger.error(f"Error in transaction cleanup: {e}")
+    
+    def get_transaction_status(self, transaction_id: str) -> Optional[Dict[str, Any]]:
+        """Get status of distributed transaction"""
+        tx = self.active_transactions.get(transaction_id)
+        if not tx:
+            return None
+        
+        return {
+            "transaction_id": tx.transaction_id,
+            "status": tx.status.value,
+            "operations_count": len(tx.operations),
+            "started_at": tx.started_at.isoformat() if tx.started_at else None,
+            "completed_at": tx.completed_at.isoformat() if tx.completed_at else None,
+            "error_message": tx.error_message
+        }
+    
+    def get_active_transactions(self) -> List[Dict[str, Any]]:
+        """Get all active transactions"""
+        return [self.get_transaction_status(tx_id) for tx_id in self.active_transactions.keys()]
+    
+    async def _validate_neo4j_operation(self, neo4j_tx, operation: TransactionOperation) -> bool:
+        """Validate Neo4j operation can be performed without executing it"""
+        try:
+            if operation.operation_type == "create":
+                # Check if required properties exist
+                if not operation.data:
+                    return False
+                # Could add more validation here (schema checks, etc.)
+                return True
+            elif operation.operation_type == "update":
+                # Check if entity exists
+                query = f"MATCH (n:{operation.table_or_label}) WHERE n.id = $id RETURN count(n) as count"
+                result = await neo4j_tx.run(query, id=operation.data.get("id"))
+                record = await result.single()
+                return record["count"] > 0
+            elif operation.operation_type == "delete":
+                # Check if entity exists
+                query = f"MATCH (n:{operation.table_or_label}) WHERE n.id = $id RETURN count(n) as count"
+                result = await neo4j_tx.run(query, id=operation.data.get("id"))
+                record = await result.single()
+                return record["count"] > 0
+            return False
+        except Exception as e:
+            logger.error(f"Neo4j validation error: {e}")
+            return False
+    
+    async def _validate_sqlite_operation(self, sqlite_tx, operation: TransactionOperation) -> bool:
+        """Validate SQLite operation can be performed without executing it"""
+        try:
+            if operation.operation_type == "create":
+                # Check if required data exists
+                if not operation.data:
+                    return False
+                # Could add more validation here (foreign key checks, etc.)
+                return True
+            elif operation.operation_type == "update":
+                # Check if record exists
+                query = f"SELECT COUNT(*) as count FROM {operation.table_or_label} WHERE id = ?"
+                cursor = await sqlite_tx.execute(query, (operation.data.get("id"),))
+                row = await cursor.fetchone()
+                return row[0] > 0
+            elif operation.operation_type == "delete":
+                # Check if record exists
+                query = f"SELECT COUNT(*) as count FROM {operation.table_or_label} WHERE id = ?"
+                cursor = await sqlite_tx.execute(query, (operation.data.get("id"),))
+                row = await cursor.fetchone()
+                return row[0] > 0
+            return False
+        except Exception as e:
+            logger.error(f"SQLite validation error: {e}")
+            return False
+    
+    async def _attempt_emergency_compensation(self, tx: DistributedTransaction, committed_participants: List[str]):
+        """
+        Attempt emergency compensation for partial commit failures.
+        
+        This is a last resort when system enters inconsistent state.
+        Real systems would have sophisticated compensation logic.
+        """
+        logger.critical(f"EMERGENCY COMPENSATION REQUIRED for transaction {tx.transaction_id}")
+        
+        compensation_log = []
+        
+        for participant_name in committed_participants:
+            try:
+                participant = tx.participants[participant_name]
+                
+                # Log the committed operations for manual recovery
+                for operation in participant.prepared_operations:
+                    compensation_log.append({
+                        "participant": participant_name,
+                        "operation": operation.operation_id,
+                        "type": operation.operation_type,
+                        "table": operation.table_or_label,
+                        "data": operation.data,
+                        "rollback_data": operation.rollback_data
+                    })
+                
+                # Mark participant as requiring manual intervention
+                participant.status = ParticipantStatus.FAILED
+                participant.error_message = "REQUIRES MANUAL COMPENSATION - partial commit detected"
+                
+            except Exception as e:
+                logger.critical(f"Error during emergency compensation for {participant_name}: {e}")
+        
+        # Store compensation log for manual recovery
+        tx.recovery_log.append(f"COMPENSATION_LOG: {json.dumps(compensation_log)}")
+        
+        # Alert system administrators
+        logger.critical(f"MANUAL INTERVENTION REQUIRED: Transaction {tx.transaction_id} needs manual compensation")
+        logger.critical(f"Compensation data logged for recovery: {len(compensation_log)} operations")
+
+    async def shutdown(self):
+        """Shutdown transaction manager and cleanup resources"""
+        logger.info("Shutting down DistributedTransactionManager")
+        
+        # Cancel cleanup task
+        if self.cleanup_task:
+            self.cleanup_task.cancel()
+            try:
+                await self.cleanup_task
+            except asyncio.CancelledError:
+                pass
+        
+        # Rollback all active transactions
+        active_tx_ids = list(self.active_transactions.keys())
+        for tx_id in active_tx_ids:
+            await self.rollback_distributed_transaction(tx_id)
+        
+        logger.info("DistributedTransactionManager shutdown complete")
+
+
+# Convenience functions for common patterns
+async def create_entity_with_mentions(dtm: DistributedTransactionManager, 
+                                    entity_data: Dict[str, Any], 
+                                    mentions_data: List[Dict[str, Any]]) -> bool:
+    """
+    Create entity with mentions using distributed transaction.
+    
+    This ensures both Neo4j entity and SQLite mentions are created atomically,
+    preventing entity ID mapping corruption.
+    """
+    tx_id = await dtm.begin_distributed_transaction()
+    
+    try:
+        # Add entity creation operation (Neo4j)
+        entity_op = TransactionOperation(
+            operation_id=str(uuid.uuid4()),
+            database="neo4j",
+            operation_type="create",
+            table_or_label="Entity",
+            data=entity_data
+        )
+        await dtm.add_operation(tx_id, entity_op)
+        
+        # Add mention creation operations (SQLite)
+        for mention_data in mentions_data:
+            mention_op = TransactionOperation(
+                operation_id=str(uuid.uuid4()),
+                database="sqlite",
+                operation_type="create",
+                table_or_label="mentions",
+                data=mention_data
+            )
+            await dtm.add_operation(tx_id, mention_op)
+        
+        # Commit distributed transaction
+        return await dtm.commit_distributed_transaction(tx_id)
+        
+    except Exception as e:
+        logger.error(f"Error in create_entity_with_mentions: {e}")
+        await dtm.rollback_distributed_transaction(tx_id)
+        return False
+</file>
+
+</files>

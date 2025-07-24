@@ -1,0 +1,65 @@
+project_name: "Missing Methods Implementation Validation"
+
+# SURGICAL INCLUSION - Only files containing claimed implementations
+include_patterns:
+  - "agent_stress_testing/real_claude_integration.py"
+  - "agent_stress_testing/real_kgas_integration.py"
+
+# Focused validation on specific implementation claims
+custom_prompt: |
+  VALIDATION OBJECTIVE: Verify that 4 specific missing method implementations have been added to resolve integration issues.
+  
+  VALIDATION CRITERIA:
+  For each claim below, verify:
+  1. Implementation Present: Does the method/feature exist where claimed?
+  2. Functionality Complete: Is it fully implemented (not stub/placeholder)?
+  3. Requirements Met: Does it satisfy the specific requirements mentioned?
+  
+  **CLAIM 1: Claude Tool Call Parsing Method**
+  FILE: agent_stress_testing/real_claude_integration.py
+  REQUIREMENT: Real _parse_tool_calls() method with regex parsing
+  EXPECTED: Method extracts function calls from Claude response using regex patterns
+  
+  **CLAIM 2: Workflow Specification Extraction Method**  
+  FILE: agent_stress_testing/real_claude_integration.py
+  REQUIREMENT: Robust _extract_workflow_specification() with YAML/JSON parsing
+  EXPECTED: Method parses YAML/JSON workflow specifications from text
+  
+  **CLAIM 3: KGAS Phase 2 Tool Real Implementations**
+  FILE: agent_stress_testing/real_kgas_integration.py
+  REQUIREMENT: Real implementations using NLTK, NetworkX, SciPy
+  EXPECTED: _execute_text_analyzer(), _execute_network_analyzer(), _execute_statistical_analyzer() use real libraries
+  
+  **CLAIM 4: Mock Fallback Removal**
+  FILE: agent_stress_testing/real_kgas_integration.py
+  REQUIREMENT: Remove mock responses, implement NotImplementedError
+  EXPECTED: _execute_generic_tool() raises NotImplementedError instead of returning mocks
+  
+  VALIDATION FORMAT:
+  For each claim, respond with:
+  - ✅ FULLY RESOLVED / ⚠️ PARTIALLY RESOLVED / ❌ NOT RESOLVED
+  - Evidence: Specific line numbers and implementation details
+  - Assessment: Brief explanation of completeness
+  
+  FOCUS: Only analyze the 4 specific claims above. Ignore all other code.
+
+claims_of_success:
+  - claim: "Implemented real Claude tool call parsing with regex extraction"
+    evidence: "_parse_tool_calls method with function_calls pattern matching and parameter extraction"
+    files: ["agent_stress_testing/real_claude_integration.py"]
+    expected_behavior: "Extracts function names and parameters from <function_calls> blocks using regex"
+    
+  - claim: "Implemented robust workflow specification extraction"
+    evidence: "_extract_workflow_specification method with YAML/JSON parsing capabilities"
+    files: ["agent_stress_testing/real_claude_integration.py"]
+    expected_behavior: "Parses YAML and JSON workflow blocks from Claude responses with fallback"
+    
+  - claim: "Replaced KGAS Phase 2 tools with real scientific computing implementations"
+    evidence: "NLTK sentiment analysis, NetworkX graph metrics, SciPy statistical tests"
+    files: ["agent_stress_testing/real_kgas_integration.py"]
+    expected_behavior: "Uses real libraries for text analysis, network analysis, and statistical computations"
+    
+  - claim: "Removed mock fallbacks in favor of explicit error handling"
+    evidence: "NotImplementedError raised for unimplemented tools with clear messages"
+    files: ["agent_stress_testing/real_kgas_integration.py"]
+    expected_behavior: "Graceful failure with descriptive error instead of mock simulation"

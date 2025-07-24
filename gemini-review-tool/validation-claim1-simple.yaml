@@ -1,0 +1,18 @@
+project_name: "Audit Trail Validation"
+
+custom_prompt: |
+  Validate this specific claim about audit trail immutability in ProvenanceManager.
+  
+  CLAIM: Audit trails use cryptographic chaining preventing tampering
+  
+  Check these 4 specific requirements:
+  
+  1. Line 73: AuditEntry class must have @dataclass(frozen=True) decorator
+  2. Line 83-93: Hash calculation must include previous_hash for chaining
+  3. Line 118-132: verify_integrity() method must check chain continuity
+  4. Line 164: _audit_trails must be typed as Dict[str, ImmutableAuditTrail]
+  
+  VERDICT:
+  - ✅ FULLY RESOLVED if all 4 requirements are met
+  - ⚠️ PARTIALLY RESOLVED if some requirements are met
+  - ❌ NOT RESOLVED if implementation is missing

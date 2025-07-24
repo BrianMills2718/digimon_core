@@ -1,0 +1,36 @@
+project_name: "Connection Pool Validation"
+
+include_patterns:
+  - "src/core/connection_pool_manager.py"
+
+custom_prompt: |
+  Validate ONLY this specific claim:
+  
+  **CLAIM**: Connection pool manager handles resource exhaustion gracefully
+  
+  SPECIFIC CHECKS:
+  1. ConnectionPoolManager class with min_size and max_size
+  2. Dynamic pool resizing capability
+  3. Health check loop for connections
+  4. Graceful handling of pool exhaustion
+  5. Connection timeout and retry logic
+  
+  EVIDENCE REQUIRED:
+  - Constructor with min_size=5, max_size=20 defaults
+  - acquire_connection() with timeout parameter
+  - release_connection() returns connections to pool
+  - _health_check_loop() runs in background
+  - resize_pool() method for dynamic sizing
+  - Queue or similar structure for pool management
+  - Timeout handling in acquire_connection()
+  
+  Look specifically at:
+  - Pool initialization logic
+  - acquire_connection() timeout and waiting logic
+  - Health check implementation
+  - Error handling for exhausted pool
+  
+  IGNORE: Everything not related to connection pooling
+
+claims_of_success:
+  - "Connection pool with dynamic sizing, health checks, and graceful exhaustion handling"

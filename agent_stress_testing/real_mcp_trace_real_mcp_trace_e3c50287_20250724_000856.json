@@ -1,0 +1,164 @@
+{
+  "trace_metadata": {
+    "trace_id": "real_mcp_trace_e3c50287",
+    "total_duration": 1.9411342144012451,
+    "real_mcp_tools_used": true,
+    "total_events": 5,
+    "total_mcp_calls": 2
+  },
+  "original_request": {
+    "request_id": "req_6ed75e1e",
+    "objective": "Extract corporate leadership entities and partnerships using real KGAS MCP tools",
+    "approach": "Step-by-step pipeline using actual T01, T15A, T23A, T27 tools",
+    "expected_entities": [
+      "Tim Cook",
+      "Apple Inc.",
+      "Microsoft Corporation",
+      "Satya Nadella"
+    ],
+    "expected_relationships": [
+      "CEO_OF",
+      "PARTNERSHIP_WITH",
+      "LOCATED_IN"
+    ]
+  },
+  "documents": {
+    "corp_partnerships.txt": "\n        Apple Inc. CEO Tim Cook announced a major strategic partnership with Microsoft Corporation \n        at the company's headquarters in Cupertino, California. The agreement was signed by \n        Microsoft CEO Satya Nadella and Apple's Chief Operating Officer Jeff Williams.\n        \n        This partnership builds on previous collaborations between Apple and Microsoft, focusing \n        on enterprise software integration. Tim Cook emphasized that this alliance will strengthen \n        both companies' position in the enterprise market.\n        \n        Google LLC CEO Sundar Pichai also announced a separate partnership with IBM Corporation, \n        led by IBM CEO Arvind Krishna. These strategic alliances demonstrate the evolving \n        technology landscape where former competitors now collaborate.\n        ",
+    "tech_leadership.txt": "\n        Amazon Web Services CEO Andy Jassy met with Oracle Corporation CEO Safra Catz to discuss \n        cloud infrastructure partnerships. The meeting took place at Amazon's headquarters in \n        Seattle, Washington, with participation from Oracle's Chief Technology Officer Larry Ellison.\n        \n        Meanwhile, Meta Platforms CEO Mark Zuckerberg announced new AI initiatives in partnership \n        with NVIDIA Corporation CEO Jensen Huang. These collaborations focus on advanced AI \n        computing infrastructure and machine learning capabilities.\n        "
+  },
+  "events": [
+    {
+      "trace_id": "real_mcp_trace_e3c50287",
+      "event_id": "evt_001",
+      "timestamp": "2025-07-24T00:08:54.393965",
+      "elapsed_seconds": 2.6702880859375e-05,
+      "event_type": "user_request",
+      "source": "user",
+      "data": {
+        "request_id": "req_6ed75e1e",
+        "objective": "Extract corporate leadership entities and partnerships using real KGAS MCP tools",
+        "approach": "Step-by-step pipeline using actual T01, T15A, T23A, T27 tools",
+        "expected_entities": [
+          "Tim Cook",
+          "Apple Inc.",
+          "Microsoft Corporation",
+          "Satya Nadella"
+        ],
+        "expected_relationships": [
+          "CEO_OF",
+          "PARTNERSHIP_WITH",
+          "LOCATED_IN"
+        ]
+      }
+    },
+    {
+      "trace_id": "real_mcp_trace_e3c50287",
+      "event_id": "evt_002",
+      "timestamp": "2025-07-24T00:08:54.393985",
+      "elapsed_seconds": 4.601478576660156e-05,
+      "event_type": "documents_prepared",
+      "source": "system",
+      "data": {
+        "document_count": 2,
+        "total_content_length": 1397,
+        "document_names": [
+          "corp_partnerships.txt",
+          "tech_leadership.txt"
+        ]
+      }
+    },
+    {
+      "trace_id": "real_mcp_trace_e3c50287",
+      "event_id": "evt_003",
+      "timestamp": "2025-07-24T00:08:56.334961",
+      "elapsed_seconds": 1.9410266876220703,
+      "event_type": "document_loading_start",
+      "source": "system",
+      "data": {
+        "tool": "load_documents (T01)"
+      }
+    },
+    {
+      "trace_id": "real_mcp_trace_e3c50287",
+      "event_id": "evt_004",
+      "timestamp": "2025-07-24T00:08:56.335022",
+      "elapsed_seconds": 1.941082239151001,
+      "event_type": "document_loading_complete",
+      "source": "system",
+      "data": {
+        "documents_loaded": 0,
+        "total_text_length": 0
+      }
+    },
+    {
+      "trace_id": "real_mcp_trace_e3c50287",
+      "event_id": "evt_005",
+      "timestamp": "2025-07-24T00:08:56.335041",
+      "elapsed_seconds": 1.9411017894744873,
+      "event_type": "final_results",
+      "source": "system",
+      "data": {
+        "documents_processed": 0,
+        "chunks_created": 0,
+        "entities_extracted": 0,
+        "relationships_found": 0,
+        "entity_types": [],
+        "relationship_types": [],
+        "processing_time": 1.9410994052886963
+      }
+    }
+  ],
+  "mcp_tool_calls": [
+    {
+      "call_id": "mcp_001",
+      "trace_id": "real_mcp_trace_e3c50287",
+      "timestamp": "2025-07-24T00:08:56.335002",
+      "elapsed_seconds": 1.9410626888275146,
+      "tool_name": "load_documents",
+      "inputs": {
+        "document_paths": [
+          "corp_partnerships.txt"
+        ]
+      },
+      "execution_time": 2.384185791015625e-06,
+      "status": "error",
+      "output": {
+        "status": "error",
+        "error": "name 'ToolRequest' is not defined",
+        "tool_id": "load_documents"
+      },
+      "is_real_mcp_tool": true
+    },
+    {
+      "call_id": "mcp_002",
+      "trace_id": "real_mcp_trace_e3c50287",
+      "timestamp": "2025-07-24T00:08:56.335014",
+      "elapsed_seconds": 1.9410748481750488,
+      "tool_name": "load_documents",
+      "inputs": {
+        "document_paths": [
+          "tech_leadership.txt"
+        ]
+      },
+      "execution_time": 7.152557373046875e-07,
+      "status": "error",
+      "output": {
+        "status": "error",
+        "error": "name 'ToolRequest' is not defined",
+        "tool_id": "load_documents"
+      },
+      "is_real_mcp_tool": true
+    }
+  ],
+  "final_results": {
+    "documents_processed": 0,
+    "chunks_created": 0,
+    "entities_extracted": 0,
+    "relationships_found": 0,
+    "entity_types": [],
+    "relationship_types": [],
+    "processing_time": 1.9410994052886963
+  },
+  "extracted_entities": [],
+  "extracted_relationships": []
+}

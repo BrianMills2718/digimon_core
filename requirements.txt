@@ -1,0 +1,53 @@
+# Core dependencies
+networkx>=3.0
+numpy>=1.24.0
+scipy>=1.10.0
+pandas>=2.0.0
+scikit-learn>=1.3.0
+
+# Graph analysis
+powerlaw>=1.5
+python-louvain>=0.16
+leidenalg>=0.10.0
+igraph>=0.10.0
+pygraphviz>=1.10
+
+# Database
+neo4j>=5.0.0
+sqlalchemy>=2.0.0
+
+# API and web
+fastapi>=0.100.0
+uvicorn>=0.23.0
+httpx>=0.24.0
+pydantic>=2.0.0
+
+# NLP
+spacy>=3.5.0
+transformers>=4.30.0
+openai>=1.0.0
+google-generativeai>=0.3.0
+
+# Document processing
+PyPDF2>=3.0.0
+python-docx>=0.8.11
+openpyxl>=3.1.0
+beautifulsoup4>=4.12.0
+lxml>=4.9.0
+
+# Utilities
+python-dotenv>=1.0.0
+pyyaml>=6.0
+click>=8.1.0
+rich>=13.0.0
+
+# Testing
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+pytest-cov>=4.1.0
+pytest-mock>=3.11.0
+
+# Development
+black>=23.0.0
+ruff>=0.1.0
+mypy>=1.5.0

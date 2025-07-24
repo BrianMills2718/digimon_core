@@ -1,0 +1,36 @@
+project_name: "Async Patterns Validation"
+
+include_patterns:
+  - "src/core/async_rate_limiter.py"
+  - "src/core/async_error_handler.py"
+
+custom_prompt: |
+  Validate ONLY these specific claims:
+  
+  **CLAIM 1**: AsyncRateLimiter uses non-blocking async patterns
+  **CLAIM 2**: AsyncErrorHandler implements async retry logic
+  
+  SPECIFIC CHECKS for async_rate_limiter.py:
+  1. AsyncRateLimiter class exists
+  2. NO time.sleep() calls anywhere
+  3. Uses await asyncio.sleep() for delays
+  4. Token bucket algorithm implementation
+  5. acquire() method is async def and uses await
+  
+  SPECIFIC CHECKS for async_error_handler.py:
+  1. AsyncErrorHandler class exists
+  2. handle_with_retry() is async def
+  3. Exponential backoff with asyncio.sleep()
+  4. No blocking operations
+  
+  EVIDENCE REQUIRED:
+  - Import asyncio at top of files
+  - All delay methods use await asyncio.sleep()
+  - No time.sleep() in either file
+  - async def for all public methods
+  - Token bucket refill logic in rate limiter
+  
+  IGNORE: Everything not related to async patterns
+
+claims_of_success:
+  - "All async operations are truly non-blocking with proper async/await usage"

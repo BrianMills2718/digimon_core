@@ -1,0 +1,37 @@
+project_name: "Phase 7 Real Processing Verification - After Fixes"
+
+include_patterns:
+  - "tests/fixtures/test_services.py"
+  - "tests/integration/test_service_orchestration.py"
+
+claims_of_success:
+  - "No asyncio.sleep() for simulating work - all test services use real computational work"
+  - "Error handling uses real service failures (memory pressure, network errors), not artificial injection flags"
+  - "Test services perform actual processing: pattern matching, hash computation, vector calculations"
+  - "Integration tests use real failure scenarios: service stops, configurable failure rates"
+
+custom_prompt: |
+  Verify that the previously identified issues have been fixed:
+  
+  For Claim 1 (No asyncio.sleep):
+  - Check all Test*Service classes in test_services.py
+  - Look for real computational work: Counter, regex matching, numpy operations, hash calculations
+  - Confirm NO asyncio.sleep() calls for simulating processing time
+  
+  For Claim 2 (Real failures):
+  - Check TestServiceManager supports failure_config with real scenarios
+  - Verify services check memory with psutil, return real HTTP error codes
+  - Confirm tests use service.stop() or failure_rate, not 'error_injection' flags
+  
+  For Claim 3 (Actual processing):
+  - Verify word counting, pattern matching, vector math operations
+  - Check processing time comes from asyncio.get_event_loop().time() measurements
+  
+  For Claim 4 (Integration tests):
+  - Verify test_graceful_degradation uses service.stop()
+  - Verify test_error_propagation uses failure_rate configuration
+  
+  Report each claim as:
+  - ✅ FULLY RESOLVED if completely fixed
+  - ⚠️ PARTIALLY RESOLVED if some issues remain
+  - ❌ NOT RESOLVED if not fixed

@@ -1,0 +1,241 @@
+{
+  "scenario": "\n    Conduct a comprehensive meta-analysis of research collaboration networks in cognitive science by:\n    \n    1. Processing a heterogeneous collection of academic documents (papers, conference proceedings, grant records)\n    2. Extracting multi-modal entities (researchers, institutions, concepts, methodologies, funding sources)\n    3. Identifying complex relationship patterns (collaborations, citations, theoretical influences, funding flows)\n    4. Building a multi-layered knowledge graph with temporal dynamics\n    5. Analyzing network evolution patterns and predicting future collaboration opportunities\n    \n    The analysis must adapt intelligently to:\n    - Document format inconsistencies and OCR quality issues\n    - Domain-specific terminology and evolving research vocabularies  \n    - Sparse relationship data and ambiguous entity boundaries\n    - Computational resource constraints and time limitations\n    - Unexpected network structures that don't fit standard models\n    \n    Success requires sophisticated course correction including:\n    - Parallel exploration of alternative analytical approaches\n    - Intelligent backtracking when fundamental assumptions prove wrong\n    - Resource-aware graceful degradation under time/compute pressure\n    - Learning from execution patterns to optimize future decisions\n    ",
+  "primary_plan": [
+    {
+      "step_id": "primary_1",
+      "name": "Document Processing",
+      "tool": "advanced_document_processor",
+      "approach": "primary",
+      "confidence": 0.85,
+      "expected_quality": 0.9,
+      "resource_cost": 10
+    },
+    {
+      "step_id": "primary_2",
+      "name": "Multi-Modal NER",
+      "tool": "enhanced_ner_system",
+      "approach": "primary",
+      "confidence": 0.75,
+      "expected_quality": 0.8,
+      "resource_cost": 25
+    },
+    {
+      "step_id": "primary_3",
+      "name": "Relationship Mining",
+      "tool": "deep_relationship_extractor",
+      "approach": "primary",
+      "confidence": 0.7,
+      "expected_quality": 0.75,
+      "resource_cost": 30
+    },
+    {
+      "step_id": "primary_4",
+      "name": "Network Construction",
+      "tool": "dynamic_network_builder",
+      "approach": "primary",
+      "confidence": 0.8,
+      "expected_quality": 0.85,
+      "resource_cost": 20
+    }
+  ],
+  "alternative_plans": [
+    [
+      {
+        "step_id": "stat_1",
+        "name": "Statistical Text Analysis",
+        "tool": "statistical_analyzer",
+        "approach": "statistical",
+        "confidence": 0.9,
+        "expected_quality": 0.75,
+        "resource_cost": 15
+      },
+      {
+        "step_id": "stat_2",
+        "name": "Clustering-Based Entity Discovery",
+        "tool": "ml_clustering_system",
+        "approach": "statistical",
+        "confidence": 0.85,
+        "expected_quality": 0.7,
+        "resource_cost": 35
+      },
+      {
+        "step_id": "stat_3",
+        "name": "Correlation Network Building",
+        "tool": "correlation_network_builder",
+        "approach": "statistical",
+        "confidence": 0.8,
+        "expected_quality": 0.8,
+        "resource_cost": 25
+      }
+    ],
+    [
+      {
+        "step_id": "light_1",
+        "name": "Keyword Extraction",
+        "tool": "fast_keyword_extractor",
+        "approach": "lightweight",
+        "confidence": 0.9,
+        "expected_quality": 0.6,
+        "resource_cost": 5
+      },
+      {
+        "step_id": "light_2",
+        "name": "Co-occurrence Analysis",
+        "tool": "cooccurrence_analyzer",
+        "approach": "lightweight",
+        "confidence": 0.85,
+        "expected_quality": 0.65,
+        "resource_cost": 8
+      },
+      {
+        "step_id": "light_3",
+        "name": "Simple Network Assembly",
+        "tool": "basic_network_assembler",
+        "approach": "lightweight",
+        "confidence": 0.9,
+        "expected_quality": 0.7,
+        "resource_cost": 10
+      }
+    ]
+  ],
+  "execution_results": [
+    {
+      "step_id": "primary_1",
+      "step_name": "Document Processing",
+      "tool": "advanced_document_processor",
+      "approach": "primary",
+      "status": "partial",
+      "quality_score": 0.7,
+      "confidence": 0.6,
+      "execution_time": 6.943556308746338,
+      "output_data": {
+        "documents_processed": 12,
+        "extraction_rate": 0.85
+      },
+      "issues": [
+        "OCR difficulties with handwritten annotations",
+        "Inconsistent formatting"
+      ],
+      "resource_usage": {
+        "time": 4.0,
+        "compute": 10,
+        "api_calls": 1
+      },
+      "context_factors": {
+        "quality_trend_impact": 0,
+        "resource_pressure": 0.0,
+        "step_index": 0
+      }
+    },
+    {
+      "step_id": "primary_2",
+      "step_name": "Multi-Modal NER",
+      "tool": "enhanced_ner_system",
+      "approach": "primary",
+      "status": "success",
+      "quality_score": 0.88,
+      "confidence": 0.85,
+      "execution_time": 3.5012950897216797,
+      "output_data": {
+        "entities_found": 247,
+        "precision": 0.89,
+        "recall": 0.84
+      },
+      "issues": [],
+      "resource_usage": {
+        "time": 3.5,
+        "compute": 25,
+        "api_calls": 1
+      },
+      "context_factors": {
+        "quality_trend_impact": 1,
+        "resource_pressure": 0.013333333333333308,
+        "step_index": 0
+      }
+    },
+    {
+      "step_id": "primary_3",
+      "step_name": "Relationship Mining",
+      "tool": "deep_relationship_extractor",
+      "approach": "primary",
+      "status": "success",
+      "quality_score": 0.82,
+      "confidence": 0.9,
+      "execution_time": 2.0021257400512695,
+      "output_data": {
+        "patterns_found": 34,
+        "significance_level": 0.95
+      },
+      "issues": [],
+      "resource_usage": {
+        "time": 2.0,
+        "compute": 30,
+        "api_calls": 1
+      },
+      "context_factors": {
+        "quality_trend_impact": 2,
+        "resource_pressure": 0.025000000000000022,
+        "step_index": 1
+      }
+    },
+    {
+      "step_id": "primary_4",
+      "step_name": "Network Construction",
+      "tool": "dynamic_network_builder",
+      "approach": "primary",
+      "status": "success",
+      "quality_score": 0.82,
+      "confidence": 0.9,
+      "execution_time": 2.0016160011291504,
+      "output_data": {
+        "patterns_found": 34,
+        "significance_level": 0.95
+      },
+      "issues": [],
+      "resource_usage": {
+        "time": 2.0,
+        "compute": 20,
+        "api_calls": 1
+      },
+      "context_factors": {
+        "quality_trend_impact": 3,
+        "resource_pressure": 0.03166666666666662,
+        "step_index": 2
+      }
+    }
+  ],
+  "adaptation_decisions": [],
+  "alternative_paths_explored": [],
+  "learning_insights": {
+    "adaptation_effectiveness": {},
+    "quality_patterns": {
+      "average_quality": 0.8049999999999999,
+      "quality_variance": 0.004275000000000001,
+      "quality_trend": "stable_or_declining"
+    },
+    "resource_efficiency": 3.5294117647058822,
+    "approach_performance": {
+      "primary": {
+        "attempts": 4,
+        "avg_quality": 0.8049999999999999,
+        "successes": 3,
+        "success_rate": 0.75
+      }
+    },
+    "key_insights": [
+      "Achieved high average quality (80.5%)",
+      "Best performing approach: primary (80.5% avg quality)"
+    ],
+    "learning_effectiveness": 0.2,
+    "recommendations": [
+      "Execution patterns suggest current strategy is effective"
+    ]
+  },
+  "performance_metrics": {
+    "duration": 19.952619314193726,
+    "total_adaptations": 0,
+    "paths_explored": 1,
+    "learning_score": 0.2,
+    "final_success_rate": 0.8049999999999999
+  }
+}

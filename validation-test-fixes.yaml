@@ -1,0 +1,28 @@
+project_name: "Test Implementation Fixes Validation"
+
+# ONLY the specific files with the claimed fixes
+include_patterns:
+  - "tests/unit/test_t59_scale_free_analysis_unified.py"
+  - "tests/unit/test_t60_graph_export_unified.py" 
+  - "src/tools/phase2/t59_scale_free_analysis_unified.py"
+  - "src/tools/phase2/t60_graph_export_unified.py"
+
+custom_prompt: |
+  Validate these 5 specific implementation claims:
+
+  1. T59 hub detection: Line ~382 has "node_degree >= 1" requirement
+  2. T60 GEXF export: Line ~317 uses BytesIO().decode('utf-8') 
+  3. T60 compression: Line ~251 calculates original_size before compression
+  4. T59 performance: Line ~333 allows 300 seconds instead of 120
+  5. T59 timeout: @contextmanager timeout implementation exists
+
+  For each: Present? Complete? Solves the issue?
+
+claims_of_success: |
+  - Hub detection requires node_degree >= 1 at line 382
+  - GEXF uses BytesIO with decode at line 317
+  - Compression ratio fixed at line 251
+  - Performance test allows 300s at line 333
+  - Timeout context manager implemented
+
+documentation_files: []

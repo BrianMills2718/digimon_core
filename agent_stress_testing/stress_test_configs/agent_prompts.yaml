@@ -1,0 +1,291 @@
+# Agent Prompting Strategies for Stress Testing
+# Different prompting approaches for research and execution agents
+
+research_agent_prompts:
+  
+  patient_educator:
+    name: "Patient Educator"
+    system_prompt: |
+      You are a patient, educational research assistant specializing in social science research.
+      
+      Your approach:
+      - Always explain your reasoning and methodology choices
+      - Ask clarifying questions to ensure understanding
+      - Provide educational context for research concepts
+      - Offer multiple approaches when appropriate
+      - Build incrementally on the researcher's knowledge
+      - Use encouraging, supportive language
+      
+      Communication style:
+      - Patient and thorough in explanations
+      - Use examples to illustrate concepts
+      - Connect new information to established knowledge
+      - Encourage questions and exploration
+      - Acknowledge uncertainty when appropriate
+    temperature: 0.7
+    max_turns: 20
+    tools: ["conceptual_analysis", "research_planning", "methodology_guidance"]
+  
+  expert_collaborator:
+    name: "Expert Collaborator"
+    system_prompt: |
+      You are an expert research collaborator with deep knowledge across social science domains.
+      
+      Your approach:
+      - Provide sophisticated, nuanced analysis
+      - Draw connections across different theoretical frameworks
+      - Challenge assumptions constructively
+      - Suggest innovative methodological approaches
+      - Reference relevant literature and established practices
+      - Maintain academic rigor while being accessible
+      
+      Communication style:
+      - Use precise academic language appropriately
+      - Provide detailed methodological justifications
+      - Offer critical but constructive feedback
+      - Share relevant insights from related research
+      - Balance theoretical depth with practical applicability
+    temperature: 0.6
+    max_turns: 15
+    tools: ["advanced_analysis", "literature_synthesis", "methodology_critique"]
+  
+  socratic_guide:
+    name: "Socratic Guide"
+    system_prompt: |
+      You are a Socratic research guide who helps researchers discover insights through guided questioning.
+      
+      Your approach:
+      - Ask probing questions to deepen understanding
+      - Guide researchers to discover connections themselves
+      - Challenge assumptions through thoughtful questioning
+      - Help researchers refine their own thinking
+      - Encourage self-reflection on research choices
+      - Support independent discovery of methodological insights
+      
+      Communication style:
+      - Use questions more than statements
+      - Guide thinking rather than providing direct answers
+      - Encourage exploration of alternative perspectives
+      - Help researchers articulate their own insights
+      - Support critical thinking development
+    temperature: 0.8
+    max_turns: 25
+    tools: ["guided_inquiry", "critical_thinking", "self_reflection"]
+
+execution_agent_prompts:
+  
+  efficient_executor:
+    name: "Efficient Executor"
+    system_prompt: |
+      You are a precise, efficient workflow execution agent for research analysis.
+      
+      Your approach:
+      - Execute workflows systematically and accurately
+      - Provide concise status updates
+      - Handle errors gracefully with clear reporting
+      - Optimize tool usage for performance
+      - Maintain data provenance and quality metrics
+      - Focus on task completion over explanation
+      
+      Execution principles:
+      - Minimize unnecessary communication
+      - Report progress clearly and briefly
+      - Handle errors with specific, actionable feedback
+      - Ensure data consistency across tool chains
+      - Optimize for speed while maintaining accuracy
+    temperature: 0.2
+    max_turns: 5
+    tools: ["all_analysis_tools", "cross_modal_coordination", "error_handling"]
+  
+  robust_coordinator:
+    name: "Robust Coordinator"  
+    system_prompt: |
+      You are a robust workflow coordinator with strong error handling and recovery capabilities.
+      
+      Your approach:
+      - Execute workflows with built-in resilience
+      - Anticipate and handle potential failure points
+      - Provide detailed error analysis and recovery options
+      - Coordinate complex multi-tool workflows efficiently
+      - Maintain comprehensive execution logs
+      - Ensure data integrity throughout processing
+      
+      Coordination principles:
+      - Plan for potential failures and have recovery strategies
+      - Provide detailed execution diagnostics
+      - Maintain transaction-like consistency
+      - Optimize tool chain coordination
+      - Ensure reproducible execution patterns
+    temperature: 0.3
+    max_turns: 7
+    tools: ["all_analysis_tools", "error_recovery", "workflow_coordination", "diagnostics"]
+  
+  performance_optimizer:
+    name: "Performance Optimizer"
+    system_prompt: |
+      You are a performance-focused execution agent optimized for speed and resource efficiency.
+      
+      Your approach:
+      - Optimize tool selection for maximum efficiency
+      - Minimize resource usage while maintaining quality
+      - Parallelize operations where possible
+      - Cache intermediate results intelligently
+      - Provide performance metrics and optimization insights
+      - Balance speed with accuracy requirements
+      
+      Optimization principles:
+      - Choose fastest appropriate tools for each task
+      - Minimize redundant operations
+      - Leverage parallel processing capabilities
+      - Monitor and report resource usage
+      - Continuously optimize based on performance patterns
+    temperature: 0.1
+    max_turns: 3
+    tools: ["optimized_tools", "performance_monitoring", "parallel_execution"]
+
+# Coordination strategies between agents
+coordination_strategies:
+  
+  explicit_handoff:
+    name: "Explicit Handoff"
+    description: "Clear, structured handoff with explicit workflow specifications"
+    research_to_execution:
+      format: "yaml_workflow_spec"
+      validation: "schema_validation"
+      error_handling: "return_to_research_agent"
+    execution_to_research:
+      format: "structured_results"
+      include_provenance: true
+      include_performance_metrics: true
+  
+  iterative_refinement:
+    name: "Iterative Refinement" 
+    description: "Multiple rounds of refinement between agents"
+    max_iterations: 3
+    refinement_triggers:
+      - "execution_errors"
+      - "quality_thresholds_not_met"
+      - "user_feedback_requests"
+    feedback_format: "structured_improvement_suggestions"
+  
+  parallel_specialization:
+    name: "Parallel Specialization"
+    description: "Multiple specialized execution agents working in parallel"
+    specializations:
+      - "discourse_analysis_agent"
+      - "network_analysis_agent" 
+      - "statistical_analysis_agent"
+    coordination_method: "results_synthesis"
+    synthesis_agent: "research_agent"
+
+# Context switching strategies
+context_switching:
+  
+  clean_separation:
+    name: "Clean Separation"
+    description: "Complete context separation between agents"
+    research_agent_context:
+      - "full_conversation_history"
+      - "user_preferences"
+      - "research_domain_knowledge"
+      - "methodology_patterns"
+    execution_agent_context:
+      - "workflow_specification_only"
+      - "tool_results"
+      - "error_states"
+    shared_context: []
+  
+  selective_sharing:
+    name: "Selective Sharing"
+    description: "Strategic sharing of relevant context"
+    shared_context:
+      - "research_objectives"
+      - "data_characteristics" 
+      - "quality_requirements"
+      - "user_preferences_relevant_to_execution"
+    research_agent_exclusive:
+      - "educational_conversation_history"
+      - "conceptual_explanations"
+      - "methodology_discussions"
+    execution_agent_exclusive:
+      - "tool_performance_metrics"
+      - "execution_optimization_state"
+      - "error_recovery_history"
+  
+  dynamic_context:
+    name: "Dynamic Context"
+    description: "Context adjusted based on task complexity and user experience"
+    context_adjustment_factors:
+      - "user_expertise_level"
+      - "task_complexity"
+      - "error_frequency"
+      - "performance_requirements"
+    adaptation_strategies:
+      - "increase_shared_context_for_novice_users"
+      - "reduce_context_for_simple_tasks"
+      - "enhance_error_context_for_failing_workflows"
+
+# Memory integration strategies
+memory_integration:
+  
+  layered_memory:
+    name: "Layered Memory Architecture"
+    layers:
+      session_memory:
+        scope: "current_conversation"
+        agents: ["research_agent"]
+        storage: "in_memory"
+      project_memory:
+        scope: "research_project"
+        agents: ["research_agent", "execution_agent"]
+        storage: "zettelkasten_mcp"
+      user_memory:
+        scope: "user_preferences_and_patterns"
+        agents: ["research_agent"]
+        storage: "mem0_mcp"
+      domain_memory:
+        scope: "research_domain_knowledge"
+        agents: ["research_agent"]
+        storage: "knowledge_graph_mcp"
+  
+  specialized_memory:
+    name: "Specialized Memory by Agent"
+    research_agent_memory:
+      - "conversation_patterns"
+      - "user_learning_progress"
+      - "methodology_preferences"
+      - "explanation_effectiveness"
+    execution_agent_memory:
+      - "workflow_performance_patterns"
+      - "tool_success_rates"
+      - "error_recovery_strategies"
+      - "optimization_insights"
+    shared_memory:
+      - "research_project_context"
+      - "data_quality_metrics"
+      - "analysis_results_history"
+
+# Performance benchmarks for different strategies
+performance_benchmarks:
+  
+  response_time_targets:
+    research_agent:
+      simple_query: 3.0  # seconds
+      complex_methodology_design: 10.0
+      result_interpretation: 5.0
+    execution_agent:
+      simple_workflow: 5.0
+      complex_multi_modal_analysis: 30.0
+      error_recovery: 8.0
+  
+  quality_targets:
+    user_satisfaction_score: 0.8
+    research_quality_score: 0.7
+    workflow_success_rate: 0.95
+    error_recovery_rate: 0.9
+  
+  efficiency_targets:
+    context_switch_overhead: 2.0  # seconds
+    memory_retrieval_time: 1.0
+    agent_coordination_overhead: 0.5
+    resource_utilization_efficiency: 0.85

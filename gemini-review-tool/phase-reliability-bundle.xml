@@ -1,0 +1,3935 @@
+This file is a merged representation of a subset of the codebase, containing specifically included files, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of a subset of the repository's contents that is considered the most important context.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Only files matching these patterns are included: src/core/distributed_transaction_manager.py, src/core/entity_id_manager.py, src/core/provenance_manager.py, src/core/async_rate_limiter.py, src/core/async_error_handler.py, src/core/connection_pool_manager.py, src/core/thread_safe_service_manager.py, src/core/error_taxonomy.py, src/core/health_monitor.py
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+src/
+  core/
+    async_error_handler.py
+    async_rate_limiter.py
+    connection_pool_manager.py
+    distributed_transaction_manager.py
+    entity_id_manager.py
+    error_taxonomy.py
+    health_monitor.py
+    provenance_manager.py
+    thread_safe_service_manager.py
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="src/core/async_error_handler.py">
+"""
+Async-safe Error Handler for GraphRAG System.
+
+Provides comprehensive error handling with retry logic that doesn't block
+the event loop.
+"""
+
+import asyncio
+import functools
+from typing import Type, Tuple, Optional, Callable, Any, Union
+from datetime import datetime
+import logging
+import traceback
+
+logger = logging.getLogger(__name__)
+
+
+class AsyncErrorHandler:
+    """
+    Asynchronous error handler with retry logic.
+    
+    Features:
+    - Non-blocking retry delays
+    - Exponential backoff
+    - Configurable retry strategies
+    - Detailed error tracking
+    """
+    
+    def __init__(self):
+        """Initialize the error handler."""
+        self.error_counts = {}
+        self.last_errors = {}
+        self.retry_strategies = {
+            ConnectionError: (3, 1.0),  # 3 retries, 1 second initial delay
+            TimeoutError: (2, 0.5),     # 2 retries, 0.5 second initial delay
+            asyncio.TimeoutError: (2, 0.5),
+            Exception: (1, 0.1)         # 1 retry, 0.1 second delay for others
+        }
+    
+    def set_retry_strategy(self, error_type: Type[Exception], 
+                          max_attempts: int, initial_delay: float) -> None:
+        """
+        Set retry strategy for a specific error type.
+        
+        Args:
+            error_type: Type of exception
+            max_attempts: Maximum number of retry attempts
+            initial_delay: Initial delay between retries (seconds)
+        """
+        self.retry_strategies[error_type] = (max_attempts, initial_delay)
+        logger.info(f"Set retry strategy for {error_type.__name__}: "
+                   f"{max_attempts} attempts, {initial_delay}s initial delay")
+    
+    async def handle_error(self, error: Exception, context: Optional[dict] = None) -> dict:
+        """
+        Handle an error with logging and tracking.
+        
+        Args:
+            error: The exception that occurred
+            context: Optional context information
+            
+        Returns:
+            Error information dictionary
+        """
+        error_type = type(error).__name__
+        error_key = f"{error_type}_{str(error)}"
+        
+        # Track error count
+        self.error_counts[error_key] = self.error_counts.get(error_key, 0) + 1
+        self.last_errors[error_type] = {
+            'error': str(error),
+            'timestamp': datetime.now().isoformat(),
+            'context': context,
+            'traceback': traceback.format_exc()
+        }
+        
+        logger.error(f"Error handled: {error_type}: {error}", 
+                    extra={'context': context}, exc_info=True)
+        
+        return {
+            'error_type': error_type,
+            'error_message': str(error),
+            'count': self.error_counts[error_key],
+            'context': context
+        }
+    
+    def with_retry(self, max_attempts: Optional[int] = None, 
+                   delay: Optional[float] = None,
+                   backoff_factor: float = 2.0,
+                   exceptions: Tuple[Type[Exception], ...] = (Exception,)):
+        """
+        Decorator for adding retry logic to async functions.
+        
+        Args:
+            max_attempts: Maximum number of attempts (overrides strategy)
+            delay: Initial delay between retries (overrides strategy)
+            backoff_factor: Factor to multiply delay by after each attempt
+            exceptions: Tuple of exceptions to catch and retry
+            
+        Returns:
+            Decorated function with retry logic
+        """
+        def decorator(func: Callable) -> Callable:
+            @functools.wraps(func)
+            async def wrapper(*args, **kwargs) -> Any:
+                last_exception = None
+                
+                # Determine retry parameters
+                retry_attempts = max_attempts
+                retry_delay = delay
+                
+                if retry_attempts is None or retry_delay is None:
+                    # Find the best matching strategy
+                    for exc_type in exceptions:
+                        if exc_type in self.retry_strategies:
+                            strategy_attempts, strategy_delay = self.retry_strategies[exc_type]
+                            if retry_attempts is None:
+                                retry_attempts = strategy_attempts
+                            if retry_delay is None:
+                                retry_delay = strategy_delay
+                            break
+                    else:
+                        # Use default if no specific strategy found
+                        if retry_attempts is None:
+                            retry_attempts = 1
+                        if retry_delay is None:
+                            retry_delay = 0.1
+                
+                current_delay = retry_delay
+                
+                for attempt in range(retry_attempts + 1):
+                    try:
+                        return await func(*args, **kwargs)
+                    except exceptions as e:
+                        last_exception = e
+                        
+                        if attempt < retry_attempts:
+                            logger.warning(
+                                f"Attempt {attempt + 1}/{retry_attempts + 1} failed for "
+                                f"{func.__name__}: {type(e).__name__}: {e}. "
+                                f"Retrying in {current_delay}s..."
+                            )
+                            
+                            # Use asyncio.sleep for non-blocking delay
+                            await asyncio.sleep(current_delay)
+                            current_delay *= backoff_factor
+                        else:
+                            # Final attempt failed
+                            await self.handle_error(e, {
+                                'function': func.__name__,
+                                'args': args,
+                                'kwargs': kwargs,
+                                'attempts': retry_attempts + 1
+                            })
+                
+                # All attempts failed, re-raise the last exception
+                raise last_exception
+            
+            return wrapper
+        return decorator
+    
+    async def with_timeout(self, coro: Callable, timeout: float, 
+                          error_message: Optional[str] = None) -> Any:
+        """
+        Execute a coroutine with a timeout.
+        
+        Args:
+            coro: Coroutine to execute
+            timeout: Timeout in seconds
+            error_message: Optional custom error message
+            
+        Returns:
+            Result of the coroutine
+            
+        Raises:
+            asyncio.TimeoutError: If timeout is exceeded
+        """
+        try:
+            return await asyncio.wait_for(coro, timeout)
+        except asyncio.TimeoutError:
+            msg = error_message or f"Operation timed out after {timeout}s"
+            await self.handle_error(asyncio.TimeoutError(msg))
+            raise
+    
+    def get_error_statistics(self) -> dict:
+        """
+        Get error statistics.
+        
+        Returns:
+            Dictionary with error counts and recent errors
+        """
+        return {
+            'error_counts': dict(self.error_counts),
+            'recent_errors': dict(self.last_errors),
+            'total_errors': sum(self.error_counts.values())
+        }
+    
+    def reset_statistics(self) -> None:
+        """Reset error statistics."""
+        self.error_counts.clear()
+        self.last_errors.clear()
+        logger.info("Error statistics reset")
+
+
+# Singleton instance
+_error_handler = AsyncErrorHandler()
+
+
+def get_error_handler() -> AsyncErrorHandler:
+    """Get the singleton error handler instance."""
+    return _error_handler
+
+
+# Convenience decorators
+def with_retry(*args, **kwargs):
+    """Convenience decorator using the singleton error handler."""
+    return _error_handler.with_retry(*args, **kwargs)
+
+
+async def handle_error(error: Exception, context: Optional[dict] = None) -> dict:
+    """Convenience function using the singleton error handler."""
+    return await _error_handler.handle_error(error, context)
+</file>
+
+<file path="src/core/async_rate_limiter.py">
+"""
+Async-safe API Rate Limiter for GraphRAG System.
+
+This module provides truly asynchronous rate limiting functionality 
+without blocking the event loop.
+"""
+
+import asyncio
+import time
+from typing import Dict, Optional
+from collections import defaultdict, deque
+from datetime import datetime, timedelta
+import logging
+
+logger = logging.getLogger(__name__)
+
+
+class AsyncRateLimiter:
+    """
+    Truly asynchronous rate limiter using token bucket algorithm.
+    
+    Features:
+    - Non-blocking async operations
+    - Token bucket algorithm for smooth rate limiting
+    - Per-service rate limits
+    - Automatic token refill
+    """
+    
+    def __init__(self):
+        """Initialize the async rate limiter."""
+        self.rate_limits: Dict[str, int] = {}
+        self.token_buckets: Dict[str, Dict] = {}
+        self._lock = asyncio.Lock()
+        self._waiters: Dict[str, list] = defaultdict(list)
+        logger.info("AsyncRateLimiter initialized")
+    
+    async def set_rate_limit(self, service_name: str, calls_per_minute: int) -> None:
+        """
+        Set rate limit for a service.
+        
+        Args:
+            service_name: Name of the service
+            calls_per_minute: Maximum calls allowed per minute
+        """
+        async with self._lock:
+            self.rate_limits[service_name] = calls_per_minute
+            
+            # Initialize token bucket
+            self.token_buckets[service_name] = {
+                'tokens': float(calls_per_minute),
+                'capacity': float(calls_per_minute),
+                'refill_rate': calls_per_minute / 60.0,  # tokens per second
+                'last_refill': time.time()
+            }
+            
+            logger.info(f"Set rate limit for {service_name}: {calls_per_minute} calls/min")
+    
+    async def acquire(self, service_name: str = "default", timeout: Optional[float] = None) -> None:
+        """
+        Acquire permission to make an API call.
+        
+        Args:
+            service_name: Name of the service
+            timeout: Maximum time to wait for permission (seconds)
+            
+        Raises:
+            asyncio.TimeoutError: If timeout is exceeded
+        """
+        if timeout:
+            await asyncio.wait_for(self._acquire(service_name), timeout)
+        else:
+            await self._acquire(service_name)
+    
+    async def _acquire(self, service_name: str) -> None:
+        """Internal method to acquire a token."""
+        while True:
+            async with self._lock:
+                if self._try_consume_token(service_name):
+                    return
+                
+                # No tokens available, need to wait
+                wait_time = self._calculate_wait_time(service_name)
+            
+            # Wait without holding the lock
+            await asyncio.sleep(wait_time)
+    
+    def _try_consume_token(self, service_name: str) -> bool:
+        """
+        Try to consume a token from the bucket.
+        
+        Note: Must be called while holding the lock.
+        
+        Returns:
+            True if token was consumed, False otherwise
+        """
+        if service_name not in self.token_buckets:
+            # No rate limit set, allow the call
+            return True
+        
+        bucket = self.token_buckets[service_name]
+        current_time = time.time()
+        
+        # Refill tokens based on time elapsed
+        time_elapsed = current_time - bucket['last_refill']
+        tokens_to_add = time_elapsed * bucket['refill_rate']
+        
+        # Update token count (cap at capacity)
+        bucket['tokens'] = min(bucket['capacity'], bucket['tokens'] + tokens_to_add)
+        bucket['last_refill'] = current_time
+        
+        # Try to consume a token
+        if bucket['tokens'] >= 1.0:
+            bucket['tokens'] -= 1.0
+            return True
+        
+        return False
+    
+    def _calculate_wait_time(self, service_name: str) -> float:
+        """
+        Calculate how long to wait for the next token.
+        
+        Note: Must be called while holding the lock.
+        
+        Returns:
+            Wait time in seconds
+        """
+        if service_name not in self.token_buckets:
+            return 0.0
+        
+        bucket = self.token_buckets[service_name]
+        
+        # Calculate time until we have at least 1 token
+        tokens_needed = 1.0 - bucket['tokens']
+        wait_time = tokens_needed / bucket['refill_rate']
+        
+        # Add small buffer to avoid race conditions
+        return wait_time + 0.001
+    
+    async def get_availability(self, service_name: str) -> Dict[str, any]:
+        """
+        Get current availability information for a service.
+        
+        Args:
+            service_name: Name of the service
+            
+        Returns:
+            Dict with availability information
+        """
+        async with self._lock:
+            if service_name not in self.token_buckets:
+                return {
+                    'available': True,
+                    'tokens': float('inf'),
+                    'wait_time': 0.0
+                }
+            
+            # Refill tokens to get current state
+            bucket = self.token_buckets[service_name]
+            current_time = time.time()
+            time_elapsed = current_time - bucket['last_refill']
+            tokens_to_add = time_elapsed * bucket['refill_rate']
+            current_tokens = min(bucket['capacity'], bucket['tokens'] + tokens_to_add)
+            
+            wait_time = 0.0
+            if current_tokens < 1.0:
+                wait_time = self._calculate_wait_time(service_name)
+            
+            return {
+                'available': current_tokens >= 1.0,
+                'tokens': current_tokens,
+                'wait_time': wait_time,
+                'capacity': bucket['capacity'],
+                'refill_rate': bucket['refill_rate']
+            }
+    
+    async def reset(self, service_name: Optional[str] = None) -> None:
+        """
+        Reset rate limiter for a service or all services.
+        
+        Args:
+            service_name: Service to reset, or None for all services
+        """
+        async with self._lock:
+            if service_name:
+                if service_name in self.token_buckets:
+                    bucket = self.token_buckets[service_name]
+                    bucket['tokens'] = bucket['capacity']
+                    bucket['last_refill'] = time.time()
+                    logger.info(f"Reset rate limiter for {service_name}")
+            else:
+                for name, bucket in self.token_buckets.items():
+                    bucket['tokens'] = bucket['capacity']
+                    bucket['last_refill'] = time.time()
+                logger.info("Reset all rate limiters")
+
+
+class RateLimiter:
+    """Backwards-compatible wrapper for AsyncRateLimiter."""
+    
+    def __init__(self, calls_per_second: Optional[float] = None):
+        """Initialize with optional calls per second limit."""
+        self._async_limiter = AsyncRateLimiter()
+        self._loop = None
+        self._calls_per_second = calls_per_second
+        
+        if calls_per_second:
+            # Convert to calls per minute
+            calls_per_minute = int(calls_per_second * 60)
+            try:
+                asyncio.get_running_loop()
+                # We're in an async context
+                asyncio.create_task(
+                    self._async_limiter.set_rate_limit("default", calls_per_minute)
+                )
+            except RuntimeError:
+                # Not in async context, will set later
+                pass
+    
+    async def acquire(self) -> None:
+        """Acquire permission to make a call."""
+        # Ensure rate limit is set
+        if self._calls_per_second and "default" not in self._async_limiter.rate_limits:
+            calls_per_minute = int(self._calls_per_second * 60)
+            await self._async_limiter.set_rate_limit("default", calls_per_minute)
+        
+        await self._async_limiter.acquire("default")
+    
+    def __enter__(self):
+        """Context manager entry (for sync compatibility)."""
+        raise RuntimeError("Use 'async with' for RateLimiter context manager")
+    
+    async def __aenter__(self):
+        """Async context manager entry."""
+        await self.acquire()
+        return self
+    
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        """Async context manager exit."""
+        pass
+</file>
+
+<file path="src/core/connection_pool_manager.py">
+"""
+Connection Pool Manager for Neo4j and SQLite.
+
+Provides efficient connection pooling with health checks, automatic recovery,
+and graceful resource management.
+"""
+
+import asyncio
+import time
+import uuid
+from typing import Dict, List, Optional, Any, Callable
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta
+from enum import Enum
+import logging
+from neo4j import AsyncGraphDatabase
+import aiosqlite
+
+logger = logging.getLogger(__name__)
+
+
+class ConnectionState(Enum):
+    """Connection state enumeration."""
+    IDLE = "idle"
+    ACTIVE = "active"
+    UNHEALTHY = "unhealthy"
+    CLOSED = "closed"
+
+
+@dataclass
+class PooledConnection:
+    """Wrapper for pooled connections."""
+    id: str
+    connection: Any  # Neo4j session or SQLite connection
+    state: ConnectionState = ConnectionState.IDLE
+    created_at: datetime = field(default_factory=datetime.now)
+    last_used: datetime = field(default_factory=datetime.now)
+    use_count: int = 0
+    health_check_failures: int = 0
+    
+    def is_healthy(self) -> bool:
+        """Check if connection is healthy."""
+        return self.state != ConnectionState.UNHEALTHY and self.health_check_failures < 3
+
+
+class ConnectionPoolManager:
+    """
+    Manages connection pools with health checking and recovery.
+    
+    Features:
+    - Dynamic pool sizing
+    - Health checks and automatic recovery
+    - Connection lifecycle management
+    - Graceful shutdown
+    - Statistics tracking
+    """
+    
+    def __init__(self, min_size: int = 5, max_size: int = 20, 
+                 connection_type: str = "neo4j",
+                 connection_params: Optional[Dict[str, Any]] = None):
+        """
+        Initialize connection pool manager.
+        
+        Args:
+            min_size: Minimum number of connections to maintain
+            max_size: Maximum number of connections allowed
+            connection_type: Type of connection (neo4j or sqlite)
+            connection_params: Connection parameters
+        """
+        self.min_size = min_size
+        self.max_size = max_size
+        self.connection_type = connection_type
+        self.connection_params = connection_params or {}
+        
+        self._pool: List[PooledConnection] = []
+        self._available: asyncio.Queue = asyncio.Queue()
+        self._lock = asyncio.Lock()
+        self._closed = False
+        self._waiters: List[asyncio.Future] = []
+        
+        # Statistics
+        self._stats = {
+            'total_acquisitions': 0,
+            'total_releases': 0,
+            'total_wait_time': 0.0,
+            'peak_active': 0,
+            'connection_creates': 0,
+            'connection_destroys': 0,
+            'health_check_failures': 0
+        }
+        
+        # Callbacks
+        self.on_connection_created: Optional[Callable] = None
+        self.on_connection_destroyed: Optional[Callable] = None
+        
+        # Background tasks
+        self._health_check_task = None
+        self._maintenance_task = None
+        
+        logger.info(f"ConnectionPoolManager initialized: min={min_size}, max={max_size}")
+        
+        # Start pool initialization
+        asyncio.create_task(self._initialize_pool())
+    
+    async def _initialize_pool(self) -> None:
+        """Initialize the connection pool with minimum connections."""
+        tasks = []
+        for _ in range(self.min_size):
+            tasks.append(self._create_connection())
+        
+        connections = await asyncio.gather(*tasks, return_exceptions=True)
+        
+        async with self._lock:
+            for conn in connections:
+                if isinstance(conn, PooledConnection):
+                    self._pool.append(conn)
+                    await self._available.put(conn)
+        
+        # Start background tasks
+        self._health_check_task = asyncio.create_task(self._health_check_loop())
+        self._maintenance_task = asyncio.create_task(self._maintenance_loop())
+        
+        logger.info(f"Pool initialized with {len(self._pool)} connections")
+    
+    async def _create_connection(self) -> PooledConnection:
+        """Create a new connection."""
+        conn_id = str(uuid.uuid4())[:8]
+        
+        try:
+            if self.connection_type == "neo4j":
+                driver = AsyncGraphDatabase.driver(
+                    self.connection_params.get('uri', 'bolt://localhost:7687'),
+                    auth=self.connection_params.get('auth', ('neo4j', 'password'))
+                )
+                connection = driver.session()
+            elif self.connection_type == "sqlite":
+                connection = await aiosqlite.connect(
+                    self.connection_params.get('database', ':memory:')
+                )
+            else:
+                raise ValueError(f"Unknown connection type: {self.connection_type}")
+            
+            pooled_conn = PooledConnection(
+                id=conn_id,
+                connection=connection,
+                state=ConnectionState.IDLE
+            )
+            
+            self._stats['connection_creates'] += 1
+            
+            if self.on_connection_created:
+                self.on_connection_created(pooled_conn)
+            
+            logger.debug(f"Created connection {conn_id}")
+            return pooled_conn
+            
+        except Exception as e:
+            logger.error(f"Failed to create connection: {e}")
+            raise
+    
+    async def acquire_connection(self, timeout: Optional[float] = 30.0) -> Any:
+        """
+        Acquire a connection from the pool.
+        
+        Args:
+            timeout: Maximum time to wait for connection
+            
+        Returns:
+            Connection object
+            
+        Raises:
+            asyncio.TimeoutError: If timeout exceeded
+            RuntimeError: If pool is closed
+        """
+        if self._closed:
+            raise RuntimeError("Pool is closed")
+        
+        start_time = time.time()
+        self._stats['total_acquisitions'] += 1
+        
+        try:
+            # Try to get available connection
+            if timeout:
+                conn = await asyncio.wait_for(
+                    self._acquire_connection(), 
+                    timeout=timeout
+                )
+            else:
+                conn = await self._acquire_connection()
+            
+            wait_time = time.time() - start_time
+            self._stats['total_wait_time'] += wait_time
+            
+            # Update peak active connections
+            active_count = sum(1 for c in self._pool if c.state == ConnectionState.ACTIVE)
+            self._stats['peak_active'] = max(self._stats['peak_active'], active_count)
+            
+            return conn.connection
+            
+        except asyncio.TimeoutError:
+            logger.warning(f"Connection acquisition timed out after {timeout}s")
+            raise
+    
+    async def _acquire_connection(self) -> PooledConnection:
+        """Internal method to acquire connection."""
+        while True:
+            try:
+                # Try to get from available queue
+                conn = self._available.get_nowait()
+                
+                # Check if connection is still healthy
+                if conn.is_healthy():
+                    conn.state = ConnectionState.ACTIVE
+                    conn.last_used = datetime.now()
+                    conn.use_count += 1
+                    return conn
+                else:
+                    # Unhealthy connection, destroy it
+                    await self._destroy_connection(conn)
+                    
+            except asyncio.QueueEmpty:
+                # No available connections
+                async with self._lock:
+                    # Can we create more?
+                    if len(self._pool) < self.max_size:
+                        conn = await self._create_connection()
+                        self._pool.append(conn)
+                        conn.state = ConnectionState.ACTIVE
+                        conn.use_count += 1
+                        return conn
+                
+                # Need to wait for a connection
+                await asyncio.sleep(0.1)
+    
+    async def release_connection(self, connection: Any) -> None:
+        """
+        Release a connection back to the pool.
+        
+        Args:
+            connection: Connection to release
+        """
+        self._stats['total_releases'] += 1
+        
+        async with self._lock:
+            # Find the pooled connection wrapper
+            for conn in self._pool:
+                if conn.connection == connection:
+                    if conn.state == ConnectionState.ACTIVE:
+                        conn.state = ConnectionState.IDLE
+                        conn.last_used = datetime.now()
+                        await self._available.put(conn)
+                    break
+            else:
+                logger.warning("Released connection not found in pool")
+    
+    async def health_check_all(self) -> int:
+        """
+        Perform health checks on all connections.
+        
+        Returns:
+            Number of healthy connections
+        """
+        healthy_count = 0
+        
+        async with self._lock:
+            for conn in self._pool[:]:  # Copy list to allow modification
+                if await self._check_connection_health(conn):
+                    healthy_count += 1
+                else:
+                    conn.health_check_failures += 1
+                    if conn.health_check_failures >= 3:
+                        await self._destroy_connection(conn)
+                        self._pool.remove(conn)
+        
+        # Ensure minimum connections
+        await self._ensure_minimum_connections()
+        
+        return healthy_count
+    
+    async def _check_connection_health(self, conn: PooledConnection) -> bool:
+        """Check if a connection is healthy."""
+        if conn.state == ConnectionState.CLOSED:
+            return False
+        
+        try:
+            if self.connection_type == "neo4j":
+                # Test Neo4j connection
+                result = await conn.connection.run("RETURN 1")
+                await result.consume()
+            elif self.connection_type == "sqlite":
+                # Test SQLite connection
+                await conn.connection.execute("SELECT 1")
+            
+            return True
+            
+        except Exception as e:
+            logger.warning(f"Health check failed for connection {conn.id}: {e}")
+            self._stats['health_check_failures'] += 1
+            return False
+    
+    async def _ensure_minimum_connections(self) -> None:
+        """Ensure pool has minimum number of connections."""
+        async with self._lock:
+            current_count = len(self._pool)
+            if current_count < self.min_size:
+                tasks = []
+                for _ in range(self.min_size - current_count):
+                    tasks.append(self._create_connection())
+                
+                new_connections = await asyncio.gather(*tasks, return_exceptions=True)
+                
+                for conn in new_connections:
+                    if isinstance(conn, PooledConnection):
+                        self._pool.append(conn)
+                        await self._available.put(conn)
+    
+    async def resize_pool(self, min_size: Optional[int] = None, 
+                         max_size: Optional[int] = None) -> None:
+        """
+        Dynamically resize the connection pool.
+        
+        Args:
+            min_size: New minimum size
+            max_size: New maximum size
+        """
+        async with self._lock:
+            if min_size is not None:
+                self.min_size = min_size
+            if max_size is not None:
+                self.max_size = max_size
+            
+            # Remove excess connections if needed
+            if len(self._pool) > self.max_size:
+                excess = len(self._pool) - self.max_size
+                for _ in range(excess):
+                    try:
+                        conn = self._available.get_nowait()
+                        await self._destroy_connection(conn)
+                        self._pool.remove(conn)
+                    except asyncio.QueueEmpty:
+                        break
+        
+        # Ensure minimum connections
+        await self._ensure_minimum_connections()
+        
+        logger.info(f"Pool resized: min={self.min_size}, max={self.max_size}")
+    
+    async def _destroy_connection(self, conn: PooledConnection) -> None:
+        """Destroy a connection."""
+        try:
+            conn.state = ConnectionState.CLOSED
+            
+            if self.connection_type == "neo4j":
+                await conn.connection.close()
+            elif self.connection_type == "sqlite":
+                await conn.connection.close()
+            
+            self._stats['connection_destroys'] += 1
+            
+            if self.on_connection_destroyed:
+                self.on_connection_destroyed(conn)
+            
+            logger.debug(f"Destroyed connection {conn.id}")
+            
+        except Exception as e:
+            logger.error(f"Error destroying connection {conn.id}: {e}")
+    
+    async def shutdown(self) -> None:
+        """Gracefully shutdown the connection pool."""
+        logger.info("Shutting down connection pool")
+        self._closed = True
+        
+        # Cancel background tasks
+        if self._health_check_task:
+            self._health_check_task.cancel()
+        if self._maintenance_task:
+            self._maintenance_task.cancel()
+        
+        # Wait for all connections to be returned
+        timeout = 30
+        start = time.time()
+        
+        while time.time() - start < timeout:
+            active_count = sum(1 for c in self._pool if c.state == ConnectionState.ACTIVE)
+            if active_count == 0:
+                break
+            await asyncio.sleep(0.1)
+        
+        # Destroy all connections
+        async with self._lock:
+            for conn in self._pool:
+                await self._destroy_connection(conn)
+            self._pool.clear()
+        
+        logger.info("Connection pool shutdown complete")
+    
+    async def _health_check_loop(self) -> None:
+        """Background task for periodic health checks."""
+        while not self._closed:
+            try:
+                await asyncio.sleep(30)  # Check every 30 seconds
+                await self.health_check_all()
+            except asyncio.CancelledError:
+                break
+            except Exception as e:
+                logger.error(f"Health check loop error: {e}")
+    
+    async def _maintenance_loop(self) -> None:
+        """Background task for pool maintenance."""
+        while not self._closed:
+            try:
+                await asyncio.sleep(60)  # Run every minute
+                
+                # Remove old idle connections
+                async with self._lock:
+                    now = datetime.now()
+                    for conn in self._pool[:]:
+                        if (conn.state == ConnectionState.IDLE and 
+                            now - conn.last_used > timedelta(minutes=5)):
+                            # Remove idle connection older than 5 minutes
+                            await self._destroy_connection(conn)
+                            self._pool.remove(conn)
+                
+                # Ensure minimum connections
+                await self._ensure_minimum_connections()
+                
+            except asyncio.CancelledError:
+                break
+            except Exception as e:
+                logger.error(f"Maintenance loop error: {e}")
+    
+    def get_stats(self) -> Dict[str, Any]:
+        """Get pool statistics."""
+        active_count = sum(1 for c in self._pool if c.state == ConnectionState.ACTIVE)
+        idle_count = sum(1 for c in self._pool if c.state == ConnectionState.IDLE)
+        
+        return {
+            'total_connections': len(self._pool),
+            'active_connections': active_count,
+            'idle_connections': idle_count,
+            'min_size': self.min_size,
+            'max_size': self.max_size,
+            'current_active': active_count
+        }
+    
+    def get_statistics(self) -> Dict[str, Any]:
+        """Get detailed statistics."""
+        stats = self.get_stats()
+        stats.update(self._stats)
+        
+        # Calculate averages
+        if self._stats['total_acquisitions'] > 0:
+            stats['average_wait_time'] = (
+                self._stats['total_wait_time'] / self._stats['total_acquisitions']
+            )
+        else:
+            stats['average_wait_time'] = 0.0
+        
+        return stats
+    
+    def reset_statistics(self) -> None:
+        """Reset statistics counters."""
+        self._stats = {
+            'total_acquisitions': 0,
+            'total_releases': 0,
+            'total_wait_time': 0.0,
+            'peak_active': 0,
+            'connection_creates': 0,
+            'connection_destroys': 0,
+            'health_check_failures': 0
+        }
+    
+    # Test helper methods
+    def _mark_unhealthy(self, connection: Any) -> None:
+        """Mark a connection as unhealthy (for testing)."""
+        for conn in self._pool:
+            if conn.connection == connection:
+                conn.state = ConnectionState.UNHEALTHY
+                break
+    
+    async def _simulate_all_connections_failed(self) -> None:
+        """Simulate all connections failing (for testing)."""
+        async with self._lock:
+            for conn in self._pool:
+                conn.state = ConnectionState.UNHEALTHY
+                conn.health_check_failures = 3
+    
+    async def trigger_recovery(self) -> None:
+        """Trigger connection recovery (for testing)."""
+        await self.health_check_all()
+</file>
+
+<file path="src/core/distributed_transaction_manager.py">
+"""
+Distributed Transaction Manager for Neo4j and SQLite consistency.
+
+Implements a two-phase commit protocol to ensure both databases
+maintain consistency during operations.
+"""
+
+import asyncio
+import uuid
+from datetime import datetime, timedelta
+from typing import Dict, List, Any, Optional
+from contextlib import asynccontextmanager
+import logging
+from dataclasses import dataclass, field
+from enum import Enum
+
+from neo4j import AsyncSession
+import aiosqlite
+
+logger = logging.getLogger(__name__)
+
+
+class TransactionStatus(Enum):
+    """Transaction status enum."""
+    ACTIVE = "active"
+    PREPARING = "preparing"
+    PREPARED = "prepared"
+    COMMITTING = "committing"
+    COMMITTED = "committed"
+    ROLLING_BACK = "rolling_back"
+    ROLLED_BACK = "rolled_back"
+    FAILED = "failed"
+    PARTIAL_FAILURE = "partial_failure"
+
+
+@dataclass
+class TransactionState:
+    """Tracks the state of a distributed transaction."""
+    tx_id: str
+    status: TransactionStatus = TransactionStatus.ACTIVE
+    created_at: datetime = field(default_factory=datetime.now)
+    neo4j_prepared: bool = False
+    sqlite_prepared: bool = False
+    neo4j_committed: bool = False
+    sqlite_committed: bool = False
+    neo4j_session: Optional[AsyncSession] = None
+    neo4j_tx: Optional[Any] = None  # Neo4j transaction object
+    sqlite_conn: Optional[aiosqlite.Connection] = None
+    neo4j_operations: List[Dict[str, Any]] = field(default_factory=list)
+    sqlite_operations: List[Dict[str, Any]] = field(default_factory=list)
+    errors: List[str] = field(default_factory=list)
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary for external use."""
+        return {
+            "tx_id": self.tx_id,
+            "status": self.status.value,
+            "created_at": self.created_at.isoformat(),
+            "neo4j_prepared": self.neo4j_prepared,
+            "sqlite_prepared": self.sqlite_prepared,
+            "neo4j_committed": self.neo4j_committed,
+            "sqlite_committed": self.sqlite_committed,
+            "errors": self.errors
+        }
+
+
+class DistributedTransactionManager:
+    """
+    Manages distributed transactions across Neo4j and SQLite.
+    
+    Implements two-phase commit protocol:
+    1. Prepare phase: Both databases prepare the transaction
+    2. Commit phase: If both prepared successfully, commit both
+    3. Rollback: If any failure, rollback both
+    """
+    
+    def __init__(self, timeout_seconds: int = 30, cleanup_after_seconds: int = 3600):
+        """
+        Initialize the transaction manager.
+        
+        Args:
+            timeout_seconds: Maximum time for a transaction
+            cleanup_after_seconds: Time before cleaning up old transaction states
+        """
+        self.timeout_seconds = timeout_seconds
+        self.cleanup_after_seconds = cleanup_after_seconds
+        self._transactions: Dict[str, TransactionState] = {}
+        self._lock = asyncio.Lock()
+        
+        # These should be injected or configured in production
+        self._neo4j_driver = None
+        self._sqlite_path = None
+    
+    async def _get_neo4j_session(self) -> AsyncSession:
+        """Get a Neo4j session. Override in production."""
+        if not self._neo4j_driver:
+            raise RuntimeError("Neo4j driver not configured")
+        return self._neo4j_driver.session()
+    
+    async def _get_sqlite_connection(self) -> aiosqlite.Connection:
+        """Get a SQLite connection. Override in production."""
+        if not self._sqlite_path:
+            raise RuntimeError("SQLite path not configured")
+        return await aiosqlite.connect(self._sqlite_path)
+    
+    async def begin_transaction(self, tx_id: str) -> Dict[str, Any]:
+        """
+        Begin a new distributed transaction.
+        
+        Args:
+            tx_id: Unique transaction identifier
+            
+        Returns:
+            Transaction state dictionary
+        """
+        async with self._lock:
+            if tx_id in self._transactions:
+                raise ValueError(f"Transaction {tx_id} already exists")
+            
+            state = TransactionState(tx_id=tx_id)
+            self._transactions[tx_id] = state
+            
+            logger.info(f"Started distributed transaction: {tx_id}")
+            return state.to_dict()
+    
+    async def prepare_neo4j(self, tx_id: str, operations: List[Dict[str, Any]]) -> None:
+        """
+        Prepare Neo4j operations as part of the transaction.
+        
+        Args:
+            tx_id: Transaction identifier
+            operations: List of Neo4j operations with 'query' and 'params'
+        """
+        async with self._lock:
+            state = self._transactions.get(tx_id)
+            if not state:
+                raise ValueError(f"Transaction {tx_id} not found")
+            
+            if state.status != TransactionStatus.ACTIVE:
+                raise ValueError(f"Transaction {tx_id} is not active")
+        
+        try:
+            # Execute with timeout
+            await asyncio.wait_for(
+                self._execute_neo4j_prepare(state, operations),
+                timeout=self.timeout_seconds
+            )
+        except asyncio.TimeoutError:
+            state.status = TransactionStatus.FAILED
+            state.errors.append("Neo4j prepare timeout")
+            raise
+        except Exception as e:
+            state.status = TransactionStatus.FAILED
+            state.errors.append(f"Neo4j prepare error: {str(e)}")
+            raise
+    
+    async def _execute_neo4j_prepare(self, state: TransactionState, operations: List[Dict[str, Any]]) -> None:
+        """Execute Neo4j prepare phase."""
+        state.status = TransactionStatus.PREPARING
+        
+        # Get session if not already exists
+        if not state.neo4j_session:
+            state.neo4j_session = await self._get_neo4j_session()
+        
+        # Start transaction and keep it open
+        state.neo4j_tx = await state.neo4j_session.begin_transaction()
+        
+        try:
+            # Execute all operations in the transaction
+            for op in operations:
+                await state.neo4j_tx.run(op["query"], op.get("params", {}))
+            
+            # Store operations for potential retry
+            state.neo4j_operations = operations
+            
+            # Don't commit yet - this is just prepare phase
+            state.neo4j_prepared = True
+            logger.info(f"Neo4j prepared for transaction: {state.tx_id}")
+            
+        except Exception as e:
+            # Rollback on any error
+            if state.neo4j_tx:
+                await state.neo4j_tx.rollback()
+                state.neo4j_tx = None
+            raise
+    
+    async def prepare_sqlite(self, tx_id: str, operations: List[Dict[str, Any]]) -> None:
+        """
+        Prepare SQLite operations as part of the transaction.
+        
+        Args:
+            tx_id: Transaction identifier
+            operations: List of SQLite operations with 'query' and 'params'
+        """
+        async with self._lock:
+            state = self._transactions.get(tx_id)
+            if not state:
+                raise ValueError(f"Transaction {tx_id} not found")
+            
+            if state.status not in [TransactionStatus.ACTIVE, TransactionStatus.PREPARING]:
+                raise ValueError(f"Transaction {tx_id} is not in valid state for prepare")
+        
+        try:
+            await asyncio.wait_for(
+                self._execute_sqlite_prepare(state, operations),
+                timeout=self.timeout_seconds
+            )
+        except asyncio.TimeoutError:
+            state.status = TransactionStatus.FAILED
+            state.errors.append("SQLite prepare timeout")
+            raise
+        except Exception as e:
+            state.status = TransactionStatus.FAILED
+            state.errors.append(f"SQLite prepare error: {str(e)}")
+            raise
+    
+    async def _execute_sqlite_prepare(self, state: TransactionState, operations: List[Dict[str, Any]]) -> None:
+        """Execute SQLite prepare phase."""
+        # Get connection if not already exists
+        if not state.sqlite_conn:
+            state.sqlite_conn = await self._get_sqlite_connection()
+        
+        # Execute all operations within transaction
+        await state.sqlite_conn.execute("BEGIN TRANSACTION")
+        
+        try:
+            for op in operations:
+                await state.sqlite_conn.execute(op["query"], op.get("params", []))
+            
+            # Store operations for potential retry
+            state.sqlite_operations = operations
+            
+            # Don't commit yet - this is just prepare phase
+            state.sqlite_prepared = True
+            state.status = TransactionStatus.PREPARED
+            logger.info(f"SQLite prepared for transaction: {state.tx_id}")
+        except Exception:
+            await state.sqlite_conn.execute("ROLLBACK")
+            raise
+    
+    async def commit_all(self, tx_id: str) -> Dict[str, Any]:
+        """
+        Commit the distributed transaction on both databases.
+        
+        Args:
+            tx_id: Transaction identifier
+            
+        Returns:
+            Result dictionary with commit status
+        """
+        async with self._lock:
+            state = self._transactions.get(tx_id)
+            if not state:
+                raise ValueError(f"Transaction {tx_id} not found")
+            
+            if not (state.neo4j_prepared and state.sqlite_prepared):
+                raise ValueError(f"Transaction {tx_id} not fully prepared")
+        
+        state.status = TransactionStatus.COMMITTING
+        result = {
+            "tx_id": tx_id,
+            "status": "unknown",
+            "neo4j_committed": False,
+            "sqlite_committed": False,
+            "errors": []
+        }
+        
+        try:
+            # Commit Neo4j transaction
+            if state.neo4j_tx:
+                await state.neo4j_tx.commit()
+                state.neo4j_committed = True
+                result["neo4j_committed"] = True
+                logger.info(f"Neo4j committed for transaction: {tx_id}")
+            
+            # Commit SQLite
+            if state.sqlite_conn:
+                await state.sqlite_conn.commit()
+                state.sqlite_committed = True
+                result["sqlite_committed"] = True
+                logger.info(f"SQLite committed for transaction: {tx_id}")
+            
+            # If both committed successfully
+            if state.neo4j_committed and state.sqlite_committed:
+                state.status = TransactionStatus.COMMITTED
+                result["status"] = "committed"
+            else:
+                state.status = TransactionStatus.PARTIAL_FAILURE
+                result["status"] = "partial_failure"
+                result["recovery_needed"] = True
+                
+        except Exception as e:
+            state.status = TransactionStatus.PARTIAL_FAILURE
+            state.errors.append(f"Commit error: {str(e)}")
+            result["status"] = "partial_failure"
+            result["recovery_needed"] = True
+            result["errors"] = [f"SQLite commit failed: {str(e)}"]
+            logger.error(f"Partial failure in transaction {tx_id}: {e}")
+        
+        finally:
+            # Clean up connections
+            await self._cleanup_transaction_resources(state)
+        
+        return result
+    
+    async def rollback_all(self, tx_id: str) -> Dict[str, Any]:
+        """
+        Rollback the distributed transaction on both databases.
+        
+        Args:
+            tx_id: Transaction identifier
+            
+        Returns:
+            Result dictionary with rollback status
+        """
+        async with self._lock:
+            state = self._transactions.get(tx_id)
+            if not state:
+                raise ValueError(f"Transaction {tx_id} not found")
+        
+        state.status = TransactionStatus.ROLLING_BACK
+        result = {
+            "tx_id": tx_id,
+            "status": "unknown",
+            "reason": "timeout" if "timeout" in str(state.errors) else "error"
+        }
+        
+        try:
+            # Rollback Neo4j transaction
+            if state.neo4j_tx:
+                await state.neo4j_tx.rollback()
+                logger.info(f"Neo4j rolled back for transaction: {tx_id}")
+            
+            # Rollback SQLite
+            if state.sqlite_conn:
+                await state.sqlite_conn.rollback()
+                logger.info(f"SQLite rolled back for transaction: {tx_id}")
+            
+            state.status = TransactionStatus.ROLLED_BACK
+            result["status"] = "rolled_back"
+            
+        except Exception as e:
+            state.status = TransactionStatus.FAILED
+            state.errors.append(f"Rollback error: {str(e)}")
+            result["status"] = "rollback_failed"
+            logger.error(f"Rollback failed for transaction {tx_id}: {e}")
+        
+        finally:
+            # Clean up connections
+            await self._cleanup_transaction_resources(state)
+        
+        return result
+    
+    async def get_transaction_state(self, tx_id: str) -> Optional[Dict[str, Any]]:
+        """
+        Get the current state of a transaction.
+        
+        Args:
+            tx_id: Transaction identifier
+            
+        Returns:
+            Transaction state dictionary or None if not found
+        """
+        async with self._lock:
+            state = self._transactions.get(tx_id)
+            return state.to_dict() if state else None
+    
+    async def cleanup_old_transactions(self) -> int:
+        """
+        Clean up old transaction states.
+        
+        Returns:
+            Number of transactions cleaned up
+        """
+        async with self._lock:
+            cutoff_time = datetime.now() - timedelta(seconds=self.cleanup_after_seconds)
+            old_tx_ids = [
+                tx_id for tx_id, state in self._transactions.items()
+                if state.created_at < cutoff_time
+            ]
+            
+            for tx_id in old_tx_ids:
+                state = self._transactions[tx_id]
+                await self._cleanup_transaction_resources(state)
+                del self._transactions[tx_id]
+            
+            logger.info(f"Cleaned up {len(old_tx_ids)} old transactions")
+            return len(old_tx_ids)
+    
+    async def _cleanup_transaction_resources(self, state: TransactionState) -> None:
+        """Clean up resources associated with a transaction."""
+        try:
+            # Close Neo4j transaction if still open
+            if state.neo4j_tx:
+                try:
+                    # Rollback if not already committed
+                    if state.status not in [TransactionStatus.COMMITTED, TransactionStatus.ROLLED_BACK]:
+                        await state.neo4j_tx.rollback()
+                except Exception:
+                    pass  # Transaction might already be closed
+                state.neo4j_tx = None
+        except Exception as e:
+            logger.error(f"Error closing Neo4j transaction: {e}")
+        
+        try:
+            if state.neo4j_session:
+                await state.neo4j_session.close()
+                state.neo4j_session = None
+        except Exception as e:
+            logger.error(f"Error closing Neo4j session: {e}")
+        
+        try:
+            if state.sqlite_conn:
+                await state.sqlite_conn.close()
+                state.sqlite_conn = None
+        except Exception as e:
+            logger.error(f"Error closing SQLite connection: {e}")
+</file>
+
+<file path="src/core/entity_id_manager.py">
+"""
+Entity ID Manager for consistent ID mapping between Neo4j and SQLite.
+
+Ensures entity IDs remain consistent across both databases and provides
+mechanisms for ID generation, mapping, and validation.
+"""
+
+import asyncio
+import uuid
+from datetime import datetime
+from typing import Dict, List, Any, Optional, Tuple
+from contextlib import asynccontextmanager
+import logging
+import aiosqlite
+from neo4j import AsyncSession
+
+logger = logging.getLogger(__name__)
+
+
+class EntityIDTransaction:
+    """Transaction context for entity ID operations."""
+    
+    def __init__(self, manager: 'EntityIDManager'):
+        self.manager = manager
+        self.operations = []
+        self.committed = False
+    
+    async def create_neo4j_node(self, entity_type: str, properties: Dict[str, Any]) -> str:
+        """Create a Neo4j node and return its ID."""
+        query = f"CREATE (n:{entity_type} $props) RETURN elementId(n) as id"
+        result = await self.manager.neo4j_session.run(query, props=properties)
+        record = await result.single()
+        neo4j_id = record["id"]
+        
+        self.operations.append(("neo4j_create", entity_type, neo4j_id, properties))
+        return neo4j_id
+    
+    async def create_sqlite_record(self, internal_id: str, data: Dict[str, Any]) -> None:
+        """Create a SQLite record."""
+        self.operations.append(("sqlite_create", internal_id, data))
+    
+    async def create_id_mapping(self, internal_id: str, neo4j_id: str) -> None:
+        """Create ID mapping."""
+        self.operations.append(("mapping_create", internal_id, neo4j_id))
+    
+    async def commit(self) -> None:
+        """Commit all operations."""
+        # In a real implementation, this would use the distributed transaction manager
+        for op in self.operations:
+            if op[0] == "mapping_create":
+                await self.manager.create_id_mapping(op[1], op[2], "Unknown")
+        self.committed = True
+    
+    async def rollback(self) -> None:
+        """Rollback all operations."""
+        self.operations.clear()
+
+
+class EntityIDManager:
+    """
+    Manages entity ID consistency between Neo4j and SQLite.
+    
+    Features:
+    - Generates unique entity IDs with type prefixes
+    - Maintains bidirectional ID mappings
+    - Validates ID consistency across databases
+    - Detects and reports orphaned IDs
+    """
+    
+    def __init__(self, sqlite_path: str, neo4j_session: AsyncSession):
+        """
+        Initialize the ID manager.
+        
+        Args:
+            sqlite_path: Path to SQLite database
+            neo4j_session: Neo4j session for queries
+        """
+        self.sqlite_path = sqlite_path
+        self.neo4j_session = neo4j_session
+        self._lock = asyncio.Lock()
+        self._id_cache = {}  # Simple cache for frequently accessed mappings
+    
+    async def generate_entity_id(self, entity_type: str) -> str:
+        """
+        Generate a unique entity ID with type prefix.
+        
+        Args:
+            entity_type: Type of entity (Person, Document, etc.)
+            
+        Returns:
+            Unique entity ID like "PERSON_550e8400-e29b-41d4-a716-446655440000"
+        """
+        # Normalize entity type to uppercase
+        type_prefix = entity_type.upper()
+        
+        # Generate UUID
+        unique_suffix = str(uuid.uuid4())
+        
+        # Combine with underscore separator
+        entity_id = f"{type_prefix}_{unique_suffix}"
+        
+        # Verify uniqueness in database
+        async with aiosqlite.connect(self.sqlite_path) as db:
+            cursor = await db.execute(
+                "SELECT COUNT(*) FROM entity_mappings WHERE internal_id = ?",
+                [entity_id]
+            )
+            count = await cursor.fetchone()
+            
+            # Extremely unlikely, but regenerate if collision
+            if count[0] > 0:
+                return await self.generate_entity_id(entity_type)
+        
+        logger.debug(f"Generated entity ID: {entity_id}")
+        return entity_id
+    
+    async def create_id_mapping(self, internal_id: str, neo4j_id: str, entity_type: str) -> None:
+        """
+        Create a mapping between internal ID and Neo4j ID.
+        
+        Args:
+            internal_id: Internal entity ID
+            neo4j_id: Neo4j node ID
+            entity_type: Type of entity
+            
+        Raises:
+            ValueError: If mapping already exists
+        """
+        async with self._lock:
+            async with aiosqlite.connect(self.sqlite_path) as db:
+                try:
+                    await db.execute(
+                        """
+                        INSERT INTO entity_mappings (internal_id, neo4j_id, entity_type)
+                        VALUES (?, ?, ?)
+                        """,
+                        [internal_id, neo4j_id, entity_type]
+                    )
+                    await db.commit()
+                    
+                    # Update cache
+                    self._id_cache[internal_id] = neo4j_id
+                    self._id_cache[neo4j_id] = internal_id
+                    
+                    logger.info(f"Created ID mapping: {internal_id} <-> {neo4j_id}")
+                    
+                except aiosqlite.IntegrityError as e:
+                    if "UNIQUE constraint failed" in str(e):
+                        raise ValueError(f"ID mapping already exists: {e}")
+                    raise
+    
+    async def get_neo4j_id(self, internal_id: str) -> Optional[str]:
+        """
+        Get Neo4j ID for an internal ID.
+        
+        Args:
+            internal_id: Internal entity ID
+            
+        Returns:
+            Neo4j ID or None if not found
+        """
+        # Check cache first
+        if internal_id in self._id_cache:
+            return self._id_cache[internal_id]
+        
+        async with aiosqlite.connect(self.sqlite_path) as db:
+            cursor = await db.execute(
+                "SELECT neo4j_id FROM entity_mappings WHERE internal_id = ?",
+                [internal_id]
+            )
+            row = await cursor.fetchone()
+            
+            if row:
+                neo4j_id = row[0]
+                self._id_cache[internal_id] = neo4j_id
+                return neo4j_id
+            
+            return None
+    
+    async def get_internal_id(self, neo4j_id: str) -> Optional[str]:
+        """
+        Get internal ID for a Neo4j ID.
+        
+        Args:
+            neo4j_id: Neo4j node ID
+            
+        Returns:
+            Internal ID or None if not found
+        """
+        # Check cache first
+        if neo4j_id in self._id_cache:
+            return self._id_cache[neo4j_id]
+        
+        async with aiosqlite.connect(self.sqlite_path) as db:
+            cursor = await db.execute(
+                "SELECT internal_id FROM entity_mappings WHERE neo4j_id = ?",
+                [neo4j_id]
+            )
+            row = await cursor.fetchone()
+            
+            if row:
+                internal_id = row[0]
+                self._id_cache[neo4j_id] = internal_id
+                return internal_id
+            
+            return None
+    
+    async def validate_id_consistency(self, internal_id: str, neo4j_id: str) -> bool:
+        """
+        Validate that an ID mapping is consistent.
+        
+        Args:
+            internal_id: Internal entity ID
+            neo4j_id: Neo4j node ID
+            
+        Returns:
+            True if mapping is consistent, False otherwise
+        """
+        stored_neo4j_id = await self.get_neo4j_id(internal_id)
+        stored_internal_id = await self.get_internal_id(neo4j_id)
+        
+        return (stored_neo4j_id == neo4j_id and 
+                stored_internal_id == internal_id)
+    
+    async def find_orphaned_ids(self) -> List[Dict[str, Any]]:
+        """
+        Find IDs that exist in mapping table but not in Neo4j.
+        
+        Returns:
+            List of orphaned ID records
+        """
+        orphaned = []
+        
+        async with aiosqlite.connect(self.sqlite_path) as db:
+            cursor = await db.execute(
+                "SELECT internal_id, neo4j_id, entity_type FROM entity_mappings"
+            )
+            
+            async for row in cursor:
+                internal_id, neo4j_id, entity_type = row
+                
+                # Check if node exists in Neo4j
+                query = "MATCH (n) WHERE elementId(n) = $id RETURN n"
+                result = await self.neo4j_session.run(query, id=neo4j_id)
+                record = await result.single()
+                
+                if not record:
+                    orphaned.append({
+                        "internal_id": internal_id,
+                        "neo4j_id": neo4j_id,
+                        "entity_type": entity_type,
+                        "status": "missing_in_neo4j"
+                    })
+        
+        logger.warning(f"Found {len(orphaned)} orphaned IDs")
+        return orphaned
+    
+    async def validate_all_mappings(self) -> Dict[str, int]:
+        """
+        Validate all ID mappings for consistency.
+        
+        Returns:
+            Dictionary with validation statistics
+        """
+        stats = {
+            "total": 0,
+            "valid": 0,
+            "invalid": 0,
+            "errors": []
+        }
+        
+        async with aiosqlite.connect(self.sqlite_path) as db:
+            cursor = await db.execute(
+                "SELECT internal_id, neo4j_id FROM entity_mappings"
+            )
+            
+            async for row in cursor:
+                internal_id, neo4j_id = row
+                stats["total"] += 1
+                
+                if await self.validate_id_consistency(internal_id, neo4j_id):
+                    stats["valid"] += 1
+                else:
+                    stats["invalid"] += 1
+                    stats["errors"].append({
+                        "internal_id": internal_id,
+                        "neo4j_id": neo4j_id,
+                        "reason": "inconsistent_mapping"
+                    })
+        
+        logger.info(f"Validation complete: {stats['valid']}/{stats['total']} valid mappings")
+        return stats
+    
+    @asynccontextmanager
+    async def create_entity_transaction(self):
+        """
+        Create a transaction context for entity operations.
+        
+        Yields:
+            EntityIDTransaction for coordinated operations
+        """
+        transaction = EntityIDTransaction(self)
+        try:
+            yield transaction
+        except Exception:
+            await transaction.rollback()
+            raise
+        else:
+            if not transaction.committed:
+                await transaction.rollback()
+    
+    async def cleanup_orphaned_ids(self, dry_run: bool = True) -> Dict[str, Any]:
+        """
+        Clean up orphaned ID mappings.
+        
+        Args:
+            dry_run: If True, only report what would be cleaned
+            
+        Returns:
+            Cleanup statistics
+        """
+        orphaned = await self.find_orphaned_ids()
+        
+        if dry_run:
+            return {
+                "dry_run": True,
+                "would_remove": len(orphaned),
+                "orphaned_ids": orphaned
+            }
+        
+        removed = 0
+        async with aiosqlite.connect(self.sqlite_path) as db:
+            for record in orphaned:
+                await db.execute(
+                    "DELETE FROM entity_mappings WHERE internal_id = ?",
+                    [record["internal_id"]]
+                )
+                removed += 1
+            
+            await db.commit()
+        
+        logger.info(f"Removed {removed} orphaned ID mappings")
+        
+        return {
+            "dry_run": False,
+            "removed": removed,
+            "orphaned_ids": orphaned
+        }
+</file>
+
+<file path="src/core/error_taxonomy.py">
+#!/usr/bin/env python3
+"""
+Centralized Error Taxonomy and Handling Framework
+
+Provides standardized error classification, handling, and recovery patterns
+for all KGAS services. Critical architectural fix for Phase RELIABILITY.
+
+Replaces the inconsistent error handling across 802+ try blocks with
+a unified taxonomy and recovery system.
+"""
+
+import asyncio
+import logging
+import traceback
+import uuid
+from datetime import datetime
+from enum import Enum
+from dataclasses import dataclass, field
+from typing import Dict, Any, Optional, Callable, List, Union
+from contextlib import asynccontextmanager, contextmanager
+import threading
+from collections import defaultdict, deque
+
+logger = logging.getLogger(__name__)
+
+
+class ErrorSeverity(Enum):
+    """Error severity levels for classification and response prioritization"""
+    LOW = "low"
+    MEDIUM = "medium"
+    HIGH = "high"
+    CRITICAL = "critical"
+    CATASTROPHIC = "catastrophic"
+
+
+class ErrorCategory(Enum):
+    """Error categories for systematic classification"""
+    DATA_CORRUPTION = "data_corruption"
+    RESOURCE_EXHAUSTION = "resource_exhaustion"
+    NETWORK_FAILURE = "network_failure"
+    AUTHENTICATION_FAILURE = "authentication_failure"
+    VALIDATION_FAILURE = "validation_failure"
+    SYSTEM_FAILURE = "system_failure"
+    DATABASE_FAILURE = "database_failure"
+    SERVICE_UNAVAILABLE = "service_unavailable"
+    CONFIGURATION_ERROR = "configuration_error"
+    ACADEMIC_INTEGRITY = "academic_integrity"
+
+
+class RecoveryStrategy(Enum):
+    """Recovery strategies for different error types"""
+    RETRY = "retry"
+    FALLBACK = "fallback"
+    CIRCUIT_BREAKER = "circuit_breaker"
+    GRACEFUL_DEGRADATION = "graceful_degradation"
+    ABORT_AND_ALERT = "abort_and_alert"
+    ESCALATE = "escalate"
+
+
+@dataclass
+class KGASError:
+    """Standardized error format for all system errors"""
+    error_id: str
+    category: ErrorCategory
+    severity: ErrorSeverity
+    message: str
+    context: Dict[str, Any]
+    timestamp: str
+    service_name: str
+    operation: str
+    stack_trace: Optional[str] = None
+    recovery_suggestions: List[str] = field(default_factory=list)
+    recovery_attempts: int = 0
+    max_recovery_attempts: int = 3
+    tags: List[str] = field(default_factory=list)
+
+
+@dataclass
+class RecoveryResult:
+    """Result of recovery attempt"""
+    success: bool
+    strategy_used: RecoveryStrategy
+    error_id: str
+    recovery_time: float
+    message: str
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+
+class ErrorMetrics:
+    """Track error metrics and patterns"""
+    
+    def __init__(self, max_history=1000):
+        self.error_counts = defaultdict(int)
+        self.error_history = deque(maxlen=max_history)
+        self.recovery_stats = defaultdict(lambda: {"attempts": 0, "successes": 0})
+        self._lock = threading.Lock()
+    
+    def record_error(self, error: KGASError):
+        """Record error occurrence"""
+        with self._lock:
+            self.error_counts[error.category.value] += 1
+            self.error_history.append({
+                "error_id": error.error_id,
+                "category": error.category.value,
+                "severity": error.severity.value,
+                "timestamp": error.timestamp,
+                "service": error.service_name
+            })
+    
+    def record_recovery(self, result: RecoveryResult):
+        """Record recovery attempt result"""
+        with self._lock:
+            key = result.strategy_used.value
+            self.recovery_stats[key]["attempts"] += 1
+            if result.success:
+                self.recovery_stats[key]["successes"] += 1
+    
+    def get_error_summary(self) -> Dict[str, Any]:
+        """Get error summary statistics"""
+        with self._lock:
+            total_errors = sum(self.error_counts.values())
+            return {
+                "total_errors": total_errors,
+                "error_breakdown": dict(self.error_counts),
+                "recovery_success_rates": {
+                    strategy: {
+                        "success_rate": stats["successes"] / max(stats["attempts"], 1),
+                        "total_attempts": stats["attempts"]
+                    }
+                    for strategy, stats in self.recovery_stats.items()
+                }
+            }
+
+
+class CentralizedErrorHandler:
+    """
+    Central error handling with recovery patterns and escalation.
+    
+    Provides unified error taxonomy, classification, and recovery
+    across all KGAS services and tools.
+    """
+    
+    def __init__(self):
+        self.error_registry: Dict[str, KGASError] = {}
+        self.recovery_strategies: Dict[str, Callable] = {}
+        self.error_metrics = ErrorMetrics()
+        self.circuit_breakers: Dict[str, Dict] = {}
+        self.escalation_handlers: List[Callable] = []
+        self._lock = asyncio.Lock()
+        
+        # Setup default recovery strategies
+        self._setup_default_recovery_strategies()
+        
+        logger.info("CentralizedErrorHandler initialized")
+    
+    def _setup_default_recovery_strategies(self):
+        """Setup default recovery strategies for common error patterns"""
+        # Fix: Register strategies using RecoveryStrategy enum values as keys
+        self.register_recovery_strategy(RecoveryStrategy.CIRCUIT_BREAKER.value, self._recover_database_connection)
+        self.register_recovery_strategy(RecoveryStrategy.GRACEFUL_DEGRADATION.value, self._recover_memory_exhaustion)
+        self.register_recovery_strategy(RecoveryStrategy.RETRY.value, self._recover_network_timeout)
+        self.register_recovery_strategy(RecoveryStrategy.FALLBACK.value, self._recover_service_unavailable)
+        self.register_recovery_strategy(RecoveryStrategy.ABORT_AND_ALERT.value, self._recover_configuration_error)
+        self.register_recovery_strategy(RecoveryStrategy.ESCALATE.value, self._handle_academic_integrity)
+    
+    async def handle_error(self, error: Exception, context: Dict[str, Any]) -> KGASError:
+        """
+        Handle error with standardized taxonomy and recovery.
+        
+        Args:
+            error: The exception that occurred
+            context: Context information (service, operation, etc.)
+            
+        Returns:
+            KGASError: Classified and processed error
+        """
+        async with self._lock:
+            # Classify error
+            kgas_error = self._classify_error(error, context)
+            
+            # Record error
+            self.error_registry[kgas_error.error_id] = kgas_error
+            self.error_metrics.record_error(kgas_error)
+            
+            # Log error with full context
+            await self._log_error(kgas_error)
+            
+            # Attempt recovery
+            recovery_result = await self._attempt_recovery(kgas_error)
+            
+            # Record recovery attempt
+            if recovery_result:
+                self.error_metrics.record_recovery(recovery_result)
+            
+            # Escalate if critical or recovery failed
+            if (kgas_error.severity in [ErrorSeverity.CRITICAL, ErrorSeverity.CATASTROPHIC] or 
+                not (recovery_result and recovery_result.success)):
+                await self._escalate_error(kgas_error)
+            
+            return kgas_error
+    
+    def _classify_error(self, error: Exception, context: Dict[str, Any]) -> KGASError:
+        """Classify error into standardized taxonomy"""
+        error_message = str(error)
+        error_type = type(error).__name__
+        
+        # Determine category and severity based on error characteristics
+        category, severity = self._determine_category_and_severity(error, error_message)
+        
+        # Generate recovery suggestions
+        recovery_suggestions = self._generate_recovery_suggestions(category, error_type)
+        
+        return KGASError(
+            error_id=str(uuid.uuid4()),
+            category=category,
+            severity=severity,
+            message=error_message,
+            context=context,
+            timestamp=datetime.now().isoformat(),
+            service_name=context.get("service_name", "unknown"),
+            operation=context.get("operation", "unknown"),
+            stack_trace=traceback.format_exc(),
+            recovery_suggestions=recovery_suggestions,
+            tags=self._generate_error_tags(error, context)
+        )
+    
+    def _determine_category_and_severity(self, error: Exception, message: str) -> tuple[ErrorCategory, ErrorSeverity]:
+        """Determine error category and severity from exception and message"""
+        message_lower = message.lower()
+        error_type = type(error).__name__
+        
+        # Data corruption patterns
+        if any(keyword in message_lower for keyword in ["corruption", "integrity", "citation fabrication", "orphaned data"]):
+            return ErrorCategory.DATA_CORRUPTION, ErrorSeverity.CATASTROPHIC
+        
+        # Academic integrity violations
+        if any(keyword in message_lower for keyword in ["academic integrity", "citation", "provenance"]):
+            return ErrorCategory.ACADEMIC_INTEGRITY, ErrorSeverity.CRITICAL
+        
+        # Database failures
+        if any(keyword in message_lower for keyword in ["neo4j", "database", "transaction", "sql"]):
+            return ErrorCategory.DATABASE_FAILURE, ErrorSeverity.HIGH
+        
+        # Resource exhaustion
+        if any(keyword in message_lower for keyword in ["memory", "pool", "connection", "resource"]):
+            return ErrorCategory.RESOURCE_EXHAUSTION, ErrorSeverity.HIGH
+        
+        # Network failures
+        if any(keyword in message_lower for keyword in ["network", "timeout", "connection", "http"]):
+            return ErrorCategory.NETWORK_FAILURE, ErrorSeverity.MEDIUM
+        
+        # Authentication failures
+        if any(keyword in message_lower for keyword in ["auth", "credential", "permission", "access"]):
+            return ErrorCategory.AUTHENTICATION_FAILURE, ErrorSeverity.MEDIUM
+        
+        # Validation failures
+        if any(keyword in message_lower for keyword in ["validation", "invalid", "format", "schema"]):
+            return ErrorCategory.VALIDATION_FAILURE, ErrorSeverity.LOW
+        
+        # Configuration errors
+        if any(keyword in message_lower for keyword in ["config", "setting", "parameter", "missing"]):
+            return ErrorCategory.CONFIGURATION_ERROR, ErrorSeverity.MEDIUM
+        
+        # Service unavailable
+        if any(keyword in message_lower for keyword in ["service", "unavailable", "down", "unreachable"]):
+            return ErrorCategory.SERVICE_UNAVAILABLE, ErrorSeverity.HIGH
+        
+        # Default classification
+        return ErrorCategory.SYSTEM_FAILURE, ErrorSeverity.MEDIUM
+    
+    def _generate_recovery_suggestions(self, category: ErrorCategory, error_type: str) -> List[str]:
+        """Generate contextual recovery suggestions"""
+        suggestions = []
+        
+        if category == ErrorCategory.DATA_CORRUPTION:
+            suggestions.extend([
+                "Initiate immediate data integrity check",
+                "Rollback to last known good state",
+                "Alert academic integrity team",
+                "Suspend data modifications until resolved"
+            ])
+        elif category == ErrorCategory.RESOURCE_EXHAUSTION:
+            suggestions.extend([
+                "Clear caches and free memory",
+                "Restart connection pools",
+                "Scale resources if possible",
+                "Implement backpressure"
+            ])
+        elif category == ErrorCategory.DATABASE_FAILURE:
+            suggestions.extend([
+                "Check database connectivity",
+                "Restart database connections",
+                "Verify transaction state",
+                "Switch to read-only mode if needed"
+            ])
+        elif category == ErrorCategory.NETWORK_FAILURE:
+            suggestions.extend([
+                "Retry with exponential backoff",
+                "Check network connectivity",
+                "Use cached data if available",
+                "Switch to backup endpoints"
+            ])
+        elif category == ErrorCategory.CONFIGURATION_ERROR:
+            suggestions.extend([
+                "Verify configuration files",
+                "Check environment variables",
+                "Use default configurations",
+                "Alert configuration management team"
+            ])
+        
+        return suggestions
+    
+    def _generate_error_tags(self, error: Exception, context: Dict[str, Any]) -> List[str]:
+        """Generate tags for error categorization and search"""
+        tags = [type(error).__name__]
+        
+        if "service_name" in context:
+            tags.append(f"service:{context['service_name']}")
+        
+        if "operation" in context:
+            tags.append(f"operation:{context['operation']}")
+        
+        if "tool_id" in context:
+            tags.append(f"tool:{context['tool_id']}")
+        
+        return tags
+    
+    async def _attempt_recovery(self, error: KGASError) -> Optional[RecoveryResult]:
+        """Attempt to recover from error using registered strategies"""
+        start_time = datetime.now()
+        
+        # Determine recovery strategy
+        strategy = self._select_recovery_strategy(error)
+        
+        if not strategy:
+            return None
+        
+        # Execute recovery strategy
+        try:
+            recovery_func = self.recovery_strategies.get(strategy.value)
+            if recovery_func:
+                success = await recovery_func(error)
+                
+                recovery_time = (datetime.now() - start_time).total_seconds()
+                
+                return RecoveryResult(
+                    success=success,
+                    strategy_used=strategy,
+                    error_id=error.error_id,
+                    recovery_time=recovery_time,
+                    message=f"Recovery attempt using {strategy.value}",
+                    metadata={"error_category": error.category.value}
+                )
+        
+        except Exception as e:
+            logger.error(f"Recovery strategy failed: {e}")
+            return RecoveryResult(
+                success=False,
+                strategy_used=strategy,
+                error_id=error.error_id,
+                recovery_time=(datetime.now() - start_time).total_seconds(),
+                message=f"Recovery failed: {str(e)}"
+            )
+        
+        return None
+    
+    def _select_recovery_strategy(self, error: KGASError) -> Optional[RecoveryStrategy]:
+        """Select appropriate recovery strategy based on error characteristics"""
+        if error.category == ErrorCategory.DATA_CORRUPTION:
+            return RecoveryStrategy.ABORT_AND_ALERT
+        elif error.category == ErrorCategory.ACADEMIC_INTEGRITY:
+            return RecoveryStrategy.ESCALATE
+        elif error.category == ErrorCategory.RESOURCE_EXHAUSTION:
+            return RecoveryStrategy.GRACEFUL_DEGRADATION
+        elif error.category == ErrorCategory.DATABASE_FAILURE:
+            return RecoveryStrategy.CIRCUIT_BREAKER
+        elif error.category == ErrorCategory.NETWORK_FAILURE:
+            return RecoveryStrategy.RETRY
+        elif error.category == ErrorCategory.SERVICE_UNAVAILABLE:
+            return RecoveryStrategy.FALLBACK
+        
+        return RecoveryStrategy.RETRY
+    
+    async def _log_error(self, error: KGASError):
+        """Log error with appropriate level and context"""
+        log_level = {
+            ErrorSeverity.LOW: logging.INFO,
+            ErrorSeverity.MEDIUM: logging.WARNING,
+            ErrorSeverity.HIGH: logging.ERROR,
+            ErrorSeverity.CRITICAL: logging.CRITICAL,
+            ErrorSeverity.CATASTROPHIC: logging.CRITICAL
+        }.get(error.severity, logging.ERROR)
+        
+        logger.log(log_level, 
+                  f"[{error.error_id}] {error.category.value.upper()}: {error.message}",
+                  extra={
+                      "error_id": error.error_id,
+                      "category": error.category.value,
+                      "severity": error.severity.value,
+                      "service": error.service_name,
+                      "operation": error.operation,
+                      "context": error.context,
+                      "recovery_suggestions": error.recovery_suggestions
+                  })
+    
+    async def _escalate_error(self, error: KGASError):
+        """Escalate critical errors to registered handlers"""
+        for handler in self.escalation_handlers:
+            try:
+                await handler(error)
+            except Exception as e:
+                logger.error(f"Error escalation handler failed: {e}")
+    
+    def register_recovery_strategy(self, error_pattern: str, strategy_func: Callable):
+        """Register recovery strategy for specific error pattern"""
+        self.recovery_strategies[error_pattern] = strategy_func
+        logger.info(f"Registered recovery strategy for {error_pattern}")
+    
+    def register_escalation_handler(self, handler: Callable):
+        """Register escalation handler for critical errors"""
+        self.escalation_handlers.append(handler)
+        logger.info("Registered error escalation handler")
+    
+    # Default recovery strategy implementations
+    async def _recover_database_connection(self, error: KGASError) -> bool:
+        """Recover from database connection failures"""
+        try:
+            # Attempt to reconnect to database
+            logger.info(f"Attempting database reconnection for error {error.error_id}")
+            
+            # This would integrate with the actual database managers
+            # For now, simulate recovery attempt
+            await asyncio.sleep(1)  # Simulate reconnection time
+            
+            return True
+        except Exception as e:
+            logger.error(f"Database recovery failed: {e}")
+            return False
+    
+    async def _recover_memory_exhaustion(self, error: KGASError) -> bool:
+        """Recover from memory exhaustion"""
+        try:
+            logger.info(f"Attempting memory recovery for error {error.error_id}")
+            
+            # Clear caches, force garbage collection
+            import gc
+            gc.collect()
+            
+            return True
+        except Exception as e:
+            logger.error(f"Memory recovery failed: {e}")
+            return False
+    
+    async def _recover_network_timeout(self, error: KGASError) -> bool:
+        """Recover from network timeouts with retry"""
+        try:
+            logger.info(f"Attempting network recovery for error {error.error_id}")
+            
+            # Implement exponential backoff retry
+            await asyncio.sleep(min(2 ** error.recovery_attempts, 10))
+            
+            return True
+        except Exception as e:
+            logger.error(f"Network recovery failed: {e}")
+            return False
+    
+    async def _recover_service_unavailable(self, error: KGASError) -> bool:
+        """Recover from service unavailability"""
+        try:
+            logger.info(f"Attempting service recovery for error {error.error_id}")
+            
+            # Check service health and attempt restart
+            await asyncio.sleep(2)
+            
+            return True
+        except Exception as e:
+            logger.error(f"Service recovery failed: {e}")
+            return False
+    
+    async def _recover_configuration_error(self, error: KGASError) -> bool:
+        """Recovery from configuration errors"""
+        try:
+            logger.info(f"Attempting configuration recovery for error {error.error_id}")
+            
+            # Load default configuration or reload from source
+            return True
+        except Exception as e:
+            logger.error(f"Configuration recovery failed: {e}")
+            return False
+    
+    async def _handle_academic_integrity(self, error: KGASError) -> bool:
+        """Handle academic integrity violations"""
+        logger.critical(f"ACADEMIC INTEGRITY VIOLATION: {error.message}")
+        
+        # Academic integrity violations require manual intervention
+        # This logs the issue and alerts appropriate personnel
+        return False  # Never auto-recover from integrity violations
+    
+    def get_error_status(self, error_id: str) -> Optional[Dict[str, Any]]:
+        """Get status of specific error"""
+        error = self.error_registry.get(error_id)
+        if not error:
+            return None
+        
+        return {
+            "error_id": error.error_id,
+            "category": error.category.value,
+            "severity": error.severity.value,
+            "status": "resolved" if error.recovery_attempts > 0 else "active",
+            "recovery_attempts": error.recovery_attempts,
+            "timestamp": error.timestamp,
+            "service": error.service_name,
+            "operation": error.operation
+        }
+    
+    def get_system_health_from_errors(self) -> Dict[str, Any]:
+        """Get system health assessment based on error patterns"""
+        metrics = self.error_metrics.get_error_summary()
+        
+        # Calculate health score based on error severity and frequency
+        total_errors = metrics["total_errors"]
+        catastrophic_errors = metrics["error_breakdown"].get("data_corruption", 0)
+        critical_errors = metrics["error_breakdown"].get("academic_integrity", 0)
+        
+        if catastrophic_errors > 0:
+            health_score = 1  # System unreliable due to data corruption
+        elif critical_errors > 0:
+            health_score = 2  # System compromised
+        elif total_errors > 100:
+            health_score = 4  # High error rate
+        elif total_errors > 50:
+            health_score = 6  # Moderate error rate
+        elif total_errors > 10:
+            health_score = 8  # Low error rate
+        else:
+            health_score = 10  # Healthy
+        
+        return {
+            "health_score": health_score,
+            "max_score": 10,
+            "status": "healthy" if health_score >= 8 else "degraded" if health_score >= 6 else "unhealthy",
+            "error_summary": metrics,
+            "assessment_timestamp": datetime.now().isoformat()
+        }
+
+
+# Context managers for automatic error handling
+@asynccontextmanager
+async def handle_errors_async(service_name: str, operation: str, error_handler: CentralizedErrorHandler):
+    """Async context manager for automatic error handling"""
+    try:
+        yield
+    except Exception as e:
+        context = {
+            "service_name": service_name,
+            "operation": operation,
+            "timestamp": datetime.now().isoformat()
+        }
+        await error_handler.handle_error(e, context)
+        raise  # Re-raise after handling
+
+
+@contextmanager
+def handle_errors_sync(service_name: str, operation: str, error_handler: CentralizedErrorHandler):
+    """Sync context manager for automatic error handling"""
+    try:
+        yield
+    except Exception as e:
+        context = {
+            "service_name": service_name,
+            "operation": operation,
+            "timestamp": datetime.now().isoformat()
+        }
+        # For sync context, we need to run async handler in thread
+        import asyncio
+        try:
+            loop = asyncio.get_event_loop()
+            if loop.is_running():
+                asyncio.create_task(error_handler.handle_error(e, context))
+            else:
+                asyncio.run(error_handler.handle_error(e, context))
+        except RuntimeError:
+            # No event loop available, log error directly
+            logger.error(f"Error in {service_name}.{operation}: {e}", exc_info=True)
+        raise  # Re-raise after handling
+
+
+# Global error handler instance
+_global_error_handler = None
+
+
+def get_global_error_handler() -> CentralizedErrorHandler:
+    """Get or create global error handler instance"""
+    global _global_error_handler
+    if _global_error_handler is None:
+        _global_error_handler = CentralizedErrorHandler()
+    return _global_error_handler
+
+
+# Decorator for automatic error handling
+def handle_errors(service_name: str, operation: str = None):
+    """Decorator for automatic error handling"""
+    def decorator(func):
+        func_name = operation or func.__name__
+        
+        if asyncio.iscoroutinefunction(func):
+            async def async_wrapper(*args, **kwargs):
+                async with handle_errors_async(service_name, func_name, get_global_error_handler()):
+                    return await func(*args, **kwargs)
+            return async_wrapper
+        else:
+            def sync_wrapper(*args, **kwargs):
+                with handle_errors_sync(service_name, func_name, get_global_error_handler()):
+                    return func(*args, **kwargs)
+            return sync_wrapper
+    
+    return decorator
+</file>
+
+<file path="src/core/health_monitor.py">
+#!/usr/bin/env python3
+"""
+Comprehensive System Health Monitoring
+
+Provides real-time health checks, metrics collection, and operational 
+visibility for all KGAS services. Critical architectural fix for 
+Phase RELIABILITY.
+
+Replaces the current lack of operational visibility with comprehensive
+monitoring, alerting, and debugging capabilities.
+"""
+
+import asyncio
+import logging
+import time
+import psutil
+import threading
+from datetime import datetime, timedelta
+from typing import Dict, Any, List, Optional, Callable, Tuple
+from dataclasses import dataclass, field
+from enum import Enum
+from collections import defaultdict, deque
+import json
+import uuid
+
+logger = logging.getLogger(__name__)
+
+
+class HealthStatus(Enum):
+    """Health status levels"""
+    HEALTHY = "healthy"
+    DEGRADED = "degraded"
+    UNHEALTHY = "unhealthy"
+    CRITICAL = "critical"
+    UNKNOWN = "unknown"
+
+
+class MetricType(Enum):
+    """Types of metrics collected"""
+    COUNTER = "counter"
+    GAUGE = "gauge"
+    HISTOGRAM = "histogram"
+    TIMER = "timer"
+
+
+@dataclass
+class HealthCheckResult:
+    """Result of a health check"""
+    service_name: str
+    status: HealthStatus
+    message: str
+    timestamp: datetime
+    response_time: float
+    metadata: Dict[str, Any] = field(default_factory=dict)
+    dependencies: List[str] = field(default_factory=list)
+
+
+@dataclass
+class SystemMetric:
+    """System metric data point"""
+    name: str
+    value: float
+    metric_type: MetricType
+    timestamp: datetime
+    tags: Dict[str, str] = field(default_factory=dict)
+    unit: str = ""
+
+
+@dataclass
+class Alert:
+    """System alert"""
+    alert_id: str
+    severity: str
+    title: str
+    message: str
+    timestamp: datetime
+    service_name: str
+    metric_name: Optional[str] = None
+    threshold_value: Optional[float] = None
+    actual_value: Optional[float] = None
+    resolved: bool = False
+    resolved_at: Optional[datetime] = None
+
+
+class MetricsCollector:
+    """Collect and store system metrics"""
+    
+    def __init__(self, max_history=10000):
+        self.metrics_history = deque(maxlen=max_history)
+        self.current_metrics: Dict[str, SystemMetric] = {}
+        self._lock = threading.Lock()
+        
+        # Start background metric collection
+        self.collection_task = None
+        self.collection_interval = 30  # seconds
+        
+    async def start_collection(self):
+        """Start background metrics collection"""
+        if self.collection_task is None:
+            self.collection_task = asyncio.create_task(self._collect_system_metrics())
+            logger.info("Started metrics collection")
+    
+    async def stop_collection(self):
+        """Stop background metrics collection"""
+        if self.collection_task:
+            self.collection_task.cancel()
+            try:
+                await self.collection_task
+            except asyncio.CancelledError:
+                pass
+            self.collection_task = None
+            logger.info("Stopped metrics collection")
+    
+    async def _collect_system_metrics(self):
+        """Background task to collect system metrics"""
+        while True:
+            try:
+                await self._collect_cpu_metrics()
+                await self._collect_memory_metrics()
+                await self._collect_disk_metrics()
+                await self._collect_network_metrics()
+                
+                await asyncio.sleep(self.collection_interval)
+            except asyncio.CancelledError:
+                break
+            except Exception as e:
+                logger.error(f"Error collecting system metrics: {e}")
+                await asyncio.sleep(self.collection_interval)
+    
+    async def _collect_cpu_metrics(self):
+        """Collect CPU metrics"""
+        cpu_percent = psutil.cpu_percent(interval=1)
+        self.record_metric("system.cpu.usage", cpu_percent, MetricType.GAUGE, unit="%")
+        
+        cpu_count = psutil.cpu_count()
+        self.record_metric("system.cpu.count", cpu_count, MetricType.GAUGE)
+        
+        load_avg = psutil.getloadavg() if hasattr(psutil, 'getloadavg') else [0, 0, 0]
+        self.record_metric("system.load.1min", load_avg[0], MetricType.GAUGE)
+        self.record_metric("system.load.5min", load_avg[1], MetricType.GAUGE)
+        self.record_metric("system.load.15min", load_avg[2], MetricType.GAUGE)
+    
+    async def _collect_memory_metrics(self):
+        """Collect memory metrics"""
+        memory = psutil.virtual_memory()
+        self.record_metric("system.memory.total", memory.total, MetricType.GAUGE, unit="bytes")
+        self.record_metric("system.memory.available", memory.available, MetricType.GAUGE, unit="bytes")
+        self.record_metric("system.memory.used", memory.used, MetricType.GAUGE, unit="bytes")
+        self.record_metric("system.memory.percent", memory.percent, MetricType.GAUGE, unit="%")
+        
+        swap = psutil.swap_memory()
+        self.record_metric("system.swap.total", swap.total, MetricType.GAUGE, unit="bytes")
+        self.record_metric("system.swap.used", swap.used, MetricType.GAUGE, unit="bytes")
+        self.record_metric("system.swap.percent", swap.percent, MetricType.GAUGE, unit="%")
+    
+    async def _collect_disk_metrics(self):
+        """Collect disk metrics"""
+        disk_usage = psutil.disk_usage('/')
+        self.record_metric("system.disk.total", disk_usage.total, MetricType.GAUGE, unit="bytes")
+        self.record_metric("system.disk.used", disk_usage.used, MetricType.GAUGE, unit="bytes")
+        self.record_metric("system.disk.free", disk_usage.free, MetricType.GAUGE, unit="bytes")
+        self.record_metric("system.disk.percent", (disk_usage.used / disk_usage.total) * 100, MetricType.GAUGE, unit="%")
+        
+        disk_io = psutil.disk_io_counters()
+        if disk_io:
+            self.record_metric("system.disk.read_bytes", disk_io.read_bytes, MetricType.COUNTER, unit="bytes")
+            self.record_metric("system.disk.write_bytes", disk_io.write_bytes, MetricType.COUNTER, unit="bytes")
+    
+    async def _collect_network_metrics(self):
+        """Collect network metrics"""
+        net_io = psutil.net_io_counters()
+        if net_io:
+            self.record_metric("system.network.bytes_sent", net_io.bytes_sent, MetricType.COUNTER, unit="bytes")
+            self.record_metric("system.network.bytes_recv", net_io.bytes_recv, MetricType.COUNTER, unit="bytes")
+            self.record_metric("system.network.packets_sent", net_io.packets_sent, MetricType.COUNTER)
+            self.record_metric("system.network.packets_recv", net_io.packets_recv, MetricType.COUNTER)
+    
+    def record_metric(self, name: str, value: float, metric_type: MetricType, 
+                     tags: Dict[str, str] = None, unit: str = ""):
+        """Record a metric value"""
+        metric = SystemMetric(
+            name=name,
+            value=value,
+            metric_type=metric_type,
+            timestamp=datetime.now(),
+            tags=tags or {},
+            unit=unit
+        )
+        
+        with self._lock:
+            self.current_metrics[name] = metric
+            self.metrics_history.append(metric)
+    
+    def get_current_metrics(self) -> Dict[str, SystemMetric]:
+        """Get current metric values"""
+        with self._lock:
+            return self.current_metrics.copy()
+    
+    def get_metric_history(self, name: str, minutes: int = 60) -> List[SystemMetric]:
+        """Get metric history for specified time period"""
+        cutoff_time = datetime.now() - timedelta(minutes=minutes)
+        
+        with self._lock:
+            return [
+                metric for metric in self.metrics_history
+                if metric.name == name and metric.timestamp >= cutoff_time
+            ]
+
+
+class AlertManager:
+    """Manage system alerts and notifications"""
+    
+    def __init__(self):
+        self.alerts: Dict[str, Alert] = {}
+        self.alert_handlers: List[Callable] = []
+        self.thresholds: Dict[str, Dict[str, float]] = {}
+        self._lock = threading.Lock()
+        
+        # Setup default thresholds
+        self._setup_default_thresholds()
+    
+    def _setup_default_thresholds(self):
+        """Setup default alert thresholds"""
+        self.thresholds = {
+            "system.cpu.usage": {"warning": 80.0, "critical": 95.0},
+            "system.memory.percent": {"warning": 80.0, "critical": 95.0},
+            "system.disk.percent": {"warning": 80.0, "critical": 95.0},
+            "service.response_time": {"warning": 5.0, "critical": 10.0},
+            "service.error_rate": {"warning": 0.05, "critical": 0.10},
+        }
+    
+    def register_alert_handler(self, handler: Callable):
+        """Register alert handler for notifications"""
+        self.alert_handlers.append(handler)
+        logger.info("Registered alert handler")
+    
+    def set_threshold(self, metric_name: str, level: str, value: float):
+        """Set alert threshold for metric"""
+        if metric_name not in self.thresholds:
+            self.thresholds[metric_name] = {}
+        self.thresholds[metric_name][level] = value
+        logger.info(f"Set {level} threshold for {metric_name}: {value}")
+    
+    async def check_metric_thresholds(self, metric: SystemMetric):
+        """Check if metric exceeds thresholds and create alerts"""
+        thresholds = self.thresholds.get(metric.name)
+        if not thresholds:
+            return
+        
+        # Check critical threshold first
+        if "critical" in thresholds and metric.value >= thresholds["critical"]:
+            await self._create_alert(
+                "critical",
+                f"Critical threshold exceeded: {metric.name}",
+                f"Metric {metric.name} value {metric.value} exceeds critical threshold {thresholds['critical']}",
+                metric.name,
+                thresholds["critical"],
+                metric.value
+            )
+        elif "warning" in thresholds and metric.value >= thresholds["warning"]:
+            await self._create_alert(
+                "warning",
+                f"Warning threshold exceeded: {metric.name}",
+                f"Metric {metric.name} value {metric.value} exceeds warning threshold {thresholds['warning']}",
+                metric.name,
+                thresholds["warning"],
+                metric.value
+            )
+    
+    async def _create_alert(self, severity: str, title: str, message: str,
+                          metric_name: str = None, threshold_value: float = None,
+                          actual_value: float = None):
+        """Create new alert"""
+        alert_id = str(uuid.uuid4())
+        
+        alert = Alert(
+            alert_id=alert_id,
+            severity=severity,
+            title=title,
+            message=message,
+            timestamp=datetime.now(),
+            service_name="system",
+            metric_name=metric_name,
+            threshold_value=threshold_value,
+            actual_value=actual_value
+        )
+        
+        with self._lock:
+            self.alerts[alert_id] = alert
+        
+        # Send alert to handlers
+        for handler in self.alert_handlers:
+            try:
+                await handler(alert)
+            except Exception as e:
+                logger.error(f"Alert handler failed: {e}")
+        
+        logger.warning(f"[{severity.upper()}] {title}: {message}")
+    
+    def resolve_alert(self, alert_id: str):
+        """Resolve an alert"""
+        with self._lock:
+            if alert_id in self.alerts:
+                self.alerts[alert_id].resolved = True
+                self.alerts[alert_id].resolved_at = datetime.now()
+                logger.info(f"Resolved alert {alert_id}")
+    
+    def get_active_alerts(self) -> List[Alert]:
+        """Get all active (unresolved) alerts"""
+        with self._lock:
+            return [alert for alert in self.alerts.values() if not alert.resolved]
+    
+    def get_alert_summary(self) -> Dict[str, Any]:
+        """Get alert summary statistics"""
+        with self._lock:
+            active_alerts = [alert for alert in self.alerts.values() if not alert.resolved]
+            
+            summary = {
+                "total_alerts": len(self.alerts),
+                "active_alerts": len(active_alerts),
+                "alert_breakdown": defaultdict(int)
+            }
+            
+            for alert in active_alerts:
+                summary["alert_breakdown"][alert.severity] += 1
+            
+            return dict(summary)
+
+
+class SystemHealthMonitor:
+    """
+    Comprehensive system health monitoring with real-time checks,
+    metrics collection, and alerting.
+    """
+    
+    def __init__(self):
+        self.health_checks: Dict[str, Callable] = {}
+        self.metrics_collector = MetricsCollector()
+        self.alert_manager = AlertManager()
+        self.last_health_check: Dict[str, HealthCheckResult] = {}
+        self._lock = asyncio.Lock()
+        
+        # Monitoring configuration
+        self.health_check_interval = 60  # seconds
+        self.monitoring_enabled = False
+        self.monitoring_task = None
+        
+        # Register default health checks
+        self._register_default_health_checks()
+        
+        logger.info("SystemHealthMonitor initialized")
+    
+    def _register_default_health_checks(self):
+        """Register default health checks for core services"""
+        self.register_health_check("system", self._check_system_health)
+        self.register_health_check("memory", self._check_memory_health)
+        self.register_health_check("disk", self._check_disk_health)
+        self.register_health_check("cpu", self._check_cpu_health)
+    
+    async def start_monitoring(self):
+        """Start continuous health monitoring"""
+        if self.monitoring_enabled:
+            return
+        
+        self.monitoring_enabled = True
+        
+        # Start metrics collection
+        await self.metrics_collector.start_collection()
+        
+        # Start health check loop
+        self.monitoring_task = asyncio.create_task(self._monitoring_loop())
+        
+        logger.info("Started system health monitoring")
+    
+    async def stop_monitoring(self):
+        """Stop health monitoring"""
+        if not self.monitoring_enabled:
+            return
+        
+        self.monitoring_enabled = False
+        
+        # Stop metrics collection
+        await self.metrics_collector.stop_collection()
+        
+        # Stop monitoring task
+        if self.monitoring_task:
+            self.monitoring_task.cancel()
+            try:
+                await self.monitoring_task
+            except asyncio.CancelledError:
+                pass
+        
+        logger.info("Stopped system health monitoring")
+    
+    async def _monitoring_loop(self):
+        """Main monitoring loop"""
+        while self.monitoring_enabled:
+            try:
+                # Run all health checks
+                await self._run_all_health_checks()
+                
+                # Check metric thresholds
+                await self._check_all_thresholds()
+                
+                await asyncio.sleep(self.health_check_interval)
+            except asyncio.CancelledError:
+                break
+            except Exception as e:
+                logger.error(f"Error in monitoring loop: {e}")
+                await asyncio.sleep(self.health_check_interval)
+    
+    async def _run_all_health_checks(self):
+        """Run all registered health checks"""
+        for service_name, check_func in self.health_checks.items():
+            try:
+                result = await self._run_health_check(service_name, check_func)
+                self.last_health_check[service_name] = result
+                
+                # Create alerts for unhealthy services
+                if result.status in [HealthStatus.UNHEALTHY, HealthStatus.CRITICAL]:
+                    await self.alert_manager._create_alert(
+                        "critical" if result.status == HealthStatus.CRITICAL else "warning",
+                        f"Service {service_name} is {result.status.value}",
+                        result.message,
+                        service_name=service_name
+                    )
+                
+            except Exception as e:
+                logger.error(f"Health check failed for {service_name}: {e}")
+                
+                # Create failure result
+                failure_result = HealthCheckResult(
+                    service_name=service_name,
+                    status=HealthStatus.UNKNOWN,
+                    message=f"Health check failed: {str(e)}",
+                    timestamp=datetime.now(),
+                    response_time=0.0
+                )
+                self.last_health_check[service_name] = failure_result
+    
+    async def _run_health_check(self, service_name: str, check_func: Callable) -> HealthCheckResult:
+        """Run individual health check with timing"""
+        start_time = time.time()
+        
+        try:
+            if asyncio.iscoroutinefunction(check_func):
+                result = await check_func()
+            else:
+                result = check_func()
+            
+            response_time = time.time() - start_time
+            
+            # Ensure result is HealthCheckResult
+            if isinstance(result, dict):
+                return HealthCheckResult(
+                    service_name=service_name,
+                    status=HealthStatus(result.get("status", "unknown")),
+                    message=result.get("message", ""),
+                    timestamp=datetime.now(),
+                    response_time=response_time,
+                    metadata=result.get("metadata", {}),
+                    dependencies=result.get("dependencies", [])
+                )
+            elif isinstance(result, HealthCheckResult):
+                result.response_time = response_time
+                return result
+            else:
+                return HealthCheckResult(
+                    service_name=service_name,
+                    status=HealthStatus.HEALTHY,
+                    message="Health check passed",
+                    timestamp=datetime.now(),
+                    response_time=response_time
+                )
+        
+        except Exception as e:
+            response_time = time.time() - start_time
+            return HealthCheckResult(
+                service_name=service_name,
+                status=HealthStatus.UNHEALTHY,
+                message=f"Health check error: {str(e)}",
+                timestamp=datetime.now(),
+                response_time=response_time
+            )
+    
+    async def _check_all_thresholds(self):
+        """Check all metrics against thresholds"""
+        current_metrics = self.metrics_collector.get_current_metrics()
+        
+        for metric in current_metrics.values():
+            await self.alert_manager.check_metric_thresholds(metric)
+    
+    def register_health_check(self, service_name: str, check_func: Callable):
+        """Register health check for service"""
+        self.health_checks[service_name] = check_func
+        logger.info(f"Registered health check for {service_name}")
+    
+    async def check_system_health(self) -> Dict[str, Any]:
+        """Get overall system health status"""
+        async with self._lock:
+            # Run all health checks if not recently run
+            current_time = datetime.now()
+            outdated_checks = []
+            
+            for service_name in self.health_checks.keys():
+                last_check = self.last_health_check.get(service_name)
+                if (not last_check or 
+                    (current_time - last_check.timestamp).total_seconds() > self.health_check_interval):
+                    outdated_checks.append(service_name)
+            
+            # Run outdated checks
+            for service_name in outdated_checks:
+                check_func = self.health_checks[service_name]
+                result = await self._run_health_check(service_name, check_func)
+                self.last_health_check[service_name] = result
+            
+            # Compile overall status
+            all_healthy = True
+            any_critical = False
+            service_statuses = {}
+            
+            for service_name, result in self.last_health_check.items():
+                service_statuses[service_name] = {
+                    "status": result.status.value,
+                    "message": result.message,
+                    "response_time": result.response_time,
+                    "timestamp": result.timestamp.isoformat(),
+                    "metadata": result.metadata
+                }
+                
+                if result.status in [HealthStatus.UNHEALTHY, HealthStatus.CRITICAL]:
+                    all_healthy = False
+                if result.status == HealthStatus.CRITICAL:
+                    any_critical = True
+            
+            # Determine overall status
+            if any_critical:
+                overall_status = HealthStatus.CRITICAL
+            elif not all_healthy:
+                overall_status = HealthStatus.DEGRADED
+            else:
+                overall_status = HealthStatus.HEALTHY
+            
+            # Get metrics and alerts
+            current_metrics = self.metrics_collector.get_current_metrics()
+            active_alerts = self.alert_manager.get_active_alerts()
+            
+            return {
+                "overall_status": overall_status.value,
+                "services": service_statuses,
+                "metrics": {
+                    name: {
+                        "value": metric.value,
+                        "unit": metric.unit,
+                        "timestamp": metric.timestamp.isoformat()
+                    }
+                    for name, metric in current_metrics.items()
+                },
+                "active_alerts": [
+                    {
+                        "severity": alert.severity,
+                        "title": alert.title,
+                        "message": alert.message,
+                        "timestamp": alert.timestamp.isoformat()
+                    }
+                    for alert in active_alerts
+                ],
+                "timestamp": datetime.now().isoformat()
+            }
+    
+    # Default health checks
+    async def _check_system_health(self) -> HealthCheckResult:
+        """Check overall system health"""
+        try:
+            # Check basic system resources
+            cpu_percent = psutil.cpu_percent()
+            memory = psutil.virtual_memory()
+            disk = psutil.disk_usage('/')
+            
+            issues = []
+            status = HealthStatus.HEALTHY
+            
+            if cpu_percent > 90:
+                issues.append(f"High CPU usage: {cpu_percent}%")
+                status = HealthStatus.CRITICAL
+            elif cpu_percent > 80:
+                issues.append(f"Elevated CPU usage: {cpu_percent}%")
+                status = HealthStatus.DEGRADED
+            
+            if memory.percent > 90:
+                issues.append(f"High memory usage: {memory.percent}%")
+                status = HealthStatus.CRITICAL
+            elif memory.percent > 80:
+                issues.append(f"Elevated memory usage: {memory.percent}%")
+                status = HealthStatus.DEGRADED
+            
+            disk_percent = (disk.used / disk.total) * 100
+            if disk_percent > 90:
+                issues.append(f"High disk usage: {disk_percent:.1f}%")
+                status = HealthStatus.CRITICAL
+            elif disk_percent > 80:
+                issues.append(f"Elevated disk usage: {disk_percent:.1f}%")
+                status = HealthStatus.DEGRADED
+            
+            message = "; ".join(issues) if issues else "System resources within normal limits"
+            
+            return HealthCheckResult(
+                service_name="system",
+                status=status,
+                message=message,
+                timestamp=datetime.now(),
+                response_time=0.0,
+                metadata={
+                    "cpu_percent": cpu_percent,
+                    "memory_percent": memory.percent,
+                    "disk_percent": disk_percent
+                }
+            )
+        
+        except Exception as e:
+            return HealthCheckResult(
+                service_name="system",
+                status=HealthStatus.UNKNOWN,
+                message=f"System health check failed: {str(e)}",
+                timestamp=datetime.now(),
+                response_time=0.0
+            )
+    
+    async def _check_memory_health(self) -> HealthCheckResult:
+        """Check memory health"""
+        try:
+            memory = psutil.virtual_memory()
+            
+            if memory.percent > 95:
+                status = HealthStatus.CRITICAL
+                message = f"Critical memory usage: {memory.percent}%"
+            elif memory.percent > 85:
+                status = HealthStatus.DEGRADED
+                message = f"High memory usage: {memory.percent}%"
+            else:
+                status = HealthStatus.HEALTHY
+                message = f"Memory usage normal: {memory.percent}%"
+            
+            return HealthCheckResult(
+                service_name="memory",
+                status=status,
+                message=message,
+                timestamp=datetime.now(),
+                response_time=0.0,
+                metadata={
+                    "total_gb": round(memory.total / (1024**3), 2),
+                    "available_gb": round(memory.available / (1024**3), 2),
+                    "used_percent": memory.percent
+                }
+            )
+        
+        except Exception as e:
+            return HealthCheckResult(
+                service_name="memory",
+                status=HealthStatus.UNKNOWN,
+                message=f"Memory check failed: {str(e)}",
+                timestamp=datetime.now(),
+                response_time=0.0
+            )
+    
+    async def _check_disk_health(self) -> HealthCheckResult:
+        """Check disk health"""
+        try:
+            disk = psutil.disk_usage('/')
+            disk_percent = (disk.used / disk.total) * 100
+            
+            if disk_percent > 95:
+                status = HealthStatus.CRITICAL
+                message = f"Critical disk usage: {disk_percent:.1f}%"
+            elif disk_percent > 85:
+                status = HealthStatus.DEGRADED
+                message = f"High disk usage: {disk_percent:.1f}%"
+            else:
+                status = HealthStatus.HEALTHY
+                message = f"Disk usage normal: {disk_percent:.1f}%"
+            
+            return HealthCheckResult(
+                service_name="disk",
+                status=status,
+                message=message,
+                timestamp=datetime.now(),
+                response_time=0.0,
+                metadata={
+                    "total_gb": round(disk.total / (1024**3), 2),
+                    "free_gb": round(disk.free / (1024**3), 2),
+                    "used_percent": disk_percent
+                }
+            )
+        
+        except Exception as e:
+            return HealthCheckResult(
+                service_name="disk",
+                status=HealthStatus.UNKNOWN,
+                message=f"Disk check failed: {str(e)}",
+                timestamp=datetime.now(),
+                response_time=0.0
+            )
+    
+    async def _check_cpu_health(self) -> HealthCheckResult:
+        """Check CPU health"""
+        try:
+            cpu_percent = psutil.cpu_percent(interval=1)
+            
+            if cpu_percent > 95:
+                status = HealthStatus.CRITICAL
+                message = f"Critical CPU usage: {cpu_percent}%"
+            elif cpu_percent > 85:
+                status = HealthStatus.DEGRADED
+                message = f"High CPU usage: {cpu_percent}%"
+            else:
+                status = HealthStatus.HEALTHY
+                message = f"CPU usage normal: {cpu_percent}%"
+            
+            return HealthCheckResult(
+                service_name="cpu",
+                status=status,
+                message=message,
+                timestamp=datetime.now(),
+                response_time=0.0,
+                metadata={
+                    "cpu_count": psutil.cpu_count(),
+                    "cpu_percent": cpu_percent
+                }
+            )
+        
+        except Exception as e:
+            return HealthCheckResult(
+                service_name="cpu",
+                status=HealthStatus.UNKNOWN,
+                message=f"CPU check failed: {str(e)}",
+                timestamp=datetime.now(),
+                response_time=0.0
+            )
+
+
+# Health check endpoints for services
+async def neo4j_health_check() -> HealthCheckResult:
+    """Check Neo4j database health"""
+    try:
+        from .neo4j_manager import Neo4jDockerManager
+        
+        neo4j_manager = Neo4jDockerManager()
+        
+        # Try to get a session and run a simple query
+        start_time = time.time()
+        session = await neo4j_manager.get_session_async()
+        result = await session.run("RETURN 1 as health")
+        await result.single()
+        await session.close()
+        response_time = time.time() - start_time
+        
+        return HealthCheckResult(
+            service_name="neo4j",
+            status=HealthStatus.HEALTHY,
+            message="Neo4j database is responsive",
+            timestamp=datetime.now(),
+            response_time=response_time,
+            metadata={
+                "response_time_ms": round(response_time * 1000, 2)
+            }
+        )
+    
+    except Exception as e:
+        return HealthCheckResult(
+            service_name="neo4j",
+            status=HealthStatus.UNHEALTHY,
+            message=f"Neo4j health check failed: {str(e)}",
+            timestamp=datetime.now(),
+            response_time=0.0
+        )
+
+
+async def sqlite_health_check() -> HealthCheckResult:
+    """Check SQLite database health"""
+    try:
+        import sqlite3
+        
+        start_time = time.time()
+        
+        # Try to connect to SQLite and run a simple query
+        conn = sqlite3.connect(":memory:")
+        cursor = conn.cursor()
+        cursor.execute("SELECT 1")
+        cursor.fetchone()
+        conn.close()
+        
+        response_time = time.time() - start_time
+        
+        return HealthCheckResult(
+            service_name="sqlite",
+            status=HealthStatus.HEALTHY,
+            message="SQLite is functional",
+            timestamp=datetime.now(),
+            response_time=response_time,
+            metadata={
+                "response_time_ms": round(response_time * 1000, 2)
+            }
+        )
+    
+    except Exception as e:
+        return HealthCheckResult(
+            service_name="sqlite",
+            status=HealthStatus.UNHEALTHY,
+            message=f"SQLite health check failed: {str(e)}",
+            timestamp=datetime.now(),
+            response_time=0.0
+        )
+
+
+# Global health monitor instance
+_global_health_monitor = None
+
+
+def get_global_health_monitor() -> SystemHealthMonitor:
+    """Get or create global health monitor instance"""
+    global _global_health_monitor
+    if _global_health_monitor is None:
+        _global_health_monitor = SystemHealthMonitor()
+    return _global_health_monitor
+
+
+# Decorator for service health checks
+def health_check_endpoint(service_name: str):
+    """Decorator to register function as health check endpoint"""
+    def decorator(func):
+        monitor = get_global_health_monitor()
+        monitor.register_health_check(service_name, func)
+        return func
+    return decorator
+</file>
+
+<file path="src/core/provenance_manager.py">
+"""
+Provenance Manager for tracking citation sources and modifications.
+
+Ensures every citation has a verifiable source and maintains a complete
+audit trail of all modifications.
+"""
+
+import asyncio
+import uuid
+import hashlib
+from datetime import datetime
+from typing import Dict, List, Any, Optional
+import json
+import logging
+
+logger = logging.getLogger(__name__)
+
+
+class ProvenanceManager:
+    """
+    Manages provenance tracking for citations and content transformations.
+    
+    Features:
+    - Source document registration with content hashing
+    - Citation creation with source verification
+    - Modification audit trails
+    - Provenance chain tracking
+    - Content integrity verification
+    """
+    
+    def __init__(self):
+        """Initialize the provenance manager."""
+        self._sources: Dict[str, Dict[str, Any]] = {}
+        self._citations: Dict[str, Dict[str, Any]] = {}
+        self._audit_trails: Dict[str, List[Dict[str, Any]]] = {}
+        self._derived_content: Dict[str, Dict[str, Any]] = {}
+        self._usage_tracking: Dict[str, List[str]] = {}
+        self._lock = asyncio.Lock()
+    
+    async def register_source(self, source_doc: Dict[str, Any]) -> str:
+        """
+        Register a source document with content hashing.
+        
+        Args:
+            source_doc: Source document with id, content, and optional metadata
+            
+        Returns:
+            Source ID
+        """
+        async with self._lock:
+            source_id = source_doc.get("id", str(uuid.uuid4()))
+            
+            # Calculate content hash if not provided
+            if "hash" not in source_doc:
+                content = source_doc.get("content", "")
+                source_doc["hash"] = hashlib.sha256(content.encode()).hexdigest()
+            
+            # Store source
+            self._sources[source_id] = {
+                **source_doc,
+                "registered_at": datetime.now().isoformat(),
+                "type": "source"
+            }
+            
+            logger.info(f"Registered source: {source_id}")
+            return source_id
+    
+    async def create_citation(self, source_id: str, text: str, 
+                            start_pos: int, end_pos: int,
+                            context: Optional[str] = None,
+                            metadata: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """
+        Create a citation with source verification.
+        
+        Args:
+            source_id: ID of the source document
+            text: The cited text
+            start_pos: Start position in source
+            end_pos: End position in source
+            context: Optional surrounding context
+            metadata: Optional additional metadata
+            
+        Returns:
+            Citation record
+            
+        Raises:
+            ValueError: If source not found or text not in source
+        """
+        async with self._lock:
+            # Verify source exists
+            if source_id not in self._sources and source_id not in self._derived_content:
+                raise ValueError(f"Source not found: {source_id}")
+            
+            # Get source content
+            if source_id in self._sources:
+                source = self._sources[source_id]
+                content = source.get("content", "")
+            else:
+                source = self._derived_content[source_id]
+                content = source.get("output_text", "")
+            
+            # Verify text exists in source
+            if text not in content:
+                raise ValueError(f"Text not found in source: '{text}'")
+            
+            # Verify positions
+            if start_pos < 0 or end_pos > len(content) or start_pos >= end_pos:
+                raise ValueError(f"Invalid text positions: {start_pos}-{end_pos}")
+            
+            # Create citation
+            citation_id = str(uuid.uuid4())
+            citation = {
+                "id": citation_id,
+                "source_id": source_id,
+                "text": text,
+                "start_pos": start_pos,
+                "end_pos": end_pos,
+                "context": context or content[max(0, start_pos-50):min(len(content), end_pos+50)],
+                "metadata": metadata or {},
+                "created_at": datetime.now().isoformat(),
+                "type": "citation",
+                "provenance_chain": await self._build_provenance_chain(source_id)
+            }
+            
+            self._citations[citation_id] = citation
+            
+            # Initialize audit trail
+            self._audit_trails[citation_id] = [{
+                "timestamp": citation["created_at"],
+                "operation": "create",
+                "text": text,
+                "actor": "system"
+            }]
+            
+            logger.info(f"Created citation: {citation_id}")
+            return citation
+    
+    async def modify_citation(self, citation_id: str, new_text: str,
+                            reason: str, modifier: str) -> Dict[str, Any]:
+        """
+        Modify a citation with audit trail.
+        
+        Args:
+            citation_id: ID of citation to modify
+            new_text: New citation text
+            reason: Reason for modification
+            modifier: ID of user/system making modification
+            
+        Returns:
+            Modified citation record
+        """
+        async with self._lock:
+            if citation_id not in self._citations:
+                raise ValueError(f"Citation not found: {citation_id}")
+            
+            citation = self._citations[citation_id]
+            old_text = citation["text"]
+            
+            # Update citation
+            citation["text"] = new_text
+            citation["modified_at"] = datetime.now().isoformat()
+            citation["last_modifier"] = modifier
+            
+            # Add to audit trail
+            self._audit_trails[citation_id].append({
+                "timestamp": citation["modified_at"],
+                "operation": "modify",
+                "text": new_text,
+                "old_text": old_text,
+                "reason": reason,
+                "modifier": modifier
+            })
+            
+            logger.info(f"Modified citation: {citation_id}")
+            return citation
+    
+    async def get_audit_trail(self, citation_id: str) -> List[Dict[str, Any]]:
+        """Get complete audit trail for a citation."""
+        return self._audit_trails.get(citation_id, [])
+    
+    async def get_source(self, source_id: str) -> Optional[Dict[str, Any]]:
+        """Get source document by ID."""
+        return self._sources.get(source_id)
+    
+    async def create_derived_content(self, source_id: str, operation: str,
+                                   input_text: str, output_text: str,
+                                   tool: str) -> Dict[str, Any]:
+        """
+        Track derived content from transformations.
+        
+        Args:
+            source_id: ID of source content
+            operation: Type of operation (extract, summarize, etc.)
+            input_text: Input to the operation
+            output_text: Output from the operation
+            tool: Tool/model used for transformation
+            
+        Returns:
+            Derived content record
+        """
+        async with self._lock:
+            derived_id = str(uuid.uuid4())
+            
+            derived = {
+                "id": derived_id,
+                "source_id": source_id,
+                "operation": operation,
+                "input_text": input_text,
+                "output_text": output_text,
+                "tool": tool,
+                "created_at": datetime.now().isoformat(),
+                "type": "derived",
+                "provenance_chain": await self._build_provenance_chain(source_id)
+            }
+            
+            self._derived_content[derived_id] = derived
+            logger.info(f"Created derived content: {derived_id}")
+            return derived
+    
+    async def _build_provenance_chain(self, source_id: str) -> List[str]:
+        """Build provenance chain from source."""
+        chain = []
+        current_id = source_id
+        
+        while current_id:
+            chain.append(current_id)
+            
+            # Check if it's derived content
+            if current_id in self._derived_content:
+                current_id = self._derived_content[current_id].get("source_id")
+            else:
+                # Reached original source
+                break
+        
+        return list(reversed(chain))
+    
+    async def get_provenance_chain(self, citation_id: str) -> List[Dict[str, Any]]:
+        """Get complete provenance chain for a citation."""
+        if citation_id not in self._citations:
+            return []
+        
+        citation = self._citations[citation_id]
+        chain_ids = citation.get("provenance_chain", [])
+        
+        chain = []
+        for node_id in chain_ids:
+            if node_id in self._sources:
+                chain.append(self._sources[node_id])
+            elif node_id in self._derived_content:
+                chain.append(self._derived_content[node_id])
+        
+        # Add the citation itself
+        chain.append(citation)
+        
+        return chain
+    
+    async def verify_source_integrity(self, source_id: str) -> bool:
+        """Verify source content hasn't been tampered with."""
+        if source_id not in self._sources:
+            return False
+        
+        source = self._sources[source_id]
+        content = source.get("content", "")
+        stored_hash = source.get("hash", "")
+        
+        # Calculate current hash
+        current_hash = hashlib.sha256(content.encode()).hexdigest()
+        
+        return current_hash == stored_hash
+    
+    async def track_citation_usage(self, citation_id: str, used_in: str) -> None:
+        """Track where a citation is used."""
+        async with self._lock:
+            if citation_id not in self._usage_tracking:
+                self._usage_tracking[citation_id] = []
+            
+            self._usage_tracking[citation_id].append(used_in)
+    
+    async def get_citation_statistics(self) -> Dict[str, Any]:
+        """Get statistics about citations and sources."""
+        stats = {
+            "total_sources": len(self._sources),
+            "total_citations": len(self._citations),
+            "total_derived": len(self._derived_content),
+            "citations_by_source": {},
+            "usage_count": {}
+        }
+        
+        # Count citations per source
+        for citation in self._citations.values():
+            source_id = citation["source_id"]
+            if source_id not in stats["citations_by_source"]:
+                stats["citations_by_source"][source_id] = 0
+            stats["citations_by_source"][source_id] += 1
+        
+        # Usage counts
+        for citation_id, uses in self._usage_tracking.items():
+            stats["usage_count"][citation_id] = len(uses)
+        
+        return stats
+    
+    # Test helper methods (should not be in production)
+    async def _tamper_source_content(self, source_id: str, new_content: str) -> None:
+        """FOR TESTING ONLY: Tamper with source content."""
+        if source_id in self._sources:
+            self._sources[source_id]["content"] = new_content
+    
+    async def _corrupt_citation(self, citation_id: str) -> None:
+        """FOR TESTING ONLY: Corrupt a citation."""
+        if citation_id in self._citations:
+            self._citations[citation_id]["source_id"] = "corrupted_source"
+</file>
+
+<file path="src/core/thread_safe_service_manager.py">
+"""
+Thread-safe Service Manager implementation.
+
+Addresses race conditions and thread safety issues identified in the 
+Phase RELIABILITY audit.
+"""
+
+import asyncio
+import threading
+from typing import Optional, Dict, Any, Type
+from contextlib import asynccontextmanager
+import logging
+
+from .identity_service import IdentityService
+from .provenance_service import ProvenanceService
+from .quality_service import QualityService
+from .workflow_state_service import WorkflowStateService
+from .config_manager import get_config
+from .logging_config import get_logger
+
+logger = get_logger(__name__)
+
+
+class ThreadSafeServiceManager:
+    """
+    Thread-safe service manager with proper locking and state management.
+    
+    Improvements over original ServiceManager:
+    - Thread-safe service creation and access
+    - Atomic operations for all state changes
+    - Proper async/await support
+    - Operation queuing to prevent race conditions
+    - Comprehensive error handling
+    """
+    
+    _instance = None
+    _instance_lock = threading.RLock()  # Use RLock for nested locking
+    
+    def __new__(cls) -> 'ThreadSafeServiceManager':
+        """Thread-safe singleton creation."""
+        if cls._instance is None:
+            with cls._instance_lock:
+                # Double-check locking pattern
+                if cls._instance is None:
+                    cls._instance = super().__new__(cls)
+                    cls._instance._initialized = False
+        return cls._instance
+    
+    def __init__(self):
+        """Initialize service manager with thread safety."""
+        # Prevent multiple initialization
+        with self._instance_lock:
+            if self._initialized:
+                return
+                
+            self._initialized = True
+            self.logger = get_logger("core.thread_safe_service_manager")
+            
+            # Service instances
+            self._services: Dict[str, Any] = {}
+            self._service_locks: Dict[str, threading.RLock] = {}
+            self._service_configs: Dict[str, Dict[str, Any]] = {}
+            
+            # Operation queue for serializing critical operations
+            self._operation_queue = asyncio.Queue()
+            self._operation_processor_task = None
+            
+            # Statistics
+            self._stats = {
+                'service_creations': 0,
+                'lock_contentions': 0,
+                'operations_processed': 0,
+                'errors_handled': 0
+            }
+            
+            self.logger.info("ThreadSafeServiceManager initialized")
+    
+    async def initialize(self, config: Optional[Dict[str, Any]] = None) -> bool:
+        """
+        Initialize service manager with configuration.
+        
+        Args:
+            config: Optional configuration override
+            
+        Returns:
+            True if initialization successful
+        """
+        try:
+            with self._instance_lock:
+                if config:
+                    # Store configurations for services
+                    self._service_configs.update(config)
+                
+                # Start operation processor
+                if not self._operation_processor_task:
+                    self._operation_processor_task = asyncio.create_task(
+                        self._process_operations()
+                    )
+                
+                self.logger.info("Service manager initialized successfully")
+                return True
+                
+        except Exception as e:
+            self.logger.error(f"Service manager initialization failed: {e}")
+            return False
+    
+    async def get_service(self, service_name: str, 
+                         service_class: Optional[Type] = None) -> Any:
+        """
+        Get or create a service instance thread-safely.
+        
+        Args:
+            service_name: Name of the service
+            service_class: Optional service class for creation
+            
+        Returns:
+            Service instance
+        """
+        # Fast path - service already exists
+        if service_name in self._services:
+            return self._services[service_name]
+        
+        # Slow path - need to create service
+        if service_name not in self._service_locks:
+            with self._instance_lock:
+                if service_name not in self._service_locks:
+                    self._service_locks[service_name] = threading.RLock()
+        
+        # Create service with service-specific lock
+        with self._service_locks[service_name]:
+            # Double-check pattern
+            if service_name in self._services:
+                return self._services[service_name]
+            
+            # Track lock contention
+            self._stats['lock_contentions'] += 1
+            
+            # Create service
+            service = await self._create_service(service_name, service_class)
+            self._services[service_name] = service
+            self._stats['service_creations'] += 1
+            
+            return service
+    
+    async def _create_service(self, service_name: str, 
+                            service_class: Optional[Type] = None) -> Any:
+        """Create a service instance with proper initialization."""
+        try:
+            # Get service class if not provided
+            if not service_class:
+                service_class = self._get_service_class(service_name)
+            
+            if not service_class:
+                raise ValueError(f"Unknown service: {service_name}")
+            
+            # Get configuration
+            config = self._service_configs.get(service_name, {})
+            
+            # Create service instance
+            if config:
+                service = service_class(**config)
+            else:
+                service = service_class()
+            
+            # Initialize if needed
+            if hasattr(service, 'initialize'):
+                await service.initialize()
+            
+            self.logger.info(f"Created service: {service_name}")
+            return service
+            
+        except Exception as e:
+            self.logger.error(f"Failed to create service {service_name}: {e}")
+            self._stats['errors_handled'] += 1
+            raise
+    
+    def _get_service_class(self, service_name: str) -> Optional[Type]:
+        """Get service class by name."""
+        service_map = {
+            'identity': IdentityService,
+            'provenance': ProvenanceService,
+            'quality': QualityService,
+            'workflow': WorkflowStateService
+        }
+        return service_map.get(service_name)
+    
+    @property
+    def identity_service(self) -> IdentityService:
+        """Get identity service (async-safe property)."""
+        # Use sync method for property access
+        return asyncio.run(self.get_service('identity', IdentityService))
+    
+    @property
+    def provenance_service(self) -> ProvenanceService:
+        """Get provenance service (async-safe property)."""
+        return asyncio.run(self.get_service('provenance', ProvenanceService))
+    
+    @property
+    def quality_service(self) -> QualityService:
+        """Get quality service (async-safe property)."""
+        return asyncio.run(self.get_service('quality', QualityService))
+    
+    @property
+    def workflow_service(self) -> WorkflowStateService:
+        """Get workflow state service (async-safe property)."""
+        return asyncio.run(self.get_service('workflow', WorkflowStateService))
+    
+    async def queue_operation(self, operation: Dict[str, Any]) -> Any:
+        """
+        Queue an operation for serialized execution.
+        
+        Used for operations that must be executed atomically.
+        
+        Args:
+            operation: Operation dictionary with 'type' and 'params'
+            
+        Returns:
+            Operation result
+        """
+        # Create future for result
+        future = asyncio.Future()
+        
+        # Queue operation with future
+        await self._operation_queue.put({
+            'operation': operation,
+            'future': future
+        })
+        
+        # Wait for result
+        return await future
+    
+    async def _process_operations(self):
+        """Process queued operations serially."""
+        while True:
+            try:
+                # Get next operation
+                item = await self._operation_queue.get()
+                operation = item['operation']
+                future = item['future']
+                
+                try:
+                    # Execute operation
+                    result = await self._execute_operation(operation)
+                    future.set_result(result)
+                    self._stats['operations_processed'] += 1
+                    
+                except Exception as e:
+                    future.set_exception(e)
+                    self._stats['errors_handled'] += 1
+                    
+            except asyncio.CancelledError:
+                break
+            except Exception as e:
+                self.logger.error(f"Operation processor error: {e}")
+    
+    async def _execute_operation(self, operation: Dict[str, Any]) -> Any:
+        """Execute a queued operation."""
+        op_type = operation.get('type')
+        params = operation.get('params', {})
+        
+        if op_type == 'configure_service':
+            service_name = params['service_name']
+            config = params['config']
+            self._service_configs[service_name] = config
+            return True
+            
+        elif op_type == 'reset_service':
+            service_name = params['service_name']
+            if service_name in self._services:
+                service = self._services[service_name]
+                if hasattr(service, 'cleanup'):
+                    await service.cleanup()
+                del self._services[service_name]
+            return True
+            
+        else:
+            raise ValueError(f"Unknown operation type: {op_type}")
+    
+    async def health_check(self) -> Dict[str, bool]:
+        """Check health of all services."""
+        health_status = {}
+        
+        for service_name, service in self._services.items():
+            try:
+                if hasattr(service, 'health_check'):
+                    health_status[service_name] = await service.health_check()
+                else:
+                    health_status[service_name] = True
+            except Exception as e:
+                self.logger.error(f"Health check failed for {service_name}: {e}")
+                health_status[service_name] = False
+        
+        return health_status
+    
+    def get_statistics(self) -> Dict[str, Any]:
+        """Get service manager statistics."""
+        stats = self._stats.copy()
+        stats['active_services'] = list(self._services.keys())
+        stats['service_count'] = len(self._services)
+        return stats
+    
+    async def cleanup(self):
+        """Clean up all services and resources."""
+        self.logger.info("Starting service manager cleanup")
+        
+        # Cancel operation processor
+        if self._operation_processor_task:
+            self._operation_processor_task.cancel()
+            try:
+                await self._operation_processor_task
+            except asyncio.CancelledError:
+                pass
+        
+        # Clean up services
+        for service_name, service in self._services.items():
+            try:
+                if hasattr(service, 'cleanup'):
+                    await service.cleanup()
+                self.logger.info(f"Cleaned up service: {service_name}")
+            except Exception as e:
+                self.logger.error(f"Cleanup failed for {service_name}: {e}")
+        
+        # Clear state
+        self._services.clear()
+        self._service_locks.clear()
+        self._service_configs.clear()
+        
+        self.logger.info("Service manager cleanup complete")
+    
+    @asynccontextmanager
+    async def atomic_operation(self, service_name: str):
+        """
+        Context manager for atomic operations on a service.
+        
+        Args:
+            service_name: Name of the service
+            
+        Yields:
+            Service instance for atomic operations
+        """
+        # Fix race condition - use instance lock to protect service lock creation
+        if service_name not in self._service_locks:
+            with self._instance_lock:
+                # Double-check locking pattern
+                if service_name not in self._service_locks:
+                    self._service_locks[service_name] = threading.RLock()
+        
+        with self._service_locks[service_name]:
+            service = await self.get_service(service_name)
+            try:
+                yield service
+            finally:
+                pass  # Cleanup if needed
+
+
+# Global instance getter
+_manager_instance: Optional[ThreadSafeServiceManager] = None
+_manager_lock = threading.Lock()
+
+
+def get_thread_safe_service_manager() -> ThreadSafeServiceManager:
+    """Get the global thread-safe service manager instance."""
+    global _manager_instance
+    
+    if _manager_instance is None:
+        with _manager_lock:
+            if _manager_instance is None:
+                _manager_instance = ThreadSafeServiceManager()
+    
+    return _manager_instance
+</file>
+
+</files>

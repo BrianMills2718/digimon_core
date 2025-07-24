@@ -1,0 +1,32 @@
+validation_config:
+  name: "Entity ID Mapping Consistency"
+  timestamp: "2025-07-23T16:00:00"
+  
+target_files:
+  - src/core/entity_id_manager.py
+  
+claims:
+  - "Entity ID Manager ensures bidirectional consistency between Neo4j and SQLite"
+  - "ID collision detection implemented with proper uniqueness validation"
+  - "Thread-safe ID generation with atomic operations"
+  
+specific_checks:
+  - check: "Bidirectional mapping maintained"
+    evidence: "Methods for both neo4j_to_sqlite and sqlite_to_neo4j mapping"
+  - check: "Collision detection on ID creation"
+    evidence: "Validates ID uniqueness before assignment"
+  - check: "Thread safety for concurrent ID generation"
+    evidence: "Uses locks or atomic operations for ID generation"
+    
+validation_prompt: |
+  Validate Entity ID Manager implementation:
+  
+  REQUIREMENTS:
+  1. Bidirectional ID mapping between Neo4j and SQLite
+  2. Collision detection before ID assignment
+  3. Thread-safe concurrent ID generation
+  4. Proper error handling for ID conflicts
+  
+  FOCUS: ID generation, mapping storage, and consistency checks
+  
+  EVIDENCE: Show specific code for mapping methods and thread safety

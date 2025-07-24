@@ -1,0 +1,69 @@
+{
+  "claim": "Treatment X significantly reduces mortality compared to standard care",
+  "domain": "medical_research",
+  "posterior_belief": 0.9642857142857143,
+  "confidence_bounds": [
+    0.8520359926824961,
+    0.999
+  ],
+  "belief_change": 0.4642857142857143,
+  "bayesian_update": {
+    "prior": 0.5,
+    "likelihood_h": 0.9,
+    "likelihood_not_h": 0.1,
+    "evidence_weight": 1.0,
+    "bayes_factor": 9.0,
+    "log_bayes_factor": 2.1972245773362196,
+    "marginal_likelihood": 0.5,
+    "posterior_belief": 0.9642857142857143,
+    "posterior_odds": 27.0,
+    "prior_odds": 1.0,
+    "belief_change": 0.4642857142857143,
+    "odds_ratio": 27.0,
+    "posterior_lower_bound": 0.8520359926824961,
+    "posterior_upper_bound": 0.999
+  },
+  "parameters": {
+    "prior_belief": 0.5,
+    "prior_confidence": 7.0,
+    "likelihood_given_h": 0.9,
+    "likelihood_given_not_h": 0.1,
+    "evidence_weight": 1.0,
+    "evidence_quality": 1.5,
+    "update_confidence": 0.9,
+    "parameter_reasoning": {
+      "prior_belief": "Given the domain of medical research, it is reasonable to start with a neutral prior belief of 0.5. This is because medical treatments can often have varying effects and it is not uncommon for a new treatment to be effective.",
+      "prior_confidence": "The confidence in the prior is relatively high (7.0) because the domain of medical research is well-established and rigorous. However, there is always room for new discoveries and improvements.",
+      "likelihood_given_h": "If the claim is true, the likelihood of observing this evidence is high (0.9). This is because the study was large, randomized, controlled, and published in a reputable journal. The results were statistically significant and the follow-up was nearly complete.",
+      "likelihood_given_not_h": "If the claim is false, the likelihood of observing this evidence is low (0.1). This is because it would be unlikely for a rigorous study to produce such strong results by chance alone.",
+      "evidence_weight": "The evidence weight is full (1.0) because the study was rigorous and the results were statistically significant.",
+      "evidence_quality": "The evidence quality is high (1.5) because the study was large, randomized, controlled, and published in a reputable journal. The results were statistically significant and the follow-up was nearly complete.",
+      "update_confidence": "The confidence in the update is high (0.9) because the evidence is strong and the likelihood assessments are based on rigorous reasoning.",
+      "bayes_factor_interpretation": "The Bayes factor is high, indicating that the evidence strongly supports the claim."
+    }
+  },
+  "bayes_factor": 9.0,
+  "bayes_factor_interpretation": "Moderate evidence for hypothesis",
+  "evidence_strength": "Very strong positive update",
+  "update_magnitude": "Major belief revision",
+  "parameter_confidence": 0.9,
+  "methodology": "formal_bayesian_with_llm_parameters",
+  "mathematical_specification": {
+    "bayes_theorem": "P(H|E) = P(E|H) \u00d7 P(H) / P(E)",
+    "bayes_factor": "BF = P(E|H) / P(E|\u00acH)",
+    "posterior_odds": "P(H|E) / P(\u00acH|E) = BF \u00d7 P(H) / P(\u00acH)",
+    "evidence_weighting": "Effective BF = BF^(weight \u00d7 quality)"
+  },
+  "assessment_timestamp": "2025-07-23T15:46:37.841235",
+  "api_calls_made": 1,
+  "llm_reasoning": {
+    "prior_belief": "Given the domain of medical research, it is reasonable to start with a neutral prior belief of 0.5. This is because medical treatments can often have varying effects and it is not uncommon for a new treatment to be effective.",
+    "prior_confidence": "The confidence in the prior is relatively high (7.0) because the domain of medical research is well-established and rigorous. However, there is always room for new discoveries and improvements.",
+    "likelihood_given_h": "If the claim is true, the likelihood of observing this evidence is high (0.9). This is because the study was large, randomized, controlled, and published in a reputable journal. The results were statistically significant and the follow-up was nearly complete.",
+    "likelihood_given_not_h": "If the claim is false, the likelihood of observing this evidence is low (0.1). This is because it would be unlikely for a rigorous study to produce such strong results by chance alone.",
+    "evidence_weight": "The evidence weight is full (1.0) because the study was rigorous and the results were statistically significant.",
+    "evidence_quality": "The evidence quality is high (1.5) because the study was large, randomized, controlled, and published in a reputable journal. The results were statistically significant and the follow-up was nearly complete.",
+    "update_confidence": "The confidence in the update is high (0.9) because the evidence is strong and the likelihood assessments are based on rigorous reasoning.",
+    "bayes_factor_interpretation": "The Bayes factor is high, indicating that the evidence strongly supports the claim."
+  }
+}

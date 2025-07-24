@@ -1,0 +1,33 @@
+project_name: "Distributed Transaction Validation"
+
+include_patterns:
+  - "src/core/distributed_transaction_manager.py"
+
+custom_prompt: |
+  Validate ONLY this specific claim:
+  
+  **CLAIM**: Distributed transaction manager implements two-phase commit across Neo4j and SQLite
+  
+  SPECIFIC CHECKS:
+  1. TransactionState enum with states: PREPARING, PREPARED, COMMITTING, COMMITTED, ABORTING, ABORTED
+  2. DistributedTransactionManager class with required methods
+  3. Two-phase commit protocol in commit_all() method
+  4. Proper rollback handling in rollback_all() method
+  
+  EVIDENCE REQUIRED:
+  - Import statements for Neo4j and SQLite
+  - TransactionState enum definition
+  - Method signatures: begin_transaction, prepare_neo4j, prepare_sqlite, commit_all, rollback_all
+  - Actual 2PC logic: prepare phase followed by commit/abort phase
+  - Error handling that triggers rollback
+  
+  Look specifically at:
+  - Lines 15-25 for TransactionState enum
+  - Lines 30-250 for DistributedTransactionManager implementation
+  - commit_all() method for 2PC protocol
+  - Exception handling blocks
+  
+  IGNORE: Everything not related to distributed transactions
+
+claims_of_success:
+  - "Two-phase commit protocol fully implemented with proper state management"

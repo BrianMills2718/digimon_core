@@ -1,0 +1,253 @@
+{
+  "scenario": "\n    Analyze academic research papers on cognitive mapping and network analysis to:\n    1. Extract key concepts and theoretical frameworks\n    2. Identify relationships between different research approaches  \n    3. Build a knowledge network of concepts and methodologies\n    4. Analyze collaboration patterns and their impact on research outcomes\n    \n    The analysis should adapt if tools encounter issues with:\n    - Document processing failures or poor OCR quality\n    - Named entity recognition producing generic results\n    - Relationship extraction finding insufficient connections\n    - Network analysis revealing unexpected structural patterns\n    ",
+  "initial_plan": [
+    {
+      "step_id": "step_1",
+      "step_name": "Document Processing",
+      "tool_name": "document_processor",
+      "inputs": {
+        "documents": [
+          "paper1.txt",
+          "paper2.txt"
+        ]
+      },
+      "expected_outputs": [
+        "extracted_text",
+        "metadata"
+      ],
+      "success_criteria": {
+        "text_extraction_rate": 0.9,
+        "metadata_completeness": 0.8
+      },
+      "fallback_strategies": [
+        "manual_text_extraction",
+        "alternative_parser"
+      ]
+    },
+    {
+      "step_id": "step_2",
+      "step_name": "Named Entity Recognition",
+      "tool_name": "text_analyzer",
+      "inputs": {
+        "text_data": "from_step_1",
+        "analysis_type": "entities"
+      },
+      "expected_outputs": [
+        "entities",
+        "entity_types",
+        "confidence_scores"
+      ],
+      "success_criteria": {
+        "entity_extraction_rate": 0.7,
+        "confidence_threshold": 0.6
+      },
+      "fallback_strategies": [
+        "alternative_ner_model",
+        "manual_annotation"
+      ]
+    },
+    {
+      "step_id": "step_3",
+      "step_name": "Relationship Extraction",
+      "tool_name": "relationship_extractor",
+      "inputs": {
+        "entities": "from_step_2",
+        "text_data": "from_step_1"
+      },
+      "expected_outputs": [
+        "relationships",
+        "relationship_types",
+        "strength_scores"
+      ],
+      "success_criteria": {
+        "relationship_count": 50,
+        "avg_confidence": 0.7
+      },
+      "fallback_strategies": [
+        "co_occurrence_analysis",
+        "manual_relationship_mapping"
+      ]
+    },
+    {
+      "step_id": "step_4",
+      "step_name": "Network Analysis",
+      "tool_name": "network_analyzer",
+      "inputs": {
+        "entities": "from_step_2",
+        "relationships": "from_step_3"
+      },
+      "expected_outputs": [
+        "network_metrics",
+        "communities",
+        "centrality_measures"
+      ],
+      "success_criteria": {
+        "network_density": 0.3,
+        "community_modularity": 0.4
+      },
+      "fallback_strategies": [
+        "simplified_network_analysis",
+        "statistical_correlation"
+      ]
+    }
+  ],
+  "execution_results": [
+    {
+      "step_id": "step_1",
+      "tool_name": "document_processor",
+      "status": "partial",
+      "output_data": {
+        "text_extracted": true,
+        "metadata": {
+          "pages": 15,
+          "authors": 2
+        }
+      },
+      "quality_score": 0.65,
+      "execution_time": 3.504049301147461,
+      "issues_encountered": [
+        "OCR errors in mathematical formulas",
+        "Some metadata fields missing"
+      ],
+      "recommendations": [
+        "Consider manual verification of formulas",
+        "Try alternative OCR engine"
+      ]
+    },
+    {
+      "step_id": "step_2",
+      "tool_name": "text_analyzer",
+      "status": "partial",
+      "output_data": {
+        "entities": [
+          "research",
+          "analysis",
+          "data"
+        ],
+        "confidence": [
+          0.6,
+          0.58,
+          0.62
+        ]
+      },
+      "quality_score": 0.55,
+      "execution_time": 5.276481866836548,
+      "issues_encountered": [
+        "Generic entities extracted",
+        "Low confidence scores",
+        "Domain-specific terms missed"
+      ],
+      "recommendations": [
+        "Use domain-specific NER model",
+        "Add custom entity patterns"
+      ]
+    },
+    {
+      "step_id": "step_2",
+      "tool_name": "text_analyzer",
+      "status": "success",
+      "output_data": {
+        "entities": [
+          "cognitive mapping",
+          "decision making",
+          "network analysis"
+        ],
+        "confidence": [
+          0.92,
+          0.87,
+          0.94
+        ]
+      },
+      "quality_score": 0.88,
+      "execution_time": 4.00403094291687,
+      "issues_encountered": [],
+      "recommendations": [
+        "High-quality entity extraction",
+        "Good confidence scores"
+      ]
+    },
+    {
+      "step_id": "step_3",
+      "tool_name": "relationship_extractor",
+      "status": "success",
+      "output_data": {
+        "entities": [
+          "cognitive mapping",
+          "decision making",
+          "network analysis"
+        ],
+        "confidence": [
+          0.92,
+          0.87,
+          0.94
+        ]
+      },
+      "quality_score": 0.88,
+      "execution_time": 4.0039145946502686,
+      "issues_encountered": [],
+      "recommendations": [
+        "High-quality entity extraction",
+        "Good confidence scores"
+      ]
+    },
+    {
+      "step_id": "step_4",
+      "tool_name": "network_analyzer",
+      "status": "partial",
+      "output_data": {
+        "nodes": 15,
+        "edges": 8,
+        "density": 0.04,
+        "communities": 1
+      },
+      "quality_score": 0.45,
+      "execution_time": 2.0018832683563232,
+      "issues_encountered": [
+        "Very sparse network",
+        "Limited connectivity",
+        "Single large component"
+      ],
+      "recommendations": [
+        "Lower relationship thresholds",
+        "Include indirect relationships"
+      ]
+    }
+  ],
+  "plan_adaptations": [
+    {
+      "step_index": 1,
+      "trigger": "Low quality score: 0.55",
+      "adaptation_type": "add_preprocessing",
+      "changes_made": "Added preprocessing step to improve data quality",
+      "timestamp": "2025-07-23T22:24:49.686359"
+    }
+  ],
+  "final_synthesis": {
+    "execution_summary": {
+      "total_steps": 5,
+      "successful_steps": 2,
+      "partial_steps": 3,
+      "failed_steps": 0,
+      "average_quality": 0.682
+    },
+    "adaptation_effectiveness": {
+      "adaptations_made": 1,
+      "adaptation_success_rate": 1.0,
+      "most_effective_strategy": "add_preprocessing"
+    },
+    "key_insights": [
+      "Executed 5 analytical steps with 68.2% average quality",
+      "Made 1 plan adaptations to address execution issues",
+      "Achieved 2/5 successful step completions"
+    ],
+    "recommendations": [
+      "Consider improving data preprocessing to enhance tool performance"
+    ]
+  },
+  "metrics": {
+    "duration": 26.796443939208984,
+    "adaptations_made": 1,
+    "success_rate": 0.4,
+    "plan_efficiency": 1.25
+  }
+}

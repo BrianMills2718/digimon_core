@@ -1,0 +1,33 @@
+project_name: "Phase RELIABILITY Implementation Validation"
+
+include_patterns:
+  - "src/core/provenance_manager.py"
+  - "src/monitoring/performance_tracker.py"
+  - "src/core/sla_monitor.py"
+
+custom_prompt: |
+  Validate the Phase RELIABILITY implementation claims for KGAS. For each claimed fix, verify:
+  
+  1. The implementation is present in the specified file
+  2. The implementation is complete (not a stub or placeholder)
+  3. The implementation addresses the specific issue mentioned
+  
+  Focus ONLY on these three critical fixes:
+  - Audit Trail Immutability in ProvenanceManager
+  - Performance Tracker implementation
+  - SLA Monitor implementation
+
+claims_of_success:
+  - claim: "Audit trails use cryptographic chaining preventing tampering"
+    evidence: "ImmutableAuditTrail class with SHA256 hash chains in provenance_manager.py"
+    files: ["src/core/provenance_manager.py"]
+    
+  - claim: "Performance tracking captures all operation timings with baseline establishment"
+    evidence: "PerformanceTracker class with automatic baseline calculation in performance_tracker.py"
+    files: ["src/monitoring/performance_tracker.py"]
+    
+  - claim: "SLA monitoring detects and alerts on violations"
+    evidence: "SLAMonitor class with configurable thresholds and alert handlers in sla_monitor.py"
+    files: ["src/core/sla_monitor.py"]
+
+# Validation criteria included in custom_prompt above

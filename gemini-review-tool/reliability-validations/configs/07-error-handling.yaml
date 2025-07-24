@@ -1,0 +1,35 @@
+project_name: "Error Handling Validation"
+
+include_patterns:
+  - "src/core/error_taxonomy.py"
+
+custom_prompt: |
+  Validate ONLY this specific claim:
+  
+  **CLAIM**: Unified error taxonomy with categorization and recovery strategies
+  
+  SPECIFIC CHECKS:
+  1. ErrorCategory enum with comprehensive categories
+  2. ErrorSeverity levels (CRITICAL, HIGH, MEDIUM, LOW)
+  3. CentralizedErrorHandler class
+  4. Recovery strategy mapping
+  5. Escalation logic for unrecoverable errors
+  
+  EVIDENCE REQUIRED:
+  - ErrorCategory enum including DATA_CORRUPTION, ACADEMIC_INTEGRITY, etc.
+  - ErrorSeverity enum with 4 levels
+  - Recovery strategies: RETRY, BACKOFF, REPAIR, ESCALATE
+  - handle_error() method with strategy selection
+  - determine_recovery_strategy() logic
+  - Structured logging in log_structured_error()
+  
+  Look specifically at:
+  - Enum definitions at top of file
+  - CentralizedErrorHandler class methods
+  - Recovery strategy mapping/logic
+  - Error categorization logic
+  
+  IGNORE: Everything not related to error taxonomy and handling
+
+claims_of_success:
+  - "Comprehensive error taxonomy with automated recovery strategies"

@@ -1,0 +1,68 @@
+project_name: "Phase 7.1 Service Architecture Implementation Validation"
+
+include_patterns:
+  - "src/core/pipeline_orchestrator.py"
+  - "src/core/enhanced_identity_service.py"
+  - "src/core/workflow_models.py"
+  - "tests/integration/test_service_orchestration.py"
+  - "tests/integration/test_identity_service_coordination.py"
+
+custom_prompt: |
+  Validate the implementation of Phase 7.1 Service Architecture tasks.
+  
+  For each claim, verify:
+  1. Implementation exists in the specified file
+  2. Implementation is complete (not stub/placeholder)
+  3. Implementation meets the requirements
+  
+  Focus ONLY on these specific claims and report verdict for each.
+
+claims_of_success:
+  - claim: "Task 7.1.1: Enhanced PipelineOrchestrator with async orchestrate_research_workflow method"
+    location: "src/core/pipeline_orchestrator.py lines 640-770"
+    requirements:
+      - "Async method that orchestrates workflow across all services"
+      - "Handles workflow state, checkpoints, and service coordination"
+      - "Returns WorkflowResult with complete metadata"
+  
+  - claim: "Task 7.1.1: Workflow checkpoint/restart functionality"
+    location: "src/core/pipeline_orchestrator.py lines 772-875"
+    requirements:
+      - "start_workflow, pause_workflow, resume_workflow methods"
+      - "Checkpoint creation and restoration"
+      - "State persistence across pause/resume"
+  
+  - claim: "Task 7.1.1: Service health monitoring"
+    location: "src/core/pipeline_orchestrator.py lines 943-1005"
+    requirements:
+      - "get_service_health method tracking all services"
+      - "start_health_monitoring for continuous monitoring"
+      - "mark_service_unhealthy for testing degradation"
+  
+  - claim: "Task 7.1.1: All 9 service orchestration tests passing"
+    location: "tests/integration/test_service_orchestration.py"
+    requirements:
+      - "9 test methods in TestPipelineOrchestratorService class"
+      - "Tests cover all claimed functionality"
+      - "All tests should pass when run"
+  
+  - claim: "Task 7.1.2: Enhanced IdentityService with cross-modal resolution"
+    location: "src/core/enhanced_identity_service.py lines 100-200"
+    requirements:
+      - "resolve_cross_modal_entities method"
+      - "Tracks mentions across graph, table, vector modalities"
+      - "Merges entities from different modalities"
+  
+  - claim: "Task 7.1.2: Conflict resolution and batch processing"
+    location: "src/core/enhanced_identity_service.py lines 200-400"
+    requirements:
+      - "resolve_entities_with_conflicts method"
+      - "batch_create_mentions and batch_resolve_entities methods"
+      - "Handles entity type conflicts"
+  
+  - claim: "Task 7.1.2: 4 out of 8 identity service tests passing"
+    location: "tests/integration/test_identity_service_coordination.py"
+    requirements:
+      - "8 test methods in TestIdentityServiceCoordination class"
+      - "At least 4 tests should be passing"
+      - "Tests cover cross-modal resolution, conflicts, persistence"

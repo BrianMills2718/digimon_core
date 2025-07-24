@@ -7,7 +7,7 @@ api:
 database:
   database: neo4j
   host: localhost
-  password: ''
+  password: 'testpassword'
   port: 7687
   username: neo4j
 system:

@@ -1,0 +1,70 @@
+project_name: "Phase 2.1 Graph Analytics Complete Implementation Validation"
+
+include_patterns:
+  # Analytics tools
+  - "src/analytics/scale_free_analyzer.py"
+  - "src/analytics/graph_export_tool.py"
+  - "src/analytics/__init__.py"
+  # Real AI/ML services
+  - "src/analytics/real_embedding_service.py"
+  - "src/analytics/real_llm_service.py"
+  - "src/analytics/advanced_scoring.py"
+  - "src/analytics/real_percentile_ranker.py"
+  - "src/analytics/theory_knowledge_base.py"
+  # Test files
+  - "tests/analytics/test_scale_free_analyzer.py"
+  - "tests/analytics/test_graph_export_tool.py"
+  # Documentation
+  - "docs/roadmap/phases/phase-2.1-graph-analytics/phase-2.1-completion.md"
+
+claims_of_success:
+  - "Phase 2.1 is 100% complete with all 11 graph analytics tools (T50-T60) fully implemented"
+  - "T59 ScaleFreeAnalyzer implements power-law distribution detection using the powerlaw package, hub analysis, and temporal evolution tracking"
+  - "T60 GraphExportTool supports 10 export formats including GraphML, GEXF, JSON-LD, Cytoscape, with compression and batch export capabilities"
+  - "All 5 mock services have been replaced with real AI/ML implementations: RealEmbeddingService, RealLLMService, AdvancedScoring, RealPercentileRanker, TheoryKnowledgeBase"
+  - "RealEmbeddingService uses Sentence-BERT for text embeddings and CLIP models for image embeddings"
+  - "RealLLMService integrates with OpenAI GPT-4 and Anthropic Claude APIs for hypothesis generation"
+  - "AdvancedScoring uses transformer models for semantic similarity and zero-shot classification instead of keyword counting"
+  - "RealPercentileRanker uses scipy.stats for statistical percentile calculations and NetworkX for collaboration network centrality"
+  - "TheoryKnowledgeBase queries Neo4j database for dynamic theory identification instead of returning hardcoded lists"
+  - "All new tools have comprehensive test suites with multiple test methods covering various scenarios"
+  - "The analytics __init__.py file exports all new tools and error classes"
+  - "All implementations maintain <2 second response time requirements"
+
+custom_prompt: |
+  You are validating that Phase 2.1 of the KGAS project has been successfully completed with 100% implementation.
+  
+  For each claim, verify:
+  
+  1. **Implementation Completeness**: Are the claimed tools fully implemented with all features?
+  2. **Real AI/ML Usage**: Do the implementations use actual AI/ML libraries (not mocks or random values)?
+  3. **Test Coverage**: Are there comprehensive tests for the new tools?
+  4. **Integration**: Are the new tools properly exported and integrated into the analytics module?
+  5. **Documentation**: Is the completion properly documented?
+  
+  Specific verification points:
+  
+  For T59 ScaleFreeAnalyzer:
+  - Uses powerlaw package for fitting
+  - Implements hub analysis methods
+  - Includes temporal analysis capability
+  - Has proper error handling
+  
+  For T60 GraphExportTool:
+  - Supports all 10 claimed formats
+  - Implements compression functionality
+  - Has batch export capability
+  - Includes subgraph export
+  
+  For Real Services:
+  - Each service uses real libraries (transformers, scipy, networkx, etc.)
+  - No random number generation for actual results
+  - Proper async implementation
+  - Integration with existing analytics tools
+  
+  Mark each claim as:
+  - ✅ FULLY RESOLVED if implementation is complete and verified
+  - ⚠️ PARTIALLY RESOLVED if mostly complete but missing some features
+  - ❌ NOT RESOLVED if the implementation is missing or inadequate
+  
+  Provide specific evidence (line numbers, method names) for your assessment.

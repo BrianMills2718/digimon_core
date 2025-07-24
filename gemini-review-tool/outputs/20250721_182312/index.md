@@ -1,1 +1,0 @@
-- [validations/framework_validation.md](validations/framework_validation.md) ‒ 2025-07-21 18:23

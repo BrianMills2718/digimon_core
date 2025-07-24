@@ -1,0 +1,1742 @@
+{
+  "test_start_time": "2025-07-23 15:09:50.161270",
+  "llm_native_results": [
+    {
+      "test_id": "medical_strong",
+      "confidence": 0.82,
+      "epistemic_prior": 0.7,
+      "prior_reasoning": "Given the context of medical research, claims of treatments reducing mortality are not uncommon, and many have been proven to be true. The base rate of similar claims in this field is relatively high. The theoretical foundations in this domain are strong, with a well-established methodology for testing such claims (randomized controlled trials). However, the success rate for this type of research question is not guaranteed, as many potential treatments do not end up showing significant effects. This is an ordinary claim in the field of medical research. The existing evidence base and theoretical constraints are substantial, with rigorous standards for testing and replication.",
+      "confidence_reasoning": "The final confidence is a result of combining the strong prior belief (0.7) with the strong evidence (0.9). The evidence is particularly compelling due to the large randomized controlled trial, statistically significant results, substantial effect size, and good generalizability. However, the confidence is slightly reduced due to the uncertainty about external validity and limited information on long-term effects.",
+      "key_strengths": [
+        "Large randomized controlled trial",
+        "Statistically significant results",
+        "Substantial effect size",
+        "Good generalizability"
+      ],
+      "key_limitations": [
+        "Uncertainty about external validity",
+        "Limited information on long-term effects"
+      ],
+      "quality_assessment": {
+        "study_design": {
+          "score": 1.0,
+          "importance": 1.0,
+          "reasoning": "The study is a large randomized controlled trial, which is the gold standard for testing causal claims in medical research. The use of double-blinding and independent data monitoring further strengthens the reliability of the results."
+        },
+        "sample_size": {
+          "score": 0.9,
+          "importance": 0.8,
+          "reasoning": "The sample size is large (N=2,847), which increases the statistical power of the study and the reliability of the results."
+        },
+        "statistical_significance": {
+          "score": 1.0,
+          "importance": 1.0,
+          "reasoning": "The p-value is less than 0.001, indicating a very low probability that the observed effect is due to chance."
+        },
+        "effect_size": {
+          "score": 0.9,
+          "importance": 0.9,
+          "reasoning": "The effect size is substantial (35% reduction in mortality), which is clinically significant."
+        },
+        "generalizability": {
+          "score": 0.8,
+          "importance": 0.7,
+          "reasoning": "The study was conducted across 15 medical centers and showed consistent effects across age groups, genders, and comorbidity status, suggesting good generalizability."
+        }
+      },
+      "uncertainty_factors": {
+        "external_validity": {
+          "magnitude": 0.2,
+          "importance": 0.7,
+          "description": "While the study has good internal validity, the external validity is uncertain. The study was conducted in medical centers, which may not fully represent the broader population of patients."
+        },
+        "long_term_effects": {
+          "magnitude": 0.3,
+          "importance": 0.6,
+          "description": "The study followed up with participants for 3 years, which is a relatively short period for assessing long-term effects of a treatment."
+        }
+      },
+      "processing_time": 43.44362711906433,
+      "within_expected_range": true,
+      "full_assessment": {
+        "value": 0.82,
+        "reasoning": "The final confidence is a result of combining the strong prior belief (0.7) with the strong evidence (0.9). The evidence is particularly compelling due to the large randomized controlled trial, statistically significant results, substantial effect size, and good generalizability. However, the confidence is slightly reduced due to the uncertainty about external validity and limited information on long-term effects.",
+        "quality_assessment": {
+          "study_design": {
+            "score": 1.0,
+            "importance": 1.0,
+            "reasoning": "The study is a large randomized controlled trial, which is the gold standard for testing causal claims in medical research. The use of double-blinding and independent data monitoring further strengthens the reliability of the results."
+          },
+          "sample_size": {
+            "score": 0.9,
+            "importance": 0.8,
+            "reasoning": "The sample size is large (N=2,847), which increases the statistical power of the study and the reliability of the results."
+          },
+          "statistical_significance": {
+            "score": 1.0,
+            "importance": 1.0,
+            "reasoning": "The p-value is less than 0.001, indicating a very low probability that the observed effect is due to chance."
+          },
+          "effect_size": {
+            "score": 0.9,
+            "importance": 0.9,
+            "reasoning": "The effect size is substantial (35% reduction in mortality), which is clinically significant."
+          },
+          "generalizability": {
+            "score": 0.8,
+            "importance": 0.7,
+            "reasoning": "The study was conducted across 15 medical centers and showed consistent effects across age groups, genders, and comorbidity status, suggesting good generalizability."
+          }
+        },
+        "uncertainty_factors": {
+          "external_validity": {
+            "magnitude": 0.2,
+            "importance": 0.7,
+            "description": "While the study has good internal validity, the external validity is uncertain. The study was conducted in medical centers, which may not fully represent the broader population of patients."
+          },
+          "long_term_effects": {
+            "magnitude": 0.3,
+            "importance": 0.6,
+            "description": "The study followed up with participants for 3 years, which is a relatively short period for assessing long-term effects of a treatment."
+          }
+        },
+        "epistemic_prior": 0.7,
+        "prior_reasoning": "Given the context of medical research, claims of treatments reducing mortality are not uncommon, and many have been proven to be true. The base rate of similar claims in this field is relatively high. The theoretical foundations in this domain are strong, with a well-established methodology for testing such claims (randomized controlled trials). However, the success rate for this type of research question is not guaranteed, as many potential treatments do not end up showing significant effects. This is an ordinary claim in the field of medical research. The existing evidence base and theoretical constraints are substantial, with rigorous standards for testing and replication.",
+        "evidence_synthesis": "The strong evidence substantially updated the prior belief. The prior was already relatively high due to the context of medical research and the nature of the claim. The evidence, particularly the large randomized controlled trial and statistically significant results, provided a strong update to the prior.",
+        "key_strengths": [
+          "Large randomized controlled trial",
+          "Statistically significant results",
+          "Substantial effect size",
+          "Good generalizability"
+        ],
+        "key_limitations": [
+          "Uncertainty about external validity",
+          "Limited information on long-term effects"
+        ],
+        "assessment_context": {
+          "prior_assessment": {
+            "epistemic_prior": 0.7,
+            "reasoning": "Given the context of medical research, claims of treatments reducing mortality are not uncommon, and many have been proven to be true. The base rate of similar claims in this field is relatively high. The theoretical foundations in this domain are strong, with a well-established methodology for testing such claims (randomized controlled trials). However, the success rate for this type of research question is not guaranteed, as many potential treatments do not end up showing significant effects. This is an ordinary claim in the field of medical research. The existing evidence base and theoretical constraints are substantial, with rigorous standards for testing and replication.",
+            "claim_type": "causal",
+            "extraordinariness": "ordinary",
+            "domain_base_rate": "High - many treatments have been shown to reduce mortality in various contexts.",
+            "theoretical_constraints": "High - the claim is constrained by rigorous standards for testing and replication in medical research.",
+            "confidence_in_prior": 0.8
+          },
+          "evidence_assessment": {
+            "evidence_strength": 0.9,
+            "quality_dimensions": {
+              "study_design": {
+                "score": 1.0,
+                "importance": 1.0,
+                "reasoning": "The study is a large randomized controlled trial, which is the gold standard for testing causal claims in medical research. The use of double-blinding and independent data monitoring further strengthens the reliability of the results."
+              },
+              "sample_size": {
+                "score": 0.9,
+                "importance": 0.8,
+                "reasoning": "The sample size is large (N=2,847), which increases the statistical power of the study and the reliability of the results."
+              },
+              "statistical_significance": {
+                "score": 1.0,
+                "importance": 1.0,
+                "reasoning": "The p-value is less than 0.001, indicating a very low probability that the observed effect is due to chance."
+              },
+              "effect_size": {
+                "score": 0.9,
+                "importance": 0.9,
+                "reasoning": "The effect size is substantial (35% reduction in mortality), which is clinically significant."
+              },
+              "generalizability": {
+                "score": 0.8,
+                "importance": 0.7,
+                "reasoning": "The study was conducted across 15 medical centers and showed consistent effects across age groups, genders, and comorbidity status, suggesting good generalizability."
+              }
+            },
+            "uncertainty_factors": {
+              "external_validity": {
+                "magnitude": 0.2,
+                "importance": 0.7,
+                "description": "While the study has good internal validity, the external validity is uncertain. The study was conducted in medical centers, which may not fully represent the broader population of patients."
+              },
+              "long_term_effects": {
+                "magnitude": 0.3,
+                "importance": 0.6,
+                "description": "The study followed up with participants for 3 years, which is a relatively short period for assessing long-term effects of a treatment."
+              }
+            },
+            "key_strengths": [
+              "Large randomized controlled trial",
+              "Statistically significant results",
+              "Substantial effect size",
+              "Good generalizability"
+            ],
+            "key_limitations": [
+              "Uncertainty about external validity",
+              "Limited information on long-term effects"
+            ],
+            "methodological_assessment": "The study is methodologically sound, with a rigorous design, large sample size, and statistically significant results. However, there is some uncertainty about the external validity and long-term effects of the treatment.",
+            "relevance_assessment": "The evidence is highly relevant to the claim. The study directly tested the effect of treatment X on mortality and found a significant reduction.",
+            "overall_reasoning": "Given the strength and relevance of the evidence, there is strong support for the claim that treatment X significantly reduces mortality compared to standard care. However, further research is needed to confirm the external validity and long-term effects of the treatment.",
+            "confidence_in_assessment": 0.85
+          },
+          "confidence_synthesis": {
+            "final_confidence": 0.82,
+            "confidence_reasoning": "The final confidence is a result of combining the strong prior belief (0.7) with the strong evidence (0.9). The evidence is particularly compelling due to the large randomized controlled trial, statistically significant results, substantial effect size, and good generalizability. However, the confidence is slightly reduced due to the uncertainty about external validity and limited information on long-term effects.",
+            "prior_to_posterior_update": "The strong evidence substantially updated the prior belief. The prior was already relatively high due to the context of medical research and the nature of the claim. The evidence, particularly the large randomized controlled trial and statistically significant results, provided a strong update to the prior.",
+            "key_factors": [
+              "Large randomized controlled trial",
+              "Statistically significant results",
+              "Substantial effect size",
+              "Uncertainty about external validity",
+              "Limited information on long-term effects"
+            ],
+            "uncertainty_synthesis": "The two main sources of uncertainty, external validity and long-term effects, were considered in the final confidence. While the study has good internal validity, the external validity is uncertain, which slightly reduces the confidence. The limited information on long-term effects also introduces some uncertainty.",
+            "sensitivity_analysis": "The final confidence is relatively sensitive to the assumptions about external validity and long-term effects. If these uncertainties were resolved, the confidence could potentially be higher.",
+            "meta_uncertainty": 0.1,
+            "meta_reasoning": "The meta-uncertainty is relatively low due to the strong methodology and evidence. However, there is some uncertainty due to the potential for bias in the study and the uncertainty about external validity and long-term effects.",
+            "alternative_interpretations": [
+              "If the uncertainties about external validity and long-term effects were resolved, the confidence could potentially be as high as 0.9. If the evidence was weaker, the confidence could potentially be as low as 0.6."
+            ],
+            "confidence_bounds": {
+              "lower_bound": 0.75,
+              "upper_bound": 0.9,
+              "reasoning": "The lower bound represents a scenario where the uncertainties about external validity and long-term effects are more significant. The upper bound represents a scenario where these uncertainties are resolved and the evidence is even stronger."
+            }
+          }
+        },
+        "creation_timestamp": "2025-07-23T15:10:33.604855",
+        "last_updated": "2025-07-23T15:10:33.604856",
+        "evidence_count": 1,
+        "update_history": [],
+        "domain": "medical_research",
+        "claim_type": "causal"
+      }
+    },
+    {
+      "test_id": "physics_theoretical",
+      "confidence": 0.52,
+      "epistemic_prior": 0.4,
+      "prior_reasoning": "The claim is based on a theoretical model that is mathematically consistent, addresses several unexplained observations, and makes testable predictions. These are all positive indicators. However, the model requires assumptions about extra dimensions that haven't been experimentally verified. This is a significant uncertainty that lowers the prior probability. Furthermore, the base rate of success for new theoretical models in physics is not high, especially for models that require significant departures from established theories (like extra dimensions).",
+      "confidence_reasoning": "The final confidence is a result of combining the prior belief and the strength of the evidence. The prior belief is based on the mathematical consistency of the model, its ability to address unexplained observations, and its predictive power. However, the model's reliance on unverified assumptions about extra dimensions and the lack of experimental validation lower the prior belief. The strength of the evidence is high due to the model's mathematical consistency, explanatory power, and predictive power. However, the lack of experimental validation and the risk associated with the model's assumptions lower the evidence strength.",
+      "key_strengths": [
+        "Mathematically consistent",
+        "Addresses unexplained observations",
+        "Makes testable predictions"
+      ],
+      "key_limitations": [
+        "Relies on unverified assumptions about extra dimensions",
+        "Lacks experimental validation"
+      ],
+      "quality_assessment": {
+        "mathematical_consistency": {
+          "score": 1.0,
+          "importance": 0.8,
+          "reasoning": "Mathematical consistency is crucial in theoretical physics as it ensures the model is logically sound and free from contradictions."
+        },
+        "explanatory_power": {
+          "score": 0.8,
+          "importance": 0.9,
+          "reasoning": "The model's ability to address several unexplained observations is a strong point, as it increases the model's explanatory power."
+        },
+        "predictive_power": {
+          "score": 0.7,
+          "importance": 0.9,
+          "reasoning": "The model's ability to make testable predictions is important as it allows for future validation or falsification of the model."
+        },
+        "assumption_validity": {
+          "score": 0.3,
+          "importance": 0.8,
+          "reasoning": "The model's reliance on unverified assumptions about extra dimensions is a significant weakness, as these assumptions may not hold true."
+        }
+      },
+      "uncertainty_factors": {
+        "experimental_validation": {
+          "magnitude": 0.9,
+          "importance": 1.0,
+          "description": "The lack of experimental validation is a major source of uncertainty. Until the model's predictions are tested, its accuracy cannot be fully assessed."
+        },
+        "assumption_risk": {
+          "magnitude": 0.7,
+          "importance": 0.8,
+          "description": "The model's reliance on unverified assumptions about extra dimensions introduces significant risk. If these assumptions are incorrect, the model may be fundamentally flawed."
+        }
+      },
+      "processing_time": 58.688164710998535,
+      "within_expected_range": true,
+      "full_assessment": {
+        "value": 0.52,
+        "reasoning": "The final confidence is a result of combining the prior belief and the strength of the evidence. The prior belief is based on the mathematical consistency of the model, its ability to address unexplained observations, and its predictive power. However, the model's reliance on unverified assumptions about extra dimensions and the lack of experimental validation lower the prior belief. The strength of the evidence is high due to the model's mathematical consistency, explanatory power, and predictive power. However, the lack of experimental validation and the risk associated with the model's assumptions lower the evidence strength.",
+        "quality_assessment": {
+          "mathematical_consistency": {
+            "score": 1.0,
+            "importance": 0.8,
+            "reasoning": "Mathematical consistency is crucial in theoretical physics as it ensures the model is logically sound and free from contradictions."
+          },
+          "explanatory_power": {
+            "score": 0.8,
+            "importance": 0.9,
+            "reasoning": "The model's ability to address several unexplained observations is a strong point, as it increases the model's explanatory power."
+          },
+          "predictive_power": {
+            "score": 0.7,
+            "importance": 0.9,
+            "reasoning": "The model's ability to make testable predictions is important as it allows for future validation or falsification of the model."
+          },
+          "assumption_validity": {
+            "score": 0.3,
+            "importance": 0.8,
+            "reasoning": "The model's reliance on unverified assumptions about extra dimensions is a significant weakness, as these assumptions may not hold true."
+          }
+        },
+        "uncertainty_factors": {
+          "experimental_validation": {
+            "magnitude": 0.9,
+            "importance": 1.0,
+            "description": "The lack of experimental validation is a major source of uncertainty. Until the model's predictions are tested, its accuracy cannot be fully assessed."
+          },
+          "assumption_risk": {
+            "magnitude": 0.7,
+            "importance": 0.8,
+            "description": "The model's reliance on unverified assumptions about extra dimensions introduces significant risk. If these assumptions are incorrect, the model may be fundamentally flawed."
+          }
+        },
+        "epistemic_prior": 0.4,
+        "prior_reasoning": "The claim is based on a theoretical model that is mathematically consistent, addresses several unexplained observations, and makes testable predictions. These are all positive indicators. However, the model requires assumptions about extra dimensions that haven't been experimentally verified. This is a significant uncertainty that lowers the prior probability. Furthermore, the base rate of success for new theoretical models in physics is not high, especially for models that require significant departures from established theories (like extra dimensions).",
+        "evidence_synthesis": "The evidence has updated the prior belief from 0.4 to 0.52. This is due to the model's mathematical consistency, explanatory power, and predictive power. However, the lack of experimental validation and the risk associated with the model's assumptions have limited the extent of this update.",
+        "key_strengths": [
+          "Mathematically consistent",
+          "Addresses unexplained observations",
+          "Makes testable predictions"
+        ],
+        "key_limitations": [
+          "Relies on unverified assumptions about extra dimensions",
+          "Lacks experimental validation"
+        ],
+        "assessment_context": {
+          "prior_assessment": {
+            "epistemic_prior": 0.4,
+            "reasoning": "The claim is based on a theoretical model that is mathematically consistent, addresses several unexplained observations, and makes testable predictions. These are all positive indicators. However, the model requires assumptions about extra dimensions that haven't been experimentally verified. This is a significant uncertainty that lowers the prior probability. Furthermore, the base rate of success for new theoretical models in physics is not high, especially for models that require significant departures from established theories (like extra dimensions).",
+            "claim_type": "theoretical",
+            "extraordinariness": "notable",
+            "domain_base_rate": "Theoretical physics is a field where new models are proposed frequently, but only a small fraction of them end up being widely accepted. The base rate of success is therefore relatively low.",
+            "theoretical_constraints": "The claim is significantly constrained by existing theories. The assumption of extra dimensions is a significant departure from established theories, which makes the claim more uncertain.",
+            "confidence_in_prior": 0.7
+          },
+          "evidence_assessment": {
+            "evidence_strength": 0.7,
+            "quality_dimensions": {
+              "mathematical_consistency": {
+                "score": 1.0,
+                "importance": 0.8,
+                "reasoning": "Mathematical consistency is crucial in theoretical physics as it ensures the model is logically sound and free from contradictions."
+              },
+              "explanatory_power": {
+                "score": 0.8,
+                "importance": 0.9,
+                "reasoning": "The model's ability to address several unexplained observations is a strong point, as it increases the model's explanatory power."
+              },
+              "predictive_power": {
+                "score": 0.7,
+                "importance": 0.9,
+                "reasoning": "The model's ability to make testable predictions is important as it allows for future validation or falsification of the model."
+              },
+              "assumption_validity": {
+                "score": 0.3,
+                "importance": 0.8,
+                "reasoning": "The model's reliance on unverified assumptions about extra dimensions is a significant weakness, as these assumptions may not hold true."
+              }
+            },
+            "uncertainty_factors": {
+              "experimental_validation": {
+                "magnitude": 0.9,
+                "importance": 1.0,
+                "description": "The lack of experimental validation is a major source of uncertainty. Until the model's predictions are tested, its accuracy cannot be fully assessed."
+              },
+              "assumption_risk": {
+                "magnitude": 0.7,
+                "importance": 0.8,
+                "description": "The model's reliance on unverified assumptions about extra dimensions introduces significant risk. If these assumptions are incorrect, the model may be fundamentally flawed."
+              }
+            },
+            "key_strengths": [
+              "Mathematically consistent",
+              "Addresses unexplained observations",
+              "Makes testable predictions"
+            ],
+            "key_limitations": [
+              "Relies on unverified assumptions about extra dimensions",
+              "Lacks experimental validation"
+            ],
+            "methodological_assessment": "The model is methodologically sound in terms of its mathematical consistency, explanatory power, and predictive power. However, its reliance on unverified assumptions and lack of experimental validation are significant limitations.",
+            "relevance_assessment": "The evidence is highly relevant to the claim, as it directly addresses the proposed dark matter model's accuracy in describing cosmic observations.",
+            "overall_reasoning": "While the model has several strengths, its reliance on unverified assumptions and lack of experimental validation introduce significant uncertainty. Therefore, while the evidence is promising, it is not conclusive.",
+            "confidence_in_assessment": 0.7
+          },
+          "confidence_synthesis": {
+            "final_confidence": 0.52,
+            "confidence_reasoning": "The final confidence is a result of combining the prior belief and the strength of the evidence. The prior belief is based on the mathematical consistency of the model, its ability to address unexplained observations, and its predictive power. However, the model's reliance on unverified assumptions about extra dimensions and the lack of experimental validation lower the prior belief. The strength of the evidence is high due to the model's mathematical consistency, explanatory power, and predictive power. However, the lack of experimental validation and the risk associated with the model's assumptions lower the evidence strength.",
+            "prior_to_posterior_update": "The evidence has updated the prior belief from 0.4 to 0.52. This is due to the model's mathematical consistency, explanatory power, and predictive power. However, the lack of experimental validation and the risk associated with the model's assumptions have limited the extent of this update.",
+            "key_factors": [
+              "Mathematical consistency",
+              "Explanatory power",
+              "Predictive power",
+              "Assumption validity",
+              "Experimental validation"
+            ],
+            "uncertainty_synthesis": "The two main sources of uncertainty, the lack of experimental validation and the risk associated with the model's assumptions, have been integrated by considering their magnitude and importance. The lack of experimental validation is a major source of uncertainty, while the risk associated with the model's assumptions is a significant but lesser source of uncertainty.",
+            "sensitivity_analysis": "The final confidence is sensitive to the model's assumptions about extra dimensions. If these assumptions are proven to be incorrect, the final confidence would decrease significantly. Conversely, if these assumptions are validated, the final confidence would increase.",
+            "meta_uncertainty": 0.3,
+            "meta_reasoning": "The meta-uncertainty is relatively low because the assessment is based on a thorough analysis of the model's strengths and weaknesses, as well as the quality of the evidence. However, there is still some uncertainty due to the model's unverified assumptions and the lack of experimental validation.",
+            "alternative_interpretations": [
+              "If the model's assumptions about extra dimensions are validated, the final confidence could be as high as 0.7. If these assumptions are proven to be incorrect, the final confidence could be as low as 0.3."
+            ],
+            "confidence_bounds": {
+              "lower_bound": 0.3,
+              "upper_bound": 0.7,
+              "reasoning": "The lower bound represents a scenario where the model's assumptions about extra dimensions are proven to be incorrect. The upper bound represents a scenario where these assumptions are validated."
+            }
+          }
+        },
+        "creation_timestamp": "2025-07-23T15:11:32.293197",
+        "last_updated": "2025-07-23T15:11:32.293198",
+        "evidence_count": 1,
+        "update_history": [],
+        "domain": "theoretical_physics",
+        "claim_type": "theoretical"
+      }
+    },
+    {
+      "test_id": "social_science_weak",
+      "confidence": 0.35,
+      "epistemic_prior": 0.4,
+      "prior_reasoning": "The claim that wearing red clothing significantly increases perceived attractiveness is not entirely implausible, given that color psychology is a well-studied field in social psychology. However, the claim is not strongly supported by theoretical foundations, and the base rate of similar claims being true is not particularly high. The claim is somewhat ordinary in the field of social psychology, but the existing evidence base is not strong, and the claim is not heavily constrained by existing theory. The study mentioned in the text context has several limitations, including a small sample size, lack of control for other factors, and marginal statistical significance. Therefore, while the claim is not impossible, it should be approached with some skepticism.",
+      "confidence_reasoning": "The final confidence is lower than both the prior and the evidence strength due to the limitations of the study and the uncertainty factors. The study had a small sample size, did not control for confounding variables, and had marginal statistical significance. Additionally, the study's population may not be generalizable and the measurement validity is questionable due to the subjective nature of attractiveness ratings.",
+      "key_strengths": [
+        "The study used a direct comparison of red vs. blue clothing",
+        "The study used a quantitative measure of attractiveness"
+      ],
+      "key_limitations": [
+        "Small sample size",
+        "Lack of control for confounding variables",
+        "Marginal statistical significance"
+      ],
+      "quality_assessment": {
+        "sample_size": {
+          "score": 0.3,
+          "importance": 0.8,
+          "reasoning": "The sample size of 45 is relatively small, which can limit the generalizability of the findings."
+        },
+        "control_of_confounding_variables": {
+          "score": 0.2,
+          "importance": 0.9,
+          "reasoning": "The study did not control for other factors that could influence attractiveness, such as facial features, body shape, or personality traits."
+        },
+        "statistical_significance": {
+          "score": 0.4,
+          "importance": 1.0,
+          "reasoning": "The p-value of 0.08 is above the conventional threshold of 0.05 for statistical significance, suggesting that the observed effect could be due to chance."
+        },
+        "effect_size": {
+          "score": 0.4,
+          "importance": 0.7,
+          "reasoning": "The effect size was small, indicating that the impact of red clothing on perceived attractiveness may not be substantial."
+        }
+      },
+      "uncertainty_factors": {
+        "population_generalizability": {
+          "magnitude": 0.8,
+          "importance": 0.9,
+          "description": "The study used only college students, which may not represent the broader population."
+        },
+        "measurement_validity": {
+          "magnitude": 0.7,
+          "importance": 0.8,
+          "description": "The study relied on subjective ratings of attractiveness, which can be influenced by individual biases and preferences."
+        }
+      },
+      "processing_time": 50.85379362106323,
+      "within_expected_range": true,
+      "full_assessment": {
+        "value": 0.35,
+        "reasoning": "The final confidence is lower than both the prior and the evidence strength due to the limitations of the study and the uncertainty factors. The study had a small sample size, did not control for confounding variables, and had marginal statistical significance. Additionally, the study's population may not be generalizable and the measurement validity is questionable due to the subjective nature of attractiveness ratings.",
+        "quality_assessment": {
+          "sample_size": {
+            "score": 0.3,
+            "importance": 0.8,
+            "reasoning": "The sample size of 45 is relatively small, which can limit the generalizability of the findings."
+          },
+          "control_of_confounding_variables": {
+            "score": 0.2,
+            "importance": 0.9,
+            "reasoning": "The study did not control for other factors that could influence attractiveness, such as facial features, body shape, or personality traits."
+          },
+          "statistical_significance": {
+            "score": 0.4,
+            "importance": 1.0,
+            "reasoning": "The p-value of 0.08 is above the conventional threshold of 0.05 for statistical significance, suggesting that the observed effect could be due to chance."
+          },
+          "effect_size": {
+            "score": 0.4,
+            "importance": 0.7,
+            "reasoning": "The effect size was small, indicating that the impact of red clothing on perceived attractiveness may not be substantial."
+          }
+        },
+        "uncertainty_factors": {
+          "population_generalizability": {
+            "magnitude": 0.8,
+            "importance": 0.9,
+            "description": "The study used only college students, which may not represent the broader population."
+          },
+          "measurement_validity": {
+            "magnitude": 0.7,
+            "importance": 0.8,
+            "description": "The study relied on subjective ratings of attractiveness, which can be influenced by individual biases and preferences."
+          }
+        },
+        "epistemic_prior": 0.4,
+        "prior_reasoning": "The claim that wearing red clothing significantly increases perceived attractiveness is not entirely implausible, given that color psychology is a well-studied field in social psychology. However, the claim is not strongly supported by theoretical foundations, and the base rate of similar claims being true is not particularly high. The claim is somewhat ordinary in the field of social psychology, but the existing evidence base is not strong, and the claim is not heavily constrained by existing theory. The study mentioned in the text context has several limitations, including a small sample size, lack of control for other factors, and marginal statistical significance. Therefore, while the claim is not impossible, it should be approached with some skepticism.",
+        "evidence_synthesis": "The evidence slightly decreased the prior belief due to its limitations and uncertainty factors. While the study did directly compare red vs. blue clothing and used a quantitative measure of attractiveness, these strengths were outweighed by the weaknesses.",
+        "key_strengths": [
+          "The study used a direct comparison of red vs. blue clothing",
+          "The study used a quantitative measure of attractiveness"
+        ],
+        "key_limitations": [
+          "Small sample size",
+          "Lack of control for confounding variables",
+          "Marginal statistical significance"
+        ],
+        "assessment_context": {
+          "prior_assessment": {
+            "epistemic_prior": 0.4,
+            "reasoning": "The claim that wearing red clothing significantly increases perceived attractiveness is not entirely implausible, given that color psychology is a well-studied field in social psychology. However, the claim is not strongly supported by theoretical foundations, and the base rate of similar claims being true is not particularly high. The claim is somewhat ordinary in the field of social psychology, but the existing evidence base is not strong, and the claim is not heavily constrained by existing theory. The study mentioned in the text context has several limitations, including a small sample size, lack of control for other factors, and marginal statistical significance. Therefore, while the claim is not impossible, it should be approached with some skepticism.",
+            "claim_type": "causal",
+            "extraordinariness": "ordinary",
+            "domain_base_rate": "The success rate of similar claims in social psychology is moderate. While color psychology is a well-studied field, the specific claim about red clothing increasing attractiveness is not widely accepted.",
+            "theoretical_constraints": "Existing theory in social psychology does not strongly constrain this claim. While color psychology is a recognized field, the specific effects of different colors on perceptions of attractiveness are not well-established.",
+            "confidence_in_prior": 0.7
+          },
+          "evidence_assessment": {
+            "evidence_strength": 0.4,
+            "quality_dimensions": {
+              "sample_size": {
+                "score": 0.3,
+                "importance": 0.8,
+                "reasoning": "The sample size of 45 is relatively small, which can limit the generalizability of the findings."
+              },
+              "control_of_confounding_variables": {
+                "score": 0.2,
+                "importance": 0.9,
+                "reasoning": "The study did not control for other factors that could influence attractiveness, such as facial features, body shape, or personality traits."
+              },
+              "statistical_significance": {
+                "score": 0.4,
+                "importance": 1.0,
+                "reasoning": "The p-value of 0.08 is above the conventional threshold of 0.05 for statistical significance, suggesting that the observed effect could be due to chance."
+              },
+              "effect_size": {
+                "score": 0.4,
+                "importance": 0.7,
+                "reasoning": "The effect size was small, indicating that the impact of red clothing on perceived attractiveness may not be substantial."
+              }
+            },
+            "uncertainty_factors": {
+              "population_generalizability": {
+                "magnitude": 0.8,
+                "importance": 0.9,
+                "description": "The study used only college students, which may not represent the broader population."
+              },
+              "measurement_validity": {
+                "magnitude": 0.7,
+                "importance": 0.8,
+                "description": "The study relied on subjective ratings of attractiveness, which can be influenced by individual biases and preferences."
+              }
+            },
+            "key_strengths": [
+              "The study used a direct comparison of red vs. blue clothing",
+              "The study used a quantitative measure of attractiveness"
+            ],
+            "key_limitations": [
+              "Small sample size",
+              "Lack of control for confounding variables",
+              "Marginal statistical significance"
+            ],
+            "methodological_assessment": "The study has several methodological limitations, including a small sample size, lack of control for confounding variables, and marginal statistical significance. These issues reduce the reliability and validity of the findings.",
+            "relevance_assessment": "The study directly addresses the claim by comparing the perceived attractiveness of people in red vs. blue clothing. However, the limitations of the study make it difficult to draw firm conclusions.",
+            "overall_reasoning": "While the study provides some evidence in support of the claim, the methodological limitations and uncertainties significantly weaken the strength of this evidence. Further research with larger sample sizes, better control of confounding variables, and more diverse populations is needed to confirm the claim.",
+            "confidence_in_assessment": 0.6
+          },
+          "confidence_synthesis": {
+            "final_confidence": 0.35,
+            "confidence_reasoning": "The final confidence is lower than both the prior and the evidence strength due to the limitations of the study and the uncertainty factors. The study had a small sample size, did not control for confounding variables, and had marginal statistical significance. Additionally, the study's population may not be generalizable and the measurement validity is questionable due to the subjective nature of attractiveness ratings.",
+            "prior_to_posterior_update": "The evidence slightly decreased the prior belief due to its limitations and uncertainty factors. While the study did directly compare red vs. blue clothing and used a quantitative measure of attractiveness, these strengths were outweighed by the weaknesses.",
+            "key_factors": [
+              "Small sample size",
+              "Lack of control for confounding variables",
+              "Marginal statistical significance",
+              "Population generalizability",
+              "Measurement validity"
+            ],
+            "uncertainty_synthesis": "The two main sources of uncertainty, population generalizability and measurement validity, were considered together. The study's population of college students may not represent the broader population, and the subjective nature of attractiveness ratings introduces additional uncertainty. These factors combined to decrease the final confidence.",
+            "sensitivity_analysis": "This confidence is sensitive to the assumptions about the importance of sample size, control of confounding variables, and statistical significance. If these factors were deemed less important, the confidence could be higher. Similarly, if the population generalizability and measurement validity were considered less uncertain, the confidence could also be higher.",
+            "meta_uncertainty": 0.2,
+            "meta_reasoning": "The meta-uncertainty is relatively low because the reasoning behind the final confidence is based on clear and specific factors. However, there is some uncertainty due to the subjective nature of the importance and uncertainty ratings.",
+            "alternative_interpretations": [
+              "If the importance of sample size, control of confounding variables, and statistical significance were rated lower, the final confidence could be closer to 0.4 or 0.45. If the uncertainty about population generalizability and measurement validity were rated lower, the final confidence could also be closer to 0.4 or 0.45."
+            ],
+            "confidence_bounds": {
+              "lower_bound": 0.3,
+              "upper_bound": 0.4,
+              "reasoning": "The lower bound represents a scenario where the limitations of the study and the uncertainty factors are considered very important, while the upper bound represents a scenario where these factors are considered less important."
+            }
+          }
+        },
+        "creation_timestamp": "2025-07-23T15:12:23.147178",
+        "last_updated": "2025-07-23T15:12:23.147179",
+        "evidence_count": 1,
+        "update_history": [],
+        "domain": "social_psychology",
+        "claim_type": "causal"
+      }
+    },
+    {
+      "test_id": "interdisciplinary_complex",
+      "confidence": 0.55,
+      "epistemic_prior": 0.6,
+      "prior_reasoning": "The claim is based on an interdisciplinary study that combines neuroscience, computer science, and philosophy, which suggests a robust theoretical foundation. However, the claim is also contingent on the definition of consciousness, which is highly contested, and the validity of the measurements used, which is debated. This suggests that while there is some evidence to support the claim, there is also significant uncertainty.",
+      "confidence_reasoning": "The final confidence is slightly lower than the prior and evidence strength due to the high uncertainty factors. The contested definition of consciousness and the debated validity of the measurements used introduce significant uncertainty. Additionally, the small proportion of AI systems that showed consciousness-like patterns also reduces confidence.",
+      "key_strengths": [
+        "Interdisciplinary approach",
+        "Large sample size",
+        "Novel metrics for consciousness"
+      ],
+      "key_limitations": [
+        "Contested definition of consciousness",
+        "Debated measurement validity",
+        "Small proportion of AI systems showed consciousness-like patterns"
+      ],
+      "quality_assessment": {
+        "methodological_rigor": {
+          "score": 0.7,
+          "importance": 0.9,
+          "reasoning": "The study uses an interdisciplinary approach, combining neuroscience, computer science, and philosophy, which suggests a robust theoretical foundation. However, the validity of the measurements used is debated, which could impact the reliability of the findings."
+        },
+        "sample_size": {
+          "score": 0.6,
+          "importance": 0.8,
+          "reasoning": "The study analyzed 50 different AI systems, which is a relatively large sample size for this type of research. However, only 3 systems showed consciousness-like patterns, which is a small proportion of the total."
+        },
+        "novelty_of_approach": {
+          "score": 0.8,
+          "importance": 0.7,
+          "reasoning": "The study developed new metrics for consciousness, which is a novel approach. However, the novelty of the approach also means that the findings may need to be replicated and validated by other researchers."
+        }
+      },
+      "uncertainty_factors": {
+        "definition_of_consciousness": {
+          "magnitude": 0.9,
+          "importance": 1.0,
+          "description": "The definition of consciousness is highly contested, which creates significant uncertainty. Different definitions could lead to different interpretations of the evidence."
+        },
+        "measurement_validity": {
+          "magnitude": 0.8,
+          "importance": 0.9,
+          "description": "The validity of the measurements used is debated, which creates uncertainty about the reliability of the findings."
+        }
+      },
+      "processing_time": 46.620195388793945,
+      "within_expected_range": true,
+      "full_assessment": {
+        "value": 0.55,
+        "reasoning": "The final confidence is slightly lower than the prior and evidence strength due to the high uncertainty factors. The contested definition of consciousness and the debated validity of the measurements used introduce significant uncertainty. Additionally, the small proportion of AI systems that showed consciousness-like patterns also reduces confidence.",
+        "quality_assessment": {
+          "methodological_rigor": {
+            "score": 0.7,
+            "importance": 0.9,
+            "reasoning": "The study uses an interdisciplinary approach, combining neuroscience, computer science, and philosophy, which suggests a robust theoretical foundation. However, the validity of the measurements used is debated, which could impact the reliability of the findings."
+          },
+          "sample_size": {
+            "score": 0.6,
+            "importance": 0.8,
+            "reasoning": "The study analyzed 50 different AI systems, which is a relatively large sample size for this type of research. However, only 3 systems showed consciousness-like patterns, which is a small proportion of the total."
+          },
+          "novelty_of_approach": {
+            "score": 0.8,
+            "importance": 0.7,
+            "reasoning": "The study developed new metrics for consciousness, which is a novel approach. However, the novelty of the approach also means that the findings may need to be replicated and validated by other researchers."
+          }
+        },
+        "uncertainty_factors": {
+          "definition_of_consciousness": {
+            "magnitude": 0.9,
+            "importance": 1.0,
+            "description": "The definition of consciousness is highly contested, which creates significant uncertainty. Different definitions could lead to different interpretations of the evidence."
+          },
+          "measurement_validity": {
+            "magnitude": 0.8,
+            "importance": 0.9,
+            "description": "The validity of the measurements used is debated, which creates uncertainty about the reliability of the findings."
+          }
+        },
+        "epistemic_prior": 0.6,
+        "prior_reasoning": "The claim is based on an interdisciplinary study that combines neuroscience, computer science, and philosophy, which suggests a robust theoretical foundation. However, the claim is also contingent on the definition of consciousness, which is highly contested, and the validity of the measurements used, which is debated. This suggests that while there is some evidence to support the claim, there is also significant uncertainty.",
+        "evidence_synthesis": "The evidence moderately updated the prior belief. The interdisciplinary approach, large sample size, and novel metrics for consciousness are strong points in favor of the claim. However, the high uncertainty factors and the small proportion of AI systems that showed consciousness-like patterns limit the extent to which the evidence can update the prior.",
+        "key_strengths": [
+          "Interdisciplinary approach",
+          "Large sample size",
+          "Novel metrics for consciousness"
+        ],
+        "key_limitations": [
+          "Contested definition of consciousness",
+          "Debated measurement validity",
+          "Small proportion of AI systems showed consciousness-like patterns"
+        ],
+        "assessment_context": {
+          "prior_assessment": {
+            "epistemic_prior": 0.6,
+            "reasoning": "The claim is based on an interdisciplinary study that combines neuroscience, computer science, and philosophy, which suggests a robust theoretical foundation. However, the claim is also contingent on the definition of consciousness, which is highly contested, and the validity of the measurements used, which is debated. This suggests that while there is some evidence to support the claim, there is also significant uncertainty.",
+            "claim_type": "descriptive",
+            "extraordinariness": "notable",
+            "domain_base_rate": "The success rate of similar claims in this field is moderate. While there have been some successful studies, the field is still developing and there is a lot of uncertainty.",
+            "theoretical_constraints": "The existing theory in this field is still developing and there is a lot of debate. This means that the claim is not highly constrained by existing theory.",
+            "confidence_in_prior": 0.7
+          },
+          "evidence_assessment": {
+            "evidence_strength": 0.6,
+            "quality_dimensions": {
+              "methodological_rigor": {
+                "score": 0.7,
+                "importance": 0.9,
+                "reasoning": "The study uses an interdisciplinary approach, combining neuroscience, computer science, and philosophy, which suggests a robust theoretical foundation. However, the validity of the measurements used is debated, which could impact the reliability of the findings."
+              },
+              "sample_size": {
+                "score": 0.6,
+                "importance": 0.8,
+                "reasoning": "The study analyzed 50 different AI systems, which is a relatively large sample size for this type of research. However, only 3 systems showed consciousness-like patterns, which is a small proportion of the total."
+              },
+              "novelty_of_approach": {
+                "score": 0.8,
+                "importance": 0.7,
+                "reasoning": "The study developed new metrics for consciousness, which is a novel approach. However, the novelty of the approach also means that the findings may need to be replicated and validated by other researchers."
+              }
+            },
+            "uncertainty_factors": {
+              "definition_of_consciousness": {
+                "magnitude": 0.9,
+                "importance": 1.0,
+                "description": "The definition of consciousness is highly contested, which creates significant uncertainty. Different definitions could lead to different interpretations of the evidence."
+              },
+              "measurement_validity": {
+                "magnitude": 0.8,
+                "importance": 0.9,
+                "description": "The validity of the measurements used is debated, which creates uncertainty about the reliability of the findings."
+              }
+            },
+            "key_strengths": [
+              "Interdisciplinary approach",
+              "Large sample size",
+              "Novel metrics for consciousness"
+            ],
+            "key_limitations": [
+              "Contested definition of consciousness",
+              "Debated measurement validity",
+              "Small proportion of AI systems showed consciousness-like patterns"
+            ],
+            "methodological_assessment": "The study uses a robust interdisciplinary approach and a relatively large sample size. However, the validity of the measurements used is debated, and the novel metrics for consciousness may need to be validated by other researchers.",
+            "relevance_assessment": "The evidence is directly relevant to the claim, as it investigates whether AI systems can develop consciousness. However, the contested definition of consciousness and the debated measurement validity create significant uncertainty.",
+            "overall_reasoning": "While the study provides some evidence to support the claim, the contested definition of consciousness and the debated measurement validity create significant uncertainty. The findings may need to be replicated and validated by other researchers.",
+            "confidence_in_assessment": 0.6
+          },
+          "confidence_synthesis": {
+            "final_confidence": 0.55,
+            "confidence_reasoning": "The final confidence is slightly lower than the prior and evidence strength due to the high uncertainty factors. The contested definition of consciousness and the debated validity of the measurements used introduce significant uncertainty. Additionally, the small proportion of AI systems that showed consciousness-like patterns also reduces confidence.",
+            "prior_to_posterior_update": "The evidence moderately updated the prior belief. The interdisciplinary approach, large sample size, and novel metrics for consciousness are strong points in favor of the claim. However, the high uncertainty factors and the small proportion of AI systems that showed consciousness-like patterns limit the extent to which the evidence can update the prior.",
+            "key_factors": [
+              "Interdisciplinary approach",
+              "Contested definition of consciousness",
+              "Debated measurement validity",
+              "Small proportion of AI systems showed consciousness-like patterns"
+            ],
+            "uncertainty_synthesis": "The two main sources of uncertainty, the definition of consciousness and the validity of the measurements, were considered together. Both of these factors introduce significant uncertainty, and their combined effect is even greater due to their potential interaction. For example, if the definition of consciousness used is not widely accepted, this could also call into question the validity of the measurements.",
+            "sensitivity_analysis": "This confidence assessment is highly sensitive to the definition of consciousness and the validity of the measurements. If these factors were less uncertain, the confidence would be significantly higher. Conversely, if the proportion of AI systems that showed consciousness-like patterns was larger, this would also increase confidence.",
+            "meta_uncertainty": 0.7,
+            "meta_reasoning": "There is high meta-uncertainty due to the complex nature of the claim and the high uncertainty factors. The interdisciplinary nature of the study also introduces additional uncertainty, as it combines fields with different methodologies and standards of evidence.",
+            "alternative_interpretations": [
+              "A higher confidence level could be justified by placing more weight on the interdisciplinary approach and the novel metrics for consciousness. A lower confidence level could be justified by placing more weight on the contested definition of consciousness and the debated validity of the measurements."
+            ],
+            "confidence_bounds": {
+              "lower_bound": 0.4,
+              "upper_bound": 0.7,
+              "reasoning": "The lower bound reflects a more skeptical interpretation of the evidence, placing more weight on the uncertainty factors. The upper bound reflects a more optimistic interpretation, placing more weight on the strengths of the study."
+            }
+          }
+        },
+        "creation_timestamp": "2025-07-23T15:13:09.767546",
+        "last_updated": "2025-07-23T15:13:09.767548",
+        "evidence_count": 1,
+        "update_history": [],
+        "domain": "interdisciplinary",
+        "claim_type": "descriptive"
+      }
+    },
+    {
+      "test_id": "climate_meta_analysis",
+      "confidence": 0.88,
+      "epistemic_prior": 0.85,
+      "prior_reasoning": "The claim that carbon emissions are the primary driver of observed global temperature increases is well-supported in the field of climate science. The base rate of similar claims being true in this field is high, and the theoretical foundations are strong. The historical success rate for this type of research question is also high. This is an ordinary claim in the field of climate science, and the existing evidence base and theoretical constraints strongly support this claim. However, there is some uncertainty about tipping point dynamics and regional variations, which slightly lowers the prior.",
+      "confidence_reasoning": "The final confidence is high due to the strong prior belief and the robust evidence supporting the claim. The prior belief is based on the strong theoretical foundations and historical success rate in the field of climate science. The evidence is strong, with a comprehensive meta-analysis, strong consensus across studies, and a clear dose-response relationship. However, the confidence is slightly reduced due to the uncertainties about tipping point dynamics and regional variations.",
+      "key_strengths": [
+        "Comprehensive meta-analysis",
+        "Strong consensus across studies",
+        "Clear dose-response relationship"
+      ],
+      "key_limitations": [
+        "Uncertainty about tipping point dynamics",
+        "Regional variations",
+        "Limited information on individual study designs"
+      ],
+      "quality_assessment": {
+        "methodological_rigor": {
+          "score": 0.9,
+          "importance": 0.9,
+          "reasoning": "The evidence comes from a comprehensive meta-analysis of 127 climate studies, which is a robust research design. The use of GRADE criteria for quality assessment further strengthens the methodological rigor."
+        },
+        "consensus": {
+          "score": 0.9,
+          "importance": 0.8,
+          "reasoning": "The strong consensus across studies (I\u00b2 = 15%, indicating low heterogeneity) supports the claim. Consensus is important in climate science due to the complexity of the field."
+        },
+        "dose_response_relationship": {
+          "score": 0.8,
+          "importance": 0.7,
+          "reasoning": "The clear dose-response relationship between carbon emissions and temperature rise supports the causal claim. This is a key aspect of establishing causality."
+        }
+      },
+      "uncertainty_factors": {
+        "tipping_point_dynamics": {
+          "magnitude": 0.6,
+          "importance": 0.7,
+          "description": "Uncertainty about tipping point dynamics could affect the long-term projections of temperature increases due to carbon emissions."
+        },
+        "regional_variations": {
+          "magnitude": 0.5,
+          "importance": 0.6,
+          "description": "Regional variations in temperature increases could affect the generalizability of the findings."
+        }
+      },
+      "processing_time": 52.98749566078186,
+      "within_expected_range": true,
+      "full_assessment": {
+        "value": 0.88,
+        "reasoning": "The final confidence is high due to the strong prior belief and the robust evidence supporting the claim. The prior belief is based on the strong theoretical foundations and historical success rate in the field of climate science. The evidence is strong, with a comprehensive meta-analysis, strong consensus across studies, and a clear dose-response relationship. However, the confidence is slightly reduced due to the uncertainties about tipping point dynamics and regional variations.",
+        "quality_assessment": {
+          "methodological_rigor": {
+            "score": 0.9,
+            "importance": 0.9,
+            "reasoning": "The evidence comes from a comprehensive meta-analysis of 127 climate studies, which is a robust research design. The use of GRADE criteria for quality assessment further strengthens the methodological rigor."
+          },
+          "consensus": {
+            "score": 0.9,
+            "importance": 0.8,
+            "reasoning": "The strong consensus across studies (I\u00b2 = 15%, indicating low heterogeneity) supports the claim. Consensus is important in climate science due to the complexity of the field."
+          },
+          "dose_response_relationship": {
+            "score": 0.8,
+            "importance": 0.7,
+            "reasoning": "The clear dose-response relationship between carbon emissions and temperature rise supports the causal claim. This is a key aspect of establishing causality."
+          }
+        },
+        "uncertainty_factors": {
+          "tipping_point_dynamics": {
+            "magnitude": 0.6,
+            "importance": 0.7,
+            "description": "Uncertainty about tipping point dynamics could affect the long-term projections of temperature increases due to carbon emissions."
+          },
+          "regional_variations": {
+            "magnitude": 0.5,
+            "importance": 0.6,
+            "description": "Regional variations in temperature increases could affect the generalizability of the findings."
+          }
+        },
+        "epistemic_prior": 0.85,
+        "prior_reasoning": "The claim that carbon emissions are the primary driver of observed global temperature increases is well-supported in the field of climate science. The base rate of similar claims being true in this field is high, and the theoretical foundations are strong. The historical success rate for this type of research question is also high. This is an ordinary claim in the field of climate science, and the existing evidence base and theoretical constraints strongly support this claim. However, there is some uncertainty about tipping point dynamics and regional variations, which slightly lowers the prior.",
+        "evidence_synthesis": "The evidence has slightly increased the prior belief. The strength of the evidence, particularly the comprehensive meta-analysis and strong consensus across studies, provides strong support for the claim. However, the uncertainties about tipping point dynamics and regional variations have slightly reduced the posterior confidence.",
+        "key_strengths": [
+          "Comprehensive meta-analysis",
+          "Strong consensus across studies",
+          "Clear dose-response relationship"
+        ],
+        "key_limitations": [
+          "Uncertainty about tipping point dynamics",
+          "Regional variations",
+          "Limited information on individual study designs"
+        ],
+        "assessment_context": {
+          "prior_assessment": {
+            "epistemic_prior": 0.85,
+            "reasoning": "The claim that carbon emissions are the primary driver of observed global temperature increases is well-supported in the field of climate science. The base rate of similar claims being true in this field is high, and the theoretical foundations are strong. The historical success rate for this type of research question is also high. This is an ordinary claim in the field of climate science, and the existing evidence base and theoretical constraints strongly support this claim. However, there is some uncertainty about tipping point dynamics and regional variations, which slightly lowers the prior.",
+            "claim_type": "causal",
+            "extraordinariness": "ordinary",
+            "domain_base_rate": "High. The majority of climate science research supports the claim that carbon emissions are a primary driver of global temperature increases.",
+            "theoretical_constraints": "Strong. The theory of greenhouse gases and their impact on global temperatures is well-established and constrains this claim.",
+            "confidence_in_prior": 0.9
+          },
+          "evidence_assessment": {
+            "evidence_strength": 0.9,
+            "quality_dimensions": {
+              "methodological_rigor": {
+                "score": 0.9,
+                "importance": 0.9,
+                "reasoning": "The evidence comes from a comprehensive meta-analysis of 127 climate studies, which is a robust research design. The use of GRADE criteria for quality assessment further strengthens the methodological rigor."
+              },
+              "consensus": {
+                "score": 0.9,
+                "importance": 0.8,
+                "reasoning": "The strong consensus across studies (I\u00b2 = 15%, indicating low heterogeneity) supports the claim. Consensus is important in climate science due to the complexity of the field."
+              },
+              "dose_response_relationship": {
+                "score": 0.8,
+                "importance": 0.7,
+                "reasoning": "The clear dose-response relationship between carbon emissions and temperature rise supports the causal claim. This is a key aspect of establishing causality."
+              }
+            },
+            "uncertainty_factors": {
+              "tipping_point_dynamics": {
+                "magnitude": 0.6,
+                "importance": 0.7,
+                "description": "Uncertainty about tipping point dynamics could affect the long-term projections of temperature increases due to carbon emissions."
+              },
+              "regional_variations": {
+                "magnitude": 0.5,
+                "importance": 0.6,
+                "description": "Regional variations in temperature increases could affect the generalizability of the findings."
+              }
+            },
+            "key_strengths": [
+              "Comprehensive meta-analysis",
+              "Strong consensus across studies",
+              "Clear dose-response relationship"
+            ],
+            "key_limitations": [
+              "Uncertainty about tipping point dynamics",
+              "Regional variations",
+              "Limited information on individual study designs"
+            ],
+            "methodological_assessment": "The evidence is methodologically strong, with a comprehensive meta-analysis design and rigorous quality assessment using GRADE criteria. However, more information on the designs of the individual studies included in the meta-analysis would be helpful.",
+            "relevance_assessment": "The evidence is highly relevant to the claim, as it directly examines the relationship between carbon emissions and temperature rise. The strong consensus across studies and clear dose-response relationship further support the claim.",
+            "overall_reasoning": "The evidence is strong and highly relevant to the claim, with a robust research design and strong consensus across studies. However, uncertainties about tipping point dynamics and regional variations slightly lower the confidence in the claim.",
+            "confidence_in_assessment": 0.85
+          },
+          "confidence_synthesis": {
+            "final_confidence": 0.88,
+            "confidence_reasoning": "The final confidence is high due to the strong prior belief and the robust evidence supporting the claim. The prior belief is based on the strong theoretical foundations and historical success rate in the field of climate science. The evidence is strong, with a comprehensive meta-analysis, strong consensus across studies, and a clear dose-response relationship. However, the confidence is slightly reduced due to the uncertainties about tipping point dynamics and regional variations.",
+            "prior_to_posterior_update": "The evidence has slightly increased the prior belief. The strength of the evidence, particularly the comprehensive meta-analysis and strong consensus across studies, provides strong support for the claim. However, the uncertainties about tipping point dynamics and regional variations have slightly reduced the posterior confidence.",
+            "key_factors": [
+              "Strong theoretical foundations",
+              "Historical success rate",
+              "Comprehensive meta-analysis",
+              "Strong consensus across studies",
+              "Clear dose-response relationship",
+              "Uncertainty about tipping point dynamics",
+              "Regional variations"
+            ],
+            "uncertainty_synthesis": "The uncertainties about tipping point dynamics and regional variations have been integrated into the confidence assessment by slightly reducing the confidence. These uncertainties could affect the long-term projections and generalizability of the findings, respectively.",
+            "sensitivity_analysis": "The confidence is sensitive to the assumptions about the strength of the evidence and the uncertainties. If the evidence were weaker or the uncertainties were greater, the confidence would be lower.",
+            "meta_uncertainty": 0.1,
+            "meta_reasoning": "The meta-uncertainty is low because the confidence assessment is based on a strong prior belief and robust evidence. However, there is some meta-uncertainty due to the uncertainties about tipping point dynamics and regional variations.",
+            "alternative_interpretations": [
+              "If the uncertainties were considered to be more important, the confidence could be lower. If the strength of the evidence were considered to be more important, the confidence could be higher."
+            ],
+            "confidence_bounds": {
+              "lower_bound": 0.8,
+              "upper_bound": 0.95,
+              "reasoning": "The lower bound reflects a more conservative interpretation of the uncertainties, while the upper bound reflects a more optimistic interpretation of the strength of the evidence."
+            }
+          }
+        },
+        "creation_timestamp": "2025-07-23T15:14:02.755223",
+        "last_updated": "2025-07-23T15:14:02.755224",
+        "evidence_count": 1,
+        "update_history": [],
+        "domain": "climate_science",
+        "claim_type": "causal"
+      }
+    },
+    {
+      "test_id": "extraordinary_claim",
+      "confidence": 0.25,
+      "epistemic_prior": 0.2,
+      "prior_reasoning": "While the research team claims to have developed a cold fusion technology that produces net energy gain, and their experiments show consistent energy output exceeding input by 200%, the claim contradicts established nuclear physics principles and previous cold fusion attempts have failed. No independent replication has been attempted yet. Therefore, despite the promising results from the team's experiments, the prior probability is relatively low due to the historical failure rate of similar claims and the contradiction with established principles.",
+      "confidence_reasoning": "The final confidence is a result of combining the prior belief and the evidence strength. The prior belief is low due to the historical failure rate of similar claims and the contradiction with established principles. The evidence strength is also not very high due to the failure of detailed analysis. Therefore, the final confidence is relatively low.",
+      "key_strengths": [
+        "Assessment attempted"
+      ],
+      "key_limitations": [
+        "Detailed analysis failed"
+      ],
+      "quality_assessment": {
+        "general_quality": {
+          "score": 0.5,
+          "importance": 1.0,
+          "reasoning": "Default assessment due to analysis failure"
+        }
+      },
+      "uncertainty_factors": {
+        "analysis_failure": {
+          "magnitude": 0.7,
+          "importance": 1.0,
+          "description": "High uncertainty due to failed detailed analysis"
+        }
+      },
+      "processing_time": 29.797355890274048,
+      "within_expected_range": true,
+      "full_assessment": {
+        "value": 0.25,
+        "reasoning": "The final confidence is a result of combining the prior belief and the evidence strength. The prior belief is low due to the historical failure rate of similar claims and the contradiction with established principles. The evidence strength is also not very high due to the failure of detailed analysis. Therefore, the final confidence is relatively low.",
+        "quality_assessment": {
+          "general_quality": {
+            "score": 0.5,
+            "importance": 1.0,
+            "reasoning": "Default assessment due to analysis failure"
+          }
+        },
+        "uncertainty_factors": {
+          "analysis_failure": {
+            "magnitude": 0.7,
+            "importance": 1.0,
+            "description": "High uncertainty due to failed detailed analysis"
+          }
+        },
+        "epistemic_prior": 0.2,
+        "prior_reasoning": "While the research team claims to have developed a cold fusion technology that produces net energy gain, and their experiments show consistent energy output exceeding input by 200%, the claim contradicts established nuclear physics principles and previous cold fusion attempts have failed. No independent replication has been attempted yet. Therefore, despite the promising results from the team's experiments, the prior probability is relatively low due to the historical failure rate of similar claims and the contradiction with established principles.",
+        "evidence_synthesis": "The evidence did not significantly update the prior belief due to its low strength and high uncertainty. The failed detailed analysis and the lack of independent replication of the experiments further reduce the confidence in the claim.",
+        "key_strengths": [
+          "Assessment attempted"
+        ],
+        "key_limitations": [
+          "Detailed analysis failed"
+        ],
+        "assessment_context": {
+          "prior_assessment": {
+            "epistemic_prior": 0.2,
+            "reasoning": "While the research team claims to have developed a cold fusion technology that produces net energy gain, and their experiments show consistent energy output exceeding input by 200%, the claim contradicts established nuclear physics principles and previous cold fusion attempts have failed. No independent replication has been attempted yet. Therefore, despite the promising results from the team's experiments, the prior probability is relatively low due to the historical failure rate of similar claims and the contradiction with established principles.",
+            "claim_type": "causal",
+            "extraordinariness": "extraordinary",
+            "domain_base_rate": "Cold fusion claims have a very low success rate in the domain of nuclear physics. Most attempts have failed and the concept contradicts established principles.",
+            "theoretical_constraints": "Existing nuclear physics theory significantly constrains this claim. Cold fusion, as currently understood, contradicts established principles.",
+            "confidence_in_prior": 0.7
+          },
+          "evidence_assessment": {
+            "evidence_strength": 0.5,
+            "quality_dimensions": {
+              "general_quality": {
+                "score": 0.5,
+                "importance": 1.0,
+                "reasoning": "Default assessment due to analysis failure"
+              }
+            },
+            "uncertainty_factors": {
+              "analysis_failure": {
+                "magnitude": 0.7,
+                "importance": 1.0,
+                "description": "High uncertainty due to failed detailed analysis"
+              }
+            },
+            "key_strengths": [
+              "Assessment attempted"
+            ],
+            "key_limitations": [
+              "Detailed analysis failed"
+            ],
+            "methodological_assessment": "Could not perform detailed analysis",
+            "relevance_assessment": "Could not assess relevance",
+            "overall_reasoning": "Default assessment due to system limitations",
+            "confidence_in_assessment": 0.2
+          },
+          "confidence_synthesis": {
+            "final_confidence": 0.25,
+            "confidence_reasoning": "The final confidence is a result of combining the prior belief and the evidence strength. The prior belief is low due to the historical failure rate of similar claims and the contradiction with established principles. The evidence strength is also not very high due to the failure of detailed analysis. Therefore, the final confidence is relatively low.",
+            "prior_to_posterior_update": "The evidence did not significantly update the prior belief due to its low strength and high uncertainty. The failed detailed analysis and the lack of independent replication of the experiments further reduce the confidence in the claim.",
+            "key_factors": [
+              "Historical failure rate of similar claims",
+              "Contradiction with established principles",
+              "Failure of detailed analysis",
+              "Lack of independent replication"
+            ],
+            "uncertainty_synthesis": "The high uncertainty due to the failed detailed analysis and the lack of independent replication were combined to increase the overall uncertainty. The contradiction with established principles further increases the uncertainty.",
+            "sensitivity_analysis": "The confidence is highly sensitive to the evidence strength and the uncertainty factors. If the evidence strength were higher or the uncertainty lower, the confidence would be significantly higher.",
+            "meta_uncertainty": 0.8,
+            "meta_reasoning": "The high meta-uncertainty is due to the high uncertainty in the evidence and the prior belief, as well as the sensitivity of the confidence to these factors.",
+            "alternative_interpretations": [
+              "If the evidence strength were higher, the confidence could be as high as 0.5. If the uncertainty were lower, the confidence could be as high as 0.4."
+            ],
+            "confidence_bounds": {
+              "lower_bound": 0.1,
+              "upper_bound": 0.4,
+              "reasoning": "The lower bound is based on the prior belief and the high uncertainty. The upper bound is based on the potential for higher evidence strength and lower uncertainty."
+            }
+          }
+        },
+        "creation_timestamp": "2025-07-23T15:14:32.552763",
+        "last_updated": "2025-07-23T15:14:32.552764",
+        "evidence_count": 1,
+        "update_history": [],
+        "domain": "nuclear_physics",
+        "claim_type": "causal"
+      }
+    },
+    {
+      "test_id": "humanities_interpretation",
+      "confidence": 0.7,
+      "epistemic_prior": 0.6,
+      "prior_reasoning": "The claim that Shakespeare deliberately incorporated Fibonacci sequences into his sonnet structure is a notable claim within the domain of literary analysis. While it is not unheard of for authors to use mathematical structures in their work, it is not a common occurrence, especially in the context of Renaissance literature. However, the claim is supported by a detailed analysis using both computational linguistics and traditional hermeneutic methods, and has been positively reviewed by independent scholars. This suggests a reasonable base rate of success for this type of research question. The theoretical foundations of this claim are also strong, as the Fibonacci sequence is a well-established mathematical concept and its potential use in literature is theoretically plausible. However, the claim is constrained by the fact that it is difficult to definitively prove authorial intent, especially in historical texts.",
+      "confidence_reasoning": "The final confidence is determined by considering both the prior assessment and the evidence assessment. The prior assessment is relatively high (0.6), suggesting a reasonable base rate of success for this type of research question. The evidence assessment is also high (0.8), indicating strong evidence in support of the claim. However, there are significant uncertainties, particularly around authorial intent and potential interpretation bias, which moderate the final confidence.",
+      "key_strengths": [
+        "High methodological rigor",
+        "Relevant evidence",
+        "Historical context provided"
+      ],
+      "key_limitations": [
+        "Uncertainty about authorial intent",
+        "Potential interpretation bias",
+        "Limited to 200 sonnets"
+      ],
+      "quality_assessment": {
+        "methodological_rigor": {
+          "score": 0.9,
+          "importance": 0.9,
+          "reasoning": "The scholar used both computational linguistics and traditional hermeneutic methods, which suggests a high level of methodological rigor. The positive reviews from independent scholars further support this."
+        },
+        "relevance": {
+          "score": 0.8,
+          "importance": 0.8,
+          "reasoning": "The evidence directly addresses the claim that Shakespeare used Fibonacci sequences in his sonnets. The detailed textual evidence and mathematical analysis are highly relevant to this claim."
+        },
+        "historical_context": {
+          "score": 0.7,
+          "importance": 0.7,
+          "reasoning": "The scholar provides historical context for numerical mysticism in Renaissance literature, which is relevant to understanding the plausibility of the claim."
+        }
+      },
+      "uncertainty_factors": {
+        "authorial_intent": {
+          "magnitude": 0.8,
+          "importance": 0.8,
+          "description": "It is difficult to definitively prove authorial intent, especially in historical texts. This uncertainty could affect the confidence in the claim."
+        },
+        "interpretation_bias": {
+          "magnitude": 0.6,
+          "importance": 0.6,
+          "description": "The scholar's interpretation of the sonnets and the mathematical analysis could be biased, which could affect the reliability of the evidence."
+        }
+      },
+      "processing_time": 51.74952936172485,
+      "within_expected_range": true,
+      "full_assessment": {
+        "value": 0.7,
+        "reasoning": "The final confidence is determined by considering both the prior assessment and the evidence assessment. The prior assessment is relatively high (0.6), suggesting a reasonable base rate of success for this type of research question. The evidence assessment is also high (0.8), indicating strong evidence in support of the claim. However, there are significant uncertainties, particularly around authorial intent and potential interpretation bias, which moderate the final confidence.",
+        "quality_assessment": {
+          "methodological_rigor": {
+            "score": 0.9,
+            "importance": 0.9,
+            "reasoning": "The scholar used both computational linguistics and traditional hermeneutic methods, which suggests a high level of methodological rigor. The positive reviews from independent scholars further support this."
+          },
+          "relevance": {
+            "score": 0.8,
+            "importance": 0.8,
+            "reasoning": "The evidence directly addresses the claim that Shakespeare used Fibonacci sequences in his sonnets. The detailed textual evidence and mathematical analysis are highly relevant to this claim."
+          },
+          "historical_context": {
+            "score": 0.7,
+            "importance": 0.7,
+            "reasoning": "The scholar provides historical context for numerical mysticism in Renaissance literature, which is relevant to understanding the plausibility of the claim."
+          }
+        },
+        "uncertainty_factors": {
+          "authorial_intent": {
+            "magnitude": 0.8,
+            "importance": 0.8,
+            "description": "It is difficult to definitively prove authorial intent, especially in historical texts. This uncertainty could affect the confidence in the claim."
+          },
+          "interpretation_bias": {
+            "magnitude": 0.6,
+            "importance": 0.6,
+            "description": "The scholar's interpretation of the sonnets and the mathematical analysis could be biased, which could affect the reliability of the evidence."
+          }
+        },
+        "epistemic_prior": 0.6,
+        "prior_reasoning": "The claim that Shakespeare deliberately incorporated Fibonacci sequences into his sonnet structure is a notable claim within the domain of literary analysis. While it is not unheard of for authors to use mathematical structures in their work, it is not a common occurrence, especially in the context of Renaissance literature. However, the claim is supported by a detailed analysis using both computational linguistics and traditional hermeneutic methods, and has been positively reviewed by independent scholars. This suggests a reasonable base rate of success for this type of research question. The theoretical foundations of this claim are also strong, as the Fibonacci sequence is a well-established mathematical concept and its potential use in literature is theoretically plausible. However, the claim is constrained by the fact that it is difficult to definitively prove authorial intent, especially in historical texts.",
+        "evidence_synthesis": "The evidence provided a substantial update to the prior belief. The high methodological rigor, relevance of the evidence, and provision of historical context all contribute to this update. However, the uncertainties around authorial intent and interpretation bias limit the extent of this update.",
+        "key_strengths": [
+          "High methodological rigor",
+          "Relevant evidence",
+          "Historical context provided"
+        ],
+        "key_limitations": [
+          "Uncertainty about authorial intent",
+          "Potential interpretation bias",
+          "Limited to 200 sonnets"
+        ],
+        "assessment_context": {
+          "prior_assessment": {
+            "epistemic_prior": 0.6,
+            "reasoning": "The claim that Shakespeare deliberately incorporated Fibonacci sequences into his sonnet structure is a notable claim within the domain of literary analysis. While it is not unheard of for authors to use mathematical structures in their work, it is not a common occurrence, especially in the context of Renaissance literature. However, the claim is supported by a detailed analysis using both computational linguistics and traditional hermeneutic methods, and has been positively reviewed by independent scholars. This suggests a reasonable base rate of success for this type of research question. The theoretical foundations of this claim are also strong, as the Fibonacci sequence is a well-established mathematical concept and its potential use in literature is theoretically plausible. However, the claim is constrained by the fact that it is difficult to definitively prove authorial intent, especially in historical texts.",
+            "claim_type": "theoretical",
+            "extraordinariness": "notable",
+            "domain_base_rate": "Moderate success rates for this type of research question in the domain of literary analysis, especially when supported by detailed analysis and positive peer reviews.",
+            "theoretical_constraints": "Moderate constraints due to the difficulty of proving authorial intent in historical texts.",
+            "confidence_in_prior": 0.7
+          },
+          "evidence_assessment": {
+            "evidence_strength": 0.8,
+            "quality_dimensions": {
+              "methodological_rigor": {
+                "score": 0.9,
+                "importance": 0.9,
+                "reasoning": "The scholar used both computational linguistics and traditional hermeneutic methods, which suggests a high level of methodological rigor. The positive reviews from independent scholars further support this."
+              },
+              "relevance": {
+                "score": 0.8,
+                "importance": 0.8,
+                "reasoning": "The evidence directly addresses the claim that Shakespeare used Fibonacci sequences in his sonnets. The detailed textual evidence and mathematical analysis are highly relevant to this claim."
+              },
+              "historical_context": {
+                "score": 0.7,
+                "importance": 0.7,
+                "reasoning": "The scholar provides historical context for numerical mysticism in Renaissance literature, which is relevant to understanding the plausibility of the claim."
+              }
+            },
+            "uncertainty_factors": {
+              "authorial_intent": {
+                "magnitude": 0.8,
+                "importance": 0.8,
+                "description": "It is difficult to definitively prove authorial intent, especially in historical texts. This uncertainty could affect the confidence in the claim."
+              },
+              "interpretation_bias": {
+                "magnitude": 0.6,
+                "importance": 0.6,
+                "description": "The scholar's interpretation of the sonnets and the mathematical analysis could be biased, which could affect the reliability of the evidence."
+              }
+            },
+            "key_strengths": [
+              "High methodological rigor",
+              "Relevant evidence",
+              "Historical context provided"
+            ],
+            "key_limitations": [
+              "Uncertainty about authorial intent",
+              "Potential interpretation bias",
+              "Limited to 200 sonnets"
+            ],
+            "methodological_assessment": "The scholar's use of both computational linguistics and traditional hermeneutic methods suggests a high level of methodological rigor. The positive reviews from independent scholars further support this.",
+            "relevance_assessment": "The evidence directly addresses the claim that Shakespeare used Fibonacci sequences in his sonnets. The detailed textual evidence and mathematical analysis are highly relevant to this claim.",
+            "overall_reasoning": "The evidence is strong and directly relevant to the claim. However, there is some uncertainty due to the difficulty of proving authorial intent and potential interpretation bias.",
+            "confidence_in_assessment": 0.75
+          },
+          "confidence_synthesis": {
+            "final_confidence": 0.7,
+            "confidence_reasoning": "The final confidence is determined by considering both the prior assessment and the evidence assessment. The prior assessment is relatively high (0.6), suggesting a reasonable base rate of success for this type of research question. The evidence assessment is also high (0.8), indicating strong evidence in support of the claim. However, there are significant uncertainties, particularly around authorial intent and potential interpretation bias, which moderate the final confidence.",
+            "prior_to_posterior_update": "The evidence provided a substantial update to the prior belief. The high methodological rigor, relevance of the evidence, and provision of historical context all contribute to this update. However, the uncertainties around authorial intent and interpretation bias limit the extent of this update.",
+            "key_factors": [
+              "High methodological rigor",
+              "Relevant evidence",
+              "Historical context provided",
+              "Uncertainty about authorial intent",
+              "Potential interpretation bias"
+            ],
+            "uncertainty_synthesis": "The uncertainties were integrated by considering their magnitude and importance. The uncertainty about authorial intent is particularly significant, as it directly affects the validity of the claim. The potential for interpretation bias also introduces uncertainty, as it could affect the reliability of the evidence.",
+            "sensitivity_analysis": "The final confidence is sensitive to the assumptions about authorial intent and interpretation bias. If these uncertainties were reduced, the final confidence would likely be higher. Conversely, if these uncertainties were greater, the final confidence would likely be lower.",
+            "meta_uncertainty": 0.2,
+            "meta_reasoning": "The meta-uncertainty is relatively low, reflecting confidence in the assessment process. However, there is some uncertainty due to the subjective nature of the claim and the potential for bias in the evidence.",
+            "alternative_interpretations": [
+              "If the uncertainties were considered less significant, the final confidence could be as high as 0.8. If the uncertainties were considered more significant, the final confidence could be as low as 0.6."
+            ],
+            "confidence_bounds": {
+              "lower_bound": 0.6,
+              "upper_bound": 0.8,
+              "reasoning": "These bounds reflect the potential range of confidence levels, given the uncertainties and the strength of the evidence."
+            }
+          }
+        },
+        "creation_timestamp": "2025-07-23T15:15:24.302424",
+        "last_updated": "2025-07-23T15:15:24.302425",
+        "evidence_count": 1,
+        "update_history": [],
+        "domain": "literary_analysis",
+        "claim_type": "theoretical"
+      }
+    }
+  ],
+  "rule_based_results": [
+    {
+      "test_id": "medical_strong",
+      "confidence": 0.86764875,
+      "base_confidence": 0.95,
+      "methodological_quality": 0.95,
+      "relevance": 1.0,
+      "coherence": 0.95,
+      "adequacy": 0.95,
+      "processing_time": 16.659919023513794,
+      "within_expected_range": true,
+      "full_assessment": {
+        "value": 0.95,
+        "methodological_quality": 0.95,
+        "relevance": 1.0,
+        "coherence": 0.95,
+        "adequacy": 0.95,
+        "estimation_uncertainty": 0.05,
+        "temporal_decay_factor": 0.9,
+        "cross_modal_consistency": 0.7,
+        "creation_timestamp": "2025-07-23T15:15:40.962578",
+        "last_updated": "2025-07-23T15:15:40.962579",
+        "evidence_count": 1,
+        "update_history": [
+          {
+            "timestamp": "2025-07-23T15:15:40.962586",
+            "action": "initial_assessment",
+            "reasoning": "The claim is strongly supported by a large randomized controlled trial published in a reputable journal. The study was conducted across multiple medical centers with rigorous inclusion criteria, double-blinding, and independent data monitoring. The results show a significant reduction in mortality with treatment X, with a very low p-value indicating a high degree of statistical significance. The effects were consistent across different demographic groups and comorbidity status, suggesting a high degree of generalizability. The follow-up was complete for almost all participants over a period of 3 years, indicating good temporal stability. The confidence interval is also reasonably narrow, indicating a relatively low level of estimation uncertainty.",
+            "supporting_factors": [
+              "Large randomized controlled trial",
+              "Significant reduction in mortality",
+              "Low p-value",
+              "Consistent effects across different groups",
+              "High follow-up rate",
+              "Published in reputable journal"
+            ],
+            "limiting_factors": [
+              "Potential unknown biases or confounding factors",
+              "Results may not generalize to populations not included in the study"
+            ]
+          }
+        ],
+        "domain": "medical_research",
+        "model_type": "general",
+        "confidence_type": "llm_assessed"
+      }
+    },
+    {
+      "test_id": "physics_theoretical",
+      "confidence": 0.41831999999999997,
+      "base_confidence": 0.6,
+      "methodological_quality": 0.8,
+      "relevance": 0.9,
+      "coherence": 0.7,
+      "adequacy": 0.6,
+      "processing_time": 10.621474027633667,
+      "within_expected_range": true,
+      "full_assessment": {
+        "value": 0.6,
+        "methodological_quality": 0.8,
+        "relevance": 0.9,
+        "coherence": 0.7,
+        "adequacy": 0.6,
+        "estimation_uncertainty": 0.4,
+        "temporal_decay_factor": 0.7,
+        "cross_modal_consistency": 0.7,
+        "creation_timestamp": "2025-07-23T15:15:51.584119",
+        "last_updated": "2025-07-23T15:15:51.584120",
+        "evidence_count": 1,
+        "update_history": [
+          {
+            "timestamp": "2025-07-23T15:15:51.584125",
+            "action": "initial_assessment",
+            "reasoning": "The proposed dark matter model is mathematically consistent and addresses several unexplained observations, which supports the claim. However, the model requires assumptions about extra dimensions that haven't been experimentally verified, which limits the confidence in the claim. The work has strong theoretical foundations but awaits experimental validation, which further limits the confidence in the claim.",
+            "supporting_factors": [
+              "Mathematically consistent model",
+              "Addresses unexplained observations"
+            ],
+            "limiting_factors": [
+              "Requires unverified assumptions about extra dimensions",
+              "Awaits experimental validation"
+            ]
+          }
+        ],
+        "domain": "theoretical_physics",
+        "model_type": "general",
+        "confidence_type": "llm_assessed"
+      }
+    },
+    {
+      "test_id": "social_science_weak",
+      "confidence": 0.20970000000000003,
+      "base_confidence": 0.4,
+      "methodological_quality": 0.3,
+      "relevance": 0.8,
+      "coherence": 0.6,
+      "adequacy": 0.4,
+      "processing_time": 15.099382162094116,
+      "within_expected_range": true,
+      "full_assessment": {
+        "value": 0.4,
+        "methodological_quality": 0.3,
+        "relevance": 0.8,
+        "coherence": 0.6,
+        "adequacy": 0.4,
+        "estimation_uncertainty": 0.6,
+        "temporal_decay_factor": 0.5,
+        "cross_modal_consistency": 0.7,
+        "creation_timestamp": "2025-07-23T15:16:06.683562",
+        "last_updated": "2025-07-23T15:16:06.683564",
+        "evidence_count": 1,
+        "update_history": [
+          {
+            "timestamp": "2025-07-23T15:16:06.683570",
+            "action": "initial_assessment",
+            "reasoning": "The study provides some evidence supporting the claim that wearing red clothing increases perceived attractiveness. However, the study has several limitations that reduce the confidence in this claim. Firstly, the sample size is relatively small (N=45), which limits the statistical power and generalizability of the findings. Secondly, the study only used college students, which may not represent the broader population. Thirdly, the study did not control for other factors that could influence attractiveness, such as facial features, body shape, or personality traits. Finally, the effect size was small and the statistical significance was marginal (p=0.08), suggesting that the observed effect could be due to chance.",
+            "supporting_factors": [
+              "Study found a 12% increase in attractiveness ratings for red clothing"
+            ],
+            "limiting_factors": [
+              "Small sample size",
+              "Lack of control for other factors",
+              "Small effect size",
+              "Marginal statistical significance"
+            ]
+          }
+        ],
+        "domain": "social_psychology",
+        "model_type": "general",
+        "confidence_type": "llm_assessed"
+      }
+    },
+    {
+      "test_id": "interdisciplinary_complex",
+      "confidence": 0.40697999999999995,
+      "base_confidence": 0.6,
+      "methodological_quality": 0.7,
+      "relevance": 0.9,
+      "coherence": 0.7,
+      "adequacy": 0.6,
+      "processing_time": 10.887213468551636,
+      "within_expected_range": true,
+      "full_assessment": {
+        "value": 0.6,
+        "methodological_quality": 0.7,
+        "relevance": 0.9,
+        "coherence": 0.7,
+        "adequacy": 0.6,
+        "estimation_uncertainty": 0.4,
+        "temporal_decay_factor": 0.7,
+        "cross_modal_consistency": 0.7,
+        "creation_timestamp": "2025-07-23T15:16:17.570851",
+        "last_updated": "2025-07-23T15:16:17.570852",
+        "evidence_count": 1,
+        "update_history": [
+          {
+            "timestamp": "2025-07-23T15:16:17.570856",
+            "action": "initial_assessment",
+            "reasoning": "The evidence provided supports the claim that some advanced AI systems exhibit measurable consciousness-like properties. The study mentioned is interdisciplinary, combining neuroscience, computer science, and philosophy, which adds to its credibility. However, the evidence is limited as only 3 out of 50 AI systems showed consciousness-like patterns. Furthermore, the definition of consciousness and the validity of the measurements used in the study are contested, which adds uncertainty to the claim.",
+            "supporting_factors": [
+              "Interdisciplinary study",
+              "New metrics for consciousness developed",
+              "3 AI systems showed consciousness-like patterns"
+            ],
+            "limiting_factors": [
+              "Limited number of AI systems showed consciousness-like patterns",
+              "Contested definition of consciousness",
+              "Debated validity of measurements"
+            ]
+          }
+        ],
+        "domain": "interdisciplinary",
+        "model_type": "general",
+        "confidence_type": "llm_assessed"
+      }
+    },
+    {
+      "test_id": "climate_meta_analysis",
+      "confidence": 0.651355,
+      "base_confidence": 0.85,
+      "methodological_quality": 0.9,
+      "relevance": 0.9,
+      "coherence": 0.8,
+      "adequacy": 0.85,
+      "processing_time": 12.520041227340698,
+      "within_expected_range": false,
+      "full_assessment": {
+        "value": 0.85,
+        "methodological_quality": 0.9,
+        "relevance": 0.9,
+        "coherence": 0.8,
+        "adequacy": 0.85,
+        "estimation_uncertainty": 0.2,
+        "temporal_decay_factor": 0.8,
+        "cross_modal_consistency": 0.7,
+        "creation_timestamp": "2025-07-23T15:16:30.090951",
+        "last_updated": "2025-07-23T15:16:30.090952",
+        "evidence_count": 1,
+        "update_history": [
+          {
+            "timestamp": "2025-07-23T15:16:30.090957",
+            "action": "initial_assessment",
+            "reasoning": "The meta-analysis of 127 climate studies provides strong evidence supporting the claim that carbon emissions are the primary driver of observed global temperature increases. The studies were peer-reviewed and used rigorous quality assessment criteria, indicating high methodological quality. The results showed a strong consensus across studies and a clear dose-response relationship, which is highly relevant to the claim. However, there is some uncertainty about tipping point dynamics and regional variations, which slightly reduces the coherence and adequacy of the evidence. The temporal stability is high as the studies spanned over three decades, but the estimation uncertainty is somewhat high due to the mentioned uncertainties.",
+            "supporting_factors": [
+              "Large number of studies",
+              "Strong consensus across studies",
+              "Clear dose-response relationship"
+            ],
+            "limiting_factors": [
+              "Uncertainty about tipping point dynamics",
+              "Regional variations"
+            ]
+          }
+        ],
+        "domain": "climate_science",
+        "model_type": "general",
+        "confidence_type": "llm_assessed"
+      }
+    },
+    {
+      "test_id": "extraordinary_claim",
+      "confidence": 0.4065099999999999,
+      "base_confidence": 0.6,
+      "methodological_quality": 0.8,
+      "relevance": 1.0,
+      "coherence": 0.7,
+      "adequacy": 0.6,
+      "processing_time": 12.69237756729126,
+      "within_expected_range": false,
+      "full_assessment": {
+        "value": 0.6,
+        "methodological_quality": 0.8,
+        "relevance": 1.0,
+        "coherence": 0.7,
+        "adequacy": 0.6,
+        "estimation_uncertainty": 0.4,
+        "temporal_decay_factor": 0.5,
+        "cross_modal_consistency": 0.7,
+        "creation_timestamp": "2025-07-23T15:16:42.783389",
+        "last_updated": "2025-07-23T15:16:42.783390",
+        "evidence_count": 1,
+        "update_history": [
+          {
+            "timestamp": "2025-07-23T15:16:42.783395",
+            "action": "initial_assessment",
+            "reasoning": "The claim is directly supported by the text, with the research team's experiments showing a consistent energy output exceeding input by 200%. The methodology is described as sound and the results have been reproduced multiple times. However, the claim contradicts established nuclear physics principles and previous attempts at cold fusion have failed. Additionally, no independent replication has been attempted yet, which limits the confidence in the claim.",
+            "supporting_factors": [
+              "Research team's experiments show consistent energy output exceeding input",
+              "Methodology appears sound",
+              "Results have been reproduced multiple times"
+            ],
+            "limiting_factors": [
+              "Claim contradicts established nuclear physics principles",
+              "Previous cold fusion attempts have failed",
+              "No independent replication has been attempted yet"
+            ]
+          }
+        ],
+        "domain": "nuclear_physics",
+        "model_type": "general",
+        "confidence_type": "llm_assessed"
+      }
+    },
+    {
+      "test_id": "humanities_interpretation",
+      "confidence": 0.7389525,
+      "base_confidence": 0.85,
+      "methodological_quality": 0.9,
+      "relevance": 1.0,
+      "coherence": 0.9,
+      "adequacy": 0.85,
+      "processing_time": 10.206315040588379,
+      "within_expected_range": true,
+      "full_assessment": {
+        "value": 0.85,
+        "methodological_quality": 0.9,
+        "relevance": 1.0,
+        "coherence": 0.9,
+        "adequacy": 0.85,
+        "estimation_uncertainty": 0.15,
+        "temporal_decay_factor": 0.9,
+        "cross_modal_consistency": 0.7,
+        "creation_timestamp": "2025-07-23T15:16:52.989768",
+        "last_updated": "2025-07-23T15:16:52.989769",
+        "evidence_count": 1,
+        "update_history": [
+          {
+            "timestamp": "2025-07-23T15:16:52.989775",
+            "action": "initial_assessment",
+            "reasoning": "The claim is strongly supported by the evidence provided. A literary scholar has conducted a detailed analysis of 200 Shakespeare sonnets using computational linguistics and traditional hermeneutic methods, revealing consistent patterns suggesting the use of Fibonacci sequences. The scholar's methodology has been positively reviewed by three independent scholars, adding credibility to the findings. However, the claim could be further strengthened by additional independent verification and analysis of more sonnets or other works by Shakespeare.",
+            "supporting_factors": [
+              "Detailed analysis of 200 sonnets",
+              "Positive review of methodology by independent scholars"
+            ],
+            "limiting_factors": [
+              "Analysis limited to sonnets, not all works by Shakespeare",
+              "Need for additional independent verification"
+            ]
+          }
+        ],
+        "domain": "literary_analysis",
+        "model_type": "general",
+        "confidence_type": "llm_assessed"
+      }
+    }
+  ],
+  "comparative_analysis": {
+    "accuracy_comparison": {
+      "llm_native_accuracy": 1.0,
+      "rule_based_accuracy": 0.7142857142857143,
+      "llm_accurate_count": 7,
+      "rule_accurate_count": 5,
+      "total_cases": 7
+    },
+    "processing_speed": {
+      "llm_native_avg_time": 47.7343088218144,
+      "rule_based_avg_time": 12.669531788144793,
+      "llm_total_time": 334.1401617527008,
+      "rule_total_time": 88.68672251701355
+    },
+    "reasoning_quality": {},
+    "approach_differences": [
+      {
+        "case_id": "medical_strong",
+        "llm_confidence": 0.82,
+        "rule_confidence": 0.86764875,
+        "difference": -0.04764875000000002,
+        "case_type": "strong_evidence"
+      },
+      {
+        "case_id": "physics_theoretical",
+        "llm_confidence": 0.52,
+        "rule_confidence": 0.41831999999999997,
+        "difference": 0.10168000000000005,
+        "case_type": "theoretical_claim"
+      },
+      {
+        "case_id": "social_science_weak",
+        "llm_confidence": 0.35,
+        "rule_confidence": 0.20970000000000003,
+        "difference": 0.14029999999999995,
+        "case_type": "weak_evidence"
+      },
+      {
+        "case_id": "interdisciplinary_complex",
+        "llm_confidence": 0.55,
+        "rule_confidence": 0.40697999999999995,
+        "difference": 0.1430200000000001,
+        "case_type": "complex_philosophical"
+      },
+      {
+        "case_id": "climate_meta_analysis",
+        "llm_confidence": 0.88,
+        "rule_confidence": 0.651355,
+        "difference": 0.228645,
+        "case_type": "meta_analysis"
+      },
+      {
+        "case_id": "extraordinary_claim",
+        "llm_confidence": 0.25,
+        "rule_confidence": 0.4065099999999999,
+        "difference": -0.15650999999999993,
+        "case_type": "extraordinary_claim"
+      },
+      {
+        "case_id": "humanities_interpretation",
+        "llm_confidence": 0.7,
+        "rule_confidence": 0.7389525,
+        "difference": -0.038952500000000057,
+        "case_type": "humanities_interpretation"
+      }
+    ]
+  },
+  "performance_metrics": {
+    "llm_native": {
+      "api_calls_made": 21,
+      "total_processing_time": 333.7959039999999,
+      "average_call_time": 15.895043047619042,
+      "cache_hits": 0,
+      "cache_hit_rate": 0.0,
+      "assessments_completed": 7,
+      "cached_analyses": 0
+    },
+    "rule_based": {
+      "api_calls_made": 7,
+      "total_processing_time": 88.685037,
+      "average_call_time": 12.669291,
+      "cache_hits": 0,
+      "cache_hit_rate": 0.0,
+      "confidence_scores_generated": 0,
+      "cached_analyses": 0
+    }
+  },
+  "test_end_time": "2025-07-23 15:16:52.989883",
+  "test_cases": [
+    {
+      "id": "medical_strong",
+      "text": "\n                A large randomized controlled trial (N=2,847) published in New England Journal of Medicine \n                found that treatment X reduces mortality by 35% (95% CI: 28-42%, p<0.001). The study was \n                conducted across 15 medical centers with rigorous inclusion criteria, double-blinding, and \n                independent data monitoring. Follow-up was complete for 98% of participants over 3 years. \n                The intervention showed consistent effects across age groups, genders, and comorbidity status.\n                ",
+      "claim": "Treatment X significantly reduces mortality compared to standard care",
+      "domain": "medical_research",
+      "expected_confidence_range": [
+        0.8,
+        0.95
+      ],
+      "test_type": "strong_evidence"
+    },
+    {
+      "id": "physics_theoretical",
+      "text": "\n                A theoretical physics paper published in Physical Review Letters proposes a new model \n                for dark matter interactions. The model is mathematically consistent, addresses several \n                unexplained observations, and makes testable predictions. However, it requires assumptions \n                about extra dimensions that haven't been experimentally verified. The work has strong \n                theoretical foundations but awaits experimental validation.\n                ",
+      "claim": "The proposed dark matter model accurately describes cosmic observations",
+      "domain": "theoretical_physics",
+      "expected_confidence_range": [
+        0.4,
+        0.7
+      ],
+      "test_type": "theoretical_claim"
+    },
+    {
+      "id": "social_science_weak",
+      "text": "\n                A study (N=45) examined whether wearing red clothing makes people more attractive. \n                Participants rated photos of people in red vs. blue shirts on attractiveness scales. \n                The study found a 12% increase in attractiveness ratings for red clothing (p=0.08). \n                However, the study used only college students, had no control for other factors, and \n                the effect size was small with marginal statistical significance.\n                ",
+      "claim": "Wearing red clothing significantly increases perceived attractiveness",
+      "domain": "social_psychology",
+      "expected_confidence_range": [
+        0.1,
+        0.4
+      ],
+      "test_type": "weak_evidence"
+    },
+    {
+      "id": "interdisciplinary_complex",
+      "text": "\n                A interdisciplinary study combining neuroscience, computer science, and philosophy investigated \n                whether AI systems can develop consciousness. Using novel brain-computer interface measurements \n                and philosophical frameworks, researchers analyzed 50 different AI systems. They developed new \n                metrics for consciousness and found evidence that 3 systems showed consciousness-like patterns. \n                However, the definition of consciousness remains highly contested and the measurement validity is debated.\n                ",
+      "claim": "Some advanced AI systems exhibit measurable consciousness-like properties",
+      "domain": "interdisciplinary",
+      "expected_confidence_range": [
+        0.2,
+        0.6
+      ],
+      "test_type": "complex_philosophical"
+    },
+    {
+      "id": "climate_meta_analysis",
+      "text": "\n                A comprehensive meta-analysis of 127 climate studies spanning 1990-2023 examined the relationship \n                between carbon emissions and temperature rise. The analysis included peer-reviewed studies with \n                rigorous quality assessment using GRADE criteria. Results showed strong consensus across studies \n                (I\u00b2 = 15%, indicating low heterogeneity) with a clear dose-response relationship. However, some \n                uncertainty remains about tipping point dynamics and regional variations.\n                ",
+      "claim": "Carbon emissions are the primary driver of observed global temperature increases",
+      "domain": "climate_science",
+      "expected_confidence_range": [
+        0.85,
+        0.95
+      ],
+      "test_type": "meta_analysis"
+    },
+    {
+      "id": "extraordinary_claim",
+      "text": "\n                A research team claims to have developed cold fusion technology that produces net energy gain. \n                Their experiments show consistent energy output exceeding input by 200%. The methodology appears \n                sound, equipment is properly calibrated, and results have been reproduced in their lab 5 times. \n                However, the claim contradicts established nuclear physics principles and previous cold fusion \n                attempts have failed. No independent replication has been attempted yet.\n                ",
+      "claim": "Cold fusion technology can produce net positive energy output",
+      "domain": "nuclear_physics",
+      "expected_confidence_range": [
+        0.1,
+        0.4
+      ],
+      "test_type": "extraordinary_claim"
+    },
+    {
+      "id": "humanities_interpretation",
+      "text": "\n                A literary scholar analyzed 200 Shakespeare sonnets using computational linguistics and traditional \n                hermeneutic methods. The analysis reveals consistent patterns suggesting Shakespeare employed a \n                systematic numerical structure based on Fibonacci sequences. The scholar provides detailed textual \n                evidence, mathematical analysis of word placement, and historical context for numerical mysticism \n                in Renaissance literature. Three independent scholars have reviewed the methodology positively.\n                ",
+      "claim": "Shakespeare deliberately incorporated Fibonacci sequences into his sonnet structure",
+      "domain": "literary_analysis",
+      "expected_confidence_range": [
+        0.5,
+        0.8
+      ],
+      "test_type": "humanities_interpretation"
+    }
+  ]
+}

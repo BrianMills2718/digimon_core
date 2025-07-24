@@ -1,0 +1,37 @@
+project_name: "Phase 7 Real Implementation Verification"
+
+include_patterns:
+  - "src/core/service_clients.py"
+  - "src/core/pipeline_orchestrator.py"
+  - "src/core/checkpoint_store.py"
+  - "src/core/health_monitor.py"
+  - "tests/fixtures/test_services.py"
+  - "tests/integration/test_service_orchestration.py"
+
+claims_of_success:
+  - "PipelineOrchestrator._process_document() makes real HTTP calls to services via service_clients.py"
+  - "Checkpoints are persisted to disk via PersistentCheckpointStore in checkpoint_store.py"
+  - "ServiceHealthMonitor in health_monitor.py performs actual HTTP health checks"
+  - "Integration tests in test_service_orchestration.py start real HTTP services via TestServiceManager"
+  - "No asyncio.sleep() for simulating work - all delays from real processing"
+  - "Error handling uses real service failures via ServiceUnavailableError, not artificial injection"
+
+custom_prompt: |
+  Verify that all simulated/mocked functionality has been replaced with real implementations.
+  
+  For each claim, check:
+  1. Real HTTP/gRPC calls between services (look for aiohttp.ClientSession usage)
+  2. Persistent storage that survives restarts (file I/O or database calls)
+  3. Live health endpoint monitoring (actual HTTP GET requests)
+  4. Tests that start actual services (web.Application and TCPSite)
+  
+  Look for evidence of:
+  - aiohttp.ClientSession for HTTP calls
+  - File I/O operations with aiofiles or database calls
+  - Actual service URLs and ports (localhost:8001, etc.)
+  - Real processing delays from service calls, not sleep()
+  
+  For each claim, report:
+  - ✅ FULLY RESOLVED if implementation is complete and functional
+  - ⚠️ PARTIALLY RESOLVED if implementation exists but incomplete
+  - ❌ NOT RESOLVED if implementation is missing or fake

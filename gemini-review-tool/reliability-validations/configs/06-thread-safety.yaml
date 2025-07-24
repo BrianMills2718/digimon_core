@@ -1,0 +1,34 @@
+project_name: "Thread Safety Validation"
+
+include_patterns:
+  - "src/core/thread_safe_service_manager.py"
+
+custom_prompt: |
+  Validate ONLY this specific claim:
+  
+  **CLAIM**: ThreadSafeServiceManager eliminates race conditions with proper locking
+  
+  SPECIFIC CHECKS:
+  1. Singleton pattern with double-check locking
+  2. Service-specific locks in _service_locks dictionary
+  3. Thread-safe service registration and retrieval
+  4. atomic_operation context manager
+  
+  EVIDENCE REQUIRED:
+  - threading module import
+  - _instance_lock class variable (threading.Lock or RLock)
+  - Double-check pattern in __new__: check, lock, check again
+  - _service_locks defaultdict for per-service locks
+  - get_service() uses service-specific lock
+  - atomic_operation() context manager with proper locking
+  
+  Look specifically at:
+  - __new__ method implementation (lines ~15-25)
+  - get_service() locking logic
+  - register_service() thread safety
+  - atomic_operation() context manager
+  
+  IGNORE: Everything not related to thread safety and locking
+
+claims_of_success:
+  - "Thread-safe singleton with double-check locking and service-specific locks"

@@ -1,0 +1,45 @@
+project_name: "Resolved Integration Issues Validation"
+
+# Minimal context - only the fixed files
+include_patterns:
+  - "agent_stress_testing/real_claude_integration.py"
+  - "agent_stress_testing/real_kgas_integration.py"
+
+# Focused validation on resolved issues
+custom_prompt: |
+  Validate that the 3 specific issues identified by previous Gemini analysis have been resolved:
+  
+  **RESOLVED ISSUE 1: Claude Tool Calls Parsing**
+  BEFORE: Line 90 showed "tool_calls=[], # Tool calls would need separate parsing"
+  NOW: Should have real _parse_tool_calls() method with regex parsing of function calls
+  
+  **RESOLVED ISSUE 2: Claude Workflow Extraction**  
+  BEFORE: Line 231 showed "Simple extraction - in real implementation, would parse structured formats"
+  NOW: Should have robust _extract_workflow_specification() with YAML/JSON parsing
+  
+  **RESOLVED ISSUE 3: KGAS Phase 2 Tool Implementations**
+  BEFORE: Lines 166, 185, 214 showed "Placeholder implementation - would need real KGAS ... analysis"
+  NOW: Should have real implementations using NLTK, NetworkX, SciPy instead of hardcoded returns
+  
+  **RESOLVED ISSUE 4: Mock Fallbacks Removed**
+  BEFORE: Line 243 showed generic mock with status: "mock_execution"
+  NOW: Should raise NotImplementedError for unimplemented tools
+  
+  For each issue, report: ✅ RESOLVED or ❌ STILL PRESENT with evidence.
+
+claims_of_success:
+  - claim: "Fixed Claude tool call parsing with real regex extraction"
+    evidence: "_parse_tool_calls method with proper function_calls pattern matching"
+    files: ["agent_stress_testing/real_claude_integration.py"]
+    
+  - claim: "Implemented robust workflow specification extraction"
+    evidence: "_extract_workflow_specification with YAML/JSON parsing"
+    files: ["agent_stress_testing/real_claude_integration.py"]
+    
+  - claim: "Replaced Phase 2 KGAS tools with real implementations"
+    evidence: "NLTK, NetworkX, SciPy implementations instead of placeholder returns"
+    files: ["agent_stress_testing/real_kgas_integration.py"]
+    
+  - claim: "Removed mock fallbacks in favor of graceful failures"
+    evidence: "NotImplementedError raised instead of mock returns"
+    files: ["agent_stress_testing/real_kgas_integration.py"]

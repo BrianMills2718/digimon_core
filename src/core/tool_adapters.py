@@ -19,14 +19,14 @@ from .schema_enforcer import SchemaEnforcer
 from .entity_schema import StandardEntity, StandardRelationship
 from .theory_integration import theory_aware_tool
 from .tool_protocol import Tool, ToolExecutionError, ToolValidationError, ToolValidationResult
-from src.tools.phase1.t01_pdf_loader import PDFLoader as _PDFLoader
-from src.tools.phase1.t15a_text_chunker import TextChunker as _TextChunker
-from src.tools.phase1.t23a_spacy_ner import SpacyNER as _SpacyNER
-from src.tools.phase1.t27_relationship_extractor import RelationshipExtractor as _RelationshipExtractor
-from src.tools.phase1.t31_entity_builder import EntityBuilder as _EntityBuilder
-from src.tools.phase1.t34_edge_builder import EdgeBuilder as _EdgeBuilder
-from src.tools.phase1.t68_pagerank_optimized import T68PageRankOptimized as _PageRankCalculator
-from src.tools.phase1.t49_multihop_query import MultiHopQuery as _MultiHopQuery
+from src.tools.phase1.t01_pdf_loader_unified import PDFLoaderUnified as _PDFLoader
+from src.tools.phase1.t15a_text_chunker_unified import TextChunkerUnified as _TextChunker
+from src.tools.phase1.t23a_spacy_ner_unified import SpacyNERUnified as _SpacyNER
+from src.tools.phase1.t27_relationship_extractor_unified import RelationshipExtractorUnified as _RelationshipExtractor
+from src.tools.phase1.t31_entity_builder_unified import EntityBuilderUnified as _EntityBuilder
+from src.tools.phase1.t34_edge_builder_unified import EdgeBuilderUnified as _EdgeBuilder
+from src.tools.phase1.t68_pagerank_calculator_unified import PageRankCalculatorUnified as _PageRankCalculator
+from src.tools.phase1.t49_multihop_query_unified import MultiHopQueryUnified as _MultiHopQuery
 from src.tools.phase1.t15b_vector_embedder import VectorEmbedder as _VectorEmbedder
 
 logger = get_logger("core.tool_adapters")

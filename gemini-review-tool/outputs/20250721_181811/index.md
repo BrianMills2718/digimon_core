@@ -1,1 +1,0 @@
-- [validations/simple_validation.md](validations/simple_validation.md) ‒ 2025-07-21 18:18

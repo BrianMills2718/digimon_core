@@ -4,4 +4,6 @@ The CLAUDE.md also needs to contain instructions that after success has been tot
 
 Then update the claude.md to contain instructions to fix all the identified issues. The instructions should be detailed enough so that a new LLM could implement the instructions with no other context than the CLAUDE.md and the files it points to. remove all outdate or extraneous information. every claude.md should have a "coding philosopy" section which mandates no lazy mocking/stubs/fallbacks/pseudo code/ and no simplified implementations that provide reduced functioanlity. the philosophy should also include a fall fast approach rather than hiding errors and mandate extensive testing with the assumption that nothing is working until it can be demonstrated that it does work. all claims need to be backed by raw evidence logs in an Evidence.md file for each claim before declaring success. Every Claude.md file should also have a "code base structure" section that concisely lays out the structure and entry points of the codebase. 
 
-Repeat thei sprocess untill gemini-review reveals no issues.
+REMEMBER TO ALWAYS USE REAL API CALLS AND SERVICES IN TESTS. DO NOT USE MOCKS OR FALLBACKS
+
+Repeat this process untill gemini-review reveals no issues.

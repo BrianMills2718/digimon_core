@@ -294,7 +294,17 @@ class ErrorTracker:
             except RuntimeError:
                 # Non-async fallback
                 import time
-                time.sleep(min(delay, 0.1))  # Cap at 100ms
+                # Use async sleep if in async context
+                try:
+                    loop = asyncio.get_event_loop()
+                    if loop.is_running():
+                        asyncio.create_task(asyncio.sleep(min(delay, 0.1)))
+                    else:
+                        import time
+                        time.sleep(min(delay, 0.1))
+                except (RuntimeError, AttributeError):
+                    import time
+                    time.sleep(min(delay, 0.1))
             return True
             
         except Exception as e:

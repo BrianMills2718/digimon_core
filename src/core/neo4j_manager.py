@@ -129,7 +129,7 @@ class Neo4jDockerManager:
                     except RuntimeError:
                         # Non-async fallback with reduced delay
                         import time
-                        time.sleep(min(delay, 1.0))  # Cap at 1 second
+                        time.sleep(min(delay, 0.1))  # Cap at 100ms to reduce blocking
     
     async def get_session_async(self):
         """Real async session with AsyncGraphDatabase for non-blocking Neo4j operations"""
@@ -265,9 +265,9 @@ class Neo4jDockerManager:
         try:
             asyncio.create_task(asyncio.sleep(0.1))  # Reduced from 0.5s to 0.1s
         except RuntimeError:
-            # Non-async fallback
+            # Non-async fallback with minimal delay
             import time
-            time.sleep(0.1)
+            time.sleep(0.05)  # Reduced to 50ms
         
         # Create fresh driver with full configuration
         from neo4j import GraphDatabase
@@ -520,9 +520,9 @@ class Neo4jDockerManager:
             try:
                 asyncio.create_task(asyncio.sleep(0.5))  # Reduced from 1s to 0.5s
             except RuntimeError:
-                # Non-async fallback
+                # Non-async fallback with minimal delay
                 import time
-                time.sleep(0.1)  # Minimal delay
+                time.sleep(0.05)  # Reduced to 50ms
             if i % 5 == 4:  # Every 5 seconds
                 logger.info(f"   Still waiting... ({i+1}/{max_wait}s)")
         

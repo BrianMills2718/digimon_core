@@ -306,8 +306,20 @@ class ProductionErrorHandler:
                     asyncio.create_task(asyncio.sleep(delay))
                 except RuntimeError:
                     # Fallback for non-async context - use minimal delay
-                    import time
-                    time.sleep(min(delay, 0.1))  # Cap at 100ms
+                    import asyncio
+                    try:
+                        loop = asyncio.get_event_loop()
+                        if loop.is_running():
+                            # We're in async context, create a task
+                            asyncio.create_task(asyncio.sleep(min(delay, 0.1)))
+                        else:
+                            # Truly sync context
+                            import time
+                            time.sleep(min(delay, 0.1))
+                    except RuntimeError:
+                        # No event loop, use sync sleep
+                        import time
+                        time.sleep(min(delay, 0.1))
             
             try:
                 result = retry_function(*retry_args, **retry_kwargs)
