@@ -192,6 +192,10 @@ class LongChainStressTest:
         
         # Level 1: Standard chunking
         print(f"   Step 1: Standard chunking...")
+        
+        # Import ToolRequest inside the function to avoid import issues
+        from src.tools.base_tool import ToolRequest
+        
         level1_request = ToolRequest(
             tool_id="T15A",
             operation="chunk_text",

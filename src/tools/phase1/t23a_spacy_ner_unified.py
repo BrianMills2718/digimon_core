@@ -254,6 +254,7 @@ class T23ASpacyNERUnified(BaseTool):
                         "confidence": entity_confidence,
                         "start_pos": ent.start_char,
                         "end_pos": ent.end_char,
+                        "chunk_ref": chunk_ref,  # CRITICAL FIX: Include chunk_ref in entity output
                         "quality_tier": quality_tier,
                         "created_at": datetime.now().isoformat()
                     }

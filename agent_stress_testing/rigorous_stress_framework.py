@@ -371,13 +371,35 @@ class MultiDocumentOverloadTest:
                 chunk_entities = [e for e in all_entities if e.get("chunk_ref") == chunk["chunk_ref"]]
                 
                 if len(chunk_entities) >= 2:
+                    # CRITICAL FIX: Convert T23A entity format to T27 expected format
+                    def convert_t23a_to_t27_format(t23a_entities):
+                        """Convert T23A entity format to T27 expected format"""
+                        t27_entities = []
+                        for entity in t23a_entities:
+                            # T27 expects: ['text', 'label', 'start', 'end']
+                            # T23A provides: ['surface_form', 'entity_type', 'start_pos', 'end_pos']
+                            t27_entity = {
+                                'text': entity.get('surface_form', ''),  # T23A → T27
+                                'label': entity.get('entity_type', ''),  # T23A → T27
+                                'start': entity.get('start_pos', 0),     # T23A → T27
+                                'end': entity.get('end_pos', 0),         # T23A → T27
+                                # Preserve original data for debugging
+                                '_chunk_ref': entity.get('chunk_ref', ''),
+                                '_confidence': entity.get('confidence', 0.0)
+                            }
+                            t27_entities.append(t27_entity)
+                        return t27_entities
+                    
+                    # Convert entities to T27 format
+                    t27_formatted_entities = convert_t23a_to_t27_format(chunk_entities)
+                    
                     rel_request = ToolRequest(
                         tool_id="T27",
                         operation="extract_relationships",
                         input_data={
                             "chunk_ref": chunk["chunk_ref"],
                             "text": chunk["text"],
-                            "entities": chunk_entities,
+                            "entities": t27_formatted_entities,  # Use converted format!
                             "confidence": 0.1
                         },
                         parameters={}

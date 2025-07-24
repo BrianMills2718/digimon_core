@@ -383,29 +383,39 @@ For exploratory work:
 - **Prerequisites**: Phase 6 complete ✅, TDD training complete
 
 #### **Phase 8: Strategic External Integrations** 🚀 **ACTIVE PRIORITY**  
-**Purpose**: "Buy vs Build" strategic integrations for development acceleration
+**Purpose**: "Buy vs Build" strategic integrations for development acceleration via MCP ecosystem
 - **Status**: 🚀 **READY TO START** (2025-07-24) - Phase 7 complete, service architecture solid  
 - **📄 DETAILED PLAN**: [Phase 8 Strategic External Integrations](docs/roadmap/phases/phase-8/phase-8-strategic-external-integrations.md)
 - **Key Goals**:
-  - Academic API integrations (ArXiv, PubMed, Semantic Scholar) - 50M+ papers
-  - Document processing MCPs (MarkItDown, content extractors) - 20+ formats
-  - Infrastructure services (monitoring, auth, cloud deployment)
+  - Academic MCP integrations (Semantic Scholar, ArXiv LaTeX, PubMed servers) - 50M+ papers
+  - Document processing MCPs (MarkItDown, Content Core, Pandoc servers) - 20+ formats
+  - Infrastructure MCPs (Grafana, Docker, Logfire servers) for monitoring/deployment
+  - Media MCPs (YouTube, Google News, DappierAI) for discourse analysis
   - Development acceleration: 27-36 weeks time savings, 163-520% ROI
+- **Implementation Strategy**: MCP Client Architecture
+  - **COMPLETED**: Academic MCPs (Semantic Scholar, ArXiv LaTeX, YouTube, Google News, DappierAI, Content Core)
+  - **COMPLETED**: MCP Orchestrator for unified operations across all sources
+  - **NEXT**: Document processing MCPs (MarkItDown, Pandoc) 
+  - **NEXT**: Infrastructure MCPs (Grafana, Docker, Logfire)
 - **TDD Requirements**:
-  - Mock all external services FIRST before integration
+  - Mock all external MCP servers FIRST before integration
   - Circuit breaker tests written before implementation
   - Fallback behavior tests for all external dependencies
-  - API contract tests for all integrations
+  - MCP protocol contract tests for all integrations
   - Cache behavior tests for performance optimization
   - 100% test coverage for error handling paths
-  - Research/exploration allowed for new APIs but must define integration criteria first
+  - Research/exploration allowed for new MCPs but must define integration criteria first
 - **Sub-Phases**:
-  - **Phase 8.1**: Core Infrastructure + ADR Implementation (Weeks 1-4)
-    - **ADR-007 Uncertainty Metrics**: Implement CERQual framework for academic rigor
-    - **ADR-006 Cross-Modal Analysis**: Build graph ↔ table ↔ vector conversion tools  
-    - Core infrastructure services (monitoring, auth, cloud deployment)
-  - **Phase 8.2**: Academic APIs (Weeks 5-10)
-  - **Phase 8.3**: Advanced Integrations (Weeks 11-16)
+  - **Phase 8.1**: MCP Client Infrastructure (Weeks 1-2) ✅ COMPLETE
+    - **MCP Base Client**: Abstract base class for all MCP clients
+    - **HTTP Transport**: Connection pooling, retry logic, rate limiting
+    - **Orchestrator**: Unified operations across MCP servers
+  - **Phase 8.2**: Document & Infrastructure MCPs (Weeks 3-4) 🚀 ACTIVE
+    - **Document MCPs**: MarkItDown, Pandoc integration
+    - **Infrastructure MCPs**: Grafana, Docker, Logfire integration
+  - **Phase 8.3**: ADR Implementation (Weeks 5-6)
+    - **ADR-007 Uncertainty Metrics**: Implement CERQual framework
+    - **ADR-006 Cross-Modal Analysis**: Enhance conversion tools
 - **Strategic Framework**: [ADR-005: Buy vs Build Strategy](docs/architecture/adrs/ADR-005-buy-vs-build-strategy.md)
 - **Strategic Analysis**: [KGAS-Development-Improvement-Analysis.md](KGAS-Development-Improvement-Analysis.md)
 

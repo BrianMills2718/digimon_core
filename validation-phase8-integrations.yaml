@@ -1,0 +1,110 @@
+# Phase 8.1 MCP Integration Validation Configuration
+
+project_name: "Phase 8.1: Strategic External Integrations"
+description: "Validation of MCP client integration implementation for KGAS"
+created_at: "2025-01-24"
+
+# Files to include in validation
+include_patterns:
+  # Core infrastructure
+  - "src/core/circuit_breaker.py"
+  - "src/core/api_rate_limiter.py"
+  
+  # MCP integration framework
+  - "src/integrations/mcp/base_client.py"
+  - "src/integrations/mcp/http_client.py"
+  - "src/integrations/mcp/orchestrator.py"
+  - "src/integrations/exceptions.py"
+  
+  # Academic source clients
+  - "src/integrations/mcp/semantic_scholar_client.py"
+  - "src/integrations/mcp/arxiv_latex_client.py"
+  - "src/integrations/mcp/content_core_client.py"
+  
+  # Media source clients
+  - "src/integrations/mcp/youtube_client.py"
+  - "src/integrations/mcp/google_news_client.py"
+  - "src/integrations/mcp/dappier_client.py"
+  
+  # Document processing clients
+  - "src/integrations/mcp/markitdown_client.py"
+  - "src/integrations/mcp/pandoc_client.py"
+  
+  # Infrastructure clients
+  - "src/integrations/mcp/grafana_client.py"
+  - "src/integrations/mcp/auth_provider_client.py"
+  
+  # Tests
+  - "tests/unit/test_semantic_scholar_client.py"
+  - "tests/unit/test_arxiv_latex_client.py"
+  - "tests/unit/test_youtube_client.py"
+  - "tests/unit/test_google_news_client.py"
+  - "tests/unit/test_dappier_client.py"
+  - "tests/unit/test_content_core_client.py"
+  - "tests/unit/test_markitdown_client.py"
+  - "tests/unit/test_pandoc_client.py"
+  - "tests/unit/test_grafana_client.py"
+  - "tests/unit/test_auth_provider_client.py"
+  - "tests/unit/test_mcp_orchestrator.py"
+  - "tests/integration/test_mcp_integration.py"
+  
+  # Examples and documentation
+  - "examples/mcp_discourse_analysis.py"
+  - "examples/mcp_integration_demo.py"
+  - "Evidence_MCP_Integration.md"
+
+# Files to exclude
+exclude_patterns:
+  - "*.pyc"
+  - "__pycache__"
+  - ".pytest_cache"
+  - "*.log"
+
+# Validation prompt
+custom_prompt: |
+  Validate the Phase 8.1 MCP Integration implementation. Verify that:
+  
+  1. All MCP clients follow the standardized base interface
+  2. Circuit breakers and rate limiting are properly integrated
+  3. The orchestrator provides unified access to all sources
+  4. Error handling ensures graceful degradation
+  5. Tests comprehensively cover all functionality
+  6. The implementation is production-ready
+  
+  Focus on architectural consistency, resilience patterns, and real-world usability.
+
+# Claims to validate
+claims_of_success:
+  - "Implemented complete MCP client architecture with 12 specialized clients"
+  - "All clients inherit from BaseMCPClient with consistent interface"
+  - "HTTP transport layer handles retries, rate limiting, and circuit breaking"
+  - "Orchestrator provides unified search across all sources"
+  - "Document processing supports 20+ formats via MarkItDown and Pandoc"
+  - "Infrastructure services include monitoring (Grafana) and auth (OAuth2/SAML)"
+  - "118 tests provide comprehensive coverage of all functionality"
+  - "Examples demonstrate real-world usage patterns"
+  - "Production-ready with connection pooling, timeouts, and error handling"
+
+# Expected outcomes
+expected_outcomes:
+  - pattern: "BaseMCPClient"
+    description: "Abstract base class enforces consistent interface"
+  - pattern: "circuit_breaker"
+    description: "Circuit breaker pattern prevents cascade failures"
+  - pattern: "rate_limiter"
+    description: "Rate limiting respects API quotas"
+  - pattern: "unified_search"
+    description: "Orchestrator searches across all sources"
+  - pattern: "analyze_discourse"
+    description: "Cross-source discourse analysis"
+  - pattern: "118.*test"
+    description: "Comprehensive test coverage"
+
+# Validation metadata
+validation_type: "architecture"
+priority: "high"
+tags:
+  - "phase8"
+  - "mcp"
+  - "integration"
+  - "external-services"

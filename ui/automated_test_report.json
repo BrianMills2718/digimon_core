@@ -1,0 +1,200 @@
+{
+  "test_run": "2025-07-24T00:57:17.614587",
+  "server_port": 8888,
+  "total_tests": 29,
+  "passed_tests": 29,
+  "issues_found": 1,
+  "issues_by_severity": {
+    "CRITICAL": 0,
+    "ERROR": 1,
+    "WARNING": 0
+  },
+  "test_results": [
+    {
+      "test": "HTML Structure",
+      "status": "PASS",
+      "description": "Found Tab navigation",
+      "timestamp": "2025-07-24T00:57:17.612406"
+    },
+    {
+      "test": "HTML Structure",
+      "status": "PASS",
+      "description": "Found Documents tab",
+      "timestamp": "2025-07-24T00:57:17.612413"
+    },
+    {
+      "test": "HTML Structure",
+      "status": "PASS",
+      "description": "Found Analysis tab",
+      "timestamp": "2025-07-24T00:57:17.612416"
+    },
+    {
+      "test": "HTML Structure",
+      "status": "PASS",
+      "description": "Found Graph tab",
+      "timestamp": "2025-07-24T00:57:17.612419"
+    },
+    {
+      "test": "HTML Structure",
+      "status": "PASS",
+      "description": "Found Query tab",
+      "timestamp": "2025-07-24T00:57:17.612422"
+    },
+    {
+      "test": "HTML Structure",
+      "status": "PASS",
+      "description": "Found Export tab",
+      "timestamp": "2025-07-24T00:57:17.612426"
+    },
+    {
+      "test": "HTML Structure",
+      "status": "PASS",
+      "description": "Found Tab switching JavaScript",
+      "timestamp": "2025-07-24T00:57:17.612431"
+    },
+    {
+      "test": "HTML Structure",
+      "status": "PASS",
+      "description": "Proper UTF-8 encoding",
+      "timestamp": "2025-07-24T00:57:17.612432"
+    },
+    {
+      "test": "JavaScript",
+      "status": "PASS",
+      "description": "Found Tab switching function",
+      "timestamp": "2025-07-24T00:57:17.613426"
+    },
+    {
+      "test": "JavaScript",
+      "status": "PASS",
+      "description": "Found Event listeners",
+      "timestamp": "2025-07-24T00:57:17.613434"
+    },
+    {
+      "test": "JavaScript",
+      "status": "PASS",
+      "description": "Found CSS class manipulation",
+      "timestamp": "2025-07-24T00:57:17.613438"
+    },
+    {
+      "test": "JavaScript",
+      "status": "PASS",
+      "description": "Found CSS class removal",
+      "timestamp": "2025-07-24T00:57:17.613441"
+    },
+    {
+      "test": "CSS",
+      "status": "PASS",
+      "description": "Found Tab styling",
+      "timestamp": "2025-07-24T00:57:17.614396"
+    },
+    {
+      "test": "CSS",
+      "status": "PASS",
+      "description": "Found Active tab styling",
+      "timestamp": "2025-07-24T00:57:17.614402"
+    },
+    {
+      "test": "CSS",
+      "status": "PASS",
+      "description": "Found Component styling",
+      "timestamp": "2025-07-24T00:57:17.614404"
+    },
+    {
+      "test": "CSS",
+      "status": "PASS",
+      "description": "Found Button styling",
+      "timestamp": "2025-07-24T00:57:17.614406"
+    },
+    {
+      "test": "CSS",
+      "status": "PASS",
+      "description": "Found Upload zone styling",
+      "timestamp": "2025-07-24T00:57:17.614408"
+    },
+    {
+      "test": "React Setup",
+      "status": "PASS",
+      "description": "package.json exists",
+      "timestamp": "2025-07-24T00:57:17.614455"
+    },
+    {
+      "test": "React Dependencies",
+      "status": "PASS",
+      "description": "react is included",
+      "timestamp": "2025-07-24T00:57:17.614493"
+    },
+    {
+      "test": "React Dependencies",
+      "status": "PASS",
+      "description": "react-dom is included",
+      "timestamp": "2025-07-24T00:57:17.614496"
+    },
+    {
+      "test": "React Dependencies",
+      "status": "PASS",
+      "description": "@tanstack/react-query is included",
+      "timestamp": "2025-07-24T00:57:17.614499"
+    },
+    {
+      "test": "React Components",
+      "status": "PASS",
+      "description": "App.jsx exists",
+      "timestamp": "2025-07-24T00:57:17.614518"
+    },
+    {
+      "test": "React Components",
+      "status": "PASS",
+      "description": "DocumentManager.jsx exists",
+      "timestamp": "2025-07-24T00:57:17.614531"
+    },
+    {
+      "test": "React Components",
+      "status": "PASS",
+      "description": "AnalysisDashboard.jsx exists",
+      "timestamp": "2025-07-24T00:57:17.614541"
+    },
+    {
+      "test": "React Components",
+      "status": "PASS",
+      "description": "Layout.jsx exists",
+      "timestamp": "2025-07-24T00:57:17.614551"
+    },
+    {
+      "test": "API Endpoints",
+      "status": "PASS",
+      "description": "Document upload endpoint defined",
+      "timestamp": "2025-07-24T00:57:17.614578"
+    },
+    {
+      "test": "API Endpoints",
+      "status": "PASS",
+      "description": "Start analysis endpoint defined",
+      "timestamp": "2025-07-24T00:57:17.614581"
+    },
+    {
+      "test": "API Endpoints",
+      "status": "PASS",
+      "description": "Get graph data endpoint defined",
+      "timestamp": "2025-07-24T00:57:17.614583"
+    },
+    {
+      "test": "API Endpoints",
+      "status": "PASS",
+      "description": "Execute query endpoint defined",
+      "timestamp": "2025-07-24T00:57:17.614584"
+    }
+  ],
+  "issues": [
+    {
+      "severity": "ERROR",
+      "description": "Missing dependency: vite",
+      "suggestion": null,
+      "timestamp": "2025-07-24T00:57:17.614497"
+    }
+  ],
+  "recommendations": [
+    "Address error-level issues before deployment",
+    "Run 'npm install' in ui/research-app directory"
+  ]
+}

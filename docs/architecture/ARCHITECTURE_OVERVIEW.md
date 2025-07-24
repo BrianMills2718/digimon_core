@@ -348,19 +348,48 @@ KGAS provides comprehensive statistical analysis capabilities integrated with it
 
 ## MCP Integration Architecture
 
-KGAS exposes all system capabilities through the Model Context Protocol (MCP) for comprehensive external tool access:
+KGAS leverages the Model Context Protocol (MCP) ecosystem for both internal tool access and external service integration:
 
-### Complete Tool Access
+### Dual MCP Strategy
+
+#### 1. **KGAS as MCP Server** (Tool Exposure)
 - **121+ KGAS tools** accessible via standardized MCP interface
 - **Multiple client support**: Works with Claude Desktop, custom Streamlit UI, and other MCP clients
-- **Security framework**: Comprehensive security measures addressing MCP protocol vulnerabilities
-- **Performance optimization**: Mitigation strategies for MCP limitations (40-tool barrier, context scaling)
-
-### MCP Server Integration
 - **FastMCP framework**: Production-grade MCP server implementation
-- **External access**: Tool access for Claude Desktop, ChatGPT, and other LLM clients
 - **Type-safe interfaces**: Standardized tool protocols
-- **Complete documentation**: Auto-generated capability registry
+
+#### 2. **KGAS as MCP Client** (External Integration)
+- **Academic Services**: Connect to Semantic Scholar, ArXiv LaTeX, PubMed MCP servers
+- **Document Processing**: Integrate with MarkItDown, Content Core, Pandoc MCP servers
+- **Infrastructure**: Use Grafana, Docker, Logfire MCP servers for monitoring/deployment
+- **Media Sources**: Access YouTube, Google News, DappierAI for discourse analysis
+
+### MCP Client Architecture
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    MCP Integration Layer                     │
+├─────────────────────────────────────────────────────────────┤
+│  ┌────────────┐  ┌────────────┐  ┌────────────────────┐    │
+│  │    MCP     │  │    MCP     │  │       MCP          │    │
+│  │Orchestrator│  │  Clients   │  │    Transport       │    │
+│  └────────────┘  └────────────┘  └────────────────────┘    │
+├─────────────────────────────────────────────────────────────┤
+│                  External MCP Servers                        │
+│  ┌─────────────────────────────────────────────────────┐    │
+│  │ Academic: Semantic Scholar, ArXiv LaTeX, PubMed     │    │
+│  │ Media: YouTube, Google News, DappierAI              │    │
+│  │ Documents: MarkItDown, Content Core, Pandoc         │    │
+│  │ Infrastructure: Grafana, Docker, Logfire            │    │
+│  └─────────────────────────────────────────────────────┘    │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Key MCP Integration Components
+- **MCP Orchestrator**: Coordinates multiple MCP servers for unified operations
+- **HTTP Transport**: Manages connections to external MCP servers
+- **Circuit Breakers**: Protects against external service failures
+- **Rate Limiting**: Respects API limits of external services
+- **Unified Search**: Query across all academic and media sources
 
 See [MCP Architecture Details](systems/mcp-integration-architecture.md) for comprehensive integration specifications.
 
