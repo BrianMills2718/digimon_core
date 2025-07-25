@@ -21,7 +21,7 @@ class QueryAnsweringError(Exception):
     pass
 
 from src.core.graphrag_phase_interface import ProcessingRequest, PhaseResult, PhaseStatus, GraphRAGPhase
-from src.tools.phase1.vertical_slice_workflow import VerticalSliceWorkflow
+from src.tools.phase2.enhanced_vertical_slice_workflow import EnhancedVerticalSliceWorkflow
 from src.core.service_manager import get_service_manager
 from src.core.logging_config import get_logger
 from src.core.tool_factory import create_unified_workflow_config, Phase, OptimizationLevel
@@ -606,23 +606,30 @@ class BasicMultiDocumentWorkflow(GraphRAGPhase):
             - query_type: Type of query (factual, analytical, comparative, etc.)
             """
             
-            # Get LLM response (synchronous for now)
-            response = api_client.generate_text_sync(
+            # Get LLM response using new LiteLLM client interface
+            response = api_client.make_request(
                 prompt=parsing_prompt,
                 max_tokens=500,
-                temperature=0.1
+                temperature=0.1,
+                request_type="chat_completion"
             )
             
-            # Parse response
+            # Parse response from new LiteLLM client
             import json
             import re
             
-            # Extract JSON from response
-            json_match = re.search(r'\{.*\}', response, re.DOTALL)
-            if json_match:
-                parsed_query = json.loads(json_match.group())
+            # Get response data from new client response format
+            if response.success and response.response_data:
+                response_text = response.response_data
+                # Extract JSON from response
+                json_match = re.search(r'\{.*\}', response_text, re.DOTALL)
+                if json_match:
+                    parsed_query = json.loads(json_match.group())
+                else:
+                    # Fallback to simple parsing
+                    parsed_query = self._fallback_query_parsing(query)
             else:
-                # Fallback to simple parsing
+                # Fallback to simple parsing if API call failed
                 parsed_query = self._fallback_query_parsing(query)
             
             return parsed_query

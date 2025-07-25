@@ -4,10 +4,25 @@ api:
   max_retries: 3
   openai_api_key: ''
   timeout: 30
+llm:
+  primary_model: "gpt_4o_mini"
+  fallback_models:
+    - "gemini_flash" 
+    - "claude_sonnet_4"
+  timeout_seconds: 30
+  max_retries: 3
+  fallback_on_rate_limit: true
+  fallback_on_timeout: true
+  fallback_on_error: true
+  models:
+    gpt_4_turbo: "gpt-4-turbo,true,8192"
+    gpt_4o_mini: "gpt-4o-mini,true,4096"
+    claude_sonnet_4: "claude-3-5-sonnet-20241022,false,8192"
+    gemini_flash: "gemini/gemini-1.5-flash,false,8192"
 database:
   database: neo4j
   host: localhost
-  password: 'testpassword'
+  password: '${NEO4J_PASSWORD:-}'
   port: 7687
   username: neo4j
 system:

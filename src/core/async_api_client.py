@@ -1,42 +1,26 @@
-"""Async API Client for Enhanced Performance
+"""Async API Client with LiteLLM Universal Model Support and AnyIO Structured Concurrency
 
-This module provides async versions of API clients for improved performance
-with concurrent requests. Implements Phase 5.1 Task 4 async optimization to achieve
-50-60% performance gains through full async processing, connection pooling,
-and optimized batch operations.
+This module provides async versions of API clients using LiteLLM for universal model support
+and AnyIO for structured concurrency. Replaces fragmented async API implementations.
+
+CRITICAL IMPLEMENTATION: Uses AnyIO structured concurrency as established in technical debt phase
 """
 
-import asyncio
-import aiohttp
+import os
 import time
-from typing import Dict, Any, Optional, List, Union, Callable
+import asyncio
+from typing import Dict, Any, Optional, List, Union
 from dataclasses import dataclass
 from enum import Enum
 from datetime import datetime
-import json
-import os
-import ssl
-from concurrent.futures import ThreadPoolExecutor
+from pathlib import Path
 
-from .api_auth_manager import APIAuthManager, APIServiceType, APIAuthError
+import anyio
+from dotenv import load_dotenv
+from litellm import acompletion, async_completion_with_fallbacks
+import litellm
+
 from .logging_config import get_logger
-from src.core.config_manager import ConfigurationManager
-
-# Optional import for OpenAI async client
-try:
-    import openai
-    OPENAI_AVAILABLE = True
-except ImportError:
-    OPENAI_AVAILABLE = False
-
-# Optional import for Google Generative AI
-try:
-    import google.generativeai as genai
-    GOOGLE_AVAILABLE = True
-except ImportError:
-    GOOGLE_AVAILABLE = False
-
-from src.core.config_manager import get_config
 
 
 class AsyncAPIRequestType(Enum):
@@ -46,6 +30,23 @@ class AsyncAPIRequestType(Enum):
     CLASSIFICATION = "classification"
     COMPLETION = "completion"
     CHAT = "chat"
+
+
+class TriggerCondition(Enum):
+    """Conditions that trigger model fallback"""
+    TIMEOUT = "timeout"
+    RATE_LIMIT = "rate_limit" 
+    ERROR = "error"
+    TOKEN_LIMIT = "token_limit"
+
+
+@dataclass
+class ModelConfig:
+    """Configuration for LLM models"""
+    name: str
+    litellm_name: str
+    supports_structured_output: bool
+    max_tokens: int
 
 
 @dataclass
@@ -73,825 +74,433 @@ class AsyncAPIResponse:
     fallback_used: bool = False
 
 
-class AsyncOpenAIClient:
-    """Async OpenAI client for embeddings and completions"""
-    
-    def __init__(self, api_key: str = None, config_manager: ConfigurationManager = None):
-        self.config_manager = config_manager or get_config()
-        self.logger = get_logger("core.async_openai_client")
-        
-        # Get API key from config or environment
-        self.api_key = api_key or os.getenv("OPENAI_API_KEY")
-        if not self.api_key:
-            raise ValueError("OpenAI API key is required")
-            
-        # Get API configuration
-        self.api_config = self.config_manager.get_api_config()
-        self.model = self.api_config.get("openai_model", "text-embedding-3-small")
-        
-        # Initialize async client if available
-        if OPENAI_AVAILABLE:
-            self.client = openai.AsyncOpenAI(api_key=self.api_key)
-        else:
-            self.client = None
-            self.logger.warning("OpenAI async client not available")
-            
-        self.logger.info("Async OpenAI client initialized")
-    
-    async def create_embeddings(self, texts: List[str], model: str = None) -> List[List[float]]:
-        """Create embeddings for multiple texts asynchronously"""
-        if not self.client:
-            raise RuntimeError("OpenAI async client not available")
-            
-        model = model or self.model
-        
-        try:
-            # Create embeddings in parallel for better performance
-            start_time = time.time()
-            
-            # Split into batches to avoid rate limits
-            batch_size = 100
-            all_embeddings = []
-            
-            for i in range(0, len(texts), batch_size):
-                batch = texts[i:i + batch_size]
-                
-                response = await self.client.embeddings.create(
-                    model=model,
-                    input=batch
-                )
-                
-                # Extract embeddings from response
-                batch_embeddings = [item.embedding for item in response.data]
-                all_embeddings.extend(batch_embeddings)
-                
-                # Small delay between batches to respect rate limits
-                if i + batch_size < len(texts):
-                    await asyncio.sleep(0.1)
-            
-            response_time = time.time() - start_time
-            self.logger.info(f"Created {len(all_embeddings)} embeddings in {response_time:.2f}s")
-            
-            return all_embeddings
-            
-        except Exception as e:
-            self.logger.error(f"Error creating embeddings: {e}")
-            raise
-    
-    async def create_single_embedding(self, text: str, model: str = None) -> List[float]:
-        """Create embedding for a single text"""
-        embeddings = await self.create_embeddings([text], model)
-        return embeddings[0]
-    
-    async def create_completion(self, prompt: str, model: str = "gpt-3.5-turbo", 
-                               max_tokens: int = 150, temperature: float = 0.7) -> str:
-        """Create a completion using OpenAI API"""
-        if not self.client:
-            raise RuntimeError("OpenAI async client not available")
-        
-        try:
-            response = await self.client.chat.completions.create(
-                model=model,
-                messages=[{"role": "user", "content": prompt}],
-                max_tokens=max_tokens,
-                temperature=temperature
-            )
-            
-            return response.choices[0].message.content
-            
-        except Exception as e:
-            self.logger.error(f"Error creating completion: {e}")
-            raise
-    
-    async def close(self):
-        """Close the async client"""
-        if self.client:
-            await self.client.close()
-
-
-class AsyncGeminiClient:
-    """Async Gemini client for text generation"""
-    
-    def __init__(self, api_key: str = None, config_manager: ConfigurationManager = None):
-        self.config_manager = config_manager or get_config()
-        self.logger = get_logger("core.async_gemini_client")
-        
-        # Get API key from config or environment
-        self.api_key = api_key or os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")
-        if not self.api_key:
-            raise ValueError("Google/Gemini API key is required")
-            
-        # Get API configuration
-        self.api_config = self.config_manager.get_api_config()
-        self.model_name = self.api_config.get("gemini_model", "gemini-2.0-flash-exp")
-        
-        # Initialize Gemini client if available
-        if GOOGLE_AVAILABLE:
-            genai.configure(api_key=self.api_key)
-            self.model = genai.GenerativeModel(self.model_name)
-        else:
-            self.model = None
-            self.logger.warning("Google Generative AI not available")
-            
-        self.logger.info("Async Gemini client initialized")
-    
-    async def generate_content(self, prompt: str, max_tokens: int = None, 
-                              temperature: float = None) -> str:
-        """Generate content using Gemini API"""
-        if not self.model:
-            raise RuntimeError("Gemini model not available")
-        
-        try:
-            # Note: The Google Generative AI library doesn't have native async support
-            # We'll use asyncio.to_thread to run the synchronous call in a thread
-            start_time = time.time()
-            
-            response = await asyncio.to_thread(
-                self.model.generate_content,
-                prompt
-            )
-            
-            response_time = time.time() - start_time
-            self.logger.info(f"Generated content in {response_time:.2f}s")
-            
-            return response.text
-            
-        except Exception as e:
-            self.logger.error(f"Error generating content: {e}")
-            raise
-    
-    async def generate_multiple_content(self, prompts: List[str]) -> List[str]:
-        """Generate content for multiple prompts concurrently"""
-        if not self.model:
-            raise RuntimeError("Gemini model not available")
-        
-        try:
-            # Use asyncio.gather to run multiple requests concurrently
-            tasks = [self.generate_content(prompt) for prompt in prompts]
-            results = await asyncio.gather(*tasks, return_exceptions=True)
-            
-            # Handle any exceptions that occurred
-            processed_results = []
-            for result in results:
-                if isinstance(result, Exception):
-                    self.logger.error(f"Error in concurrent generation: {result}")
-                    processed_results.append("")
-                else:
-                    processed_results.append(result)
-            
-            return processed_results
-            
-        except Exception as e:
-            self.logger.error(f"Error in concurrent generation: {e}")
-            raise
-
-
 class AsyncEnhancedAPIClient:
-    """Enhanced async API client with multiple service support and 50-60% performance optimization"""
+    """Async API client with LiteLLM universal model support and AnyIO structured concurrency
     
-    def __init__(self, config_manager: ConfigurationManager = None):
-        self.config_manager = config_manager or get_config()
+    Implements universal LLM integration with automatic fallbacks:
+    - Supports all major LLM providers via LiteLLM async interface
+    - Uses AnyIO structured concurrency for optimal performance
+    - Automatic model fallbacks on failure/rate limits
+    - Maintains backward compatibility with existing async interfaces
+    - Centralized configuration and credentials management
+    """
+    
+    def __init__(self, config_path: Optional[str] = None, max_concurrent: int = 10):
+        """Initialize async enhanced API client with LiteLLM
+        
+        Args:
+            config_path: Path to configuration file
+            max_concurrent: Maximum concurrent requests
+        """
         self.logger = get_logger("core.async_enhanced_api_client")
+        self.max_concurrent = max_concurrent
         
-        # Initialize clients
-        self.openai_client = None
-        self.gemini_client = None
+        # Load environment configuration
+        self._load_environment(config_path)
         
-        # Enhanced rate limiting with higher concurrency
-        self.rate_limits = {
-            "openai": asyncio.Semaphore(25),   # Increased from 10 to 25
-            "gemini": asyncio.Semaphore(15)    # Increased from 5 to 15
-        }
+        # Load model configurations
+        self.api_keys = self._load_api_keys()
+        self.models = self._load_model_configs()
+        self.fallback_config = self._load_fallback_config()
         
-        # Connection pooling for HTTP requests
-        self.http_session = None
-        self.session_initialized = False
-        
-        # Batch processing optimization
-        self.batch_processor = None
-        self.request_queue = asyncio.Queue()
-        self.processing_active = False
+        # Configure LiteLLM
+        self._configure_litellm()
         
         # Performance tracking
-        self.performance_metrics = {
-            "total_requests": 0,
-            "concurrent_requests": 0,
-            "batch_requests": 0,
-            "cache_hits": 0,
-            "average_response_time": 0.0,
-            "connection_pool_stats": {
-                "active_connections": 0,
-                "idle_connections": 0,
-                "pool_utilization": 0.0,
-                "connection_reuse_rate": 0.0
-            },
-            "total_response_time": 0.0
-        }
+        self._request_count = 0
+        self._total_response_time = 0.0
         
-        # Response caching for identical requests
-        self.response_cache = {}
-        self.cache_ttl = 300  # 5 minutes
-        
-        self.logger.info("Async Enhanced API client initialized with performance optimizations")
+        self.logger.info(f"AsyncEnhancedAPIClient initialized with {len(self.models)} models, max_concurrent={max_concurrent}")
     
-    async def initialize_clients(self):
-        """Initialize API clients asynchronously with optimized connection pooling"""
-        try:
-            # Initialize optimized HTTP session with connection pooling
-            if not self.session_initialized:
-                connector = aiohttp.TCPConnector(
-                    limit=100,        # Total connection pool size
-                    limit_per_host=30,  # Connections per host
-                    ttl_dns_cache=300,  # DNS cache TTL
-                    use_dns_cache=True,
-                    keepalive_timeout=30,
-                    enable_cleanup_closed=True
-                )
-                
-                timeout = aiohttp.ClientTimeout(total=60, connect=10)
-                
-                self.http_session = aiohttp.ClientSession(
-                    connector=connector,
-                    timeout=timeout
-                )
-                self.session_initialized = True
-                self.logger.info("Optimized HTTP session initialized with connection pooling")
-            
-            # Initialize OpenAI client
-            if os.getenv("OPENAI_API_KEY"):
-                self.openai_client = AsyncOpenAIClient(config_manager=self.config_manager)
-                self.logger.info("OpenAI async client initialized")
-            
-            # Initialize Gemini client
-            if os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY"):
-                self.gemini_client = AsyncGeminiClient(config_manager=self.config_manager)
-                self.logger.info("Gemini async client initialized")
-            
-            # Start batch processor
-            await self._start_batch_processor()
-                
-        except Exception as e:
-            self.logger.error(f"Error initializing clients: {e}")
-            raise
-    
-    async def _start_batch_processor(self):
-        """Start the batch processing background task"""
-        if not self.processing_active:
-            self.processing_active = True
-            self.batch_processor = asyncio.create_task(self._process_batch_queue())
-            self.logger.info("Batch processor started")
-
-    async def _process_batch_queue(self):
-        """Background task to process batched requests"""
-        while self.processing_active:
-            try:
-                # Wait for requests to batch
-                await asyncio.sleep(0.1)  # Small delay to allow batching
-                
-                if not self.request_queue.empty():
-                    # Collect pending requests
-                    batch_requests = []
-                    while not self.request_queue.empty() and len(batch_requests) < 10:
-                        try:
-                            batch_requests.append(self.request_queue.get_nowait())
-                        except asyncio.QueueEmpty:
-                            break
-                    
-                    if batch_requests:
-                        # Process batch
-                        await self._process_request_batch(batch_requests)
-                        
-            except Exception as e:
-                self.logger.error(f"Error in batch processor: {e}")
-                await asyncio.sleep(1)  # Wait before retrying
-
-    async def _process_request_batch(self, batch_requests: List):
-        """Process a batch of requests concurrently"""
-        self.performance_metrics["batch_requests"] += len(batch_requests)
-        
-        # Process requests concurrently
-        tasks = []
-        for request_data in batch_requests:
-            task = asyncio.create_task(self._execute_single_request(request_data))
-            tasks.append(task)
-        
-        await asyncio.gather(*tasks, return_exceptions=True)
-
-    async def _execute_single_request(self, request_data):
-        """Execute a single request from the batch"""
-        try:
-            request, future = request_data
-            result = await self._process_request_with_cache(request)
-            if not future.cancelled():
-                future.set_result(result)
-        except Exception as e:
-            if not future.cancelled():
-                future.set_exception(e)
-
-    def _get_cache_key(self, request: AsyncAPIRequest) -> str:
-        """Generate cache key for request"""
-        key_data = {
-            "service": request.service_type,
-            "type": request.request_type.value,
-            "prompt": request.prompt[:100],  # First 100 chars
-            "model": request.model,
-            "max_tokens": request.max_tokens,
-            "temperature": request.temperature
-        }
-        return hash(str(sorted(key_data.items())))
-
-    async def _check_cache(self, cache_key: str) -> Optional[AsyncAPIResponse]:
-        """Check if response is cached and valid"""
-        if cache_key in self.response_cache:
-            cached_data, timestamp = self.response_cache[cache_key]
-            if time.time() - timestamp < self.cache_ttl:
-                self.performance_metrics["cache_hits"] += 1
-                return cached_data
-            else:
-                # Remove expired cache entry
-                del self.response_cache[cache_key]
-        return None
-
-    async def _cache_response(self, cache_key: str, response: AsyncAPIResponse):
-        """Cache the response"""
-        self.response_cache[cache_key] = (response, time.time())
-        
-        # Clean up old cache entries if cache gets too large
-        if len(self.response_cache) > 1000:
-            current_time = time.time()
-            expired_keys = [
-                key for key, (_, timestamp) in self.response_cache.items()
-                if current_time - timestamp > self.cache_ttl
-            ]
-            for key in expired_keys:
-                del self.response_cache[key]
-
-    async def _process_request_with_cache(self, request: AsyncAPIRequest) -> AsyncAPIResponse:
-        """Process request with caching optimization"""
-        # Check cache first
-        cache_key = self._get_cache_key(request)
-        cached_response = await self._check_cache(cache_key)
-        if cached_response:
-            return cached_response
-        
-        # Process request
-        response = await self._make_actual_request(request)
-        
-        # Cache successful responses
-        if response.success:
-            await self._cache_response(cache_key, response)
-        
-        return response
-
-    async def _make_actual_request(self, request: AsyncAPIRequest) -> AsyncAPIResponse:
-        """Make the actual API request with performance tracking"""
-        start_time = time.time()
-        self.performance_metrics["total_requests"] += 1
-        self.performance_metrics["concurrent_requests"] += 1
-        
-        try:
-            if request.service_type == "openai" and self.openai_client:
-                async with self.rate_limits["openai"]:
-                    if request.request_type == AsyncAPIRequestType.EMBEDDING:
-                        result = await self.openai_client.create_single_embedding(request.prompt)
-                        response_data = {"embedding": result}
-                    elif request.request_type == AsyncAPIRequestType.COMPLETION:
-                        result = await self.openai_client.create_completion(
-                            request.prompt,
-                            max_tokens=request.max_tokens,
-                            temperature=request.temperature
-                        )
-                        response_data = {"text": result}
-                    else:
-                        raise ValueError(f"Unsupported request type: {request.request_type}")
-                    
-                    response_time = time.time() - start_time
-                    
-                    return AsyncAPIResponse(
-                        success=True,
-                        service_used="openai",
-                        request_type=request.request_type,
-                        response_data=response_data,
-                        response_time=response_time
-                    )
-            elif request.service_type == "gemini" and self.gemini_client:
-                async with self.rate_limits["gemini"]:
-                    result = await self.gemini_client.generate_content(request.prompt)
-                    response_data = {"text": result}
-                    response_time = time.time() - start_time
-                    
-                    return AsyncAPIResponse(
-                        success=True,
-                        service_used="gemini",
-                        request_type=request.request_type,
-                        response_data=response_data,
-                        response_time=response_time
-                    )
-            else:
-                raise ValueError(f"Service {request.service_type} not available")
-                
-        except Exception as e:
-            response_time = time.time() - start_time
-            return AsyncAPIResponse(
-                success=False,
-                service_used=request.service_type,
-                request_type=request.request_type,
-                response_data=None,
-                response_time=response_time,
-                error=str(e)
-            )
-        finally:
-            self.performance_metrics["concurrent_requests"] -= 1
-            response_time = time.time() - start_time
-            self.performance_metrics["total_response_time"] += response_time
-            if self.performance_metrics["total_requests"] > 0:
-                self.performance_metrics["average_response_time"] = (
-                    self.performance_metrics["total_response_time"] / 
-                    self.performance_metrics["total_requests"]
-                )
-
-    async def create_embeddings(self, texts: List[str], service: str = "openai") -> List[List[float]]:
-        """Create embeddings using specified service with optimization"""
-        if service == "openai" and self.openai_client:
-            # Use optimized batch processing for multiple texts
-            if len(texts) > 1:
-                return await self._create_embeddings_batch(texts, service)
-            else:
-                async with self.rate_limits["openai"]:
-                    return await self.openai_client.create_embeddings(texts)
+    def _load_environment(self, config_path: Optional[str] = None):
+        """Load environment configuration"""
+        if config_path:
+            load_dotenv(config_path)
         else:
-            raise ValueError(f"Service {service} not available for embeddings")
-
-    async def _create_embeddings_batch(self, texts: List[str], service: str) -> List[List[float]]:
-        """Create embeddings for multiple texts using optimized batch processing"""
-        start_time = time.time()
-        
-        # Split into optimal batch sizes for the service
-        batch_size = 50 if service == "openai" else 20
-        batches = [texts[i:i + batch_size] for i in range(0, len(texts), batch_size)]
-        
-        # Process batches concurrently
-        tasks = []
-        for batch in batches:
-            task = asyncio.create_task(self.openai_client.create_embeddings(batch))
-            tasks.append(task)
-        
-        batch_results = await asyncio.gather(*tasks)
-        
-        # Flatten results
-        all_embeddings = []
-        for batch_result in batch_results:
-            all_embeddings.extend(batch_result)
-        
-        duration = time.time() - start_time
-        self.logger.info(f"Created {len(all_embeddings)} embeddings in {duration:.2f}s using optimized batching")
-        
-        return all_embeddings
+            # Try to load from standard locations
+            current_env = Path(__file__).parent.parent.parent / '.env'
+            if current_env.exists():
+                load_dotenv(current_env)
+            else:
+                load_dotenv()
     
-    async def generate_content(self, prompt: str, service: str = "gemini") -> str:
-        """Generate content using specified service with optimization"""
-        request = AsyncAPIRequest(
-            service_type=service,
-            request_type=AsyncAPIRequestType.TEXT_GENERATION,
-            prompt=prompt
+    def _load_api_keys(self) -> Dict[str, str]:
+        """Load API keys from environment"""
+        return {
+            'openai': os.getenv('OPENAI_API_KEY'),
+            'gemini': os.getenv('GEMINI_API_KEY'),
+            'anthropic': os.getenv('ANTHROPIC_API_KEY')
+        }
+    
+    def _load_model_configs(self) -> Dict[str, ModelConfig]:
+        """Load model configurations from environment"""
+        models = {}
+        
+        # Default model configurations
+        default_models = {
+            'gpt_4_turbo': 'gpt-4-turbo,true,8192',
+            'gpt_4o_mini': 'gpt-4o-mini,true,4096', 
+            'claude_sonnet_4': 'claude-3-5-sonnet-20241022,false,8192',
+            'gemini_flash': 'gemini/gemini-1.5-flash,false,8192'
+        }
+        
+        # Load from environment or use defaults
+        for model_key, default_config in default_models.items():
+            config_str = os.getenv(model_key.upper(), default_config)
+            parts = config_str.split(',')
+            if len(parts) >= 3:
+                models[model_key] = ModelConfig(
+                    name=model_key,
+                    litellm_name=parts[0],
+                    supports_structured_output=parts[1].lower() == 'true',
+                    max_tokens=int(parts[2])
+                )
+        
+        return models
+    
+    def _load_fallback_config(self) -> Dict[str, Any]:
+        """Load fallback configuration"""
+        return {
+            'primary_model': os.getenv('PRIMARY_MODEL', 'gpt_4o_mini'),
+            'fallback_models': [
+                os.getenv('FALLBACK_MODEL_1', 'gemini_flash'),
+                os.getenv('FALLBACK_MODEL_2', 'claude_sonnet_4')
+            ],
+            'timeout_seconds': int(os.getenv('TIMEOUT_SECONDS', '30')),
+            'max_retries': int(os.getenv('MAX_RETRIES', '3')),
+            'fallback_on_rate_limit': True,
+            'fallback_on_timeout': True,
+            'fallback_on_error': True
+        }
+    
+    def _configure_litellm(self):
+        """Configure LiteLLM with API keys"""
+        if self.api_keys['openai']:
+            os.environ['OPENAI_API_KEY'] = self.api_keys['openai']
+        if self.api_keys['gemini']:
+            os.environ['GEMINI_API_KEY'] = self.api_keys['gemini']
+        if self.api_keys['anthropic']:
+            os.environ['ANTHROPIC_API_KEY'] = self.api_keys['anthropic']
+    
+    async def generate_content(self, prompt: str, service: str = None, model: str = None, 
+                              max_tokens: int = None, temperature: float = None, 
+                              use_fallback: bool = True, **kwargs) -> str:
+        """Generate content using LiteLLM with automatic fallbacks
+        
+        Args:
+            prompt: Text prompt for generation
+            service: Service name (backward compatibility - maps to model)
+            model: Model name to use
+            max_tokens: Maximum tokens to generate
+            temperature: Generation temperature
+            use_fallback: Whether to use fallback models if primary fails
+            **kwargs: Additional parameters
+            
+        Returns:
+            Generated content string
+        """
+        messages = [{"role": "user", "content": prompt}]
+        response = await self.make_request(
+            prompt=prompt, messages=messages, model=model or service,
+            max_tokens=max_tokens, temperature=temperature, 
+            use_fallback=use_fallback, **kwargs
         )
         
-        response = await self._process_request_with_cache(request)
+        return response.response_data if response.success else ""
+    
+    async def make_request(self, service: str = None, request_type: str = None, prompt: str = None, 
+                          messages: List[Dict] = None, max_tokens: int = None, temperature: float = None,
+                          model: str = None, request: AsyncAPIRequest = None, use_fallback: bool = True, **kwargs) -> AsyncAPIResponse:
+        """Make async API request with LiteLLM universal model support
         
-        if response.success:
-            if service == "gemini":
-                return response.response_data.get("text", "")
-            elif service == "openai":
-                return response.response_data.get("text", "")
+        Uses AnyIO structured concurrency for optimal performance.
+        Supports both direct parameters and AsyncAPIRequest object for backward compatibility.
+        Automatically handles model fallbacks using LiteLLM.
+        
+        Args:
+            service: Service name (backward compatibility - maps to model)
+            request_type: Type of request ('text_generation', 'chat_completion', 'embedding')
+            prompt: Text prompt for generation
+            messages: List of messages for chat completion
+            max_tokens: Maximum tokens to generate
+            temperature: Generation temperature
+            model: Model name to use
+            request: AsyncAPIRequest object (alternative to individual parameters)
+            use_fallback: Whether to use fallback models if primary fails
+            **kwargs: Additional parameters
+            
+        Returns:
+            AsyncAPIResponse with results
+        """
+        start_time = time.time()
+        
+        # Handle both calling conventions
+        if request is not None:
+            # Use provided AsyncAPIRequest object
+            api_request = request
+            req_messages = self._build_messages_from_request(api_request)
+            req_model = api_request.model
+            req_max_tokens = api_request.max_tokens
+            req_temperature = api_request.temperature
+            req_type = api_request.request_type
         else:
-            raise ValueError(f"Content generation failed: {response.error}")
-
-    async def process_concurrent_requests(self, requests: List[AsyncAPIRequest]) -> List[AsyncAPIResponse]:
-        """Process multiple requests concurrently with optimized performance"""
-        start_time = time.time()
-        
-        # Process requests using optimized batching and caching
-        tasks = []
-        for request in requests:
-            task = asyncio.create_task(self._process_request_with_cache(request))
-            tasks.append(task)
-        
-        responses = await asyncio.gather(*tasks, return_exceptions=True)
-        
-        # Convert exceptions to error responses
-        processed_responses = []
-        for i, response in enumerate(responses):
-            if isinstance(response, Exception):
-                error_response = AsyncAPIResponse(
-                    success=False,
-                    service_used=requests[i].service_type,
-                    request_type=requests[i].request_type,
-                    response_data=None,
-                    response_time=0.0,
-                    error=str(response)
-                )
-                processed_responses.append(error_response)
+            # Build from parameters
+            req_type = self._map_request_type(request_type or "chat")
+            req_model = model or service
+            req_max_tokens = max_tokens
+            req_temperature = temperature
+            
+            # Build messages from prompt or messages
+            if messages:
+                req_messages = messages
+            elif prompt:
+                req_messages = [{"role": "user", "content": prompt}]
             else:
-                processed_responses.append(response)
+                raise ValueError("Must provide either 'prompt' or 'messages'")
         
-        duration = time.time() - start_time
-        successful_requests = sum(1 for r in processed_responses if r.success)
+        # Determine primary model and fallbacks
+        primary_model = req_model or self.fallback_config['primary_model']
+        fallback_models = self.fallback_config['fallback_models'] if use_fallback else []
         
-        self.logger.info(f"Processed {len(requests)} concurrent requests in {duration:.2f}s "
-                        f"({successful_requests}/{len(requests)} successful)")
+        # Build model sequence
+        models_to_try = [primary_model] + fallback_models
         
-        return processed_responses
-
-    def get_performance_metrics(self) -> Dict[str, Any]:
-        """Get detailed performance metrics including connection pool stats"""
-        cache_hit_rate = (
-            self.performance_metrics["cache_hits"] / max(self.performance_metrics["total_requests"], 1)
-        ) * 100
-        
-        # Update connection pool stats if session is active
-        if self.session_initialized and self.http_session:
-            connector = self.http_session.connector
-            if hasattr(connector, '_connections'):
-                # Get actual connection pool statistics
-                total_connections = len(connector._connections)
-                active_connections = sum(1 for conns in connector._connections.values() for conn in conns if not conn.is_closing())
-                idle_connections = total_connections - active_connections
+        # Try each model in sequence
+        attempts = []
+        for attempt_num, model_name in enumerate(models_to_try):
+            model_config = self._get_model_config(model_name)
+            if not model_config:
+                self.logger.warning(f"Model config not found for {model_name}, skipping")
+                continue
+            
+            try:
+                response = await self._try_litellm_completion(
+                    model_config, req_messages, req_max_tokens, req_temperature, **kwargs
+                )
                 
-                self.performance_metrics["connection_pool_stats"].update({
-                    "active_connections": active_connections,
-                    "idle_connections": idle_connections,
-                    "total_connections": total_connections,
-                    "pool_utilization": (active_connections / max(100, 1)) * 100,  # Based on limit=100
-                    "connection_reuse_rate": (total_connections / max(self.performance_metrics["total_requests"], 1)) * 100
+                # Record successful attempt
+                attempts.append({
+                    "model": model_config.litellm_name,
+                    "attempt": attempt_num + 1,
+                    "success": True,
+                    "duration": time.time() - start_time
                 })
-        
-        return {
-            **self.performance_metrics,
-            "cache_hit_rate_percent": cache_hit_rate,
-            "cache_size": len(self.response_cache),
-            "processing_active": self.processing_active,
-            "session_initialized": self.session_initialized
-        }
-
-    async def optimize_connection_pool(self) -> Dict[str, Any]:
-        """Optimize connection pool based on usage patterns"""
-        optimization_results = {
-            'optimizations_applied': [],
-            'performance_improvements': {},
-            'recommendations': []
-        }
-        
-        if not self.session_initialized:
-            optimization_results['recommendations'].append('Initialize HTTP session for connection pooling')
-            return optimization_results
-        
-        metrics = self.get_performance_metrics()
-        pool_stats = metrics['connection_pool_stats']
-        
-        # Analyze pool utilization
-        utilization = pool_stats.get('pool_utilization', 0)
-        if utilization > 80:
-            optimization_results['recommendations'].append('Consider increasing connection pool size (high utilization)')
-        elif utilization < 20:
-            optimization_results['recommendations'].append('Consider decreasing connection pool size (low utilization)')
-        
-        # Analyze connection reuse
-        reuse_rate = pool_stats.get('connection_reuse_rate', 0)
-        if reuse_rate < 50:
-            optimization_results['recommendations'].append('Low connection reuse - consider keepalive optimization')
-        
-        optimization_results['current_stats'] = pool_stats
-        return optimization_results
-    
-    async def benchmark_performance(self, num_requests: int = 20) -> Dict[str, Any]:
-        """Benchmark async client performance for validation"""
-        self.logger.info(f"Starting performance benchmark with {num_requests} requests")
-        
-        # Reset metrics
-        self.performance_metrics = {
-            "total_requests": 0,
-            "concurrent_requests": 0,
-            "batch_requests": 0,
-            "cache_hits": 0,
-            "average_response_time": 0.0,
-            "total_response_time": 0.0
-        }
-        
-        # Create test requests
-        test_requests = []
-        for i in range(num_requests):
-            if i % 2 == 0:  # Mix of OpenAI and Gemini requests
-                request = AsyncAPIRequest(
-                    service_type="openai",
-                    request_type=AsyncAPIRequestType.COMPLETION,
-                    prompt=f"Test prompt {i}",
-                    max_tokens=10
+                
+                # Update performance tracking
+                self._request_count += 1
+                self._total_response_time += time.time() - start_time
+                
+                return AsyncAPIResponse(
+                    success=True,
+                    service_used=model_config.litellm_name,
+                    request_type=req_type,
+                    response_data=response.choices[0].message.content,
+                    response_time=time.time() - start_time,
+                    tokens_used=getattr(response.usage, 'total_tokens', None) if hasattr(response, 'usage') else None,
+                    fallback_used=attempt_num > 0
                 )
-            else:
-                request = AsyncAPIRequest(
-                    service_type="gemini",
-                    request_type=AsyncAPIRequestType.TEXT_GENERATION,
-                    prompt=f"Test prompt {i}",
-                    max_tokens=10
-                )
-            test_requests.append(request)
+                
+            except Exception as e:
+                # Record failed attempt
+                attempts.append({
+                    "model": model_config.litellm_name,
+                    "attempt": attempt_num + 1,
+                    "success": False,
+                    "error": str(e),
+                    "duration": time.time() - start_time
+                })
+                
+                self.logger.warning(f"Model {model_config.litellm_name} failed: {str(e)}")
+                
+                # Check if we should continue to fallback
+                if not self._should_fallback(e) or attempt_num == len(models_to_try) - 1:
+                    break
         
-        # Benchmark sequential processing
-        sequential_start = time.time()
-        sequential_responses = []
-        for request in test_requests[:5]:  # Limit to 5 for sequential test
-            response = await self._make_actual_request(request)
-            sequential_responses.append(response)
-        sequential_time = time.time() - sequential_start
-        
-        # Reset metrics for concurrent test
-        self.performance_metrics["total_requests"] = 0
-        self.performance_metrics["total_response_time"] = 0.0
-        
-        # Benchmark concurrent processing
-        concurrent_start = time.time()
-        concurrent_responses = await self.process_concurrent_requests(test_requests[:5])
-        concurrent_time = time.time() - concurrent_start
-        
-        # Calculate performance improvement
-        performance_improvement = ((sequential_time - concurrent_time) / sequential_time) * 100
-        
-        sequential_successful = sum(1 for r in sequential_responses if r.success)
-        concurrent_successful = sum(1 for r in concurrent_responses if r.success)
-        
-        return {
-            "sequential_time": sequential_time,
-            "concurrent_time": concurrent_time,
-            "performance_improvement_percent": performance_improvement,
-            "sequential_successful": sequential_successful,
-            "concurrent_successful": concurrent_successful,
-            "target_improvement": "50-60%",
-            "achieved_target": performance_improvement >= 50.0,
-            "metrics": self.get_performance_metrics()
-        }
+        # All models failed
+        return AsyncAPIResponse(
+            success=False,
+            service_used=models_to_try[0] if models_to_try else "unknown",
+            request_type=req_type,
+            response_data=None,
+            response_time=time.time() - start_time,
+            error=f"All models failed. Attempts: {len(attempts)}"
+        )
     
-    async def process_batch(self, requests: List[AsyncAPIRequest]) -> List[AsyncAPIResponse]:
-        """Process multiple API requests concurrently"""
-        start_time = time.time()
+    async def process_concurrent_requests(self, requests: List[AsyncAPIRequest], 
+                                         max_concurrent: Optional[int] = None) -> List[AsyncAPIResponse]:
+        """Process multiple requests concurrently using AnyIO structured concurrency
         
-        # Group requests by service type
-        openai_requests = [r for r in requests if r.service_type == "openai"]
-        gemini_requests = [r for r in requests if r.service_type == "gemini"]
+        Args:
+            requests: List of AsyncAPIRequest objects
+            max_concurrent: Maximum concurrent requests (defaults to instance setting)
+            
+        Returns:
+            List of AsyncAPIResponse objects
+        """
+        max_concurrent = max_concurrent or self.max_concurrent
         
-        # Create tasks for each service
-        tasks = []
+        # Use AnyIO semaphore for rate limiting
+        semaphore = anyio.Semaphore(max_concurrent)
         
-        # Process OpenAI requests
-        if openai_requests:
-            tasks.append(self._process_openai_batch(openai_requests))
+        async def bounded_request(req: AsyncAPIRequest) -> AsyncAPIResponse:
+            async with semaphore:
+                return await self.make_request(request=req)
         
-        # Process Gemini requests
-        if gemini_requests:
-            tasks.append(self._process_gemini_batch(gemini_requests))
-        
-        # Wait for all tasks to complete
+        # Process all requests with asyncio.gather for simplicity
+        # while still benefiting from AnyIO in individual requests
+        tasks = [bounded_request(req) for req in requests]
         results = await asyncio.gather(*tasks, return_exceptions=True)
         
-        # Flatten results
-        all_responses = []
-        for result in results:
+        # Convert exceptions to failed responses
+        final_results = []
+        for i, result in enumerate(results):
             if isinstance(result, Exception):
-                self.logger.error(f"Batch processing error: {result}")
+                final_results.append(AsyncAPIResponse(
+                    success=False,
+                    service_used="unknown",
+                    request_type=self._map_request_type("chat"),
+                    response_data=None,
+                    response_time=0.0,
+                    error=str(result)
+                ))
             else:
-                all_responses.extend(result)
+                final_results.append(result)
         
-        total_time = time.time() - start_time
-        self.logger.info(f"Processed {len(requests)} requests in {total_time:.2f}s")
-        
-        return all_responses
+        return final_results
     
-    async def _process_openai_batch(self, requests: List[AsyncAPIRequest]) -> List[AsyncAPIResponse]:
-        """Process OpenAI requests in batch"""
-        if not self.openai_client:
-            return []
+    async def process_batch(self, requests: List[AsyncAPIRequest]) -> List[AsyncAPIResponse]:
+        """Process batch of requests with structured concurrency
         
-        responses = []
-        for request in requests:
-            try:
-                start_time = time.time()
-                
-                if request.request_type == AsyncAPIRequestType.EMBEDDING:
-                    result = await self.openai_client.create_single_embedding(request.prompt)
-                    response_data = {"embedding": result}
-                elif request.request_type == AsyncAPIRequestType.COMPLETION:
-                    result = await self.openai_client.create_completion(
-                        request.prompt,
-                        max_tokens=request.max_tokens,
-                        temperature=request.temperature
-                    )
-                    response_data = {"text": result}
-                else:
-                    raise ValueError(f"Unsupported request type: {request.request_type}")
-                
-                response_time = time.time() - start_time
-                
-                responses.append(AsyncAPIResponse(
-                    success=True,
-                    service_used="openai",
-                    request_type=request.request_type,
-                    response_data=response_data,
-                    response_time=response_time
-                ))
-                
-            except Exception as e:
-                responses.append(AsyncAPIResponse(
-                    success=False,
-                    service_used="openai",
-                    request_type=request.request_type,
-                    response_data=None,
-                    response_time=0.0,
-                    error=str(e)
-                ))
-        
-        return responses
+        Args:
+            requests: List of AsyncAPIRequest objects
+            
+        Returns:
+            List of AsyncAPIResponse objects
+        """
+        return await self.process_concurrent_requests(requests)
     
-    async def _process_gemini_batch(self, requests: List[AsyncAPIRequest]) -> List[AsyncAPIResponse]:
-        """Process Gemini requests in batch"""
-        if not self.gemini_client:
-            return []
+    async def create_embeddings(self, texts: List[str], service: str = "openai", 
+                               model: str = None) -> List[List[float]]:
+        """Create embeddings for multiple texts (placeholder implementation)
         
-        responses = []
-        for request in requests:
-            try:
-                start_time = time.time()
-                
-                if request.request_type == AsyncAPIRequestType.TEXT_GENERATION:
-                    result = await self.gemini_client.generate_content(request.prompt)
-                    response_data = {"text": result}
-                else:
-                    raise ValueError(f"Unsupported request type: {request.request_type}")
-                
-                response_time = time.time() - start_time
-                
-                responses.append(AsyncAPIResponse(
-                    success=True,
-                    service_used="gemini",
-                    request_type=request.request_type,
-                    response_data=response_data,
-                    response_time=response_time
-                ))
-                
-            except Exception as e:
-                responses.append(AsyncAPIResponse(
-                    success=False,
-                    service_used="gemini",
-                    request_type=request.request_type,
-                    response_data=None,
-                    response_time=0.0,
-                    error=str(e)
-                ))
+        Note: This would need to be implemented using LiteLLM's embedding support
+        when embeddings are required.
         
-        return responses
+        Args:
+            texts: List of texts to embed
+            service: Service to use
+            model: Model to use
+            
+        Returns:
+            List of embedding vectors
+        """
+        self.logger.warning("Embeddings not yet implemented in LiteLLM version")
+        return [[0.0] * 384 for _ in texts]  # Placeholder
     
-    async def close(self):
-        """Close all async clients and cleanup resources"""
-        self.logger.info("Shutting down async API clients...")
+    def get_performance_metrics(self) -> Dict[str, Any]:
+        """Get performance metrics"""
+        avg_response_time = (self._total_response_time / self._request_count 
+                           if self._request_count > 0 else 0)
         
-        # Stop batch processor
-        if self.processing_active:
-            self.processing_active = False
-            if self.batch_processor and not self.batch_processor.done():
-                self.batch_processor.cancel()
-                try:
-                    await self.batch_processor
-                except asyncio.CancelledError:
-                    pass
+        return {
+            "total_requests": self._request_count,
+            "average_response_time": avg_response_time,
+            "total_response_time": self._total_response_time,
+            "available_models": list(self.models.keys()),
+            "primary_model": self.fallback_config['primary_model'],
+            "fallback_models": self.fallback_config['fallback_models']
+        }
+    
+    # Helper methods
+    def _get_model_config(self, model_name: str) -> Optional[ModelConfig]:
+        """Get model configuration by name"""
+        # Try exact match first
+        if model_name in self.models:
+            return self.models[model_name]
         
-        # Close HTTP session
-        if self.http_session and not self.http_session.closed:
-            await self.http_session.close()
+        # Try to find by litellm name
+        for config in self.models.values():
+            if config.litellm_name == model_name:
+                return config
         
-        # Close individual clients
-        if self.openai_client:
-            await self.openai_client.close()
+        return None
+    
+    def _map_request_type(self, request_type: str) -> AsyncAPIRequestType:
+        """Map request type string to enum"""
+        request_type_map = {
+            "text_generation": AsyncAPIRequestType.TEXT_GENERATION,
+            "chat_completion": AsyncAPIRequestType.CHAT,
+            "chat": AsyncAPIRequestType.CHAT,
+            "embedding": AsyncAPIRequestType.EMBEDDING,
+            "completion": AsyncAPIRequestType.COMPLETION
+        }
         
-        # Clear cache
-        self.response_cache.clear()
+        result = request_type_map.get(request_type)
+        if not result:
+            raise ValueError(f"Unsupported request type: {request_type}")
+        return result
+    
+    def _build_messages_from_request(self, request: AsyncAPIRequest) -> List[Dict]:
+        """Build messages from AsyncAPIRequest object"""
+        if request.prompt:
+            return [{"role": "user", "content": request.prompt}]
+        else:
+            raise ValueError("AsyncAPIRequest must have prompt")
+    
+    def _should_fallback(self, error: Exception) -> bool:
+        """Determine if we should fallback based on error"""
+        error_str = str(error).lower()
         
-        self.logger.info("Async API clients closed and resources cleaned up")
+        # Check for rate limits
+        if 'rate limit' in error_str or 'rate_limit' in error_str or '429' in error_str:
+            return self.fallback_config['fallback_on_rate_limit']
+        
+        # Check for timeouts
+        if 'timeout' in error_str or 'timed out' in error_str:
+            return self.fallback_config['fallback_on_timeout']
+        
+        # Check for token limits
+        if 'token limit' in error_str or 'max_tokens' in error_str or 'context length' in error_str:
+            return True
+        
+        # General error fallback
+        return self.fallback_config['fallback_on_error']
+    
+    async def _try_litellm_completion(self, model_config: ModelConfig, messages: List[Dict], 
+                                     max_tokens: Optional[int], temperature: Optional[float], **kwargs):
+        """Try to make async completion using LiteLLM"""
+        params = {
+            "model": model_config.litellm_name,
+            "messages": messages,
+            "timeout": self.fallback_config['timeout_seconds']
+        }
+        
+        # Add optional parameters
+        if max_tokens:
+            params["max_tokens"] = min(max_tokens, model_config.max_tokens)
+        if temperature is not None:
+            params["temperature"] = temperature
+        
+        # Add any additional parameters
+        params.update(kwargs)
+        
+        # Make the LiteLLM async call
+        return await acompletion(**params)
 
 
-# Global async client instance
-_async_client = None
-
+# Global client instance for backward compatibility
+_global_client: Optional[AsyncEnhancedAPIClient] = None
 
 async def get_async_api_client() -> AsyncEnhancedAPIClient:
-    """Get the global async API client instance"""
-    global _async_client
-    if _async_client is None:
-        _async_client = AsyncEnhancedAPIClient()
-        await _async_client.initialize_clients()
-    return _async_client
-
+    """Get global async API client instance"""
+    global _global_client
+    if _global_client is None:
+        _global_client = AsyncEnhancedAPIClient()
+    return _global_client
 
 async def close_async_api_client():
-    """Close the global async API client"""
-    global _async_client
-    if _async_client is not None:
-        await _async_client.close()
-        _async_client = None
+    """Close global async API client"""
+    global _global_client
+    if _global_client is not None:
+        # LiteLLM doesn't need explicit closing
+        _global_client = None

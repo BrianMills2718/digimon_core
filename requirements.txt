@@ -18,6 +18,8 @@ sqlalchemy>=2.0.0
 
 # API and web
 fastapi>=0.100.0
+litellm>=1.0.0
+anyio>=4.0.0
 uvicorn>=0.23.0
 httpx>=0.24.0
 pydantic>=2.0.0
