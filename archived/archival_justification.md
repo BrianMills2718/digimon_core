@@ -219,4 +219,16 @@ This file documents the rationale for archiving files and directories to maintai
 
 ---
 
-*Archive Policy: Files are archived rather than deleted to preserve project history while maintaining clean active workspace. All archived content can be restored if needed.*
+*Archive Policy: Files are archived rather than deleted to preserve project history while maintaining clean active workspace. All archived content can be restored if needed.*## 2025-07-24: Archival of Architectural Review Documents
+
+**Files Archived:**
+- ARCHITECTURAL_BOTTLENECKS_ANALYSIS.md  
+- ARCHITECTURAL_STABILITY_REVIEW.md  
+- architecture_review_results.md  
+- KGAS_COMPREHENSIVE_ARCHITECTURE.md  
+- KGAS_04_Architecture_Decisions_and_Extensions.md  
+- KGAS_All_Architecture_Decision_Records.md  
+- KGAS_Architecture_Index.md  
+
+**Justification:**  
+All unresolved issues, recommendations, and action items from these documents have been migrated to the single source of truth at `docs/roadmap/ROADMAP_OVERVIEW.md` under "Outstanding Architectural Remediation Tasks." No unique actionable content remains.  
