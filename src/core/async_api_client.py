@@ -85,18 +85,24 @@ class AsyncEnhancedAPIClient:
     - Centralized configuration and credentials management
     """
     
-    def __init__(self, config_path: Optional[str] = None, max_concurrent: int = 10):
+    def __init__(self, auth_manager=None, config_path: Optional[str] = None, max_concurrent: int = 10):
         """Initialize async enhanced API client with LiteLLM
         
         Args:
+            auth_manager: APIAuthManager instance (for compatibility)
             config_path: Path to configuration file
             max_concurrent: Maximum concurrent requests
         """
         self.logger = get_logger("core.async_enhanced_api_client")
         self.max_concurrent = max_concurrent
+        self.max_concurrent_requests = max_concurrent  # Backward compatibility
         
         # Load environment configuration
-        self._load_environment(config_path)
+        if isinstance(config_path, str) or config_path is None:
+            self._load_environment(config_path)
+        else:
+            # If config_path is not a string, assume no special config
+            self._load_environment(None)
         
         # Load model configurations
         self.api_keys = self._load_api_keys()
