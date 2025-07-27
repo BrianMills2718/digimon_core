@@ -1,0 +1,1 @@
+../../personality-prediction/bert_personality_predictor.py
