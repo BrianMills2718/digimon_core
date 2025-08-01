@@ -1,26 +1,32 @@
 # KGAS Architecture Overview
 
-**Status**: Target Architecture  
-**Purpose**: Single source of truth for KGAS final architecture  
-**Stability**: Changes only when architectural goals change  
+**This document defines the target system architecture for KGAS (Knowledge Graph Analysis System). It describes the intended design and component relationships that guide implementation.**
 
-**This document defines the target system architecture for KGAS (Knowledge Graph Analysis System). It describes the intended design and component relationships that guide implementation. For current implementation status, see the [Roadmap Overview](../../ROADMAP_OVERVIEW.md).**
+**Important**: For current implementation status, see [docs/roadmap/ROADMAP_OVERVIEW.md](../roadmap/ROADMAP_OVERVIEW.md).
 
 ---
 
 ## System Vision
 
-KGAS (Knowledge Graph Analysis System) is a complete computational social science research platform. It extracts theories from academic literature, converts them into executable analysis specifications, and applies them to datasets at scale. Researchers can validate theories through agent-based simulation, generate statistical models automatically from theoretical frameworks, and discover patterns by converting results between graph, table, and vector representations. The system handles everything from raw documents to publication-ready outputs with full provenance tracking.
+**KGAS is designed as a theory automation proof-of-concept for future LLM capabilities, not a general research tool for human researchers.**
+
+KGAS (Knowledge Graph Analysis System) demonstrates automated theory processing - extracting theories from academic literature, converting them into executable analysis specifications, and applying them to datasets through LLM-driven workflows. The system is architected to prepare for increasingly powerful LLMs that can autonomously conduct theory-driven research, moving fluidly between analytical modes (graph, table, vector) as theoretical requirements demand.
+
+**Primary Goal**: Build infrastructure for automated theory operationalization, validation, and application - proving that LLMs can systematically apply social science theories to empirical data without human intervention in theory selection or analytical method choice.
 
 ## Unique Analytical Capabilities
 
 KGAS enables analytical approaches impossible with traditional research tools:
 
 ### Cross-Modal Analysis Integration
-- **Statistical models become networks**: SEM results convert to graph structures for centrality and community analysis
-- **Network topology informs statistics**: Graph structure guides regression model specification and variable selection
-- **Correlation matrices as networks**: Pearson correlations become edge weights for network analysis algorithms
-- **Vector clustering enhances statistics**: Embedding-based clustering improves factor analysis and latent variable identification
+
+**Purpose**: Enable LLMs to fluidly switch between analytical modes (graph, table, vector) as theoretical requirements demand, without human intervention in method selection.
+
+- **Statistical models become networks**: SEM results convert to graph structures for centrality and community analysis - enabling theory-driven mode switching
+- **Network topology informs statistics**: Graph structure guides regression model specification and variable selection - supporting automated analytical pipeline creation
+- **Correlation matrices as networks**: Pearson correlations become edge weights for network analysis algorithms - demonstrating cross-modal data transformation
+- **Vector clustering enhances statistics**: Embedding-based clustering improves factor analysis and latent variable identification - proving analytical mode complementarity
+- **Uncertainty-aware integration**: Cross-modal convergence reduces uncertainty through analytical triangulation (designed for future LLM confidence assessment)
 
 ### Automated Theory Operationalization  
 - **Theory schemas to statistical models**: Generate SEM specifications, regression models, and experimental designs directly from theoretical frameworks
@@ -28,11 +34,18 @@ KGAS enables analytical approaches impossible with traditional research tools:
 - **Executable theoretical predictions**: Transform qualitative theories into quantitative, testable hypotheses with measurement specifications
 - **Multi-theory comparison**: Test competing theoretical explanations simultaneously through parallel analysis pipelines
 
+### Social Media Analysis Integration
+- **Real-time Twitter data processing**: T85_TwitterExplorer enables natural language querying of Twitter data with LLM-powered query planning
+- **Social network graph construction**: Extract Twitter users, tweets, and relationships into Neo4j graph structures for network analysis
+- **Cross-modal social media analysis**: Convert Twitter data between graph (network analysis), table (statistical analysis), and vector (semantic analysis) formats
+- **Theory-driven social media research**: Apply theoretical frameworks to social media data for hypothesis testing and pattern discovery
+
 ### Scale and Automation
 - **Document processing**: Analyze 1000+ documents compared to 100s possible with manual qualitative coding
 - **Simultaneous multi-mode analysis**: Run graph, statistical, and vector analyses concurrently on the same data
-- **Automated workflow generation**: Create complete analysis pipelines from natural language research questions
-- **Real-time cross-modal conversion**: Transform results between analytical representations without data loss
+- **Automated workflow generation**: Create complete analysis pipelines from natural language research questions through LLM tool orchestration
+- **Efficient cross-modal conversion**: Transform results between analytical representations for theory-driven analysis
+- **Large tool ecosystem**: 122+ specialized tools available for LLM selection (tool count doesn't affect latency - LLM agents dynamically select appropriate tools based on descriptions and theoretical requirements)
 
 ### Research Workflow Automation
 - **Literature to execution**: Extract theories from papers and apply them to new datasets automatically  
@@ -48,19 +61,22 @@ KGAS enables analytical approaches impossible with traditional research tools:
 - **Full analytical capabilities** preserved in each mode
 
 ### 2. Theory-Aware Processing  
-- **Automated theory extraction** from academic literature
+- **Hybrid theory extraction**: LLM-based automated extraction with expert validation sets for academic credibility
 - **Theory-guided analysis** using domain ontologies
 - **Flexible theory integration** supporting multiple frameworks
 
-### 3. Uncertainty Quantification
-- **CERQual-based assessment** for all analytical outputs
-- **Configurable complexity** from simple confidence to advanced Bayesian
-- **Uncertainty propagation** through analytical pipelines
+### 3. IC-Informed Uncertainty Management ([ADR-029](adrs/ADR-029-IC-Informed-Uncertainty-Framework/ADR-029-IC-Informed-Uncertainty-Framework.md))
+- **Intelligence Community methodologies** integrating ICD-203/206 standards and structured analytic techniques
+- **Mathematical uncertainty propagation** using root-sum-squares for independent uncertainties
+- **Evidence-based assessment** evaluating quality over quantity, avoiding Heuer's information paradox
+- **Single integrated LLM analysis** with comprehensive IC-informed assessment
+- **Sustainable tracking** focusing on decision-critical metrics only
 
 ### 4. Academic Research Focus
-- **Single-node design** for local research environments  
-- **Reproducibility first** with complete provenance tracking
-- **Flexibility over performance** for exploratory research
+- **Single-node design** for local research environments (entire system runs on one machine for simplicity, not distributed across servers)
+- **Proof-of-concept scope** designed to demonstrate theory automation capabilities rather than production deployment
+- **Reproducibility first** with complete provenance tracking to validate automated theory application
+- **Flexibility over performance** for exploratory research - building for future compute capabilities
 
 ### 5. Theory Validation Through Simulation ([ADR-020](adrs/ADR-020-Agent-Based-Modeling-Integration.md))
 - **Generative Agent-Based Modeling (GABM)** for theory testing
@@ -75,21 +91,27 @@ KGAS enables analytical approaches impossible with traditional research tools:
 - **Publication-ready outputs** meeting academic statistical reporting standards
 
 ### 7. Fail-Fast Design Philosophy
-- **Immediate error exposure**: Problems surface immediately rather than being masked
-- **Input validation**: Rigorous validation at system boundaries
-- **Complete failure**: System fails entirely on critical errors rather than degrading
-- **Evidence-based operation**: All functionality backed by validation evidence
+- **Immediate error exposure**: Problems surface immediately rather than being masked - critical for validating automated theory application
+- **Input validation**: Rigorous validation at system boundaries to prevent cascading errors in automated workflows
+- **Complete failure**: System fails entirely on critical errors rather than degrading gracefully - ensures clean experimental conditions
+- **Agent validation**: LLM-generated workflows validated against hand-constructed tool DAG networks to verify automated reasoning
+- **Autonomous mode enforcement**: Agent-controlled mode fails completely on validation errors rather than degrading - maintains experimental integrity
+- **Evidence-based operation**: All functionality backed by validation evidence to support theory automation claims
 
 ## High-Level Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                    User Interface Layer                      │
-│         (Natural Language → Agent → Workflow → Results)      │
+│    ┌───────────────────────────────────────────────────────┐ │
+│    │                KGAS Native Interface                  │ │
+│    │            (Agent-Driven Workflows)                   │ │
+│    │              NL → Agent → Workflow                    │ │
+│    └───────────────────────────────────────────────────────┘ │
 └─────────────────────────────────────────────────────────────┘
                               │
 ┌─────────────────────────────────────────────────────────────┐
-│                Multi-Layer Agent Interface                   │
+│               Workflow Orchestration Layer                   │
 │  ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐ │
 │  │   Layer 1:      │ │   Layer 2:      │ │   Layer 3:      │ │
 │  │Agent-Controlled │ │Agent-Assisted   │ │Manual Control   │ │
@@ -97,6 +119,10 @@ KGAS enables analytical approaches impossible with traditional research tools:
 │  │NL→YAML→Execute  │ │YAML Review      │ │Direct YAML      │ │
 │  │Complete Auto    │ │User Approval    │ │Expert Control   │ │
 │  └─────────────────┘ └─────────────────┘ └─────────────────┘ │
+│  ┌─────────────────────────────────────────────────────────┐ │
+│  │                 YAML Workflow Engine                    │ │
+│  │         Agent-Generated Workflows + Orchestration       │ │
+│  └─────────────────────────────────────────────────────────┘ │
 └─────────────────────────────────────────────────────────────┘
                               │
 ┌─────────────────────────────────────────────────────────────┐
@@ -124,9 +150,18 @@ KGAS enables analytical approaches impossible with traditional research tools:
 │  │ProvenanceService   │ │WorkflowEngine  │ │SecurityMgr  │ │
 │  ├────────────────────┤ ├────────────────┤ ├─────────────┤ │
 │  │    ABMService      │ │ValidationEngine│ │UncertaintyMgr│ │
-│  ├────────────────────┤ └────────────────┘ └─────────────┘ │
-│  │StatisticalService  │                                    │
-│  └────────────────────┘                                    │
+│  ├────────────────────┤ ├────────────────┤ ├─────────────┤ │
+│  │StatisticalService  │ │ResourceManager │ │             │ │
+│  └────────────────────┘ └────────────────┘ └─────────────┘ │
+└─────────────────────────────────────────────────────────────┘
+                              │
+┌─────────────────────────────────────────────────────────────┐
+│                 MCP Integration Layer                        │
+│  ┌─────────────────────────────────────────────────────────┐ │
+│  │              External MCP Ecosystem                     │ │
+│  │ Academic: Semantic Scholar, ArXiv • Media: YouTube, News│ │
+│  │ Documents: MarkItDown, Pandoc • Infrastructure: Grafana │ │
+│  └─────────────────────────────────────────────────────────┘ │
 └─────────────────────────────────────────────────────────────┘
                               │
 ┌─────────────────────────────────────────────────────────────┐
@@ -150,9 +185,12 @@ KGAS enables analytical approaches impossible with traditional research tools:
 - **Workflow Engine**: YAML-based reproducible workflows
 
 ### Multi-Layer Agent Interface
+
 #### Layer 1: Agent-Controlled
 - **Complete automation**: Natural language → YAML → execution
 - **No user intervention**: Fully autonomous workflow generation
+- **Validation Framework**: Hand-constructed tool DAG networks for LLM-generated plan validation
+- **Fail-Fast Design**: System fails completely on validation errors rather than degrading
 - **Optimal for**: Standard research patterns and common analysis tasks
 
 #### Layer 2: Agent-Assisted  
@@ -165,6 +203,20 @@ KGAS enables analytical approaches impossible with traditional research tools:
 - **Maximum flexibility**: Custom workflows and edge cases
 - **Optimal for**: Novel research methodologies and system debugging
 
+### Agent Validation Architecture
+
+#### Tool DAG Network Validation
+- **Hand-Constructed Reference Networks**: Expert-created tool dependency graphs for common research workflows
+- **LLM Plan Comparison**: Generated agent workflows validated against reference DAG structures
+- **Validation Criteria**: Tool sequence validity, dependency satisfaction, resource requirements
+- **Fail-Fast Enforcement**: Invalid workflows trigger complete system failure with detailed error reporting
+
+#### Resource Management Integration
+- **Multi-Tier Budgeting**: Session, project, and monthly resource limits with automatic enforcement
+- **Cost Optimization**: Intelligent model selection, operation batching, and caching strategies  
+- **Real-Time Monitoring**: Resource usage tracking with warning thresholds and emergency controls
+- **Academic Focus**: Research-appropriate budgeting aligned with project timelines and computational needs
+
 ### Cross-Modal Analysis Layer
 - **[Cross-Modal Analysis](cross-modal-analysis.md)**: Fluid movement between representations
 - **[Mode Selection](concepts/cross-modal-philosophy.md)**: LLM-driven optimal mode selection
@@ -176,64 +228,91 @@ KGAS enables analytical approaches impossible with traditional research tools:
 - **[Identity Service](systems/COMPONENT_ARCHITECTURE_DETAILED.md#3-identity-service)**: Context-aware entity resolution with multi-factor scoring
 - **[Theory Repository](systems/COMPONENT_ARCHITECTURE_DETAILED.md#4-theory-repository)**: Theory schema management and validation
 - **[Provenance Service](systems/COMPONENT_ARCHITECTURE_DETAILED.md#5-provenance-service)**: Complete lineage tracking for reproducibility
+- **[Resource Manager](systems/COMPONENT_ARCHITECTURE_DETAILED.md#6-resource-manager)**: Multi-tier budgeting, cost optimization, and real-time resource monitoring for LLM operations
 - **[ABM Service](adrs/ADR-020-Agent-Based-Modeling-Integration.md)**: Theory validation through generative agent-based modeling and synthetic experiments
 
-### Data Storage Layer
-- **[Bi-Store Architecture](data/bi-store-justification.md)**: Neo4j + SQLite design with trade-off analysis
-- **[Data Models](data/schemas.md)**: Entity, relationship, and metadata schemas
-- **[Vector Storage](adrs/ADR-003-Vector-Store-Consolidation.md)**: Native Neo4j vectors with HNSW indexing
+## Data Storage Layer
+
+**Note**: Bi-store design enables cross-modal analysis automation - Neo4j optimized for graph operations, SQLite for statistical analysis. Academic proof-of-concept accepts eventual consistency over enterprise ACID guarantees.
+
+- **[Bi-Store Architecture](data/bi-store-justification.md)**: Neo4j + SQLite design with trade-off analysis - enables LLM-driven cross-modal analysis
+- **[Data Models](data/schemas.md)**: Entity, relationship, and metadata schemas designed for theory automation
+- **[Comprehensive Schema Ecosystem](data/SCHEMA_MANAGEMENT.md#comprehensive-modeling-paradigm-schema-ecosystem)**: 5 complete modeling paradigms (UML, RDF/OWL, ORM, TypeDB, N-ary) for diverse research approaches and automated theory processing
+- **[Vector Storage](adrs/ADR-003-Vector-Store-Consolidation.md)**: Native Neo4j vectors with HNSW indexing for semantic theory matching
 
 ## Theory Integration Architecture
 
+**This is the core innovation of KGAS - automated theory processing for future LLM capabilities.**
+
+### Theory Automation Vision
+
+KGAS V13 meta-schema + DOLCE integration + theory validation system enables:
+- **Automated theory discovery**: LLMs identify theories applicable to research questions
+- **Automated theory operationalization**: Convert theoretical frameworks into executable analysis pipelines
+- **Automated theory comparison**: Test competing theoretical explanations simultaneously
+- **Theory-driven tool selection**: LLMs choose appropriate analytical methods based on theoretical requirements
+
+This infrastructure prepares for future LLMs that can autonomously conduct theory-driven research without human intervention in theory selection or analytical method choice.
+
+### Two-Layer Theory Architecture
+
+#### **Layer 1: Comprehensive Structure Extraction**
+- **LLM-guided extraction**: Gemini 2.5 Flash with V13 meta-schema for standardized theory representation
+- **Indigenous terminology preservation**: Author's exact terms maintained for theoretical fidelity
+- **Cross-domain robustness**: Validated across 7 academic domains for broad applicability
+- **Theory type coverage**: Mathematical, taxonomic, causal, procedural theories for comprehensive automation
+
+#### **Layer 2: Question-Driven Analysis**
+- **Flexible analytical purposes**: Same structure serves multiple research questions for LLM adaptability
+- **Clean separation**: Structure extraction independent of analytical goals enables automated theory selection
+- **Theory-agnostic querying**: Consistent interface across theory types for LLM tool orchestration
+
 ### Ontological Framework Integration
-- **DOLCE**: Upper-level ontology for general categorization
+- **DOLCE**: Upper-level ontology for general categorization (post-hoc mapping)
 - **FOAF/SIOC**: Social network and online community concepts
-- **Custom Typology**: Three-dimensional theory classification
-- **[Integration Model](concepts/theoretical-framework.md)**: Hierarchical integration approach
+- **V13 Meta-Schema**: Schema with indigenous terminology support
+- **[Integration Model](concepts/theoretical-framework.md)**: Two-layer approach with LLM extraction
 
-### Theory-Aware Processing
-- **[Theory Repository](systems/theory-repository-abstraction.md)**: Schema management
-- **[Extraction Integration](systems/theory-extraction-integration.md)**: Literature to schema
-- **[Master Concept Library](concepts/master-concept-library.md)**: Domain concepts
+### Theory-Aware Processing ([ADR-022](adrs/ADR-022-Theory-Selection-Architecture.md))
+- **[Two-Layer Theory Architecture](two-layer-theory-architecture.md)**: Theory extraction and analysis with V13 meta-schema
+- **[Theory Repository](systems/theory-repository-abstraction.md)**: Schema management with V13 meta-schema validation
+- **[Extraction Integration](systems/theory-extraction-integration.md)**: LLM-guided literature to schema extraction
+- **[Master Concept Library](concepts/master-concept-library.md)**: Domain concepts with indigenous terminology preservation
 
-## Uncertainty Architecture
+## Uncertainty Architecture ([IC-Informed Framework](adrs/ADR-029-IC-Informed-Uncertainty-Framework.md))
 
-### Comprehensive Uncertainty Management System
+### Comprehensive Uncertainty Management System  
 
-KGAS implements a sophisticated uncertainty management framework that handles both individual extraction confidence and multi-source aggregation:
+KGAS implements the **IC-Informed uncertainty framework** - the authoritative approach to uncertainty quantification and propagation throughout the analytical pipeline, based on proven Intelligence Community methodologies:
 
-#### Core Components
+#### Core Framework Principles
 
-1. **Base Confidence Assessment** ([ADR-010](adrs/ADR-010-Quality-System-Design.md))
-   - Quality degradation through processing pipelines
-   - Tool-specific confidence factors
-   - Quality tier classification (HIGH/MEDIUM/LOW)
+1. **LLM-Intelligent Entity Resolution** 
+   - **Realistic confidence ranges**: 0.75-0.95 for most entity resolution with context
+   - **Context-aware disambiguation**: Leverages modern LLM capabilities for intelligent interpretation
+   - **Strategic ambiguity detection**: Distinguishes intentional vagueness from lack of information
 
-2. **Bayesian Aggregation System** ([ADR-016](adrs/ADR-016-Bayesian-Uncertainty-Aggregation.md))
-   - LLM-based parameter estimation for dependent sources
-   - Proper joint likelihood calculation
-   - Evidence accumulation from multiple sources
-   - Theory-aware prior estimation
+2. **Three-Tier Uncertainty Taxonomy**
+   - **Data-level**: Text quality, temporal gaps, speaker identification (0.70-0.95 typical range)
+   - **Extraction-level**: Construct operationalization, entity resolution, context interpretation (0.75-0.95 typical range)  
+   - **Analytical**: Aggregation methods, modal integration, temporal dynamics (0.60-0.85 typical range)
 
-3. **IC-Inspired Analytical Techniques** ([ADR-017](adrs/ADR-017-IC-Analytical-Techniques-Integration.md))
-   - Information Value Assessment (Heuer's 4 types)
-   - Analysis of Competing Hypotheses (ACH) for theory comparison
-   - Collection Stopping Rules for optimal information gathering
-   - Calibration System for confidence accuracy
-   - Mental Model Auditing (planned Phase 3)
+3. **Mathematical Coherence**
+   - **Frequency ≠ Confidence**: Separates entity occurrence counts from resolution confidence
+   - **Distribution preservation**: Maintains probability distributions rather than forced point estimates
+   - **Correlation-based propagation**: Uses modified independence assumption with correlation factors
 
-4. **Multi-Modal Uncertainty Representation**
-   - Probability distributions for quantitative uncertainty
-   - Confidence intervals for avoiding false precision
-   - Process metadata for qualitative assessment
-   - Interactive visualization of uncertainty levels
+4. **Cross-Modal Uncertainty Reduction** 
+   - **Primary reduction mechanism**: Stage 4 multi-modal convergence (0.10-0.15 uncertainty reduction)
+   - **Triangulation through agreement**: High cross-modal agreement (>0.80) significantly reduces uncertainty
+   - **Transparent disagreement handling**: Preserves conflicts when modes disagree
 
-4. **Strategic Uncertainty Management**
-   - Context-aware decision to reduce/maintain/increase uncertainty
-   - Robustness testing through perturbation analysis
-   - Meta-uncertainty assessment of analysis confidence
+5. **Research Impact Focus**
+   - **Methodology guidance**: Confidence thresholds guide appropriate analytical approaches  
+   - **Transparent reporting**: Clear uncertainty disclosure in research outputs
+   - **Quality-driven decisions**: Uncertainty assessment determines research method suitability
 
-See **[Uncertainty Architecture](concepts/uncertainty-architecture.md)** for detailed implementation.
+See **[IC-Informed Framework](adrs/ADR-029-IC-Informed-Uncertainty-Framework.md)** for complete implementation details and **[Entity Resolution Stress Tests](../examples/entity_resolution_uncertainty_stress_tests.md)** for validation evidence.
 
 ## Research Enhancement Features
 
@@ -353,7 +432,7 @@ KGAS leverages the Model Context Protocol (MCP) ecosystem for both internal tool
 ### Dual MCP Strategy
 
 #### 1. **KGAS as MCP Server** (Tool Exposure)
-- **121+ KGAS tools** accessible via standardized MCP interface
+- **122+ KGAS tools** accessible via standardized MCP interface
 - **Multiple client support**: Works with Claude Desktop, custom Streamlit UI, and other MCP clients
 - **FastMCP framework**: Production-grade MCP server implementation
 - **Type-safe interfaces**: Standardized tool protocols
@@ -363,6 +442,7 @@ KGAS leverages the Model Context Protocol (MCP) ecosystem for both internal tool
 - **Document Processing**: Integrate with MarkItDown, Content Core, Pandoc MCP servers
 - **Infrastructure**: Use Grafana, Docker, Logfire MCP servers for monitoring/deployment
 - **Media Sources**: Access YouTube, Google News, DappierAI for discourse analysis
+- **Social Media Analysis**: Twitter API integration via T85_TwitterExplorer for real-time social media graph construction and analysis
 
 ### MCP Client Architecture
 ```
@@ -378,6 +458,7 @@ KGAS leverages the Model Context Protocol (MCP) ecosystem for both internal tool
 │  ┌─────────────────────────────────────────────────────┐    │
 │  │ Academic: Semantic Scholar, ArXiv LaTeX, PubMed     │    │
 │  │ Media: YouTube, Google News, DappierAI              │    │
+│  │ Social Media: T85_TwitterExplorer API Integration   │    │
 │  │ Documents: MarkItDown, Content Core, Pandoc         │    │
 │  │ Infrastructure: Grafana, Docker, Logfire            │    │
 │  └─────────────────────────────────────────────────────┘    │
@@ -393,16 +474,44 @@ KGAS leverages the Model Context Protocol (MCP) ecosystem for both internal tool
 
 See [MCP Architecture Details](systems/mcp-integration-architecture.md) for comprehensive integration specifications.
 
+## Resource Management Architecture
+
+### Multi-Tier Resource Budgeting
+KGAS implements comprehensive resource management for LLM operations and computational resources:
+
+#### Budget Hierarchy
+- **Session Budgets**: Individual research session limits (API calls, compute time, cost)
+- **Project Budgets**: Research project resource allocation across multiple sessions
+- **Monthly Budgets**: Institutional or user monthly resource constraints
+
+#### Cost Optimization Strategies
+- **Intelligent Model Selection**: Automatic selection of optimal LLM models based on task complexity
+- **Operation Batching**: Grouping similar operations to reduce API call overhead
+- **Intelligent Caching**: Reuse of expensive computations across research sessions
+- **Adaptive Resource Allocation**: Dynamic resource distribution based on research priorities
+
+#### Real-Time Resource Monitoring
+- **Usage Tracking**: Continuous monitoring of API calls, compute time, and costs
+- **Threshold Alerts**: Automatic warnings at 80% and 95% of budget limits
+- **Emergency Controls**: Automatic cost-minimal mode activation near budget limits
+- **Performance Optimization**: Automatic degradation to cheaper models when appropriate
+
+#### Academic Research Integration
+- **Research-Specific Categories**: Cost tracking by research phase (literature review, analysis, synthesis)
+- **Project Timeline Alignment**: Resource budgeting aligned with academic project schedules
+- **Collaborative Budgeting**: Multi-user resource sharing for research teams
+- **Quality-Cost Balance**: Configurable trade-offs between analysis quality and resource consumption
+
 ## Quality Attributes
 
 ### Research Capabilities
 - **Scale**: Process 1000+ documents with maintained analytical quality
-- **Integration**: 121+ tools accessible through unified interface protocols
+- **Integration**: 122+ tools accessible through unified interface protocols
 - **Reproducibility**: Complete provenance tracking from source documents to final outputs
 - **Academic standards**: APA-formatted tables, publication-ready figures, statistical diagnostics
 
 ### Performance
-- **Cross-modal conversion**: Real-time transformation between graph, table, and vector representations
+- **Cross-modal conversion**: Efficient transformation between graph, table, and vector representations
 - **Parallel analysis**: Concurrent execution of multiple analytical modes on the same dataset
 - **Intelligent caching**: Reuse expensive computations across analysis sessions
 - **Async processing**: Non-blocking operations for long-running statistical and simulation tasks
@@ -432,11 +541,11 @@ See [MCP Architecture Details](systems/mcp-integration-architecture.md) for comp
 **Decision**: Single-node architecture optimized for academic research
 
 **Trade-offs**:
-- ✅ **Simplicity**: Easier deployment, maintenance, and debugging
-- ✅ **Cost**: Lower infrastructure and operational costs
-- ✅ **Consistency**: Simplified data consistency without distributed transactions
-- ❌ **Scalability**: Limited to vertical scaling (~1M entities practical limit)
-- ❌ **Availability**: No built-in redundancy or failover
+- **Simplicity**: Easier deployment, maintenance, and debugging
+- **Cost**: Lower infrastructure and operational costs
+- **Consistency**: Simplified data consistency without distributed transactions
+- **Scalability**: Limited to vertical scaling (~1M entities practical limit)
+- **Availability**: No built-in redundancy or failover
 
 **Rationale**: Academic research projects typically process thousands of documents, not millions. The simplicity benefits outweigh scalability limitations for the target use case.
 
@@ -445,11 +554,11 @@ See [MCP Architecture Details](systems/mcp-integration-architecture.md) for comp
 **Decision**: Neo4j for graph/vectors, SQLite for metadata/workflow
 
 **Trade-offs**:
-- ✅ **Optimized Storage**: Each database used for its strengths
-- ✅ **Native Features**: Graph algorithms in Neo4j, SQL queries in SQLite
-- ✅ **Simplicity**: Simpler than tri-store, avoids PostgreSQL complexity
-- ❌ **Consistency**: Cross-database transactions not atomic
-- ❌ **Integration**: Requires entity ID synchronization
+- **Optimized Storage**: Each database used for its strengths
+- **Native Features**: Graph algorithms in Neo4j, SQL queries in SQLite
+- **Simplicity**: Simpler than tri-store, avoids PostgreSQL complexity
+- **Consistency**: Cross-database transactions not atomic
+- **Integration**: Requires entity ID synchronization
 
 **Rationale**: The bi-store provides the right balance of capability and complexity. See [ADR-003](adrs/ADR-003-Vector-Store-Consolidation.md) for detailed analysis.
 
@@ -458,16 +567,16 @@ See [MCP Architecture Details](systems/mcp-integration-architecture.md) for comp
 **Decision**: Support both theory-driven and data-driven research paradigms
 
 **Capabilities**:
-- ✅ **Theory-First**: Theory schemas guide extraction and analysis for hypothesis testing
-- ✅ **Data-First**: Grounded theory and exploratory analysis for emergent pattern discovery
-- ✅ **Mixed Methods**: Seamless integration of quantitative (SEM, statistics) and qualitative approaches
-- ✅ **Cross-Modal Discovery**: Graph/vector analysis reveals patterns missed by single-mode approaches
+- **Theory-First**: Theory schemas guide extraction and analysis for hypothesis testing
+- **Data-First**: Grounded theory and exploratory analysis for emergent pattern discovery
+- **Mixed Methods**: Seamless integration of quantitative (SEM, statistics) and qualitative approaches
+- **Cross-Modal Discovery**: Graph/vector analysis reveals patterns missed by single-mode approaches
 
 **Trade-offs**:
-- ✅ **Flexibility**: Supports diverse research methodologies and paradigms
-- ✅ **Discovery**: Emergent behavior detection (T128) finds novel patterns
-- ✅ **Validation**: Theory validation through simulation and statistical testing
-- ❌ **Complexity**: Multiple analytical pathways require sophisticated orchestration
+- **Flexibility**: Supports diverse research methodologies and paradigms
+- **Discovery**: Emergent behavior detection (T128) finds novel patterns
+- **Validation**: Theory validation through simulation and statistical testing
+- **Complexity**: Multiple analytical pathways require sophisticated orchestration
 
 **Rationale**: KGAS serves the full spectrum of social science research, from exploratory grounded theory to confirmatory theory testing, enabling researchers to move fluidly between paradigms as research questions evolve.
 
@@ -476,11 +585,11 @@ See [MCP Architecture Details](systems/mcp-integration-architecture.md) for comp
 **Decision**: All tools implement standardized contracts
 
 **Trade-offs**:
-- ✅ **Integration**: Tools compose without custom logic
-- ✅ **Testing**: Standardized testing across all tools
-- ✅ **Agent Orchestration**: Enables intelligent tool selection
-- ❌ **Flexibility**: Tools must fit the contract model
-- ❌ **Migration Effort**: Existing tools need refactoring
+- **Integration**: Tools compose without custom logic
+- **Testing**: Standardized testing across all tools
+- **Agent Orchestration**: Enables intelligent tool selection
+- **Flexibility**: Tools must fit the contract model
+- **Migration Effort**: Existing tools need refactoring
 
 **Rationale**: The long-term benefits of standardization outweigh short-term migration costs. See [ADR-001](adrs/ADR-001-Phase-Interface-Design.md).
 
@@ -489,11 +598,11 @@ See [MCP Architecture Details](systems/mcp-integration-architecture.md) for comp
 **Decision**: 4-layer uncertainty architecture with CERQual framework
 
 **Trade-offs**:
-- ✅ **Research Quality**: Publication-grade uncertainty quantification
-- ✅ **Decision Support**: Rich information for interpretation
-- ✅ **Flexibility**: Configurable complexity levels
-- ❌ **Complexity**: Harder to implement and understand
-- ❌ **Performance**: Additional computation overhead
+- **Research Quality**: Publication-grade uncertainty quantification
+- **Decision Support**: Rich information for interpretation
+- **Flexibility**: Configurable complexity levels
+- **Complexity**: Harder to implement and understand
+- **Performance**: Additional computation overhead
 
 **Rationale**: Research credibility requires sophisticated uncertainty handling. The architecture allows starting simple and adding layers as needed.
 
@@ -502,11 +611,11 @@ See [MCP Architecture Details](systems/mcp-integration-architecture.md) for comp
 **Decision**: LLM for ontology generation and mode selection, not core processing
 
 **Trade-offs**:
-- ✅ **Reproducibility**: Core processing deterministic
-- ✅ **Cost Control**: LLM used strategically, not for every operation
-- ✅ **Flexibility**: Can swap LLM providers
-- ❌ **Capability**: May miss LLM advances in extraction
-- ❌ **Integration**: Requires careful prompt engineering
+- **Reproducibility**: Core processing deterministic
+- **Cost Control**: LLM used strategically, not for every operation
+- **Flexibility**: Can swap LLM providers
+- **Capability**: May miss LLM advances in extraction
+- **Integration**: Requires careful prompt engineering
 
 **Rationale**: Balances advanced capabilities with research requirements for reproducibility and cost management.
 
@@ -515,10 +624,10 @@ See [MCP Architecture Details](systems/mcp-integration-architecture.md) for comp
 **Decision**: All tools exposed via Model Context Protocol
 
 **Trade-offs**:
-- ✅ **Ecosystem**: Integrates with Claude, ChatGPT, etc.
-- ✅ **Standardization**: Industry-standard protocol
-- ✅ **External Access**: Tools available to any MCP client
-- ❌ **Overhead**: Additional protocol layer
+- **Ecosystem**: Integrates with Claude, ChatGPT, etc.
+- **Standardization**: Industry-standard protocol
+- **External Access**: Tools available to any MCP client
+- **Overhead**: Additional protocol layer
 
 **Rationale**: MCP provides immediate integration with LLM ecosystems, outweighing protocol overhead.
 
@@ -537,6 +646,9 @@ Key architectural decisions are documented in ADRs:
 - **[ADR-018](adrs/ADR-018-Analysis-Version-Control.md)**: Git-like version control for research analyses
 - **[ADR-019](adrs/ADR-019-Research-Assistant-Personas.md)**: Configurable LLM personas for different research needs
 - **[ADR-020](adrs/ADR-020-Agent-Based-Modeling-Integration.md)**: Theory validation through generative agent-based modeling
+- **[ADR-021](adrs/ADR-021-Statistical-Analysis-Integration.md)**: Comprehensive statistical analysis integration
+- **[ADR-022](adrs/ADR-022-Theory-Selection-Architecture.md)**: Two-layer theory architecture with V13 meta-schema validation
+- **[ADR-023](adrs/ADR-023-Comprehensive-Schema-Modeling-Ecosystem.md)**: Comprehensive schema modeling ecosystem with 5 paradigms for diverse research approaches
 
 ## Related Documentation
 
@@ -546,7 +658,6 @@ Key architectural decisions are documented in ADRs:
 - **[Systems](systems/)**: Component detailed designs
 - **[Specifications](specifications/)**: Formal specifications
 
-### Implementation Status
 **NOT IN THIS DOCUMENT** - See [Roadmap Overview](../../ROADMAP_OVERVIEW.md) for:
 - Current implementation status and progress
 - Development phases and completion evidence
@@ -557,7 +668,7 @@ Key architectural decisions are documented in ADRs:
 ## Architecture Governance
 
 ### Tool Ecosystem Governance
-**[See Tool Governance Framework](TOOL_GOVERNANCE.md)** for comprehensive tool lifecycle management, quality standards, and the 121-tool ecosystem governance process.
+**[See Tool Governance Framework](TOOL_GOVERNANCE.md)** for comprehensive tool lifecycle management, quality standards, and the 122-tool ecosystem governance process.
 
 ### Change Process
 1. Architectural changes require ADR documentation
@@ -573,7 +684,6 @@ Key architectural decisions are documented in ADRs:
 
 ---
 
-## Implementation Status
 
 This document describes the **target architecture** - the intended final system design. For current implementation status, development progress, and phase completion details, see:
 
