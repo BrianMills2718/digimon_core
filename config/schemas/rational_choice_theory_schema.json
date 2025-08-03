@@ -1,0 +1,267 @@
+{
+  "theory_id": "rational_choice_theory_1957",
+  "theory_name": "Rational Choice Theory",
+  "theory_version": "1.0",
+  "meta_schema_version": "11.1",
+  "created_date": "2025-07-26",
+  "theory_metadata": {
+    "primary_authors": [
+      "Anthony Downs",
+      "Mancur Olson",
+      "James Buchanan",
+      "Gordon Tullock"
+    ],
+    "publication_year": 1957,
+    "source_work": "An Economic Theory of Democracy (Downs); The Logic of Collective Action (Olson)",
+    "theoretical_tradition": "Political economy, public choice, microeconomic theory",
+    "original_purpose": "Explain political and social behavior through assumption of rational utility maximization by individual actors"
+  },
+  "telos": {
+    "primary_purpose": "Predict and explain political behavior by modeling actors as rational utility maximizers making optimal choices given constraints",
+    "secondary_purposes": [
+      "Analyze collective action problems and their solutions",
+      "Predict voting behavior and political participation",
+      "Explain policy outcomes through rational actor interactions",
+      "Model strategic behavior in political and economic contexts"
+    ],
+    "theoretical_scope": "Individual and collective decision-making in political and economic contexts",
+    "domain_applicability": "Policy statements, strategic decisions, cost-benefit analysis, resource allocation discussions, political choices"
+  },
+  "classification": {
+    "analytical_tier": "predictive",
+    "tier_justification": "Generates specific predictions about behavior based on utility calculations and strategic interactions",
+    "paradigm": "rational-actor-economic",
+    "level_of_analysis": "individual",
+    "temporal_scope": "decision_oriented",
+    "complexity": "medium",
+    "formalization_level": "highly_formalized"
+  },
+  "ontology": {
+    "core_entities": {
+      "actors": {
+        "definition": "Decision-making entities assumed to be rational utility maximizers",
+        "properties": [
+          "actor_type",
+          "preference_ordering",
+          "information_level",
+          "strategic_capacity"
+        ],
+        "examples": [
+          "voters",
+          "politicians",
+          "bureaucrats",
+          "interest_groups",
+          "nations"
+        ]
+      },
+      "choices": {
+        "definition": "Available options or strategies actors can select from",
+        "properties": [
+          "choice_type",
+          "feasibility",
+          "exclusivity",
+          "consequences"
+        ],
+        "examples": [
+          "policy options",
+          "voting decisions",
+          "resource allocations",
+          "strategic moves"
+        ]
+      },
+      "utilities": {
+        "definition": "Subjective values or benefits actors derive from different outcomes",
+        "properties": [
+          "utility_type",
+          "magnitude",
+          "measurability",
+          "time_preference"
+        ],
+        "examples": [
+          "policy benefits",
+          "electoral gains",
+          "economic payoffs",
+          "security benefits"
+        ]
+      },
+      "constraints": {
+        "definition": "Limitations that restrict actor choices and strategy options",
+        "properties": [
+          "constraint_type",
+          "severity",
+          "duration",
+          "source"
+        ],
+        "examples": [
+          "resource limits",
+          "institutional rules",
+          "information constraints",
+          "time limits"
+        ]
+      },
+      "information": {
+        "definition": "Knowledge available to actors for decision-making",
+        "properties": [
+          "information_type",
+          "completeness",
+          "accuracy",
+          "cost"
+        ],
+        "examples": [
+          "policy consequences",
+          "opponent strategies",
+          "public preferences",
+          "environmental conditions"
+        ]
+      }
+    },
+    "rational_choice_assumptions": {
+      "utility_maximization": "Actors choose options that maximize their expected utility",
+      "stable_preferences": "Actor preference orderings remain consistent across similar situations",
+      "complete_ordering": "Actors can rank all available options from most to least preferred",
+      "transitivity": "If A > B and B > C, then A > C in actor preference ordering",
+      "strategic_behavior": "Actors consider others' likely responses when making choices"
+    },
+    "choice_mechanisms": {
+      "cost_benefit_analysis": "Systematic comparison of expected costs and benefits for each option",
+      "expected_utility_calculation": "Probability-weighted assessment of outcomes across different scenarios",
+      "strategic_interaction": "Game-theoretic consideration of other actors' responses",
+      "satisficing": "Selection of first option meeting minimum acceptable criteria",
+      "optimization": "Selection of mathematically optimal choice given constraints"
+    },
+    "behavioral_predictions": {
+      "free_rider_problem": "Individuals will under-contribute to collective goods when benefits are non-excludable",
+      "median_voter_theorem": "Democratic outcomes will converge toward median voter preferences",
+      "collective_action_paradox": "Rational individuals may not participate in collective action even when all would benefit",
+      "economic_voting": "Voters will support incumbents when economic conditions are favorable"
+    }
+  },
+  "execution": {
+    "stage_1_comprehensive_structuring": {
+      "step_1_applicability_assessment": {
+        "description": "Evaluate text suitability for rational choice analysis",
+        "criteria": {
+          "decision_making_context": "Clear choices or strategic decisions being made",
+          "utility_considerations": "Evidence of cost-benefit thinking or value maximization",
+          "strategic_interaction": "Multiple actors with potentially conflicting interests",
+          "resource_constraints": "Limitations affecting choice feasibility or outcomes"
+        },
+        "scoring": "0.0-1.0 scale based on presence of rational choice elements",
+        "threshold": "0.6 minimum for meaningful rational choice analysis"
+      },
+      "step_2_actor_identification": {
+        "description": "Identify all decision-making actors and their characteristics",
+        "actor_analysis": [
+          "Extract individual and collective decision-makers",
+          "Determine actor capabilities and resources",
+          "Assess information access and processing capacity",
+          "Identify strategic relationships between actors"
+        ],
+        "output_format": "actor_inventory: {actor_type, resources, information_level, strategic_capacity}"
+      },
+      "step_3_choice_extraction": {
+        "description": "Identify available options and decision alternatives",
+        "choice_analysis": [
+          "Extract explicitly stated options and alternatives",
+          "Identify implicit choices and strategic alternatives",
+          "Assess choice feasibility and exclusivity",
+          "Determine choice consequences and outcomes"
+        ],
+        "choice_categorization": [
+          "Policy choices (implementation options, resource allocation)",
+          "Strategic choices (cooperation vs. competition, timing, positioning)",
+          "Behavioral choices (participation, compliance, resistance)"
+        ]
+      },
+      "step_4_utility_assessment": {
+        "description": "Identify values, preferences, and utility functions of actors",
+        "utility_analysis": [
+          "Extract expressed preferences and value statements",
+          "Identify utility sources (power, wealth, security, ideology)",
+          "Assess preference intensity and trade-offs",
+          "Determine time preferences and discount rates"
+        ],
+        "preference_ordering": [
+          "Rank actor preferences from most to least valued",
+          "Identify preference conflicts between actors",
+          "Assess preference stability and consistency"
+        ]
+      },
+      "step_5_constraint_identification": {
+        "description": "Identify limitations and constraints affecting rational choices",
+        "constraint_analysis": [
+          "Extract resource limitations (budget, time, personnel)",
+          "Identify institutional constraints (rules, procedures, legal limits)",
+          "Assess information constraints (uncertainty, incomplete knowledge)",
+          "Determine strategic constraints (opponent responses, coordination problems)"
+        ]
+      }
+    },
+    "stage_2_analytic_evaluation": {
+      "step_1_rationality_assessment": {
+        "description": "Evaluate how well actor behavior fits rational choice assumptions",
+        "rationality_analysis": [
+          "Assess consistency of revealed preferences",
+          "Evaluate cost-benefit reasoning quality",
+          "Analyze strategic thinking sophistication",
+          "Identify deviations from rational choice predictions"
+        ]
+      },
+      "step_2_strategic_interaction_analysis": {
+        "description": "Analyze multi-actor strategic dynamics and game-theoretic elements",
+        "strategic_analysis": [
+          "Identify strategic interdependencies between actors",
+          "Analyze cooperation vs. competition dynamics",
+          "Assess information asymmetries and signaling",
+          "Evaluate commitment problems and credibility issues"
+        ]
+      },
+      "step_3_equilibrium_prediction": {
+        "description": "Predict likely outcomes based on rational choice interactions",
+        "equilibrium_analysis": [
+          "Identify dominant strategies for each actor",
+          "Predict Nash equilibrium outcomes",
+          "Assess stability of predicted equilibria",
+          "Evaluate efficiency of predicted outcomes"
+        ]
+      },
+      "step_4_policy_implications": {
+        "description": "Generate policy predictions and prescriptions based on rational choice logic",
+        "policy_analysis": [
+          "Predict policy outcomes under different institutional arrangements",
+          "Identify potential for collective action problems",
+          "Assess incentive compatibility of proposed policies",
+          "Evaluate unintended consequences of rational responses"
+        ]
+      }
+    }
+  },
+  "validation": {
+    "internal_consistency": {
+      "preference_ordering_coherence": "Actor preferences exhibit transitivity and completeness",
+      "utility_maximization_logic": "Choices consistent with stated preferences and constraints",
+      "strategic_reasoning_validity": "Multi-actor interactions follow game-theoretic logic",
+      "constraint_recognition": "Analysis properly accounts for resource and institutional limitations"
+    },
+    "theoretical_fidelity": {
+      "rational_actor_assumption": "Analysis treats actors as utility-maximizing rational decision-makers",
+      "methodological_individualism": "Collective outcomes explained through individual rational choices",
+      "equilibrium_focus": "Analysis seeks stable outcomes where no actor has incentive to deviate",
+      "efficiency_considerations": "Evaluation includes assessment of economic efficiency and Pareto optimality"
+    },
+    "empirical_validation": {
+      "preference_identification_accuracy": "Valid extraction of actor utilities and preference orderings",
+      "constraint_specification_completeness": "Comprehensive identification of relevant limitations",
+      "choice_outcome_mapping": "Accurate connection between decisions and consequences",
+      "strategic_interaction_characterization": "Valid description of multi-actor dynamics"
+    },
+    "predictive_validation": {
+      "behavioral_prediction_accuracy": "Accurate prediction of actor choices based on utility calculations",
+      "equilibrium_prediction_validity": "Valid prediction of stable outcome configurations",
+      "policy_outcome_forecasting": "Accurate prediction of policy implementation results",
+      "unintended_consequence_identification": "Valid prediction of rational response effects"
+    }
+  },
+  "mode": "open",
+  "schema_id": "rational_choice_theory_1957"
+}

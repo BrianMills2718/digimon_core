@@ -230,7 +230,10 @@ class VectorEmbedder(Tool):
             self.logger.error(f"Failed to generate embeddings: {e}")
             raise ToolExecutionError("VectorEmbedder", f"Embedding generation failed: {str(e)}", e)
     
-    def execute(self, input_data: Any = None, context: Optional[Dict] = None) -> Dict[str, Any]:
+    def execute(self, request) -> Dict[str, Any]:
+        """Execute vector embedding with ToolRequest parameter"""
+        input_data = request.input_data if hasattr(request, 'input_data') else request
+        context = getattr(request, 'context', None)
         """Execute vector embedding generation and storage
         
         Args:

@@ -1,3 +1,4 @@
+from src.core.standard_config import get_model
 """
 OpenAI o3-mini Ontology Generator with structured output.
 Uses OpenAI's o3-mini model for domain-specific ontology generation.

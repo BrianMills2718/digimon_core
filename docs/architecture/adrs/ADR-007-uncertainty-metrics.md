@@ -1,6 +1,7 @@
 # ADR-007: CERQual-Based Uncertainty Architecture
 
-**Status**: Accepted  
+**Status**: Superseded by [ADR-029](ADR-029-IC-Informed-Uncertainty-Framework/ADR-029-IC-Informed-Uncertainty-Framework.md)  
+**Related**: [ADR-004](ADR-004-Normative-Confidence-Score-Ontology.md) (Superseded), [ADR-010](ADR-010-Quality-System-Design.md) (Superseded), [ADR-025](ADR-025-Entity-Resolution-Architecture.md) (Entity resolution uncertainty), [ADR-029](ADR-029-IC-Informed-Uncertainty-Framework/ADR-029-IC-Informed-Uncertainty-Framework.md) (Current Implementation)  
 **Date**: 2025-07-20  
 **Context**: Need for principled uncertainty quantification in academic social science research
 
@@ -10,25 +11,26 @@ Academic social science research requires rigorous uncertainty quantification to
 
 ## Decision
 
-We will implement a **CERQual-based uncertainty quantification framework** with four-layer architecture and configurable complexity.
+**This ADR has been superseded by [ADR-029: IC-Informed Uncertainty Framework](ADR-029-IC-Informed-Uncertainty-Framework/ADR-029-IC-Informed-Uncertainty-Framework.md).**
 
-### Framework Choice: CERQual
+The original decision was to implement a **CERQual-based uncertainty quantification framework** with four-layer architecture and configurable complexity. However, this approach has been replaced by the IC-Informed framework which provides:
+
+- **Intelligence Community methodologies** (ICD-203/206 standards)
+- **Mathematical uncertainty propagation** (root-sum-squares)
+- **Single integrated LLM analysis** (comprehensive IC assessment)
+- **Sustainable tracking** (decision-critical metrics only)
+
+### Original Framework Choice: CERQual (Superseded)
 - **CERQual**: Confidence in the Evidence from Reviews of Qualitative research
 - **Academic Standard**: Established methodology for social science uncertainty assessment
 - **Domain Fit**: Specifically designed for discourse analysis and qualitative research
 
-### Four-Layer Architecture
+### Original Four-Layer Architecture (Superseded)
 
 1. **Contextual Entity Resolution**: Dynamic disambiguation with uncertainty
 2. **Temporal Knowledge Graph**: Time-bounded confidence decay
 3. **Bayesian Pipeline**: Dependency modeling and uncertainty propagation
 4. **Distribution Preservation**: Full uncertainty distribution maintenance
-
-### Configurable Complexity
-- **Simple**: Basic confidence scores for immediate usability
-- **Standard**: CERQual assessment with moderate detail
-- **Advanced**: Full Bayesian uncertainty propagation
-- **Research**: Complete distributional analysis for publication
 
 ## Rationale
 
@@ -70,7 +72,7 @@ We will implement a **CERQual-based uncertainty quantification framework** with 
 
 ### Technical Requirements
 - CERQual framework integration with all analytical components
-- Four-layer uncertainty propagation architecture
+- Three-tier uncertainty taxonomy (data-level, extraction-level, analytical)
 - Configurable complexity levels (simple to advanced)
 - Uncertainty-aware tool contracts for all operations
 
@@ -80,15 +82,37 @@ We will implement a **CERQual-based uncertainty quantification framework** with 
 - Uncertainty propagation without significant degradation
 - Academic standards compliance for research publication
 
+## Implementation Specification
+
+### Superseded by IC-Informed Framework
+
+**Current Implementation**: The **[IC-Informed Uncertainty Framework](ADR-029-IC-Informed-Uncertainty-Framework/ADR-029-IC-Informed-Uncertainty-Framework.md)** is the authoritative implementation specification, superseding this ADR's original CERQual approach.
+
+**Refer to ADR-029 for current implementation details including**:
+- **IC-Informed Methodologies**: Integration of ICD-203/206 standards, Heuer's principles, and ACH
+- **Mathematical Uncertainty Propagation**: Root-sum-squares for independent uncertainties
+- **Realistic LLM Confidence Ranges**: Based on empirical capabilities with IC probability bands
+- **Evidence-Based Assessment**: Quality over quantity, avoiding Heuer's information paradox
+- **Single Integrated LLM Analysis**: Comprehensive IC-informed analysis in one call
+- **Sustainable Tracking**: Focus on decision-critical metrics only
+
+**Implementation Reference**: All uncertainty-related tools and services implement the IC-informed patterns and mathematical propagation specified in ADR-029.
+
 ## Validation Evidence
 
-This architectural decision has been validated through comprehensive research and testing:
+**This ADR has been superseded. For current validation evidence, see [ADR-029](ADR-029-IC-Informed-Uncertainty-Framework/ADR-029-IC-Informed-Uncertainty-Framework.md).**
 
-**See**: [Framework Validation](adr-004-uncertainty-metrics/validation/framework-validation.md)
+Original validation research contributed to the IC-Informed framework development:
 
-Key validation results:
-- CERQual framework validated for social science discourse analysis
-- Four-layer architecture conceptually validated with implementation tiers
-- 99% statistical robustness maintained through integration pipeline
-- Comprehensive research foundation with 18 supporting research files
-- Successfully applied to real academic research scenario
+**See**: [IC-Informed Uncertainty Framework](ADR-029-IC-Informed-Uncertainty-Framework/kgas_uncertainty_framework_comprehensive7.md) and supporting IC documentation:
+- [IC Uncertainty Review](ADR-029-IC-Informed-Uncertainty-Framework/IC_UNCERTAINITY_NOTES_2025.0728.md)
+- [Entity Resolution Stress Tests](../../examples/entity_resolution_uncertainty_stress_tests.md)
+- [Research Impact Scenarios](../../examples/entity_resolution_research_impact_scenarios.md)
+
+Key findings that informed ADR-029:
+- IC methodologies proven through decades of intelligence analysis
+- Mathematical propagation verified for coherence and accuracy
+- LLM confidence ranges aligned with empirical capabilities
+- Heuer's information paradox addressed through evidence quality focus
+- Single integrated analysis approach validated for efficiency
+- Sustainable tracking demonstrated through selective metrics

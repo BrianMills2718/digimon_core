@@ -1,0 +1,49 @@
+database:
+  database: test
+  password: neo4j
+  uri: bolt://localhost:7687
+  username: neo4j
+discovery:
+  test_directories:
+  - tests
+  - src/testing/tests
+  test_patterns:
+  - test_*.py
+integration:
+  mock_external_services: true
+  similarity_threshold: 0.8
+  use_in_memory_storage: true
+  use_real_services: false
+logging:
+  log_file: null
+  log_level: DEBUG
+mock:
+  default_delay_ms: 10.0
+  failure_modes:
+  - timeout
+  - connection_error
+  - invalid_input
+  success_rate: 0.9
+performance:
+  baseline_tolerance_percent: 10.0
+  concurrent_calls: 10
+  default_iterations: 10
+  stress_duration_seconds: 30
+  timeout_seconds: 30
+  warmup_iterations: 3
+test_data:
+  large_dataset_size:
+    docs: 1000
+    entities: 5000
+    mentions: 10000
+    relationships: 7500
+  medium_dataset_size:
+    docs: 100
+    entities: 500
+    mentions: 1000
+    relationships: 750
+  small_dataset_size:
+    docs: 10
+    entities: 50
+    mentions: 100
+    relationships: 75

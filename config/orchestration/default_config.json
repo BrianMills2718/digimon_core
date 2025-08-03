@@ -1,0 +1,104 @@
+{
+  "orchestration_type": "simple_sequential",
+  "max_workflow_time": 600,
+  "enable_parallel": false,
+  "retry_strategy": {
+    "enabled": false,
+    "max_retries": 3,
+    "backoff_multiplier": 2.0
+  },
+  "agents": {
+    "document": {
+      "class": "SimpleDocumentAgent",
+      "tools": ["load_documents", "chunk_text"],
+      "timeout": 120
+    },
+    "analysis": {
+      "class": "SimpleAnalysisAgent",
+      "tools": ["extract_entities", "extract_relationships"],
+      "timeout": 180
+    },
+    "graph": {
+      "class": "SimpleGraphAgent",
+      "tools": ["build_entities", "build_edges", "calculate_pagerank"],
+      "timeout": 240
+    },
+    "insight": {
+      "class": "SimpleInsightAgent",
+      "tools": ["query_graph"],
+      "timeout": 60
+    }
+  },
+  "workflows": {
+    "research_analysis": {
+      "description": "Standard research document analysis workflow",
+      "strategy": "sequential",
+      "steps": [
+        {
+          "agent": "document",
+          "task_type": "document_processing",
+          "required": true,
+          "parameters": {
+            "max_documents": 10,
+            "chunk_size": 1000
+          }
+        },
+        {
+          "agent": "analysis",
+          "task_type": "entity_extraction",
+          "required": true,
+          "depends_on": ["document"]
+        },
+        {
+          "agent": "graph",
+          "task_type": "graph_building",
+          "required": true,
+          "depends_on": ["analysis"]
+        },
+        {
+          "agent": "insight",
+          "task_type": "insight_generation",
+          "required": false,
+          "depends_on": ["graph"]
+        }
+      ]
+    },
+    "quick_analysis": {
+      "description": "Quick analysis without graph building",
+      "strategy": "sequential",
+      "steps": [
+        {
+          "agent": "document",
+          "task_type": "document_processing",
+          "required": true
+        },
+        {
+          "agent": "analysis",
+          "task_type": "entity_extraction",
+          "required": true
+        },
+        {
+          "agent": "insight",
+          "task_type": "analysis_summary",
+          "required": true
+        }
+      ]
+    },
+    "graph_only": {
+      "description": "Build graph from existing entities",
+      "strategy": "sequential",
+      "steps": [
+        {
+          "agent": "graph",
+          "task_type": "graph_building",
+          "required": true
+        },
+        {
+          "agent": "insight",
+          "task_type": "graph_analysis",
+          "required": true
+        }
+      ]
+    }
+  }
+}

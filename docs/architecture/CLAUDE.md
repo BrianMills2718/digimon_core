@@ -49,7 +49,7 @@ The system enables fluid movement between three data representations:
 └──────────────────┘    └──────────┘
 ```
 
-### 4. Service-Oriented Architecture
+### 4. Service-Oriented Architecture with Structured Output
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                   Core Services Layer                       │
@@ -57,6 +57,14 @@ The system enables fluid movement between three data representations:
 │  │PipelineOrchestrator│ │IdentityService │ │PiiService    │ │
 │  ├────────────────────┤ ├────────────────┤ ├──────────────┤ │
 │  │AnalyticsService    │ │TheoryRepository│ │QualityService│ │
+│  └────────────────────┘ └────────────────┘ └──────────────┘ │
+└─────────────────────────────────────────────────────────────┘
+│
+├─── Structured LLM Infrastructure ──────────────────────────┐
+│  ┌────────────────────┐ ┌────────────────┐ ┌──────────────┐ │
+│  │StructuredLLMService│ │Pydantic Schemas│ │Monitoring    │ │
+│  ├────────────────────┤ ├────────────────┤ ├──────────────┤ │
+│  │LiteLLM Integration │ │Validation Engine│ │Health Alerts │ │
 │  └────────────────────┘ └────────────────┘ └──────────────┘ │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -100,7 +108,7 @@ Clear statement of what this component does and why it exists.
 - Required services and components
 
 ## Implementation Requirements
-- Non-functional requirements (performance, security, etc.)
+- Non-functional requirements (performance, reliability, etc.)
 - Integration points with other components
 - Quality and reliability standards
 
@@ -141,7 +149,7 @@ Domain Conversation → LLM Ontology Generation → Theory-Aware Extraction
 Theory Repository ← Ontology Validation → Enhanced Graph Quality
 ```
 
-### Service Integration Pattern
+### Service Integration Pattern with Structured Output
 ```python
 # All components follow this integration pattern
 class Component:
@@ -150,6 +158,17 @@ class Component:
         self.provenance = service_manager.provenance_service
         self.quality = service_manager.quality_service
         # Component can access all core services
+        
+        # Structured LLM operations follow this pattern
+        self.structured_llm = service_manager.structured_llm_service
+        
+    def process_with_llm(self, prompt: str, schema: Type[BaseModel]) -> BaseModel:
+        """All LLM operations use structured output with schema validation"""
+        return self.structured_llm.structured_completion(
+            prompt=prompt,
+            schema=schema,
+            temperature=0.05  # Optimized for reliability
+        )
 ```
 
 ## Architecture Decision Records (ADRs)
@@ -170,6 +189,7 @@ class Component:
 ### Current ADRs
 - **ADR-001**: Phase Interface Design
 - **ADR-003**: Vector Store Consolidation (Bi-store architecture)
+- **ADR-017**: Structured Output Migration (Pydantic schema-first LLM integration)
 - **Future ADRs**: Cross-modal orchestration, theory integration, performance optimization
 
 ## System Component Architecture
@@ -195,6 +215,12 @@ class Component:
 - **Purpose**: Manages theory schemas and ontologies
 - **Responsibilities**: Theory validation, ontology provisioning, analytics configuration
 - **Innovation**: Enables theory-aware extraction and analysis
+
+#### **StructuredLLMService**
+- **Purpose**: Provides schema-validated LLM operations across all system components
+- **Responsibilities**: LiteLLM integration, Pydantic validation, performance monitoring
+- **Innovation**: Eliminates manual JSON parsing with fail-fast validation
+- **Monitoring**: Real-time performance tracking, health validation, error categorization
 
 ### Data Architecture
 
@@ -235,11 +261,11 @@ CREATE TABLE provenance (
     created_at TIMESTAMP
 );
 
--- Secure PII storage
-CREATE TABLE pii_vault (
-    pii_id TEXT PRIMARY KEY,
-    ciphertext_b64 TEXT NOT NULL,
-    nonce_b64 TEXT NOT NULL
+-- Basic data storage
+CREATE TABLE research_data (
+    data_id TEXT PRIMARY KEY,
+    content_data TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 ```
 
@@ -256,19 +282,13 @@ CREATE TABLE pii_vault (
 - **Resource monitoring**: Track memory, CPU, and storage usage
 - **Graceful degradation**: Fallback strategies for resource constraints
 
-## Security Architecture
+## Data Integrity Architecture
 
-### Research Environment Security
-- **PII Protection**: AES-GCM encryption for sensitive data
-- **Access Control**: Appropriate for single-user research environment
+### Research Environment Data Protection
 - **Data Integrity**: Transaction-based operations ensure consistency
 - **Audit Trail**: Complete provenance tracking for research reproducibility
-
-### Security Boundaries
 - **Local Processing**: All data processing occurs locally
-- **API Security**: Secure handling of external API keys
-- **File Security**: Safe handling of uploaded documents
-- **Database Security**: Parameterized queries and input validation
+- **Input Validation**: Parameterized queries and input validation
 
 ## Integration Architecture
 
@@ -285,20 +305,55 @@ CREATE TABLE pii_vault (
 
 ## Common Architecture Patterns
 
+### Structured Output Architecture Pattern
+```python
+# Schema-first LLM integration pattern (preferred)
+from pydantic import BaseModel, Field
+from typing import List
+
+class EntityExtractionResponse(BaseModel):
+    """Pydantic schema for entity extraction results"""
+    entities: List[dict] = Field(description="Extracted entities with metadata")
+    confidence: float = Field(description="Overall extraction confidence", ge=0.0, le=1.0)
+    reasoning: str = Field(description="Explanation of extraction approach")
+
+# Usage across all components
+def extract_entities(text: str) -> EntityExtractionResponse:
+    """All LLM operations use structured output with validation"""
+    return structured_llm.structured_completion(
+        prompt=f"Extract entities from: {text}",
+        schema=EntityExtractionResponse,
+        temperature=0.05  # Optimized for JSON reliability
+    )
+```
+
 ### Error Handling Architecture
 ```python
-# Fail-fast with recovery guidance
-try:
-    result = process_data()
-    return {"status": "success", "data": result}
-except SpecificError as e:
-    logger.error(f"Processing failed: {e}")
-    return {
-        "status": "error", 
-        "error": str(e),
-        "recovery": "specific_guidance",
-        "fallback": alternative_approach()
-    }
+# Fail-fast with recovery guidance and monitoring integration
+from src.monitoring import track_structured_output
+
+def process_with_monitoring(component: str, schema_name: str):
+    with track_structured_output(component, schema_name) as tracker:
+        try:
+            result = process_data()
+            tracker.set_success(True, result)
+            return {"status": "success", "data": result}
+        except ValidationError as e:
+            tracker.set_validation_error(str(e))
+            logger.error(f"Schema validation failed: {e}")
+            return {
+                "status": "validation_error", 
+                "error": str(e),
+                "recovery": "check_schema_compatibility"
+            }
+        except Exception as e:
+            tracker.set_llm_error(str(e))
+            logger.error(f"Processing failed: {e}")
+            return {
+                "status": "error", 
+                "error": str(e),
+                "recovery": "specific_guidance"
+            }
 ```
 
 ### Provenance Architecture

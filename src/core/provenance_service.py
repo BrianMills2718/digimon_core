@@ -73,7 +73,7 @@ class ProvenanceChain:
 class ProvenanceService:
     """T110: Provenance Service - Production-grade operation tracking and lineage management."""
     
-    def __init__(self):
+    def __init__(self, persistence_enabled: bool = False, persistence_path: str = "data/provenance.db"):
         # Service status tracking
         self.service_status = "production"
         
@@ -108,6 +108,21 @@ class ProvenanceService:
             'retention_policy_days': 2555,  # 7 years
             'backup_frequency_hours': 24
         }
+        
+        # Persistence layer
+        self.persistence_enabled = persistence_enabled
+        self.persistence = None
+        if persistence_enabled:
+            try:
+                from .provenance_persistence import ProvenancePersistence
+                self.persistence = ProvenancePersistence(persistence_path)
+                logger.info(f"Provenance persistence enabled at {persistence_path}")
+                
+                # Load existing data from persistence
+                self._load_from_persistence()
+            except Exception as e:
+                logger.error(f"Failed to enable persistence: {e}")
+                self.persistence_enabled = False
     
     def start_operation(
         self,
@@ -177,6 +192,18 @@ class ProvenanceService:
                         self.object_to_operations[input_ref] = set()
                     self.object_to_operations[input_ref].add(operation_id)
             
+            # Persist operation if enabled
+            if self.persistence_enabled and self.persistence:
+                operation_data = {
+                    'operation_type': operation_type,
+                    'agent': agent,
+                    'used': used,
+                    'parameters': parameters,
+                    'started_at': operation.started_at,
+                    'status': operation.status
+                }
+                self.persistence.save_operation(operation_id, operation_data)
+            
             return operation_id
             
         except ValueError as e:
@@ -241,6 +268,22 @@ class ProvenanceService:
                 # Create/update provenance chain for output
                 self._update_provenance_chain(output_ref, operation_id)
             
+            # Persist completed operation if enabled
+            if self.persistence_enabled and self.persistence:
+                operation_data = {
+                    'operation_type': operation.operation_type,
+                    'agent': operation.agent,
+                    'used': operation.used,
+                    'generated': operation.generated,
+                    'parameters': operation.parameters,
+                    'started_at': operation.started_at,
+                    'completed_at': operation.completed_at,
+                    'status': operation.status,
+                    'error_message': operation.error_message,
+                    'metadata': operation.metadata
+                }
+                self.persistence.save_operation(operation_id, operation_data)
+            
             return {
                 "status": "success",
                 "operation_id": operation_id,
@@ -300,6 +343,15 @@ class ProvenanceService:
                 depth=new_depth,
                 confidence=new_confidence
             )
+            
+            # Persist lineage chain if enabled
+            if self.persistence_enabled and self.persistence:
+                chain_data = {
+                    'operations': new_operations,
+                    'depth': new_depth,
+                    'confidence': new_confidence
+                }
+                self.persistence.save_lineage_chain(object_ref, chain_data)
             
         except Exception:
             # Silently fail - provenance chain creation is not critical
@@ -1032,3 +1084,124 @@ class ProvenanceService:
             return sorted(problematic_tools, key=lambda x: x['failure_rate'], reverse=True)
         except Exception:
             return []
+    
+    def _load_from_persistence(self):
+        """Load existing provenance data from persistence layer."""
+        if not self.persistence:
+            return
+            
+        try:
+            # Load all operations from persistence
+            operations = self.persistence.query_operations(limit=10000)
+            
+            for op_data in operations:
+                # Reconstruct Operation object
+                operation = Operation(
+                    id=op_data['operation_id'],
+                    operation_type=op_data['operation_type'],
+                    agent=json.loads(op_data['agent_data']) if op_data['agent_data'] else {},
+                    used=json.loads(op_data['parameters']) if op_data['parameters'] else {},
+                    parameters=json.loads(op_data['parameters']) if op_data['parameters'] else {},
+                    started_at=datetime.fromisoformat(op_data['started_at']) if isinstance(op_data['started_at'], str) else op_data['started_at'],
+                    completed_at=datetime.fromisoformat(op_data['completed_at']) if op_data['completed_at'] and isinstance(op_data['completed_at'], str) else op_data['completed_at'],
+                    status=op_data['status'],
+                    error_message=op_data['error_message'],
+                    metadata=json.loads(op_data['metadata']) if op_data['metadata'] else {}
+                )
+                
+                # Get inputs and outputs from persistence
+                full_op = self.persistence.get_operation(op_data['operation_id'])
+                if full_op:
+                    operation.used = full_op.get('used', {})
+                    operation.generated = full_op.get('generated', [])
+                
+                # Add to in-memory structures
+                self.operations[operation.id] = operation
+                
+                # Rebuild object_to_operations mapping
+                for input_ref in operation.used.values():
+                    if isinstance(input_ref, str):
+                        if input_ref not in self.object_to_operations:
+                            self.object_to_operations[input_ref] = set()
+                        self.object_to_operations[input_ref].add(operation.id)
+                
+                for output_ref in operation.generated:
+                    if output_ref not in self.object_to_operations:
+                        self.object_to_operations[output_ref] = set()
+                    self.object_to_operations[output_ref].add(operation.id)
+            
+            # Load tool statistics
+            tool_stats = self.persistence.get_tool_statistics()
+            for tool_id, stats in tool_stats.items():
+                self.tool_stats[tool_id] = {
+                    'calls': stats['calls'],
+                    'successes': stats['successes'],
+                    'failures': stats['failures']
+                }
+            
+            logger.info(f"Loaded {len(self.operations)} operations from persistence")
+            
+        except Exception as e:
+            logger.error(f"Failed to load from persistence: {e}")
+    
+    def export_provenance_data(self, output_path: str) -> bool:
+        """Export all provenance data to JSON file."""
+        if self.persistence:
+            return self.persistence.export_to_json(output_path)
+        else:
+            # Export directly from memory
+            try:
+                data = {
+                    'operations': [],
+                    'lineage_chains': [],
+                    'tool_stats': [],
+                    'export_timestamp': datetime.now().isoformat()
+                }
+                
+                # Export operations
+                for op_id, operation in self.operations.items():
+                    op_dict = {
+                        'operation_id': op_id,
+                        'operation_type': operation.operation_type,
+                        'agent': operation.agent,
+                        'used': operation.used,
+                        'generated': operation.generated,
+                        'parameters': operation.parameters,
+                        'started_at': operation.started_at.isoformat() if operation.started_at else None,
+                        'completed_at': operation.completed_at.isoformat() if operation.completed_at else None,
+                        'status': operation.status,
+                        'error_message': operation.error_message,
+                        'metadata': operation.metadata
+                    }
+                    data['operations'].append(op_dict)
+                
+                # Export lineage chains
+                for obj_ref, chain in self.operation_chains.items():
+                    chain_dict = {
+                        'object_ref': obj_ref,
+                        'operations': chain.operations,
+                        'depth': chain.depth,
+                        'confidence': chain.confidence,
+                        'created_at': chain.created_at.isoformat()
+                    }
+                    data['lineage_chains'].append(chain_dict)
+                
+                # Export tool stats
+                for tool_id, stats in self.tool_stats.items():
+                    stats_dict = {
+                        'tool_id': tool_id,
+                        'total_calls': stats['calls'],
+                        'successful_calls': stats['successes'],
+                        'failed_calls': stats['failures']
+                    }
+                    data['tool_stats'].append(stats_dict)
+                
+                with open(output_path, 'w') as f:
+                    json.dump(data, f, indent=2, default=str)
+                
+                logger.info(f"Exported provenance data to {output_path}")
+                return True
+                
+            except Exception as e:
+                logger.error(f"Failed to export provenance data: {e}")
+                return False

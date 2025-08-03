@@ -1,0 +1,658 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Theory Meta-Schema v10.0",
+  "description": "Comprehensive framework for representing executable social science theories with practical implementation details",
+  "version": "10.0",
+  "type": "object",
+  "required": [
+    "theory_id",
+    "theory_name",
+    "version",
+    "classification",
+    "ontology",
+    "execution",
+    "telos"
+  ],
+  "properties": {
+    "theory_id": {
+      "type": "string",
+      "pattern": "^[a-z_][a-z0-9_]*$",
+      "description": "Unique identifier for the theory"
+    },
+    "theory_name": {
+      "type": "string",
+      "description": "Human-readable name of the theory"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+(\\.\\d+)?$",
+      "description": "Semantic version of this theory schema"
+    },
+    "authors": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Key theorists and contributors"
+    },
+    "publication_year": {
+      "type": "integer",
+      "minimum": 1900,
+      "maximum": 2030,
+      "description": "Year of seminal publication"
+    },
+    "description": {
+      "type": "string",
+      "description": "Concise summary of the theory"
+    },
+    "classification": {
+      "type": "object",
+      "required": [
+        "domain"
+      ],
+      "properties": {
+        "domain": {
+          "type": "object",
+          "required": [
+            "level",
+            "component",
+            "metatheory"
+          ],
+          "properties": {
+            "level": {
+              "type": "string",
+              "enum": [
+                "Micro",
+                "Meso",
+                "Macro"
+              ],
+              "description": "Level of analysis"
+            },
+            "component": {
+              "type": "string",
+              "enum": [
+                "Who",
+                "Whom",
+                "What",
+                "Channel",
+                "Effect"
+              ],
+              "description": "Component of influence"
+            },
+            "metatheory": {
+              "type": "string",
+              "enum": [
+                "Agentic",
+                "Structural",
+                "Interdependent"
+              ],
+              "description": "Causal metatheory"
+            }
+          }
+        },
+        "complexity_tier": {
+          "type": "string",
+          "enum": [
+            "direct",
+            "heuristic",
+            "simplified"
+          ],
+          "description": "Operationalization complexity level"
+        }
+      }
+    },
+    "ontology": {
+      "type": "object",
+      "required": [
+        "entities",
+        "relationships"
+      ],
+      "properties": {
+        "entities": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "name",
+              "mcl_id"
+            ],
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              },
+              "mcl_id": {
+                "type": "string",
+                "description": "Master Concept Library primary key"
+              },
+              "dolce_parent": {
+                "type": "string",
+                "format": "uri",
+                "description": "IRI of closest DOLCE class"
+              },
+              "properties": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "name",
+                    "type"
+                  ],
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "type": {
+                      "type": "string"
+                    },
+                    "description": {
+                      "type": "string"
+                    },
+                    "constraints": {
+                      "type": "object"
+                    },
+                    "operationalization": {
+                      "type": "object",
+                      "properties": {
+                        "measurement_approach": {
+                          "type": "string"
+                        },
+                        "boundary_rules": {
+                          "type": "array"
+                        },
+                        "fuzzy_boundaries": {
+                          "type": "boolean"
+                        },
+                        "validation_examples": {
+                          "type": "array"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "relationships": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "name",
+              "source_role",
+              "target_role"
+            ],
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              },
+              "source_role": {
+                "type": "string"
+              },
+              "target_role": {
+                "type": "string"
+              },
+              "dolce_parent": {
+                "type": "string",
+                "format": "uri",
+                "description": "IRI of closest DOLCE relation"
+              },
+              "properties": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "name",
+                    "type"
+                  ],
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "type": {
+                      "type": "string"
+                    },
+                    "description": {
+                      "type": "string"
+                    },
+                    "constraints": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "execution": {
+      "type": "object",
+      "required": [
+        "process_type",
+        "analysis_steps"
+      ],
+      "properties": {
+        "process_type": {
+          "type": "string",
+          "enum": [
+            "sequential",
+            "iterative",
+            "workflow",
+            "adaptive"
+          ],
+          "description": "Process flow type"
+        },
+        "analysis_steps": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "step_id",
+              "method",
+              "description"
+            ],
+            "properties": {
+              "step_id": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              },
+              "method": {
+                "type": "string",
+                "enum": [
+                  "llm_extraction",
+                  "predefined_tool",
+                  "custom_script",
+                  "hybrid"
+                ],
+                "description": "Implementation method"
+              },
+              "inputs": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "outputs": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "conditions": {
+                "type": "object"
+              },
+              "llm_prompts": {
+                "type": "object",
+                "description": "Prompts for LLM-based steps",
+                "properties": {
+                  "extraction_prompt": {
+                    "type": "string"
+                  },
+                  "validation_prompt": {
+                    "type": "string"
+                  },
+                  "classification_prompt": {
+                    "type": "string"
+                  },
+                  "context_instructions": {
+                    "type": "string"
+                  }
+                }
+              },
+              "tool_mapping": {
+                "type": "object",
+                "description": "Tool selection and configuration",
+                "properties": {
+                  "preferred_tool": {
+                    "type": "string"
+                  },
+                  "alternative_tools": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "tool_parameters": {
+                    "type": "object"
+                  },
+                  "parameter_adaptation": {
+                    "type": "object",
+                    "properties": {
+                      "method": {
+                        "type": "string"
+                      },
+                      "adaptation_logic": {
+                        "type": "string"
+                      },
+                      "wrapper_script": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              },
+              "custom_script": {
+                "type": "object",
+                "description": "Custom algorithm specification",
+                "properties": {
+                  "algorithm_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "business_logic": {
+                    "type": "string"
+                  },
+                  "implementation_hint": {
+                    "type": "string"
+                  },
+                  "inputs": {
+                    "type": "object",
+                    "patternProperties": {
+                      ".*": {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "type": "string"
+                          },
+                          "range": {
+                            "type": "array"
+                          },
+                          "description": {
+                            "type": "string"
+                          },
+                          "constraints": {
+                            "type": "object"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "outputs": {
+                    "type": "object",
+                    "patternProperties": {
+                      ".*": {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "type": "string"
+                          },
+                          "range": {
+                            "type": "array"
+                          },
+                          "description": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "test_cases": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "inputs": {
+                          "type": "object"
+                        },
+                        "expected_output": {},
+                        "description": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  },
+                  "validation_rules": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "tool_contracts": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "uncertainty_handling": {
+                "type": "object",
+                "properties": {
+                  "confidence_thresholds": {
+                    "type": "object"
+                  },
+                  "fallback_strategy": {
+                    "type": "string"
+                  },
+                  "uncertainty_propagation": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "cross_modal_mappings": {
+          "type": "object",
+          "description": "How theory maps across graph/table/vector modes",
+          "properties": {
+            "graph_representation": {
+              "type": "object"
+            },
+            "table_representation": {
+              "type": "object"
+            },
+            "vector_representation": {
+              "type": "object"
+            },
+            "mode_conversions": {
+              "type": "array"
+            }
+          }
+        },
+        "dynamic_adaptation": {
+          "type": "object",
+          "description": "For adaptive processes like Spiral of Silence",
+          "properties": {
+            "adaptation_triggers": {
+              "type": "array"
+            },
+            "state_variables": {
+              "type": "object"
+            },
+            "adaptation_rules": {
+              "type": "array"
+            }
+          }
+        }
+      }
+    },
+    "telos": {
+      "type": "object",
+      "required": [
+        "purpose",
+        "output_format",
+        "success_criteria"
+      ],
+      "properties": {
+        "purpose": {
+          "type": "string"
+        },
+        "output_format": {
+          "type": "string"
+        },
+        "success_criteria": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "analysis_tiers": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "descriptive",
+              "explanatory",
+              "predictive",
+              "interventionary"
+            ]
+          }
+        }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "description": "Theory validation and testing framework",
+      "properties": {
+        "operationalization_notes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Documented simplifications and assumptions"
+        },
+        "theory_tests": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "test_name": {
+                "type": "string"
+              },
+              "input_scenario": {
+                "type": "string"
+              },
+              "expected_theory_application": {
+                "type": "string"
+              },
+              "validation_criteria": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "boundary_cases": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "case_description": {
+                "type": "string"
+              },
+              "theory_applicability": {
+                "type": "string"
+              },
+              "expected_behavior": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "configuration": {
+      "type": "object",
+      "description": "Configurable aspects of theory application",
+      "properties": {
+        "tracing_level": {
+          "type": "string",
+          "enum": [
+            "minimal",
+            "standard",
+            "verbose",
+            "debug"
+          ],
+          "default": "standard"
+        },
+        "llm_models": {
+          "type": "object",
+          "properties": {
+            "extraction": {
+              "type": "string"
+            },
+            "reasoning": {
+              "type": "string"
+            },
+            "validation": {
+              "type": "string"
+            }
+          }
+        },
+        "performance_optimization": {
+          "type": "object",
+          "properties": {
+            "enable_caching": {
+              "type": "boolean"
+            },
+            "batch_processing": {
+              "type": "boolean"
+            },
+            "parallel_execution": {
+              "type": "boolean"
+            }
+          }
+        },
+        "fallback_strategies": {
+          "type": "object",
+          "properties": {
+            "missing_tools": {
+              "type": "string"
+            },
+            "low_confidence": {
+              "type": "string"
+            },
+            "edge_cases": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "mcl_id": {
+          "type": "string",
+          "description": "Master Concept Library primary key"
+        },
+        "created": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "modified": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "contributors": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "validation_status": {
+          "type": "string"
+        },
+        "implementation_status": {
+          "type": "string"
+        },
+        "test_coverage": {
+          "type": "number"
+        }
+      }
+    }
+  },
+  "mode": "open",
+  "schema_id": "theory_meta_schema_v10"
+}

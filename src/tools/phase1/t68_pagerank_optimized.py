@@ -20,6 +20,17 @@ from src.core.confidence_score import ConfidenceScore
 from src.tools.phase1.base_neo4j_tool import BaseNeo4jTool
 
 
+class BaseNeo4jTool:
+    """Base class with execute method"""
+    
+    def execute(self, request):
+        """Base execute method - should be overridden by subclasses"""
+        return {
+            "status": "error",
+            "error": "Base execute method not implemented - override in subclass"
+        }
+
+
 class PageRankCalculatorOptimized(BaseNeo4jTool):
     """T68: PageRank Calculator - Optimized version."""
     

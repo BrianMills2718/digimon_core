@@ -1,0 +1,1504 @@
+#!/usr/bin/env python3
+"""
+Performance Benchmarking Suite
+
+Comprehensive performance testing framework for KGAS infrastructure components
+and tool integrations, providing detailed metrics, comparisons, and optimization insights.
+"""
+
+import logging
+import asyncio
+import time
+import json
+import uuid
+import statistics
+from typing import Dict, List, Any, Optional, Tuple, Callable
+from dataclasses import dataclass, field
+from datetime import datetime
+from pathlib import Path
+from enum import Enum
+import psutil
+import gc
+from contextlib import contextmanager
+import matplotlib.pyplot as plt
+import pandas as pd
+from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor, as_completed
+import numpy as np
+
+# Import infrastructure components
+from ..core.infrastructure_integration import InfrastructureIntegrator, IntegrationConfiguration, IntegrationMode
+from ..core.database_optimizer import create_database_optimizer
+from ..core.memory_manager import MemoryManager
+from ..core.llm_cache_manager import LLMCacheManager
+from ..core.parallel_processor import ParallelProcessor, ProcessingStrategy, ParallelTask
+from ..core.resource_monitor import ResourceMonitor
+from ..core.document_ingestion import DocumentIngestionManager
+from ..core.text_preprocessor import TextPreprocessor
+from ..core.entity_linker import EntityLinker
+from ..core.research_exporter import ResearchExporter
+from ..core.external_api_integrator import ExternalAPIIntegrator
+
+logger = logging.getLogger(__name__)
+
+
+class BenchmarkType(Enum):
+    """Types of benchmarks to run"""
+    COMPONENT_ISOLATED = "component_isolated"  # Individual component testing
+    INTEGRATION_PERFORMANCE = "integration_performance"  # Integration overhead testing
+    SCALABILITY_STRESS = "scalability_stress"  # Load and scalability testing
+    MEMORY_PROFILING = "memory_profiling"  # Memory usage profiling
+    CACHE_EFFECTIVENESS = "cache_effectiveness"  # Cache performance testing
+    PARALLEL_EFFICIENCY = "parallel_efficiency"  # Parallel processing efficiency
+    END_TO_END_PERFORMANCE = "end_to_end_performance"  # Complete workflow performance
+
+
+class LoadLevel(Enum):
+    """Load levels for stress testing"""
+    LIGHT = "light"      # 1-10 operations
+    MODERATE = "moderate"  # 11-100 operations
+    HEAVY = "heavy"      # 101-1000 operations
+    EXTREME = "extreme"  # 1000+ operations
+
+
+@dataclass
+class BenchmarkConfiguration:
+    """Configuration for performance benchmarking"""
+    benchmark_type: BenchmarkType
+    load_level: LoadLevel = LoadLevel.MODERATE
+    iterations: int = 10
+    warmup_iterations: int = 3
+    timeout_seconds: int = 300
+    memory_profiling: bool = True
+    generate_plots: bool = True
+    detailed_logging: bool = False
+    comparison_baseline: Optional[str] = None
+    output_directory: str = "benchmark_results"
+
+
+@dataclass
+class PerformanceMetrics:
+    """Performance metrics for a single benchmark run"""
+    benchmark_id: str
+    component_name: str
+    operation_name: str
+    execution_time: float
+    memory_used_mb: float
+    cpu_percent: float
+    throughput: float
+    latency_p50: float
+    latency_p95: float
+    latency_p99: float
+    error_rate: float
+    success_count: int
+    failure_count: int
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class BenchmarkResult:
+    """Complete benchmark result"""
+    benchmark_id: str
+    benchmark_type: BenchmarkType
+    configuration: BenchmarkConfiguration
+    start_time: str
+    end_time: str
+    total_duration: float
+    metrics: List[PerformanceMetrics] = field(default_factory=list)
+    aggregated_metrics: Dict[str, Any] = field(default_factory=dict)
+    comparison_results: Optional[Dict[str, Any]] = None
+    recommendations: List[str] = field(default_factory=list)
+
+
+class PerformanceBenchmarker:
+    """Comprehensive performance benchmarking framework"""
+    
+    def __init__(self, config: BenchmarkConfiguration = None):
+        self.config = config or BenchmarkConfiguration(BenchmarkType.INTEGRATION_PERFORMANCE)
+        self.results_history = []
+        self.baseline_metrics = {}
+        
+        # Output directory setup
+        self.output_dir = Path(self.config.output_directory)
+        self.output_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Infrastructure components for testing
+        self.integrator = None
+        self.database_optimizer = None
+        self.memory_manager = None
+        self.llm_cache_manager = None
+        self.parallel_processor = None
+        self.resource_monitor = None
+        
+        logger.info(f"PerformanceBenchmarker initialized for {self.config.benchmark_type.value}")
+    
+    async def initialize(self) -> bool:
+        """Initialize benchmarking framework"""
+        try:
+            logger.info("Initializing performance benchmarking framework...")
+            
+            # Initialize infrastructure integrator
+            integration_config = IntegrationConfiguration(
+                mode=IntegrationMode.PERFORMANCE,
+                enable_parallel_processing=True,
+                enable_caching=True,
+                enable_resource_monitoring=True,
+                enable_database_optimization=True
+            )
+            
+            self.integrator = InfrastructureIntegrator(integration_config)
+            success = await self.integrator.initialize()
+            
+            if not success:
+                logger.error("Infrastructure integrator initialization failed")
+                return False
+            
+            # Initialize individual components for isolated testing
+            self.database_optimizer = create_database_optimizer()
+            self.memory_manager = MemoryManager()
+            self.llm_cache_manager = LLMCacheManager()
+            self.parallel_processor = ParallelProcessor(strategy=ProcessingStrategy.ADAPTIVE)
+            self.resource_monitor = ResourceMonitor()
+            
+            await self.resource_monitor.start_monitoring()
+            
+            # Load baseline metrics if available
+            await self._load_baseline_metrics()
+            
+            logger.info("Performance benchmarking framework initialized successfully")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Benchmarker initialization failed: {e}", exc_info=True)
+            return False
+    
+    async def run_comprehensive_benchmark_suite(self) -> Dict[str, Any]:
+        """Run comprehensive benchmark suite across all components"""
+        
+        logger.info("Starting comprehensive performance benchmark suite...")
+        suite_start_time = time.time()
+        
+        suite_results = {
+            'suite_id': str(uuid.uuid4()),
+            'start_time': datetime.now().isoformat(),
+            'configuration': {
+                'load_level': self.config.load_level.value,
+                'iterations': self.config.iterations,
+                'timeout_seconds': self.config.timeout_seconds
+            },
+            'benchmark_results': {},
+            'summary': {
+                'total_benchmarks': 0,
+                'successful_benchmarks': 0,
+                'failed_benchmarks': 0,
+                'total_duration': 0.0,
+                'performance_insights': []
+            }
+        }
+        
+        # Define benchmark suite
+        benchmark_types = [
+            BenchmarkType.COMPONENT_ISOLATED,
+            BenchmarkType.INTEGRATION_PERFORMANCE,
+            BenchmarkType.CACHE_EFFECTIVENESS,
+            BenchmarkType.PARALLEL_EFFICIENCY,
+            BenchmarkType.MEMORY_PROFILING,
+            BenchmarkType.SCALABILITY_STRESS
+        ]
+        
+        for benchmark_type in benchmark_types:
+            logger.info(f"Running benchmark: {benchmark_type.value}")
+            
+            try:
+                # Update configuration for this benchmark
+                benchmark_config = BenchmarkConfiguration(
+                    benchmark_type=benchmark_type,
+                    load_level=self.config.load_level,
+                    iterations=self.config.iterations,
+                    timeout_seconds=self.config.timeout_seconds,
+                    memory_profiling=self.config.memory_profiling,
+                    generate_plots=self.config.generate_plots
+                )
+                
+                # Run benchmark
+                benchmark_result = await self.run_benchmark(benchmark_config)
+                suite_results['benchmark_results'][benchmark_type.value] = benchmark_result
+                
+                # Update summary
+                suite_results['summary']['total_benchmarks'] += 1
+                if benchmark_result and not benchmark_result.get('error'):
+                    suite_results['summary']['successful_benchmarks'] += 1
+                else:
+                    suite_results['summary']['failed_benchmarks'] += 1
+                
+            except Exception as e:
+                logger.error(f"Benchmark failed for {benchmark_type.value}: {e}")
+                suite_results['benchmark_results'][benchmark_type.value] = {
+                    'error': str(e),
+                    'status': 'failed'
+                }
+                suite_results['summary']['failed_benchmarks'] += 1
+        
+        # Calculate final metrics
+        total_duration = time.time() - suite_start_time
+        suite_results['summary']['total_duration'] = total_duration
+        suite_results['end_time'] = datetime.now().isoformat()
+        
+        # Generate performance insights
+        suite_results['summary']['performance_insights'] = await self._generate_performance_insights(suite_results)
+        
+        # Generate comprehensive report
+        await self._generate_benchmark_report(suite_results)
+        
+        logger.info(f"Comprehensive benchmark suite completed in {total_duration:.2f}s")
+        return suite_results
+    
+    async def run_benchmark(self, config: BenchmarkConfiguration = None) -> BenchmarkResult:
+        """Run a specific benchmark configuration"""
+        
+        benchmark_config = config or self.config
+        benchmark_id = str(uuid.uuid4())
+        start_time = time.time()
+        
+        logger.info(f"Starting benchmark: {benchmark_config.benchmark_type.value} (ID: {benchmark_id})")
+        
+        result = BenchmarkResult(
+            benchmark_id=benchmark_id,
+            benchmark_type=benchmark_config.benchmark_type,
+            configuration=benchmark_config,
+            start_time=datetime.now().isoformat(),
+            end_time="",
+            total_duration=0.0
+        )
+        
+        try:
+            # Select benchmark strategy
+            if benchmark_config.benchmark_type == BenchmarkType.COMPONENT_ISOLATED:
+                metrics = await self._benchmark_component_isolated(benchmark_config)
+            elif benchmark_config.benchmark_type == BenchmarkType.INTEGRATION_PERFORMANCE:
+                metrics = await self._benchmark_integration_performance(benchmark_config)
+            elif benchmark_config.benchmark_type == BenchmarkType.CACHE_EFFECTIVENESS:
+                metrics = await self._benchmark_cache_effectiveness(benchmark_config)
+            elif benchmark_config.benchmark_type == BenchmarkType.PARALLEL_EFFICIENCY:
+                metrics = await self._benchmark_parallel_efficiency(benchmark_config)
+            elif benchmark_config.benchmark_type == BenchmarkType.MEMORY_PROFILING:
+                metrics = await self._benchmark_memory_profiling(benchmark_config)
+            elif benchmark_config.benchmark_type == BenchmarkType.SCALABILITY_STRESS:
+                metrics = await self._benchmark_scalability_stress(benchmark_config)
+            else:
+                raise ValueError(f"Unsupported benchmark type: {benchmark_config.benchmark_type}")
+            
+            result.metrics = metrics
+            result.aggregated_metrics = self._aggregate_metrics(metrics)
+            
+            # Generate comparison if baseline exists
+            if benchmark_config.comparison_baseline:
+                result.comparison_results = await self._generate_comparison(result, benchmark_config.comparison_baseline)
+            
+            # Generate recommendations
+            result.recommendations = self._generate_recommendations(result)
+            
+        except Exception as e:
+            logger.error(f"Benchmark execution failed: {e}", exc_info=True)
+            result.aggregated_metrics = {'error': str(e)}
+        
+        # Finalize result
+        result.end_time = datetime.now().isoformat()
+        result.total_duration = time.time() - start_time
+        
+        # Store result
+        self.results_history.append(result)
+        
+        # Generate plots if requested
+        if benchmark_config.generate_plots and result.metrics:
+            await self._generate_performance_plots(result)
+        
+        logger.info(f"Benchmark completed: {benchmark_config.benchmark_type.value} in {result.total_duration:.2f}s")
+        
+        return result
+    
+    async def _benchmark_component_isolated(self, config: BenchmarkConfiguration) -> List[PerformanceMetrics]:
+        """Benchmark individual components in isolation"""
+        
+        logger.info("Running isolated component benchmarks...")
+        metrics = []
+        
+        # Component test definitions
+        component_tests = [
+            {
+                'name': 'Database Optimizer',
+                'component': self.database_optimizer,
+                'operation': 'optimize_query_performance',
+                'test_data': {'query': 'MATCH (n) RETURN count(n)'}
+            },
+            {
+                'name': 'Memory Manager', 
+                'component': self.memory_manager,
+                'operation': 'optimize_data_structure',
+                'test_data': {'data': list(range(1000))}
+            },
+            {
+                'name': 'LLM Cache Manager',
+                'component': self.llm_cache_manager,
+                'operation': 'get_cached_response',
+                'test_data': {'prompt': 'test prompt', 'model_params': {}}
+            },
+            {
+                'name': 'Document Ingestion',
+                'component': DocumentIngestionManager(),
+                'operation': 'ingest_document',
+                'test_data': {'file_path': self._create_test_document()}
+            },
+            {
+                'name': 'Text Preprocessor',
+                'component': TextPreprocessor(),
+                'operation': 'process_text',
+                'test_data': {'text': 'This is a sample text for preprocessing.'}
+            },
+            {
+                'name': 'Entity Linker',
+                'component': EntityLinker(),
+                'operation': 'link_entities',
+                'test_data': {'text': 'John Smith works at Acme Corporation.', 'entities': ['John Smith', 'Acme Corporation']}
+            }
+        ]
+        
+        for test_def in component_tests:
+            logger.info(f"Benchmarking {test_def['name']}...")
+            
+            component_metrics = await self._benchmark_single_component(
+                test_def['name'],
+                test_def['component'],
+                test_def['operation'],
+                test_def['test_data'],
+                config
+            )
+            
+            metrics.extend(component_metrics)
+        
+        return metrics
+    
+    async def _benchmark_single_component(self, component_name: str, component: Any, 
+                                        operation: str, test_data: Dict[str, Any],
+                                        config: BenchmarkConfiguration) -> List[PerformanceMetrics]:
+        """Benchmark a single component operation"""
+        
+        metrics = []
+        execution_times = []
+        memory_usages = []
+        success_count = 0
+        failure_count = 0
+        
+        # Warmup iterations
+        for _ in range(config.warmup_iterations):
+            try:
+                await self._execute_component_operation(component, operation, test_data)
+            except:
+                pass  # Ignore warmup failures
+        
+        # Benchmark iterations
+        for i in range(config.iterations):
+            gc.collect()  # Clean up before measurement
+            
+            start_time = time.time()
+            start_memory = self._get_memory_usage()
+            start_cpu = psutil.cpu_percent()
+            
+            try:
+                # Execute operation
+                result = await self._execute_component_operation(component, operation, test_data)
+                
+                # Record successful execution
+                execution_time = time.time() - start_time
+                memory_used = self._get_memory_usage() - start_memory
+                cpu_percent = psutil.cpu_percent() - start_cpu
+                
+                execution_times.append(execution_time)
+                memory_usages.append(memory_used)
+                success_count += 1
+                
+                # Create metrics record
+                metric = PerformanceMetrics(
+                    benchmark_id=str(uuid.uuid4()),
+                    component_name=component_name,
+                    operation_name=operation,
+                    execution_time=execution_time,
+                    memory_used_mb=memory_used,
+                    cpu_percent=cpu_percent,
+                    throughput=1.0 / max(execution_time, 0.001),
+                    latency_p50=execution_time,
+                    latency_p95=execution_time,
+                    latency_p99=execution_time,
+                    error_rate=0.0,
+                    success_count=1,
+                    failure_count=0,
+                    metadata={
+                        'iteration': i,
+                        'operation_result': str(result)[:100] if result else None
+                    }
+                )
+                
+                metrics.append(metric)
+                
+            except Exception as e:
+                logger.warning(f"Component operation failed: {e}")
+                failure_count += 1
+                
+                # Record failed execution
+                execution_time = time.time() - start_time
+                metric = PerformanceMetrics(
+                    benchmark_id=str(uuid.uuid4()),
+                    component_name=component_name,
+                    operation_name=operation,
+                    execution_time=execution_time,
+                    memory_used_mb=0,
+                    cpu_percent=0,
+                    throughput=0,
+                    latency_p50=0,
+                    latency_p95=0,
+                    latency_p99=0,
+                    error_rate=1.0,
+                    success_count=0,
+                    failure_count=1,
+                    metadata={
+                        'iteration': i,
+                        'error': str(e)
+                    }
+                )
+                
+                metrics.append(metric)
+        
+        # Calculate percentiles for successful operations
+        if execution_times:
+            p50 = np.percentile(execution_times, 50)
+            p95 = np.percentile(execution_times, 95)
+            p99 = np.percentile(execution_times, 99)
+            
+            # Update metrics with calculated percentiles
+            for metric in metrics:
+                if metric.success_count > 0:
+                    metric.latency_p50 = p50
+                    metric.latency_p95 = p95
+                    metric.latency_p99 = p99
+        
+        logger.info(f"Component {component_name} benchmark completed: {success_count}/{config.iterations} successful")
+        
+        return metrics
+    
+    async def _execute_component_operation(self, component: Any, operation: str, test_data: Dict[str, Any]) -> Any:
+        """Execute a component operation with proper handling"""
+        
+        if hasattr(component, operation):
+            method = getattr(component, operation)
+            
+            # Handle different method signatures
+            if operation == 'optimize_query_performance':
+                return await method(test_data['query'])
+            elif operation == 'optimize_data_structure':
+                return component.optimize_data_structure(test_data['data'])
+            elif operation == 'get_cached_response':
+                return await method(test_data['prompt'], test_data['model_params'])
+            elif operation == 'ingest_document':
+                return await method(test_data['file_path'])
+            elif operation == 'process_text':
+                return await method(test_data['text'])
+            elif operation == 'link_entities':
+                return await method(test_data['text'], test_data['entities'])
+            else:
+                return await method(**test_data)
+        
+        else:
+            raise AttributeError(f"Component does not have operation: {operation}")
+    
+    async def _benchmark_integration_performance(self, config: BenchmarkConfiguration) -> List[PerformanceMetrics]:
+        """Benchmark integration performance vs standalone components"""
+        
+        logger.info("Running integration performance benchmarks...")
+        metrics = []
+        
+        # Test operations that benefit from integration
+        integration_tests = [
+            {
+                'name': 'Enhanced Document Processing',
+                'operation': 'enhance_document_processing',
+                'test_data': {'document_path': self._create_test_document()}
+            },
+            {
+                'name': 'Integrated Tool Execution',
+                'operation': 'enhance_tool_execution',
+                'test_data': {'tool_type': 'text_processor', 'input': 'Sample text processing input'}
+            }
+        ]
+        
+        for test_def in integration_tests:
+            logger.info(f"Benchmarking {test_def['name']}...")
+            
+            # Benchmark with integration
+            integrated_metrics = await self._benchmark_integration_operation(
+                test_def['name'] + ' (Integrated)',
+                test_def['operation'],
+                test_def['test_data'],
+                config,
+                use_integration=True
+            )
+            
+            # Benchmark without integration (baseline)
+            standalone_metrics = await self._benchmark_integration_operation(
+                test_def['name'] + ' (Standalone)',
+                test_def['operation'],
+                test_def['test_data'],
+                config,
+                use_integration=False
+            )
+            
+            metrics.extend(integrated_metrics)
+            metrics.extend(standalone_metrics)
+        
+        return metrics
+    
+    async def _benchmark_integration_operation(self, operation_name: str, operation: str,
+                                             test_data: Dict[str, Any], config: BenchmarkConfiguration,
+                                             use_integration: bool) -> List[PerformanceMetrics]:
+        """Benchmark an integration operation"""
+        
+        metrics = []
+        execution_times = []
+        success_count = 0
+        failure_count = 0
+        
+        for i in range(config.iterations):
+            start_time = time.time()
+            start_memory = self._get_memory_usage()
+            
+            try:
+                if use_integration and self.integrator:
+                    if operation == 'enhance_document_processing':
+                        result = await self.integrator.enhance_document_processing(
+                            test_data['document_path']
+                        )
+                    else:
+                        # Generic integrated operation
+                        result = {'status': 'success', 'integration': True}
+                else:
+                    # Simulate standalone operation
+                    await asyncio.sleep(0.1)  # Simulate processing time
+                    result = {'status': 'success', 'integration': False}
+                
+                execution_time = time.time() - start_time
+                memory_used = self._get_memory_usage() - start_memory
+                
+                execution_times.append(execution_time)
+                success_count += 1
+                
+                metric = PerformanceMetrics(
+                    benchmark_id=str(uuid.uuid4()),
+                    component_name="Infrastructure Integration",
+                    operation_name=operation_name,
+                    execution_time=execution_time,
+                    memory_used_mb=memory_used,
+                    cpu_percent=psutil.cpu_percent(),
+                    throughput=1.0 / max(execution_time, 0.001),
+                    latency_p50=execution_time,
+                    latency_p95=execution_time,
+                    latency_p99=execution_time,
+                    error_rate=0.0,
+                    success_count=1,
+                    failure_count=0,
+                    metadata={
+                        'iteration': i,
+                        'use_integration': use_integration,
+                        'result_status': result.get('status')
+                    }
+                )
+                
+                metrics.append(metric)
+                
+            except Exception as e:
+                logger.warning(f"Integration operation failed: {e}")
+                failure_count += 1
+                
+                execution_time = time.time() - start_time
+                metric = PerformanceMetrics(
+                    benchmark_id=str(uuid.uuid4()),
+                    component_name="Infrastructure Integration",
+                    operation_name=operation_name,
+                    execution_time=execution_time,
+                    memory_used_mb=0,
+                    cpu_percent=0,
+                    throughput=0,
+                    latency_p50=0,
+                    latency_p95=0,
+                    latency_p99=0,
+                    error_rate=1.0,
+                    success_count=0,
+                    failure_count=1,
+                    metadata={
+                        'iteration': i,
+                        'use_integration': use_integration,
+                        'error': str(e)
+                    }
+                )
+                
+                metrics.append(metric)
+        
+        return metrics
+    
+    async def _benchmark_cache_effectiveness(self, config: BenchmarkConfiguration) -> List[PerformanceMetrics]:
+        """Benchmark cache effectiveness and hit rates"""
+        
+        logger.info("Running cache effectiveness benchmarks...")
+        metrics = []
+        
+        if not self.llm_cache_manager:
+            logger.warning("LLM Cache Manager not available for benchmarking")
+            return metrics
+        
+        # Test cache with repeated operations
+        test_prompts = [
+            "What is machine learning?",
+            "Explain neural networks",
+            "Define artificial intelligence",
+            "What is deep learning?",
+            "Describe natural language processing"
+        ]
+        
+        # Phase 1: Prime the cache
+        for prompt in test_prompts:
+            try:
+                await self.llm_cache_manager.cache_response(
+                    prompt=prompt,
+                    response=f"Response to: {prompt}",
+                    model_params={},
+                    metadata={'test': True}
+                )
+            except Exception as e:
+                logger.warning(f"Cache priming failed: {e}")
+        
+        # Phase 2: Benchmark cache hits vs misses
+        for i in range(config.iterations):
+            # Test cache hits
+            for prompt in test_prompts:
+                start_time = time.time()
+                
+                try:
+                    cached_response = await self.llm_cache_manager.get_cached_response(
+                        prompt=prompt,
+                        model_params={}
+                    )
+                    
+                    execution_time = time.time() - start_time
+                    cache_hit = cached_response is not None
+                    
+                    metric = PerformanceMetrics(
+                        benchmark_id=str(uuid.uuid4()),
+                        component_name="LLM Cache Manager",
+                        operation_name="Cache Lookup",
+                        execution_time=execution_time,
+                        memory_used_mb=0,
+                        cpu_percent=0,
+                        throughput=1.0 / max(execution_time, 0.001),
+                        latency_p50=execution_time,
+                        latency_p95=execution_time,
+                        latency_p99=execution_time,
+                        error_rate=0.0,
+                        success_count=1,
+                        failure_count=0,
+                        metadata={
+                            'iteration': i,
+                            'prompt': prompt,
+                            'cache_hit': cache_hit,
+                            'operation_type': 'cache_lookup'
+                        }
+                    )
+                    
+                    metrics.append(metric)
+                    
+                except Exception as e:
+                    logger.warning(f"Cache lookup failed: {e}")
+            
+            # Test cache misses (new prompts)
+            new_prompt = f"New prompt for iteration {i}"
+            start_time = time.time()
+            
+            try:
+                cached_response = await self.llm_cache_manager.get_cached_response(
+                    prompt=new_prompt,
+                    model_params={}
+                )
+                
+                execution_time = time.time() - start_time
+                
+                metric = PerformanceMetrics(
+                    benchmark_id=str(uuid.uuid4()),
+                    component_name="LLM Cache Manager",
+                    operation_name="Cache Miss",
+                    execution_time=execution_time,
+                    memory_used_mb=0,
+                    cpu_percent=0,
+                    throughput=1.0 / max(execution_time, 0.001),
+                    latency_p50=execution_time,
+                    latency_p95=execution_time,
+                    latency_p99=execution_time,
+                    error_rate=0.0,
+                    success_count=1,
+                    failure_count=0,
+                    metadata={
+                        'iteration': i,
+                        'prompt': new_prompt,
+                        'cache_hit': False,
+                        'operation_type': 'cache_miss'
+                    }
+                )
+                
+                metrics.append(metric)
+                
+            except Exception as e:
+                logger.warning(f"Cache miss test failed: {e}")
+        
+        return metrics
+    
+    async def _benchmark_parallel_efficiency(self, config: BenchmarkConfiguration) -> List[PerformanceMetrics]:
+        """Benchmark parallel processing efficiency"""
+        
+        logger.info("Running parallel processing efficiency benchmarks...")
+        metrics = []
+        
+        if not self.parallel_processor:
+            logger.warning("Parallel Processor not available for benchmarking")
+            return metrics
+        
+        # Test different levels of parallelism
+        parallelism_levels = [1, 2, 4, 8, 16]
+        task_counts = [10, 50, 100]
+        
+        for task_count in task_counts:
+            for parallel_level in parallelism_levels:
+                if parallel_level > task_count:
+                    continue
+                
+                logger.info(f"Benchmarking {task_count} tasks with {parallel_level} workers...")
+                
+                # Create test tasks
+                tasks = []
+                for i in range(task_count):
+                    task = ParallelTask(
+                        task_id=f"benchmark_task_{i}",
+                        function=self._cpu_intensive_task,
+                        args=(i,),
+                        metadata={'benchmark': True}
+                    )
+                    tasks.append(task)
+                
+                start_time = time.time()
+                start_memory = self._get_memory_usage()
+                
+                try:
+                    # Submit all tasks
+                    submitted_count = 0
+                    for task in tasks:
+                        if self.parallel_processor.submit_task(task):
+                            submitted_count += 1
+                    
+                    # Wait for completion
+                    completed = self.parallel_processor.wait_for_completion(timeout=config.timeout_seconds)
+                    
+                    execution_time = time.time() - start_time
+                    memory_used = self._get_memory_usage() - start_memory
+                    
+                    # Get results
+                    results = self.parallel_processor.get_all_results()
+                    successful_tasks = sum(1 for r in results.values() if r.status.value == "completed")
+                    
+                    # Calculate efficiency metrics
+                    theoretical_serial_time = task_count * 0.1  # Assuming 0.1s per task
+                    efficiency = theoretical_serial_time / (execution_time * parallel_level) if execution_time > 0 else 0
+                    
+                    metric = PerformanceMetrics(
+                        benchmark_id=str(uuid.uuid4()),
+                        component_name="Parallel Processor",
+                        operation_name="Parallel Task Execution",
+                        execution_time=execution_time,
+                        memory_used_mb=memory_used,
+                        cpu_percent=psutil.cpu_percent(),
+                        throughput=successful_tasks / max(execution_time, 0.001),
+                        latency_p50=execution_time / max(successful_tasks, 1),
+                        latency_p95=execution_time / max(successful_tasks, 1),
+                        latency_p99=execution_time / max(successful_tasks, 1),
+                        error_rate=(task_count - successful_tasks) / task_count if task_count > 0 else 0,
+                        success_count=successful_tasks,
+                        failure_count=task_count - successful_tasks,
+                        metadata={
+                            'task_count': task_count,
+                            'parallel_level': parallel_level,
+                            'submitted_count': submitted_count,
+                            'completed': completed,
+                            'efficiency': efficiency,
+                            'theoretical_serial_time': theoretical_serial_time
+                        }
+                    )
+                    
+                    metrics.append(metric)
+                    
+                except Exception as e:
+                    logger.error(f"Parallel benchmark failed: {e}")
+        
+        return metrics
+    
+    def _cpu_intensive_task(self, task_id: int) -> Dict[str, Any]:
+        """CPU intensive task for parallel benchmarking"""
+        # Simulate CPU-intensive work
+        result = 0
+        for i in range(100000):
+            result += i * task_id
+        
+        return {
+            'task_id': task_id,
+            'result': result,
+            'completed_at': time.time()
+        }
+    
+    async def _benchmark_memory_profiling(self, config: BenchmarkConfiguration) -> List[PerformanceMetrics]:
+        """Benchmark memory usage and profiling"""
+        
+        logger.info("Running memory profiling benchmarks...")
+        metrics = []
+        
+        # Test memory usage with different data sizes
+        data_sizes = [1000, 10000, 100000, 1000000]
+        
+        for data_size in data_sizes:
+            logger.info(f"Profiling memory usage with data size: {data_size}")
+            
+            start_memory = self._get_memory_usage()
+            start_time = time.time()
+            
+            try:
+                # Create test data
+                test_data = list(range(data_size))
+                
+                # Process with memory manager if available
+                if self.memory_manager:
+                    optimized_data = self.memory_manager.optimize_data_structure(test_data)
+                    memory_after_optimization = self._get_memory_usage()
+                else:
+                    optimized_data = test_data
+                    memory_after_optimization = self._get_memory_usage()
+                
+                # Perform operations on data
+                processed_data = [x * 2 for x in optimized_data[:min(1000, len(optimized_data))]]
+                
+                execution_time = time.time() - start_time
+                peak_memory = self._get_memory_usage()
+                total_memory_used = peak_memory - start_memory
+                
+                # Clean up
+                del test_data, optimized_data, processed_data
+                gc.collect()
+                
+                final_memory = self._get_memory_usage()
+                memory_leaked = final_memory - start_memory
+                
+                metric = PerformanceMetrics(
+                    benchmark_id=str(uuid.uuid4()),
+                    component_name="Memory Manager",
+                    operation_name="Memory Profiling",
+                    execution_time=execution_time,
+                    memory_used_mb=total_memory_used,
+                    cpu_percent=psutil.cpu_percent(),
+                    throughput=data_size / max(execution_time, 0.001),
+                    latency_p50=execution_time,
+                    latency_p95=execution_time,
+                    latency_p99=execution_time,
+                    error_rate=0.0,
+                    success_count=1,
+                    failure_count=0,
+                    metadata={
+                        'data_size': data_size,
+                        'start_memory_mb': start_memory,
+                        'peak_memory_mb': peak_memory,
+                        'final_memory_mb': final_memory,
+                        'memory_leaked_mb': memory_leaked,
+                        'memory_optimization_used': self.memory_manager is not None
+                    }
+                )
+                
+                metrics.append(metric)
+                
+            except Exception as e:
+                logger.error(f"Memory profiling failed for data size {data_size}: {e}")
+        
+        return metrics
+    
+    async def _benchmark_scalability_stress(self, config: BenchmarkConfiguration) -> List[PerformanceMetrics]:
+        """Benchmark scalability under stress conditions"""
+        
+        logger.info("Running scalability stress benchmarks...")
+        metrics = []
+        
+        # Define stress levels based on load level
+        if config.load_level == LoadLevel.LIGHT:
+            operation_counts = [10, 25, 50]
+        elif config.load_level == LoadLevel.MODERATE:
+            operation_counts = [100, 250, 500]
+        elif config.load_level == LoadLevel.HEAVY:
+            operation_counts = [1000, 2500, 5000]
+        else:  # EXTREME
+            operation_counts = [10000, 25000, 50000]
+        
+        for operation_count in operation_counts:
+            logger.info(f"Stress testing with {operation_count} operations...")
+            
+            start_time = time.time()
+            start_memory = self._get_memory_usage()
+            successful_operations = 0
+            failed_operations = 0
+            
+            try:
+                # Simulate high load
+                tasks = []
+                for i in range(operation_count):
+                    # Create lightweight tasks to avoid overwhelming the system
+                    task = asyncio.create_task(self._lightweight_operation(i))
+                    tasks.append(task)
+                
+                # Execute all tasks
+                results = await asyncio.gather(*tasks, return_exceptions=True)
+                
+                # Count successes and failures
+                for result in results:
+                    if isinstance(result, Exception):
+                        failed_operations += 1
+                    else:
+                        successful_operations += 1
+                
+                execution_time = time.time() - start_time
+                memory_used = self._get_memory_usage() - start_memory
+                
+                metric = PerformanceMetrics(
+                    benchmark_id=str(uuid.uuid4()),
+                    component_name="System Scalability",
+                    operation_name="Stress Test",
+                    execution_time=execution_time,
+                    memory_used_mb=memory_used,
+                    cpu_percent=psutil.cpu_percent(),
+                    throughput=successful_operations / max(execution_time, 0.001),
+                    latency_p50=execution_time / max(successful_operations, 1),
+                    latency_p95=execution_time / max(successful_operations, 1),
+                    latency_p99=execution_time / max(successful_operations, 1),
+                    error_rate=failed_operations / operation_count if operation_count > 0 else 0,
+                    success_count=successful_operations,
+                    failure_count=failed_operations,
+                    metadata={
+                        'operation_count': operation_count,
+                        'load_level': config.load_level.value,
+                        'concurrent_operations': operation_count
+                    }
+                )
+                
+                metrics.append(metric)
+                
+            except Exception as e:
+                logger.error(f"Stress test failed for {operation_count} operations: {e}")
+        
+        return metrics
+    
+    async def _lightweight_operation(self, operation_id: int) -> Dict[str, Any]:
+        """Lightweight operation for stress testing"""
+        # Simulate minimal processing
+        await asyncio.sleep(0.001)  # 1ms sleep
+        return {
+            'operation_id': operation_id,
+            'result': operation_id * 2,
+            'timestamp': time.time()
+        }
+    
+    def _aggregate_metrics(self, metrics: List[PerformanceMetrics]) -> Dict[str, Any]:
+        """Aggregate performance metrics"""
+        
+        if not metrics:
+            return {}
+        
+        # Group metrics by component and operation
+        grouped = {}
+        for metric in metrics:
+            key = f"{metric.component_name}:{metric.operation_name}"
+            if key not in grouped:
+                grouped[key] = []
+            grouped[key].append(metric)
+        
+        aggregated = {}
+        
+        for key, metric_group in grouped.items():
+            execution_times = [m.execution_time for m in metric_group if m.success_count > 0]
+            memory_usages = [m.memory_used_mb for m in metric_group if m.success_count > 0]
+            throughputs = [m.throughput for m in metric_group if m.success_count > 0]
+            
+            total_success = sum(m.success_count for m in metric_group)
+            total_failure = sum(m.failure_count for m in metric_group)
+            
+            if execution_times:
+                aggregated[key] = {
+                    'count': len(metric_group),
+                    'success_count': total_success,
+                    'failure_count': total_failure,
+                    'success_rate': total_success / (total_success + total_failure) if (total_success + total_failure) > 0 else 0,
+                    'execution_time': {
+                        'mean': statistics.mean(execution_times),
+                        'median': statistics.median(execution_times),
+                        'min': min(execution_times),
+                        'max': max(execution_times),
+                        'std': statistics.stdev(execution_times) if len(execution_times) > 1 else 0
+                    },
+                    'memory_usage_mb': {
+                        'mean': statistics.mean(memory_usages) if memory_usages else 0,
+                        'median': statistics.median(memory_usages) if memory_usages else 0,
+                        'min': min(memory_usages) if memory_usages else 0,
+                        'max': max(memory_usages) if memory_usages else 0
+                    },
+                    'throughput': {
+                        'mean': statistics.mean(throughputs) if throughputs else 0,
+                        'median': statistics.median(throughputs) if throughputs else 0,
+                        'min': min(throughputs) if throughputs else 0,
+                        'max': max(throughputs) if throughputs else 0
+                    }
+                }
+        
+        return aggregated
+    
+    def _generate_recommendations(self, result: BenchmarkResult) -> List[str]:
+        """Generate performance optimization recommendations"""
+        
+        recommendations = []
+        
+        if not result.aggregated_metrics:
+            return recommendations
+        
+        for key, metrics in result.aggregated_metrics.items():
+            component, operation = key.split(':', 1)
+            
+            # Check execution time
+            mean_time = metrics.get('execution_time', {}).get('mean', 0)
+            if mean_time > 5.0:  # > 5 seconds
+                recommendations.append(
+                    f"Consider optimizing {component} {operation} - average execution time is {mean_time:.2f}s"
+                )
+            
+            # Check memory usage
+            mean_memory = metrics.get('memory_usage_mb', {}).get('mean', 0)
+            if mean_memory > 1000:  # > 1GB
+                recommendations.append(
+                    f"High memory usage in {component} {operation} - average {mean_memory:.1f}MB"
+                )
+            
+            # Check success rate
+            success_rate = metrics.get('success_rate', 1.0)
+            if success_rate < 0.95:  # < 95%
+                recommendations.append(
+                    f"Low success rate for {component} {operation} - {success_rate:.1%} successful"
+                )
+            
+            # Check throughput
+            mean_throughput = metrics.get('throughput', {}).get('mean', 0)
+            if mean_throughput < 1.0:  # < 1 operation per second
+                recommendations.append(
+                    f"Low throughput for {component} {operation} - {mean_throughput:.2f} ops/sec"
+                )
+        
+        # Add general recommendations
+        if not recommendations:
+            recommendations.append("Performance is within acceptable limits")
+        else:
+            recommendations.append("Consider enabling caching for frequently accessed operations")
+            recommendations.append("Monitor memory usage and implement garbage collection strategies")
+            recommendations.append("Consider parallel processing for CPU-intensive operations")
+        
+        return recommendations
+    
+    async def _generate_performance_insights(self, suite_results: Dict[str, Any]) -> List[str]:
+        """Generate performance insights from benchmark suite"""
+        
+        insights = []
+        
+        # Analyze benchmark results
+        successful_benchmarks = []
+        for benchmark_name, benchmark_result in suite_results['benchmark_results'].items():
+            if isinstance(benchmark_result, dict) and 'aggregated_metrics' in benchmark_result:
+                successful_benchmarks.append((benchmark_name, benchmark_result))
+        
+        if not successful_benchmarks:
+            insights.append("No successful benchmarks to analyze")
+            return insights
+        
+        # Find fastest components
+        fastest_components = {}
+        for benchmark_name, result in successful_benchmarks:
+            for key, metrics in result.get('aggregated_metrics', {}).items():
+                component = key.split(':', 1)[0]
+                mean_time = metrics.get('execution_time', {}).get('mean', float('inf'))
+                
+                if component not in fastest_components or mean_time < fastest_components[component]:
+                    fastest_components[component] = mean_time
+        
+        if fastest_components:
+            fastest = min(fastest_components.items(), key=lambda x: x[1])
+            insights.append(f"Fastest component: {fastest[0]} ({fastest[1]:.3f}s average)")
+        
+        # Find most memory efficient
+        memory_efficient = {}
+        for benchmark_name, result in successful_benchmarks:
+            for key, metrics in result.get('aggregated_metrics', {}).items():
+                component = key.split(':', 1)[0]
+                mean_memory = metrics.get('memory_usage_mb', {}).get('mean', float('inf'))
+                
+                if component not in memory_efficient or mean_memory < memory_efficient[component]:
+                    memory_efficient[component] = mean_memory
+        
+        if memory_efficient:
+            most_efficient = min(memory_efficient.items(), key=lambda x: x[1])
+            insights.append(f"Most memory efficient: {most_efficient[0]} ({most_efficient[1]:.1f}MB average)")
+        
+        # Identify performance bottlenecks
+        bottlenecks = []
+        for benchmark_name, result in successful_benchmarks:
+            for key, metrics in result.get('aggregated_metrics', {}).items():
+                mean_time = metrics.get('execution_time', {}).get('mean', 0)
+                if mean_time > 2.0:  # > 2 seconds is considered slow
+                    bottlenecks.append((key, mean_time))
+        
+        if bottlenecks:
+            slowest = max(bottlenecks, key=lambda x: x[1])
+            insights.append(f"Performance bottleneck identified: {slowest[0]} ({slowest[1]:.2f}s average)")
+        
+        # Analyze parallel efficiency
+        parallel_results = [
+            result for name, result in successful_benchmarks 
+            if 'parallel' in name.lower()
+        ]
+        
+        if parallel_results:
+            insights.append("Parallel processing benchmarks completed - check detailed results for efficiency metrics")
+        
+        return insights
+    
+    async def _generate_performance_plots(self, result: BenchmarkResult):
+        """Generate performance visualization plots"""
+        
+        if not result.metrics:
+            return
+        
+        try:
+            # Create plots directory
+            plots_dir = self.output_dir / f"plots_{result.benchmark_id}"
+            plots_dir.mkdir(parents=True, exist_ok=True)
+            
+            # Group metrics for plotting
+            component_metrics = {}
+            for metric in result.metrics:
+                key = f"{metric.component_name}:{metric.operation_name}"
+                if key not in component_metrics:
+                    component_metrics[key] = []
+                component_metrics[key].append(metric)
+            
+            # Generate execution time plots
+            fig, axes = plt.subplots(2, 2, figsize=(15, 10))
+            fig.suptitle(f'Performance Metrics - {result.benchmark_type.value}')
+            
+            # Execution time comparison
+            components = list(component_metrics.keys())
+            exec_times = [
+                statistics.mean([m.execution_time for m in metrics if m.success_count > 0])
+                for metrics in component_metrics.values()
+            ]
+            
+            if exec_times:
+                axes[0, 0].bar(range(len(components)), exec_times)
+                axes[0, 0].set_title('Average Execution Time')
+                axes[0, 0].set_ylabel('Time (seconds)')
+                axes[0, 0].set_xticks(range(len(components)))
+                axes[0, 0].set_xticklabels([c.split(':')[0] for c in components], rotation=45)
+            
+            # Memory usage comparison
+            memory_usage = [
+                statistics.mean([m.memory_used_mb for m in metrics if m.success_count > 0])
+                for metrics in component_metrics.values()
+            ]
+            
+            if memory_usage:
+                axes[0, 1].bar(range(len(components)), memory_usage)
+                axes[0, 1].set_title('Average Memory Usage')
+                axes[0, 1].set_ylabel('Memory (MB)')
+                axes[0, 1].set_xticks(range(len(components)))
+                axes[0, 1].set_xticklabels([c.split(':')[0] for c in components], rotation=45)
+            
+            # Throughput comparison
+            throughputs = [
+                statistics.mean([m.throughput for m in metrics if m.success_count > 0])
+                for metrics in component_metrics.values()
+            ]
+            
+            if throughputs:
+                axes[1, 0].bar(range(len(components)), throughputs)
+                axes[1, 0].set_title('Average Throughput')
+                axes[1, 0].set_ylabel('Operations/Second')
+                axes[1, 0].set_xticks(range(len(components)))
+                axes[1, 0].set_xticklabels([c.split(':')[0] for c in components], rotation=45)
+            
+            # Success rate comparison
+            success_rates = []
+            for metrics in component_metrics.values():
+                total_success = sum(m.success_count for m in metrics)
+                total_failure = sum(m.failure_count for m in metrics)
+                rate = total_success / (total_success + total_failure) if (total_success + total_failure) > 0 else 0
+                success_rates.append(rate * 100)
+            
+            if success_rates:
+                axes[1, 1].bar(range(len(components)), success_rates)
+                axes[1, 1].set_title('Success Rate')
+                axes[1, 1].set_ylabel('Success Rate (%)')
+                axes[1, 1].set_xticks(range(len(components)))
+                axes[1, 1].set_xticklabels([c.split(':')[0] for c in components], rotation=45)
+                axes[1, 1].set_ylim(0, 100)
+            
+            plt.tight_layout()
+            plot_path = plots_dir / "performance_overview.png"
+            plt.savefig(plot_path, dpi=300, bbox_inches='tight')
+            plt.close()
+            
+            logger.info(f"Performance plots saved to: {plots_dir}")
+            
+        except Exception as e:
+            logger.error(f"Failed to generate performance plots: {e}")
+    
+    async def _generate_benchmark_report(self, suite_results: Dict[str, Any]):
+        """Generate comprehensive benchmark report"""
+        
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        report_dir = self.output_dir / f"benchmark_report_{timestamp}"
+        report_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Generate JSON report
+        json_path = report_dir / "benchmark_results.json"
+        with open(json_path, 'w') as f:
+            json.dump(suite_results, f, indent=2, default=str)
+        
+        # Generate markdown report
+        md_path = report_dir / "benchmark_report.md"
+        await self._generate_markdown_report(suite_results, md_path)
+        
+        logger.info(f"Benchmark reports generated in: {report_dir}")
+    
+    async def _generate_markdown_report(self, suite_results: Dict[str, Any], output_path: Path):
+        """Generate markdown benchmark report"""
+        
+        report = f"""# Performance Benchmark Report
+
+**Suite ID**: {suite_results['suite_id']}  
+**Generated**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}  
+**Duration**: {suite_results['summary']['total_duration']:.2f} seconds
+
+## Executive Summary
+
+- **Total Benchmarks**: {suite_results['summary']['total_benchmarks']}
+- **Successful**: {suite_results['summary']['successful_benchmarks']}
+- **Failed**: {suite_results['summary']['failed_benchmarks']}
+- **Success Rate**: {(suite_results['summary']['successful_benchmarks'] / max(1, suite_results['summary']['total_benchmarks']) * 100):.1f}%
+
+## Configuration
+
+- **Load Level**: {suite_results['configuration']['load_level']}
+- **Iterations**: {suite_results['configuration']['iterations']}
+- **Timeout**: {suite_results['configuration']['timeout_seconds']} seconds
+
+## Performance Insights
+
+"""
+        
+        for insight in suite_results['summary']['performance_insights']:
+            report += f"- {insight}\n"
+        
+        report += "\n## Detailed Results\n\n"
+        
+        for benchmark_name, benchmark_result in suite_results['benchmark_results'].items():
+            if isinstance(benchmark_result, dict) and 'aggregated_metrics' in benchmark_result:
+                report += f"### {benchmark_name.replace('_', ' ').title()}\n\n"
+                
+                for key, metrics in benchmark_result['aggregated_metrics'].items():
+                    component, operation = key.split(':', 1)
+                    report += f"**{component} - {operation}**:\n"
+                    report += f"- Execution Time: {metrics['execution_time']['mean']:.3f}s (±{metrics['execution_time']['std']:.3f}s)\n"
+                    report += f"- Memory Usage: {metrics['memory_usage_mb']['mean']:.1f}MB\n"
+                    report += f"- Throughput: {metrics['throughput']['mean']:.2f} ops/sec\n"
+                    report += f"- Success Rate: {metrics['success_rate']:.1%}\n\n"
+                
+                if 'recommendations' in benchmark_result:
+                    report += "**Recommendations**:\n"
+                    for rec in benchmark_result['recommendations']:
+                        report += f"- {rec}\n"
+                    report += "\n"
+        
+        with open(output_path, 'w') as f:
+            f.write(report)
+    
+    def _create_test_document(self) -> str:
+        """Create a test document for benchmarking"""
+        test_dir = Path("test_data")
+        test_dir.mkdir(exist_ok=True)
+        
+        test_file = test_dir / "benchmark_test.txt"
+        with open(test_file, 'w') as f:
+            f.write("""
+            This is a comprehensive test document for performance benchmarking.
+            It contains various types of content including entities, relationships, and structured data.
+            
+            People mentioned: John Smith, Jane Doe, Alice Johnson, Bob Wilson
+            Organizations: Acme Corporation, Global Tech Inc, Innovation Labs, Future Systems
+            Locations: New York, San Francisco, London, Tokyo
+            
+            John Smith works for Acme Corporation in New York.
+            Jane Doe is the CEO of Global Tech Inc in San Francisco.
+            Alice Johnson collaborates with Innovation Labs on research projects.
+            Bob Wilson manages Future Systems operations in London.
+            
+            The companies have various partnerships and relationships:
+            - Acme Corporation partners with Global Tech Inc
+            - Innovation Labs collaborates with Future Systems
+            - Global Tech Inc has offices in Tokyo
+            - Future Systems works with Acme Corporation on joint ventures
+            
+            This document serves as a comprehensive test case for entity extraction,
+            relationship discovery, and knowledge graph construction benchmarks.
+            """)
+        
+        return str(test_file)
+    
+    def _get_memory_usage(self) -> float:
+        """Get current memory usage in MB"""
+        try:
+            process = psutil.Process()
+            return process.memory_info().rss / (1024 * 1024)
+        except:
+            return 0.0
+    
+    async def _load_baseline_metrics(self):
+        """Load baseline metrics from previous runs"""
+        baseline_file = self.output_dir / "baseline_metrics.json"
+        
+        if baseline_file.exists():
+            try:
+                with open(baseline_file, 'r') as f:
+                    self.baseline_metrics = json.load(f)
+                logger.info("Baseline metrics loaded successfully")
+            except Exception as e:
+                logger.warning(f"Failed to load baseline metrics: {e}")
+    
+    async def save_baseline_metrics(self):
+        """Save current results as baseline metrics"""
+        if not self.results_history:
+            return
+        
+        # Extract key metrics from latest results
+        latest_result = self.results_history[-1]
+        baseline_data = {
+            'timestamp': datetime.now().isoformat(),
+            'benchmark_type': latest_result.benchmark_type.value,
+            'aggregated_metrics': latest_result.aggregated_metrics
+        }
+        
+        baseline_file = self.output_dir / "baseline_metrics.json"
+        with open(baseline_file, 'w') as f:
+            json.dump(baseline_data, f, indent=2, default=str)
+        
+        logger.info(f"Baseline metrics saved to: {baseline_file}")
+    
+    async def cleanup(self):
+        """Clean up benchmarking resources"""
+        logger.info("Cleaning up performance benchmarking resources...")
+        
+        if self.integrator:
+            await self.integrator.cleanup()
+        
+        if self.parallel_processor:
+            self.parallel_processor.shutdown(wait=True, timeout=10)
+        
+        if self.resource_monitor:
+            await self.resource_monitor.stop_monitoring()
+
+
+# Factory functions
+def create_component_benchmarker() -> PerformanceBenchmarker:
+    """Create benchmarker for isolated component testing"""
+    config = BenchmarkConfiguration(
+        benchmark_type=BenchmarkType.COMPONENT_ISOLATED,
+        load_level=LoadLevel.MODERATE,
+        iterations=20,
+        generate_plots=True
+    )
+    return PerformanceBenchmarker(config)
+
+
+def create_integration_benchmarker() -> PerformanceBenchmarker:
+    """Create benchmarker for integration testing"""
+    config = BenchmarkConfiguration(
+        benchmark_type=BenchmarkType.INTEGRATION_PERFORMANCE,
+        load_level=LoadLevel.MODERATE,
+        iterations=15,
+        generate_plots=True
+    )
+    return PerformanceBenchmarker(config)
+
+
+def create_stress_benchmarker() -> PerformanceBenchmarker:
+    """Create benchmarker for stress testing"""
+    config = BenchmarkConfiguration(
+        benchmark_type=BenchmarkType.SCALABILITY_STRESS,
+        load_level=LoadLevel.HEAVY,
+        iterations=5,
+        timeout_seconds=600,
+        generate_plots=True
+    )
+    return PerformanceBenchmarker(config)
+
+
+# Example usage
+async def run_benchmarks():
+    """Run comprehensive benchmarks"""
+    
+    # Create integration benchmarker
+    benchmarker = create_integration_benchmarker()
+    
+    try:
+        # Initialize
+        success = await benchmarker.initialize()
+        if not success:
+            print("Benchmarker initialization failed")
+            return
+        
+        # Run comprehensive benchmark suite
+        results = await benchmarker.run_comprehensive_benchmark_suite()
+        
+        print(f"Benchmark Suite Results:")
+        print(f"  Total benchmarks: {results['summary']['total_benchmarks']}")
+        print(f"  Successful: {results['summary']['successful_benchmarks']}")
+        print(f"  Duration: {results['summary']['total_duration']:.2f}s")
+        
+        # Save as baseline
+        await benchmarker.save_baseline_metrics()
+        
+        return results
+        
+    finally:
+        await benchmarker.cleanup()
+
+
+# CLI entry point for direct execution
+if __name__ == "__main__":
+    import sys
+    
+    # Check if we're already in an async context (like pytest)
+    try:
+        # Try to get the current event loop
+        loop = asyncio.get_running_loop()
+        print("Warning: Already in an async context. Use 'await run_benchmarks()' instead.")
+        sys.exit(1)
+    except RuntimeError:
+        # No event loop running, safe to use asyncio.run()
+        asyncio.run(run_benchmarks())

@@ -1,3 +1,6 @@
+from src.core.standard_config import get_database_uri
+from src.core.standard_config import get_api_endpoint
+from src.core.standard_config import get_file_path
 """
 Consolidated Configuration Management System
 
@@ -66,14 +69,72 @@ class GraphConstructionConfig:
 
 
 @dataclass
+class LLMProviderConfig:
+    """Configuration for a single LLM provider."""
+    provider: str = ""
+    model: str = ""
+    api_key: str = ""
+    base_url: str = ""
+    max_retries: int = 3
+    timeout: int = 30
+    rate_limit: int = 60  # requests per minute
+
+@dataclass
+class LLMConfig:
+    """Comprehensive LLM configuration with fallbacks and task-specific settings."""
+    default_model: str = "gemini-2.5-flash"
+    fallback_chain: List[Dict[str, Any]] = field(default_factory=lambda: [
+        {
+            "model": "gemini-2.5-flash",
+            "provider": "google", 
+            "max_retries": 3
+        },
+        {
+            "model": "gemini-2.5-flash-lite",
+            "provider": "google",
+            "max_retries": 2
+        },
+        {
+            "model": "openai",
+            "provider": "o4-mini",
+            "max_retries": 2
+        }
+    ])
+    
+    # Rate limits per provider (requests per minute)
+    rate_limits: Dict[str, int] = field(default_factory=lambda: {
+        "openai": 60,
+        "google": 60,
+        "anthropic": 50
+    })
+    
+    # Temperature defaults by task type
+    temperature_defaults: Dict[str, float] = field(default_factory=lambda: {
+        "extraction": 0.1,
+        "generation": 0.7,
+        "analysis": 0.3,
+        "classification": 0.0
+    })
+    
+    # Provider configurations
+    providers: Dict[str, LLMProviderConfig] = field(default_factory=dict)
+    
+    # Global settings
+    enable_fallbacks: bool = True
+    enable_rate_limiting: bool = True
+    enable_retry_logic: bool = True
+    circuit_breaker_threshold: int = 5  # failures before circuit opens
+    circuit_breaker_timeout: int = 300  # seconds before retry
+
+@dataclass
 class APIConfig:
-    """API configuration for external services."""
+    """API configuration for external services (legacy compatibility)."""
     openai_api_key: str = ""
     anthropic_api_key: str = ""
     google_api_key: str = ""
-    openai_base_url: str = "https://api.openai.com/v1"
+    openai_base_url: str = get_api_endpoint("openai")
     openai_model: str = "text-embedding-3-small"
-    gemini_model: str = "gemini-2.0-flash-exp"
+    gemini_model: str = "gemini-2.5-flash"
     timeout: int = 30
     max_retries: int = 3
     retry_attempts: int = 3
@@ -97,7 +158,7 @@ class SystemConfig:
 @dataclass
 class WorkflowConfig:
     """Configuration for workflow management."""
-    storage_dir: str = "./data/workflows"
+    storage_dir: str = field(default_factory=lambda: f"{get_file_path('data_dir')}/workflows")
     checkpoint_interval: int = 10
     max_retries: int = 3
     timeout_seconds: int = 300
@@ -140,13 +201,18 @@ class ConfigurationManager:
     def __init__(self, config_path: Optional[str] = None):
         if not getattr(self, '_initialized', False):
             self._initialized = True
-            self.config_path = Path(config_path) if config_path else Path("config/default.yaml")
+            if config_path:
+                self.config_path = Path(config_path)
+            else:
+                from .standard_config import get_file_path
+                self.config_path = Path(f"{get_file_path('config_dir')}/default.yaml")
             self.config_data: Dict[str, Any] = {}
             self.environment_vars: Dict[str, str] = {}
             
             # Configuration objects
             self.database: DatabaseConfig = DatabaseConfig()
             self.api: APIConfig = APIConfig()
+            self.llm: LLMConfig = LLMConfig()
             self.system: SystemConfig = SystemConfig()
             self.text_processing: TextProcessingConfig = TextProcessingConfig()
             self.entity_processing: EntityProcessingConfig = EntityProcessingConfig()
@@ -182,6 +248,9 @@ class ConfigurationManager:
         if 'api' in self.config_data:
             self.api = APIConfig(**self.config_data['api'])
         
+        if 'llm' in self.config_data:
+            self._populate_llm_config(self.config_data['llm'])
+        
         if 'system' in self.config_data:
             self.system = SystemConfig(**self.config_data['system'])
         
@@ -199,6 +268,19 @@ class ConfigurationManager:
         
         if 'theory' in self.config_data:
             self.theory = TheoryConfig(**self.config_data['theory'])
+    
+    def _populate_llm_config(self, llm_data: Dict[str, Any]) -> None:
+        """Populate LLM configuration with special handling for complex types."""
+        # Handle provider configurations
+        if 'providers' in llm_data:
+            providers = {}
+            for provider_name, provider_config in llm_data['providers'].items():
+                providers[provider_name] = LLMProviderConfig(**provider_config)
+            llm_data_copy = llm_data.copy()
+            llm_data_copy['providers'] = providers
+            self.llm = LLMConfig(**llm_data_copy)
+        else:
+            self.llm = LLMConfig(**llm_data)
     
     def _load_environment_variables(self) -> None:
         """Load configuration from environment variables."""
@@ -222,6 +304,14 @@ class ConfigurationManager:
             'API_TIMEOUT_SECONDS': ('api', 'timeout_seconds'),
             'API_RETRY_ATTEMPTS': ('api', 'retry_attempts'),
             'API_BATCH_SIZE': ('api', 'batch_processing_size'),
+            
+            # LLM Configuration
+            'LLM_DEFAULT_MODEL': ('llm', 'default_model'),
+            'LLM_ENABLE_FALLBACKS': ('llm', 'enable_fallbacks'),
+            'LLM_ENABLE_RATE_LIMITING': ('llm', 'enable_rate_limiting'),
+            'LLM_ENABLE_RETRY_LOGIC': ('llm', 'enable_retry_logic'),
+            'LLM_CIRCUIT_BREAKER_THRESHOLD': ('llm', 'circuit_breaker_threshold'),
+            'LLM_CIRCUIT_BREAKER_TIMEOUT': ('llm', 'circuit_breaker_timeout'),
             
             'LOG_LEVEL': ('system', 'log_level'),
             'MAX_WORKERS': ('system', 'max_workers'),
@@ -275,10 +365,10 @@ class ConfigurationManager:
                 )
             
             # Validate database connectivity requirements
-            if self.database.uri == "bolt://localhost:7687" and self.system.environment == "production":
+            if self.database.uri == get_database_uri() and self.system.environment == "production":
                 raise ConfigurationError("Production mode cannot use localhost database URI")
             
-            if self.database.username == "neo4j" and self.database.password == "password":
+            if self.database.username == "neo4j" and self.database.password == os.getenv('NEO4J_PASSWORD', ''):
                 raise ConfigurationError("Production mode cannot use default database credentials")
     
     def _create_default_config(self) -> None:
@@ -299,7 +389,7 @@ class ConfigurationManager:
                 'anthropic_api_key': '',
                 'google_api_key': '',
                 'openai_model': 'text-embedding-3-small',
-                'gemini_model': 'gemini-2.0-flash-exp',
+                'gemini_model': 'gemini-2.5-flash',
                 'timeout': 30,
                 'max_retries': 3,
                 'batch_processing_size': 10
@@ -346,6 +436,71 @@ class ConfigurationManager:
                 'concept_library_path': 'src/ontology_library/master_concepts.py',
                 'validation_enabled': True,
                 'enhancement_boost': 0.1
+            },
+            'llm': {
+                'default_model': 'gpt-4-turbo',
+                'fallback_chain': [
+                    {
+                        'model': 'gpt-4-turbo',
+                        'provider': 'openai',
+                        'max_retries': 3
+                    },
+                    {
+                        'model': 'gemini-1.5-pro',
+                        'provider': 'google',
+                        'max_retries': 2
+                    },
+                    {
+                        'model': 'claude-3-opus',
+                        'provider': 'anthropic',
+                        'max_retries': 2
+                    }
+                ],
+                'rate_limits': {
+                    'openai': 60,
+                    'google': 60,
+                    'anthropic': 50
+                },
+                'temperature_defaults': {
+                    'extraction': 0.1,
+                    'generation': 0.7,
+                    'analysis': 0.3,
+                    'classification': 0.0
+                },
+                'providers': {
+                    'openai': {
+                        'provider': 'openai',
+                        'model': 'gpt-4-turbo',
+                        'api_key': '',
+                        'base_url': get_api_endpoint("openai"),
+                        'max_retries': 3,
+                        'timeout': 30,
+                        'rate_limit': 60
+                    },
+                    'google': {
+                        'provider': 'google',
+                        'model': 'gemini-1.5-pro',
+                        'api_key': '',
+                        'base_url': get_api_endpoint("google"),
+                        'max_retries': 2,
+                        'timeout': 30,
+                        'rate_limit': 60
+                    },
+                    'anthropic': {
+                        'provider': 'anthropic',
+                        'model': 'claude-3-opus',
+                        'api_key': '',
+                        'base_url': get_api_endpoint("anthropic"),
+                        'max_retries': 2,
+                        'timeout': 30,
+                        'rate_limit': 50
+                    }
+                },
+                'enable_fallbacks': True,
+                'enable_rate_limiting': True,
+                'enable_retry_logic': True,
+                'circuit_breaker_threshold': 5,
+                'circuit_breaker_timeout': 300
             }
         }
         
@@ -374,6 +529,8 @@ class ConfigurationManager:
             obj = self.workflow
         elif keys[0] == 'theory':
             obj = self.theory
+        elif keys[0] == 'llm':
+            obj = self.llm
         else:
             return default
         
@@ -395,7 +552,7 @@ class ConfigurationManager:
             'password': os.getenv('NEO4J_PASSWORD', self.database.password),
             'database': os.getenv('NEO4J_DATABASE', self.database.database),
             'max_connection_pool_size': int(os.getenv('NEO4J_MAX_POOL_SIZE', self.database.max_connection_pool_size)),
-            'connection_acquisition_timeout': float(os.getenv('NEO4J_CONNECTION_TIMEOUT', self.database.connection_acquisition_timeout)),
+            'connection_acquisition_timeout': int(os.getenv('NEO4J_CONNECTION_TIMEOUT', self.database.connection_acquisition_timeout)),
             'keep_alive': os.getenv('NEO4J_KEEP_ALIVE', str(self.database.keep_alive)).lower() == 'true'
         }
     
@@ -488,6 +645,29 @@ class ConfigurationManager:
             'enhancement_boost': self.theory.enhancement_boost
         }
     
+    def get_llm_config(self) -> Dict[str, Any]:
+        """Get LLM configuration as dictionary."""
+        return {
+            'default_model': self.llm.default_model,
+            'fallback_chain': self.llm.fallback_chain,
+            'rate_limits': self.llm.rate_limits,
+            'temperature_defaults': self.llm.temperature_defaults,
+            'providers': {name: {
+                'provider': config.provider,
+                'model': config.model,
+                'api_key': config.api_key,
+                'base_url': config.base_url,
+                'max_retries': config.max_retries,
+                'timeout': config.timeout,
+                'rate_limit': config.rate_limit
+            } for name, config in self.llm.providers.items()},
+            'enable_fallbacks': self.llm.enable_fallbacks,
+            'enable_rate_limiting': self.llm.enable_rate_limiting,
+            'enable_retry_logic': self.llm.enable_retry_logic,
+            'circuit_breaker_threshold': self.llm.circuit_breaker_threshold,
+            'circuit_breaker_timeout': self.llm.circuit_breaker_timeout
+        }
+    
     def is_feature_enabled(self, feature: str) -> bool:
         """Check if a feature is enabled."""
         feature_map = {
@@ -528,7 +708,7 @@ class ConfigurationManager:
         
         # Check for production-specific requirements
         neo4j_config = self.get_neo4j_config()
-        if neo4j_config['uri'] == 'bolt://localhost:7687':
+        if neo4j_config['uri'] == get_database_uri():
             issues.append("Neo4j URI should not use localhost in production")
         
         if neo4j_config['user'] == 'neo4j' and neo4j_config['password'] == 'password':
@@ -608,6 +788,50 @@ class ConfigurationManager:
         except Exception as e:
             raise ConfigurationError(f"Configuration validation error: {str(e)}")
     
+    def get_config_section(self, section_path: str) -> Dict[str, Any]:
+        """Get configuration section using dot notation path.
+        
+        Args:
+            section_path: Dot-separated path to config section (e.g. 'services.identity')
+            
+        Returns:
+            Dictionary containing the configuration section
+            
+        Raises:
+            ConfigurationError: If section path is not found
+        """
+        try:
+            # Start with the full configuration
+            current = self.config
+            
+            # Navigate through the path
+            for part in section_path.split('.'):
+                if isinstance(current, dict) and part in current:
+                    current = current[part]
+                else:
+                    # Try to get from object attributes if not found in dict
+                    if hasattr(self, part):
+                        attr = getattr(self, part)
+                        if hasattr(attr, '__dict__'):
+                            current = attr.__dict__
+                        else:
+                            current = attr
+                    else:
+                        # Return empty dict for missing sections rather than error
+                        return {}
+            
+            # Convert dataclass to dict if needed
+            if hasattr(current, '__dict__'):
+                return current.__dict__
+            elif isinstance(current, dict):
+                return current
+            else:
+                return {'value': current}
+                
+        except Exception as e:
+            # Return empty dict rather than failing for missing config sections
+            return {}
+    
     def get_environment_summary(self) -> Dict[str, Any]:
         """Get summary of environment configuration."""
         return {
@@ -668,3 +892,4 @@ def validate_config() -> Dict[str, Any]:
 # Backward compatibility aliases
 UnifiedConfigManager = ConfigurationManager
 ConfigManager = ConfigurationManager
+Neo4jConfig = DatabaseConfig

@@ -1,3 +1,4 @@
+from src.core.standard_config import get_database_uri
 """
 T31 Entity Builder Unified Tool
 
@@ -7,6 +8,7 @@ Implements unified BaseTool interface with comprehensive entity building capabil
 
 import uuid
 import logging
+import os
 from datetime import datetime
 from typing import Dict, Any, List, Optional
 
@@ -35,7 +37,7 @@ class T31EntityBuilderUnified(BaseTool):
     
     def __init__(self, service_manager: ServiceManager):
         super().__init__(service_manager)
-        self.tool_id = "T31"
+        self.tool_id = "T31_ENTITY_BUILDER"
         self.name = "Entity Builder"
         self.category = "graph_construction"
         self.service_manager = service_manager
@@ -57,10 +59,16 @@ class T31EntityBuilderUnified(BaseTool):
             return
         
         try:
-            # Use default Neo4j settings - in production these would come from config
-            neo4j_uri = "bolt://localhost:7687"
-            neo4j_user = "neo4j"
-            neo4j_password = "password"
+            # Load environment variables 
+            from dotenv import load_dotenv
+            from pathlib import Path
+            env_path = Path(__file__).parent.parent.parent.parent / '.env'
+            load_dotenv(env_path)
+            
+            # Get Neo4j settings from environment
+            neo4j_uri = get_database_uri()
+            neo4j_user = os.getenv('NEO4J_USER', 'neo4j')
+            neo4j_password = os.getenv('NEO4J_PASSWORD', '')
             
             self.driver = GraphDatabase.driver(
                 neo4j_uri, 
@@ -180,7 +188,7 @@ class T31EntityBuilderUnified(BaseTool):
             if not isinstance(mention, dict):
                 return {"valid": False, "error": f"Mention {i} must be a dictionary"}
             
-            required_fields = ["text", "label"]
+            required_fields = ["text", "entity_type"]
             for field in required_fields:
                 if field not in mention:
                     return {"valid": False, "error": f"Mention {i} missing required field: {field}"}
@@ -214,13 +222,13 @@ class T31EntityBuilderUnified(BaseTool):
         entity_groups = {}
         
         for mention in mentions:
-            # Use existing entity_id or create new one based on text and label
+            # Use existing entity_id or create new one based on text and entity_type
             entity_id = mention.get("entity_id")
             if not entity_id:
-                # Create entity ID from text and label for grouping
+                # Create entity ID from text and entity_type for grouping
                 text = mention.get("text", "").strip().lower()
-                label = mention.get("label", "UNKNOWN")
-                entity_id = f"{label}_{hash(text) % 10000:04d}"
+                entity_type = mention.get("entity_type", "UNKNOWN")
+                entity_id = f"{entity_type}_{hash(text) % 10000:04d}"
                 mention["entity_id"] = entity_id
             
             if entity_id not in entity_groups:
@@ -266,7 +274,7 @@ class T31EntityBuilderUnified(BaseTool):
     def _extract_entity_info(self, entity_id: str, mentions: List[Dict[str, Any]]) -> Dict[str, Any]:
         """Extract entity information from mention group"""
         # Get the most common entity type
-        entity_types = [m.get("label", "UNKNOWN") for m in mentions]
+        entity_types = [m.get("entity_type", "UNKNOWN") for m in mentions]
         entity_type = max(set(entity_types), key=entity_types.count)
         
         # Get all surface forms
@@ -467,6 +475,26 @@ class T31EntityBuilderUnified(BaseTool):
             self.logger.error(f"Failed to get Neo4j stats: {e}")
             return {"status": "error", "error": f"Neo4j operation failed: {str(e)}"}
 
+    def build_entities(self, mentions: List[Dict[str, Any]], source_refs: List[str]) -> Dict[str, Any]:
+        """MCP-compatible method for building entities from mentions"""
+        from src.tools.base_tool import ToolRequest
+        
+        request = ToolRequest(
+            tool_id=self.tool_id,
+            operation="build_entities",
+            input_data={
+                "mentions": mentions,
+                "source_refs": source_refs
+            },
+            parameters={}
+        )
+        
+        result = self.execute(request)
+        if result.status == "success":
+            return result.data
+        else:
+            return {"error": result.error_message, "error_code": result.error_code}
+
     def cleanup(self) -> bool:
         """Clean up Neo4j connection"""
         if self.driver:
@@ -495,13 +523,13 @@ class T31EntityBuilderUnified(BaseTool):
                             "type": "object",
                             "properties": {
                                 "text": {"type": "string"},
-                                "label": {"type": "string"},
+                                "entity_type": {"type": "string"},
                                 "start": {"type": "integer"},
                                 "end": {"type": "integer"},
                                 "confidence": {"type": "number"},
                                 "entity_id": {"type": "string"}
                             },
-                            "required": ["text", "label"]
+                            "required": ["text", "entity_type"]
                         },
                         "minItems": 1
                     },

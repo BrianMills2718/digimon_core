@@ -2,7 +2,7 @@
 
 **Status**: Required for Production Deployment  
 **Date**: 2025-07-21  
-**Purpose**: Document production-ready governance policies and procedures for KGAS
+**Purpose**: Document operational governance policies and procedures for KGAS
 
 ---
 
@@ -266,10 +266,10 @@ class VersionValidator:
 
 | Component | License | Commercial Use | Attribution Required | Viral/Copyleft |
 |-----------|---------|----------------|---------------------|----------------|
-| **DOLCE** | CC-BY 4.0 | ✅ Yes | ✅ Yes | ❌ No |
-| **FOAF** | CC-BY 1.0 | ✅ Yes | ✅ Yes | ❌ No |
-| **SIOC** | W3C Document License | ✅ Yes | ✅ Yes | ❌ No |
-| **PROV-O** | W3C Software License | ✅ Yes | ✅ Yes | ❌ No |
+| **DOLCE** | CC-BY 4.0 | Yes | Yes | No |
+| **FOAF** | CC-BY 1.0 | Yes | Yes | No |
+| **SIOC** | W3C Document License | Yes | Yes | No |
+| **PROV-O** | W3C Software License | Yes | Yes | No |
 
 ### **Compliance Implementation**
 - **Attribution Files**: `/ontologies/ATTRIBUTIONS.md` with required citations

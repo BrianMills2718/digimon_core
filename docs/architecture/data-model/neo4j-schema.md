@@ -1,7 +1,6 @@
 # Neo4j Data Model Specification
 
 **Version**: 1.0
-**Status**: Current Implementation
 **Last Updated**: 2025-07-22
 
 ## Overview

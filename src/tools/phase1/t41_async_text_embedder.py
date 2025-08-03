@@ -35,7 +35,7 @@ class AsyncTextEmbedder:
         provenance_service: Optional[ProvenanceService] = None,
         quality_service: Optional[QualityService] = None,
         config_manager: Optional[ConfigurationManager] = None,
-        vector_store_path: str = "./data/embeddings"
+        vector_store_path: str = None
     ):
         self.provenance_service = provenance_service
         self.quality_service = quality_service
@@ -49,6 +49,9 @@ class AsyncTextEmbedder:
         self.embedding_dim = 1536  # text-embedding-3-small dimension
         
         # Vector store setup
+        if vector_store_path is None:
+            from ...core.standard_config import get_file_path
+            vector_store_path = f"{get_file_path('data_dir')}/embeddings"
         self.vector_store_path = Path(vector_store_path)
         self.vector_store_path.mkdir(parents=True, exist_ok=True)
         

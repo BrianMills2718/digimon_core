@@ -48,7 +48,7 @@ def test_vertical_slice():
     # Initialize workflow
     try:
         workflow_config = create_unified_workflow_config(phase=Phase.PHASE1, optimization_level=OptimizationLevel.STANDARD)
-workflow = PipelineOrchestrator(workflow_config)
+        workflow = PipelineOrchestrator(workflow_config)
         print("✅ Workflow initialized successfully")
     except Exception as e:
         print(f"❌ Failed to initialize workflow: {e}")

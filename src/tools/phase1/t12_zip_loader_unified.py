@@ -21,7 +21,7 @@ class T12ZipLoaderUnified(BaseTool):
     
     def __init__(self, service_manager):
         super().__init__(service_manager)
-        self.tool_id = "T12"
+        self.tool_id = "T12_ZIP_LOADER"
         self.name = "Zip Archive Loader"
         self.category = "document_processing"
         self.service_manager = service_manager  # Add explicit reference

@@ -1,0 +1,202 @@
+{
+  "monitoring": {
+    "enabled": true,
+    "log_level": "INFO",
+    "alert_webhook_url": null,
+    "history_retention_days": 7,
+    "monitoring_interval_seconds": 10,
+    "enable_detailed_logging": true
+  },
+  "validation": {
+    "infrastructure_timeout": 30,
+    "service_timeout": 10,
+    "tool_timeout": 60,
+    "workflow_timeout": 300,
+    "performance_timeout": 15
+  },
+  "performance": {
+    "cpu_threshold": 80.0,
+    "memory_threshold": 85.0,
+    "disk_threshold": 90.0,
+    "response_time_threshold": 5.0,
+    "error_rate_threshold": 0.05,
+    "cache_hit_rate_threshold": 0.30
+  },
+  "health_checks": {
+    "infrastructure": {
+      "enabled": true,
+      "interval_seconds": 30,
+      "timeout_seconds": 30,
+      "retry_count": 3,
+      "failure_threshold": 3,
+      "recovery_threshold": 2
+    },
+    "services": {
+      "enabled": true,
+      "interval_seconds": 60,
+      "timeout_seconds": 10,
+      "retry_count": 3,
+      "failure_threshold": 2,
+      "recovery_threshold": 2
+    },
+    "tools": {
+      "enabled": true,
+      "interval_seconds": 120,
+      "timeout_seconds": 60,
+      "retry_count": 2,
+      "failure_threshold": 3,
+      "recovery_threshold": 2
+    },
+    "workflows": {
+      "enabled": true,
+      "interval_seconds": 300,
+      "timeout_seconds": 300,
+      "retry_count": 1,
+      "failure_threshold": 2,
+      "recovery_threshold": 1
+    },
+    "performance": {
+      "enabled": true,
+      "interval_seconds": 30,
+      "timeout_seconds": 15,
+      "retry_count": 2,
+      "failure_threshold": 3,
+      "recovery_threshold": 2
+    }
+  },
+  "alert_rules": [
+    {
+      "name": "critical_memory_usage",
+      "condition": "memory_percent > 95",
+      "severity": "critical",
+      "message_template": "CRITICAL: Memory usage at {memory_percent:.1f}% - System may become unstable",
+      "cooldown_minutes": 1,
+      "enabled": true
+    },
+    {
+      "name": "high_memory_usage",
+      "condition": "memory_percent > 85",
+      "severity": "warning",
+      "message_template": "WARNING: High memory usage detected: {memory_percent:.1f}%",
+      "cooldown_minutes": 5,
+      "enabled": true
+    },
+    {
+      "name": "high_cpu_usage",
+      "condition": "cpu_percent > 80",
+      "severity": "warning", 
+      "message_template": "WARNING: High CPU usage detected: {cpu_percent:.1f}%",
+      "cooldown_minutes": 5,
+      "enabled": true
+    },
+    {
+      "name": "critical_cpu_usage",
+      "condition": "cpu_percent > 95",
+      "severity": "critical",
+      "message_template": "CRITICAL: CPU usage at {cpu_percent:.1f}% - Performance severely impacted",
+      "cooldown_minutes": 2,
+      "enabled": true
+    },
+    {
+      "name": "slow_response_time",
+      "condition": "avg_response_time > 5.0",
+      "severity": "warning",
+      "message_template": "WARNING: Slow response times detected: {avg_response_time:.2f}s average",
+      "cooldown_minutes": 10,
+      "enabled": true
+    },
+    {
+      "name": "critical_response_time",
+      "condition": "avg_response_time > 15.0",
+      "severity": "critical",
+      "message_template": "CRITICAL: Response times severely degraded: {avg_response_time:.2f}s average",
+      "cooldown_minutes": 3,
+      "enabled": true
+    },
+    {
+      "name": "high_error_rate",
+      "condition": "error_rate > 0.05",
+      "severity": "error",
+      "message_template": "ERROR: High error rate detected: {error_rate:.1%}",
+      "cooldown_minutes": 3,
+      "enabled": true
+    },
+    {
+      "name": "critical_error_rate",
+      "condition": "error_rate > 0.20",
+      "severity": "critical",
+      "message_template": "CRITICAL: Error rate critical: {error_rate:.1%}",
+      "cooldown_minutes": 1,
+      "enabled": true
+    },
+    {
+      "name": "service_failure",
+      "condition": "failed_services > 0",
+      "severity": "critical",
+      "message_template": "CRITICAL: {failed_services} service(s) failed health checks",
+      "cooldown_minutes": 1,
+      "enabled": true
+    },
+    {
+      "name": "infrastructure_failure",
+      "condition": "infrastructure_status == 'CRITICAL'",
+      "severity": "critical",
+      "message_template": "CRITICAL: Infrastructure integration failure detected",
+      "cooldown_minutes": 1,
+      "enabled": true
+    },
+    {
+      "name": "low_cache_hit_rate",
+      "condition": "cache_hit_rate < 0.30",
+      "severity": "warning",
+      "message_template": "WARNING: Low cache hit rate: {cache_hit_rate:.1%} - Performance may be impacted",
+      "cooldown_minutes": 15,
+      "enabled": true
+    },
+    {
+      "name": "multiple_component_failures",
+      "condition": "failed_services > 1",
+      "severity": "critical",
+      "message_template": "CRITICAL: Multiple component failures detected - System stability at risk",
+      "cooldown_minutes": 1,
+      "enabled": true
+    }
+  ],
+  "notification": {
+    "webhook": {
+      "enabled": false,
+      "url": null,
+      "timeout_seconds": 10,
+      "retry_count": 3
+    },
+    "email": {
+      "enabled": false,
+      "smtp_server": null,
+      "smtp_port": 587,
+      "username": null,
+      "password": null,
+      "from_address": null,
+      "to_addresses": []
+    },
+    "slack": {
+      "enabled": false,
+      "webhook_url": null,
+      "channel": "#alerts"
+    }
+  },
+  "reporting": {
+    "daily_report": {
+      "enabled": true,
+      "time": "09:00",
+      "timezone": "UTC"
+    },
+    "weekly_report": {
+      "enabled": true,
+      "day": "monday",
+      "time": "09:00",
+      "timezone": "UTC"
+    },
+    "export_format": "json",
+    "include_performance_charts": true
+  }
+}

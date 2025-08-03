@@ -71,7 +71,7 @@ def test_workflow_optimization():
     # Test 3: Original workflow for comparison
     print("\n3. Testing ORIGINAL workflow (for comparison)...")
     original_workflow_config = create_unified_workflow_config(phase=Phase.PHASE1, optimization_level=OptimizationLevel.STANDARD)
-original_workflow = PipelineOrchestrator(original_workflow_config)
+    original_workflow = PipelineOrchestrator(original_workflow_config)
     
     start_time = time.time()
     result3 = original_workflow.execute_pdf_workflow([pdf_path], [query])

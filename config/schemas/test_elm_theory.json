@@ -1,0 +1,261 @@
+{
+  "theory_id": "elaboration_likelihood_model",
+  "theory_name": "Elaboration Likelihood Model",
+  "version": "1.0",
+  "authors": [
+    "Richard E. Petty",
+    "John T. Cacioppo"
+  ],
+  "publication_year": 1986,
+  "description": "Theory of attitude change explaining how people process persuasive messages through central or peripheral routes",
+  "classification": {
+    "domain": {
+      "level": "Micro",
+      "component": "Effect",
+      "metatheory": "Agentic"
+    },
+    "complexity_tier": "direct"
+  },
+  "theoretical_scope": {
+    "authors_stated_domain": [
+      "Attitude change through persuasive communication",
+      "Message processing in persuasion contexts",
+      "Individual differences in elaboration tendency"
+    ],
+    "exclusion_contexts": [
+      "Attitude formation without persuasive communication",
+      "Group-level attitude change processes",
+      "Non-conscious attitude change"
+    ],
+    "authors_stated_limitations": [
+      "Focuses on individual-level processing",
+      "Requires measurable attitude change",
+      "Limited to persuasive communication contexts"
+    ],
+    "boundary_conditions": [
+      "Message must contain persuasive intent",
+      "Recipient must have measurable prior attitude",
+      "Processing conditions must be assessable"
+    ]
+  },
+  "empirical_foundation": {
+    "authors_empirical_claims": [
+      {
+        "claim": "High motivation and ability lead to central route processing",
+        "evidence_type": "experimental",
+        "specific_statistic": "Multiple studies showing interaction effects",
+        "source_in_paper": "Chapter 4, Studies 1-3",
+        "study_context": "Laboratory experiments with college students"
+      },
+      {
+        "claim": "Central route produces more persistent attitude change",
+        "evidence_type": "experimental",
+        "specific_statistic": "Attitudes persisted 2+ weeks vs <1 week for peripheral",
+        "source_in_paper": "Chapter 6, longitudinal studies",
+        "study_context": "Follow-up studies measuring attitude durability"
+      }
+    ]
+  },
+  "ontology": {
+    "entities": [
+      {
+        "name": "persuasive_message",
+        "description": "Communication designed to change recipient attitudes",
+        "properties": [
+          {
+            "name": "argument_strength",
+            "type": "categorical",
+            "description": "Quality of reasoning and evidence presented",
+            "operationalization": {
+              "measurement_approach": "Identify logical reasoning, evidence quality, coherence",
+              "boundary_rules": [
+                "Strong: logical structure + credible evidence + coherent reasoning",
+                "Weak: logical fallacies OR poor evidence OR incoherent reasoning"
+              ],
+              "validation_examples": [
+                "Strong: 'Studies show X because researchers found Y in controlled conditions'",
+                "Weak: 'Everyone knows X' or 'X is obvious'"
+              ]
+            }
+          },
+          {
+            "name": "peripheral_cues",
+            "type": "array",
+            "description": "Non-argument factors that may influence attitudes",
+            "operationalization": {
+              "measurement_approach": "Identify source credibility, attractiveness, popularity indicators",
+              "boundary_rules": [
+                "Must be non-argument factors",
+                "Must be potentially persuasive",
+                "Must be external to message content logic"
+              ],
+              "validation_examples": [
+                "Source expertise: 'According to Dr. Smith, leading researcher...'",
+                "Popularity: 'Most people believe...'",
+                "Attractiveness: Visual or social appeal cues"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "name": "message_recipient",
+        "description": "Individual receiving and processing persuasive message",
+        "properties": [
+          {
+            "name": "motivation_to_process",
+            "type": "scale",
+            "description": "Recipient's willingness to engage with message content",
+            "operationalization": {
+              "measurement_approach": "Assess personal relevance, interest, engagement indicators",
+              "boundary_rules": [
+                "High: direct personal relevance or explicit engagement",
+                "Low: tangential relevance or distraction indicators"
+              ],
+              "validation_examples": [
+                "High: 'This affects my community directly'",
+                "Low: 'This doesn't really matter to me'"
+              ]
+            }
+          },
+          {
+            "name": "ability_to_process",
+            "type": "scale",
+            "description": "Recipient's capacity to engage with argument quality",
+            "operationalization": {
+              "measurement_approach": "Assess knowledge indicators, comprehension signals, cognitive resources",
+              "boundary_rules": [
+                "High: domain knowledge + comprehension + attention",
+                "Low: lack of knowledge OR comprehension problems OR distraction"
+              ],
+              "validation_examples": [
+                "High: Demonstrates understanding of technical concepts",
+                "Low: Confusion about basic terms or concepts"
+              ]
+            }
+          }
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "name": "processing_route_selection",
+        "source_role": "message_recipient",
+        "target_role": "processing_route",
+        "description": "How motivation and ability determine central vs peripheral processing",
+        "properties": [
+          {
+            "name": "route_determination",
+            "type": "categorical",
+            "description": "Central if high motivation AND ability, peripheral otherwise"
+          }
+        ]
+      },
+      {
+        "name": "attitude_change_process",
+        "source_role": "processing_route",
+        "target_role": "attitude_change",
+        "description": "How processing route affects attitude change characteristics",
+        "properties": [
+          {
+            "name": "change_mechanism",
+            "type": "categorical",
+            "description": "Central route: argument evaluation, Peripheral route: cue-based inference"
+          }
+        ]
+      }
+    ]
+  },
+  "execution": {
+    "process_type": "two_stage_analysis",
+    "stage_1_structuring": {
+      "step_id": "comprehensive_theory_structuring",
+      "description": "Extract ALL theory-relevant content without evaluation filtering to prevent premature pattern elimination",
+      "method": "comprehensive_llm_extraction",
+      "constraint": "no_evaluation_filtering",
+      "required_outputs": [
+        "theory_applicability_score",
+        "applicability_reasoning",
+        "comprehensive_structured_content"
+      ],
+      "llm_prompts": {
+        "structuring_prompt": "Apply Elaboration Likelihood Model comprehensively to extract ALL persuasion-relevant content:\n\n1. PERSUASIVE MESSAGES: Identify all content that could be persuasive - arguments, evidence, claims, recommendations\n2. ARGUMENT STRENGTH: Assess logical structure, evidence quality, reasoning coherence for each persuasive element\n3. PERIPHERAL CUES: Extract all non-argument factors - source credibility, attractiveness, popularity, authority indicators\n4. RECIPIENT CHARACTERISTICS: Identify motivation indicators (personal relevance, engagement) and ability indicators (knowledge, comprehension)\n5. PROCESSING INDICATORS: Look for signs of careful evaluation vs quick judgments\n6. ATTITUDE CHANGE EVIDENCE: Extract any attitude expressions, preference changes, decision outcomes\n\nDo NOT filter based on whether patterns seem 'typical' for ELM - extract everything the theory would consider relevant to persuasion processes.",
+        "applicability_prompt": "Assess ELM applicability to this text (score 0-1):\n\nAPPLICABILITY = Density \u00d7 Centrality \u00d7 Theoretical Relevance\n\n\u2022 DENSITY: How much of the text involves persuasion-relevant phenomena? (persuasive content, attitude change, processing indicators)\n\u2022 CENTRALITY: How central are persuasion processes to the text's main purpose and content?\n\u2022 THEORETICAL RELEVANCE: How well do observed patterns fit ELM's explanatory scope (individual attitude change through message processing)?\n\nProvide score and detailed reasoning explaining why this text is/isn't suitable for ELM analysis.",
+        "validation_prompt": "Verify that the ELM extraction is comprehensive within theory bounds and that the applicability score accurately reflects the actual density of persuasion-relevant concepts in the text."
+      }
+    },
+    "stage_2_evaluation": {
+      "step_id": "analytic_evaluation",
+      "description": "Apply analytic questions to comprehensive structured data to extract theoretical insights",
+      "method": "structured_data_analysis",
+      "inputs": [
+        "comprehensive_structured_content",
+        "theory_applicability_score"
+      ],
+      "configurable_components": {
+        "include_justifications": false,
+        "include_alternative_interpretations": false,
+        "include_confidence_scores": false
+      },
+      "llm_prompts": {
+        "evaluation_prompt": "Using the comprehensive ELM structure from Stage 1, analyze the persuasion process in this text:\n\n1. PROCESSING ROUTE ANALYSIS: Based on motivation and ability indicators, which processing route(s) were likely used? What evidence supports this?\n\n2. PERSUASION MECHANISM: How did the persuasion work? Through argument evaluation (central route) or peripheral cues (peripheral route)?\n\n3. EFFECTIVENESS PREDICTION: Based on the processing route, what does ELM predict about the attitude change? (durability, resistance, accessibility)\n\n4. THEORETICAL INSIGHTS: What does ELM reveal about this persuasion attempt that surface analysis might miss? Focus on the relationship between processing conditions and persuasion mechanisms.\n\nAnswer based on the theoretical structure, not obvious surface features.",
+        "integration_prompt": "Integrate findings across all ELM components (message, recipient, processing, outcomes) to provide a coherent theoretical account of how persuasion functioned in this case."
+      }
+    },
+    "applicability_threshold": 0.3
+  },
+  "telos": {
+    "purpose": "Explain attitude change through identification of processing routes and persuasion mechanisms",
+    "output_format": "Processing route analysis with mechanism identification and effectiveness prediction",
+    "success_criteria": [
+      "Processing route clearly identified with supporting evidence",
+      "Persuasion mechanism explained (argument-based or cue-based)",
+      "Theoretical predictions about attitude change characteristics provided",
+      "Analysis reveals insights beyond surface-level observations"
+    ],
+    "analysis_tiers": [
+      "descriptive",
+      "explanatory",
+      "predictive"
+    ]
+  },
+  "validation": {
+    "theory_tests": [
+      {
+        "test_name": "High motivation + strong arguments",
+        "input_scenario": "Text with personally relevant topic and strong logical arguments",
+        "expected_theory_application": "Central route processing, argument-based attitude change",
+        "validation_criteria": "Should identify high motivation, strong arguments, central processing indicators"
+      },
+      {
+        "test_name": "Low motivation + credible source",
+        "input_scenario": "Text with low personal relevance but high source credibility",
+        "expected_theory_application": "Peripheral route processing, cue-based attitude change",
+        "validation_criteria": "Should identify low motivation, peripheral cues, peripheral processing indicators"
+      }
+    ],
+    "boundary_cases": [
+      {
+        "case_description": "Text with information but no persuasive intent",
+        "theory_applicability": "Low - ELM requires persuasive communication",
+        "expected_behavior": "Low applicability score, limited persuasion-relevant extraction"
+      },
+      {
+        "case_description": "Group-level attitude change processes",
+        "theory_applicability": "Low - ELM focuses on individual-level processing",
+        "expected_behavior": "May extract individual elements but miss group-level dynamics"
+      }
+    ]
+  },
+  "metadata": {
+    "created": "2025-07-26T00:00:00Z",
+    "contributors": [
+      "Test Implementation"
+    ],
+    "validation_status": "Schema compliance test",
+    "implementation_status": "Complete schema implementation",
+    "source_paper_verified": false
+  },
+  "mode": "open",
+  "schema_id": "elaboration_likelihood_model"
+}

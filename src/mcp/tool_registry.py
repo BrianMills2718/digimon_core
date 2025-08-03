@@ -32,14 +32,23 @@ class MCPToolRegistry:
         self._register_all_tools()
     
     def _register_all_tools(self):
-        """Register all 8 vertical slice tools"""
+        """Register all 8 vertical slice tools in dependency order"""
+        # Optimized loading order based on vertical slice pipeline dependencies:
+        # T01 → T15A → T23A → T27 → T31 → T34 → T68 → T49
         tools_to_register = [
+            # Foundation tools first - document processing
             ("T01_PDF_LOADER", "src.tools.phase1.t01_pdf_loader_unified", "T01PDFLoaderUnified"),
             ("T15A_TEXT_CHUNKER", "src.tools.phase1.t15a_text_chunker_unified", "T15ATextChunkerUnified"),
+            
+            # Content analysis tools - entity and relationship extraction
             ("T23A_SPACY_NER", "src.tools.phase1.t23a_spacy_ner_unified", "T23ASpacyNERUnified"),
             ("T27_RELATIONSHIP_EXTRACTOR", "src.tools.phase1.t27_relationship_extractor_unified", "T27RelationshipExtractorUnified"),
+            
+            # Graph construction tools - build knowledge graph
             ("T31_ENTITY_BUILDER", "src.tools.phase1.t31_entity_builder_unified", "T31EntityBuilderUnified"),
             ("T34_EDGE_BUILDER", "src.tools.phase1.t34_edge_builder_unified", "T34EdgeBuilderUnified"),
+            
+            # Analysis tools last - require complete graph
             ("T68_PAGE_RANK", "src.tools.phase1.t68_pagerank_unified", "T68PageRankCalculatorUnified"),
             ("T49_MULTI_HOP_QUERY", "src.tools.phase1.t49_multihop_query_unified", "T49MultiHopQueryUnified")
         ]

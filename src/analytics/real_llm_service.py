@@ -57,8 +57,7 @@ class RealLLMService:
             Generated text
         """
         if not self.client:
-            logger.warning("LLM client not initialized, using fallback generation")
-            return await self._fallback_generation(prompt, max_length)
+            raise RuntimeError(f"LLM client not initialized for {self.provider}. Please set {self.provider.upper()}_API_KEY environment variable.")
             
         try:
             if self.provider == 'openai':
@@ -91,7 +90,7 @@ class RealLLMService:
                 
         except Exception as e:
             logger.error(f"Failed to generate text with {self.provider}: {e}")
-            return await self._fallback_generation(prompt, max_length)
+            raise  # NO FALLBACKS - fail fast
     
     async def generate_structured_hypotheses(self, prompt: str, max_hypotheses: int = 5,
                                            creativity_level: float = 0.7) -> List[Dict[str, Any]]:
@@ -289,3 +288,20 @@ Ensure the output is valid JSON that can be parsed. Focus on novel, testable hyp
         ]
         
         return '\n'.join(f"{i+1}. {template}" for i, template in enumerate(templates[:3]))
+    
+    async def complete(self, prompt: str, **kwargs) -> str:
+        """Complete method for compatibility with ModeSelectionService.
+        
+        Args:
+            prompt: The prompt to complete
+            **kwargs: Additional arguments (temperature, max_tokens, etc.)
+            
+        Returns:
+            The completion text
+        """
+        # Extract parameters from kwargs
+        max_tokens = kwargs.get('max_tokens', 500)
+        temperature = kwargs.get('temperature', 0.7)
+        
+        # Use generate_text method
+        return await self.generate_text(prompt, max_length=max_tokens, temperature=temperature)

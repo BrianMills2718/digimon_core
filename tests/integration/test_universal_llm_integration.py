@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Integration tests for Universal LLM Integration with LiteLLM
-Tests end-to-end functionality with automatic fallbacks
+Integration tests for Enhanced LLM Client standardization
+Tests end-to-end functionality with automatic fallbacks using EnhancedAPIClient
 """
 
 import pytest
@@ -17,8 +17,8 @@ from src.tools.phase2.extraction_components.llm_integration import LLMExtraction
 from src.tools.phase3.basic_multi_document_workflow import BasicMultiDocumentWorkflow
 
 
-class TestUniversalLLMIntegration:
-    """Test Universal LLM integration across all components"""
+class TestEnhancedLLMStandardization:
+    """Test Enhanced LLM Client standardization across all components"""
     
     @pytest.fixture
     def setup_test_env(self):

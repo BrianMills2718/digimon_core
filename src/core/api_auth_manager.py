@@ -1,3 +1,4 @@
+from src.core.standard_config import get_api_endpoint
 """API Authentication Manager for GraphRAG System
 
 This module manages API authentication for external services with rate limiting
@@ -55,9 +56,9 @@ class APICredentials:
         
         if self.base_url is None:
             default_urls = {
-                APIServiceType.OPENAI.value: "https://api.openai.com/v1",
-                APIServiceType.ANTHROPIC.value: "https://api.anthropic.com/v1",
-                APIServiceType.GOOGLE.value: "https://generativelanguage.googleapis.com/v1",
+                APIServiceType.OPENAI.value: get_api_endpoint("openai"),
+                APIServiceType.ANTHROPIC.value: get_api_endpoint("anthropic"),
+                APIServiceType.GOOGLE.value: get_api_endpoint("google"),
                 APIServiceType.HUGGINGFACE.value: "https://api-inference.huggingface.co",
                 APIServiceType.COHERE.value: "https://api.cohere.ai/v1"
             }
@@ -181,9 +182,19 @@ class APIAuthManager:
         
         self.rate_limiter = APIRateLimiter()
         
-        # Set rate limits for each service
+        # Add services to rate limiter  
         for service_name, credentials in self.credentials.items():
-            self.rate_limiter.set_rate_limit(service_name, credentials.rate_limit)
+            # Create rate limit config and add service
+            from .api_rate_limiter import RateLimitConfig
+            
+            rate_config = RateLimitConfig(
+                requests_per_second=credentials.rate_limit / 60.0,
+                requests_per_minute=credentials.rate_limit,
+                requests_per_hour=credentials.rate_limit * 60,
+                burst_capacity=min(10, max(1, int(credentials.rate_limit / 6)))
+            )
+            
+            self.rate_limiter.add_service(service_name, rate_config)
     
     def get_credentials(self, service_name: str) -> Optional[APICredentials]:
         """Get credentials for specified service

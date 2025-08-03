@@ -102,13 +102,27 @@ def create_phase1_mcp_tools(mcp: FastMCP):
             chunk_size: Target size of each chunk in characters
             overlap: Number of characters to overlap between chunks
         """
-        return text_chunker.chunk_text(
-            document_ref=document_ref,
-            text=text,
-            document_confidence=document_confidence,
-            chunk_size=chunk_size,
-            overlap=overlap
+        from src.tools.base_tool import ToolRequest
+        
+        request = ToolRequest(
+            tool_id="T15A",
+            operation="chunk_text",
+            input_data={
+                "document_ref": document_ref,
+                "text": text,
+                "confidence": document_confidence
+            },
+            parameters={
+                "chunk_size": chunk_size,
+                "overlap": overlap
+            }
         )
+        
+        result = text_chunker.execute(request)
+        if result.status == "success":
+            return result.data
+        else:
+            return {"error": result.error_message, "error_code": result.error_code}
     
     @mcp.tool()
     def get_text_chunker_info() -> Dict[str, Any]:
@@ -123,7 +137,8 @@ def create_phase1_mcp_tools(mcp: FastMCP):
     def extract_entities(
         chunk_ref: str,
         text: str,
-        chunk_confidence: float = 0.8
+        chunk_confidence: float = 0.8,
+        confidence_threshold: float = 0.5
     ) -> Dict[str, Any]:
         """Extract named entities from text using spaCy.
         
@@ -131,12 +146,28 @@ def create_phase1_mcp_tools(mcp: FastMCP):
             chunk_ref: Reference to source text chunk
             text: Text to analyze for entities
             chunk_confidence: Confidence score from chunk
+            confidence_threshold: Minimum confidence threshold for entities
         """
-        return entity_extractor.extract_entities(
-            chunk_ref=chunk_ref,
-            text=text,
-            chunk_confidence=chunk_confidence
+        from src.tools.base_tool import ToolRequest
+        
+        request = ToolRequest(
+            tool_id="T23A",
+            operation="extract_entities",
+            input_data={
+                "chunk_ref": chunk_ref,
+                "text": text,
+                "chunk_confidence": chunk_confidence
+            },
+            parameters={
+                "confidence_threshold": confidence_threshold
+            }
         )
+        
+        result = entity_extractor.execute(request)
+        if result.status == "success":
+            return result.data
+        else:
+            return {"error": result.error_message, "error_code": result.error_code}
     
     @mcp.tool()
     def get_supported_entity_types() -> List[str]:
@@ -162,22 +193,35 @@ def create_phase1_mcp_tools(mcp: FastMCP):
         chunk_ref: str,
         text: str,
         entities: List[Dict[str, Any]],
-        chunk_confidence: float = 0.8
+        confidence: float = 0.5
     ) -> Dict[str, Any]:
         """Extract relationships between entities using pattern matching.
         
         Args:
             chunk_ref: Reference to source text chunk
             text: Text to analyze for relationships
-            entities: List of entities found in this chunk
-            chunk_confidence: Confidence score from chunk
+            entities: List of entities found in this chunk (in T27 format: text, entity_type, start, end)
+            confidence: Minimum confidence threshold for relationships
         """
-        return relationship_extractor.extract_relationships(
-            chunk_ref=chunk_ref,
-            text=text,
-            entities=entities,
-            chunk_confidence=chunk_confidence
+        from src.tools.base_tool import ToolRequest
+        
+        request = ToolRequest(
+            tool_id="T27",
+            operation="extract_relationships",
+            input_data={
+                "chunk_ref": chunk_ref,
+                "text": text,
+                "entities": entities,  # Should be in T27 format already
+                "confidence": confidence
+            },
+            parameters={}
         )
+        
+        result = relationship_extractor.execute(request)
+        if result.status == "success":
+            return result.data
+        else:
+            return {"error": result.error_message, "error_code": result.error_code}
     
     @mcp.tool()
     def get_supported_relationship_types() -> List[str]:

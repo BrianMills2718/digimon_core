@@ -81,7 +81,7 @@ class LegacyToolAdapter(KGASTool):
                 legacy_result = self.legacy_tool.build_edges(relationships, source_refs)
             elif hasattr(self.legacy_tool, 'calculate_pagerank') and 'T68' in self.tool_id:
                 # PageRank calculator
-                graph_ref = legacy_input.get('graph_ref', 'neo4j://graph/main')
+                graph_ref = legacy_input.get('graph_ref', "neo4j://graph/main")
                 legacy_result = self.legacy_tool.calculate_pagerank(graph_ref)
             elif hasattr(self.legacy_tool, 'query_graph') and 'T49' in self.tool_id:
                 # Multi-hop query
@@ -456,19 +456,33 @@ def create_mvrt_tool_adapters() -> Dict[str, LegacyToolAdapter]:
 
 
 def register_all_mvrt_tools():
-    """Register all MVRT tools in the global registry."""
+    """Register all MVRT tools in the global registry using auto-registration."""
     from .tool_contract import register_tool
+    from .tool_registry_auto import ToolAutoRegistry
     
-    adapters = create_mvrt_tool_adapters()
-    for tool_id, adapter in adapters.items():
-        register_tool(adapter)
+    # Use auto-registration to discover and register all tools
+    registry = ToolAutoRegistry()
+    results = registry.auto_register_all_tools()
     
-    # Register new cross-modal tools (skip due to Neo4j dependency issues)
+    # Register discovered tools in the global registry
+    registered_count = 0
+    for tool_id in results.registered_tools:
+        tool = registry.get_tool(tool_id)
+        if tool:
+            register_tool(tool)
+            registered_count += 1
+    
+    print(f"Registered {registered_count} tools from auto-discovery")
+    
+    # Also try the legacy adapters for any tools not in auto-registry
     try:
-        print("Skipping cross-modal tools due to Neo4j configuration requirements")
-        pass
+        adapters = create_mvrt_tool_adapters()
+        for tool_id, adapter in adapters.items():
+            if tool_id not in results.registered_tools:
+                register_tool(adapter)
+                registered_count += 1
+                print(f"Registered legacy adapter for {tool_id}")
     except Exception as e:
-        print(f"Failed to load cross-modal tools: {e}")
-        pass
+        print(f"Error loading legacy adapters: {e}")
     
-    return adapters
+    return results.registered_tools

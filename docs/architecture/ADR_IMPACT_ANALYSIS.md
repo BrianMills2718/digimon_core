@@ -264,7 +264,6 @@ Core services coordinate tool execution, data storage, and cross-cutting concern
 - Performance monitoring that respects academic research priorities
 - Quality assurance that maintains uncertainty quantification standards
 
-## Implementation Status
 
 This document describes **architectural decision cascades** - how design decisions influence the target system. For current ADR implementation status and compliance progress, see:
 

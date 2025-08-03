@@ -2,29 +2,34 @@
 
 **Status**: Accepted  
 **Date**: 2025-07-23  
-**Context**: System design must align with either academic research requirements or enterprise production requirements, as these have fundamentally different priorities and constraints.
+**Updated**: 2025-07-29  
+**Context**: This is a proof-of-concept academic exercise to demonstrate the power of LLMs to automate and scale theoretically and empirically informed discourse-driven computational social science in an era of rapidly improving LLMs.
 
 ## Decision
 
-We will design KGAS as an **academic research tool** optimized for:
+We will design KGAS as an **LLM-powered computational social science proof-of-concept** that demonstrates:
 
-1. **Correctness over performance**: Prioritize accurate results and reproducibility
-2. **Flexibility over optimization**: Support diverse research methods and theories  
-3. **Transparency over efficiency**: Full provenance and explainable processing
-4. **Local deployment over scalability**: Single-node research environment focus
+1. **LLM-driven development**: Built using AI coding tools to showcase LLM development capabilities
+2. **Theoretical automation**: Automated theory extraction and application using modern LLMs
+3. **Empirical integration**: LLM-intelligent discourse analysis with uncertainty quantification
+4. **Research scalability**: From hundreds to thousands of documents using LLM intelligence
+5. **Methodological innovation**: New approaches possible only with sophisticated LLM capabilities
 
 ```python
-# Academic research design principles in code
-class AcademicResearchTool:
+# LLM-powered proof-of-concept principles
+class LLMComputationalSocialScience:
     def __init__(self):
-        self.priority_order = [
-            "correctness",      # Accurate results for publication
-            "reproducibility",  # Complete audit trails
-            "flexibility",      # Support diverse research approaches
-            "transparency",     # Explainable processing steps
-            "local_deployment", # Single researcher environment
-            "performance"       # Optimize only after above requirements met
+        self.demonstration_goals = [
+            "llm_development_capability",  # Show LLMs can build sophisticated systems
+            "theoretical_automation",     # Automate theory extraction from literature
+            "discourse_intelligence",     # LLM-powered discourse analysis at scale
+            "methodological_innovation",  # Enable new research approaches
+            "research_democratization",   # Make advanced analysis accessible
+            "proof_of_concept_validity"   # Demonstrate feasibility of LLM-driven research
         ]
+        
+        self.complexity_philosophy = "sophisticated_backend_simple_interface"
+        self.development_approach = "llm_assisted_rapid_prototyping"
 ```
 
 ## Rationale

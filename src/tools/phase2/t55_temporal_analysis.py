@@ -202,8 +202,7 @@ class TemporalAnalysisTool(BaseTool):
             logger.info(f"Temporal analysis completed in {execution_time:.2f}s")
             
             return ToolResult(
-                tool_id=self.tool_id,
-                success=True,
+                tool_id=self.tool_id, status="success", 
                 data=formatted_output,
                 metadata={
                     "snapshots_analyzed": len(snapshots),
@@ -415,10 +414,9 @@ class TemporalAnalysisTool(BaseTool):
         logger.error(error_message, exc_info=True)
         
         return ToolResult(
-            tool_id=self.tool_id,
-            success=False,
+            tool_id=self.tool_id, status="error", 
             data=None,
-            error=error_message,
+            error_message=error_message,
             metadata={
                 "error_type": type(error).__name__,
                 "input_data": request.input_data,

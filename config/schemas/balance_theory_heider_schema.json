@@ -1,0 +1,249 @@
+{
+  "theory_id": "heider_balance_theory_1958",
+  "theory_name": "Heider's Balance Theory",
+  "theory_version": "1.0",
+  "meta_schema_version": "11.1",
+  "created_date": "2025-07-26",
+  "theory_metadata": {
+    "primary_authors": [
+      "Fritz Heider"
+    ],
+    "publication_year": 1958,
+    "source_work": "The Psychology of Interpersonal Relations",
+    "theoretical_tradition": "Social psychology, attitude consistency, cognitive balance",
+    "original_purpose": "Explain how people strive for consistency in their attitudes toward objects and other people through balanced triadic relationships"
+  },
+  "telos": {
+    "primary_purpose": "Predict attitude change and relationship dynamics through analysis of balanced/imbalanced triadic configurations",
+    "secondary_purposes": [
+      "Identify cognitive tensions requiring resolution",
+      "Predict attitude change directions to restore balance",
+      "Analyze interpersonal relationship stability",
+      "Understand persuasion and influence processes"
+    ],
+    "theoretical_scope": "Individual-level attitude consistency in interpersonal contexts",
+    "domain_applicability": "Opinion statements, relationship descriptions, attitude expressions, persuasion contexts"
+  },
+  "classification": {
+    "analytical_tier": "predictive",
+    "tier_justification": "Predicts specific attitude changes and relationship outcomes based on balance/imbalance patterns",
+    "paradigm": "cognitive-consistency",
+    "level_of_analysis": "individual",
+    "temporal_scope": "synchronic_with_dynamic_prediction",
+    "complexity": "low",
+    "formalization_level": "highly_formalized"
+  },
+  "ontology": {
+    "core_entities": {
+      "persons": {
+        "definition": "Individual actors in triadic relationships (P = perceiver, O = other person)",
+        "properties": [
+          "person_identity",
+          "role_in_triad"
+        ],
+        "examples": [
+          "P (self)",
+          "O (other person)",
+          "speaker",
+          "audience"
+        ]
+      },
+      "objects": {
+        "definition": "Attitude objects, issues, or entities toward which attitudes are held",
+        "properties": [
+          "object_identity",
+          "attitude_domain"
+        ],
+        "examples": [
+          "policies",
+          "ideas",
+          "groups",
+          "behaviors",
+          "values"
+        ]
+      },
+      "relationships": {
+        "definition": "Directed evaluative connections between persons and objects or between persons",
+        "properties": [
+          "relationship_type",
+          "valence",
+          "strength"
+        ],
+        "relationship_types": [
+          "sentiment",
+          "unit"
+        ],
+        "valence_values": [
+          "positive",
+          "negative",
+          "neutral"
+        ]
+      }
+    },
+    "relationship_taxonomy": {
+      "sentiment_relations": {
+        "definition": "Evaluative attitudes (liking/disliking)",
+        "notation": "L (likes) or ~L (dislikes)",
+        "examples": [
+          "P likes O",
+          "P dislikes policy X",
+          "O supports candidate Y"
+        ]
+      },
+      "unit_relations": {
+        "definition": "Belonging, association, or unit formation",
+        "notation": "U (unit relation) or ~U (no unit relation)",
+        "examples": [
+          "P belongs to group X",
+          "O advocates policy Y",
+          "candidate associated with party"
+        ]
+      }
+    },
+    "balance_principles": {
+      "balanced_triad": "Product of all three relationship signs is positive (+1)",
+      "imbalanced_triad": "Product of all three relationship signs is negative (-1)",
+      "balance_rule": "Friend of friend is friend, enemy of enemy is friend, friend of enemy is enemy, enemy of friend is enemy"
+    },
+    "structural_measures": {
+      "balance_coefficient": "Proportion of balanced triads in total triadic configuration",
+      "tension_index": "Measure of psychological tension from imbalanced relationships",
+      "change_pressure": "Direction and intensity of pressure for attitude change"
+    }
+  },
+  "execution": {
+    "stage_1_comprehensive_structuring": {
+      "step_1_applicability_assessment": {
+        "description": "Evaluate text suitability for balance theory analysis",
+        "criteria": {
+          "triadic_relationships_present": "Clear person-person-object or person-object-object configurations",
+          "evaluative_content": "Expressions of liking/disliking, support/opposition, positive/negative attitudes",
+          "relationship_clarity": "Explicit or clearly inferable relationships between entities"
+        },
+        "scoring": "0.0-1.0 scale based on presence and clarity of triadic structures",
+        "threshold": "0.5 minimum for meaningful balance analysis"
+      },
+      "step_2_entity_identification": {
+        "description": "Identify all persons and attitude objects in the text",
+        "person_extraction": [
+          "Identify speaker (P - perceiver)",
+          "Identify other persons mentioned (O - others)",
+          "Extract implicit persons (audiences, groups, institutions)",
+          "Map person roles and identities"
+        ],
+        "object_extraction": [
+          "Identify attitude objects (policies, ideas, groups, behaviors)",
+          "Extract abstract concepts toward which attitudes are expressed",
+          "Categorize objects by domain (political, social, economic, etc.)"
+        ],
+        "output_format": "person_list: [P, O1, O2...], object_list: [X, Y, Z...]"
+      },
+      "step_3_relationship_extraction": {
+        "description": "Extract sentiment and unit relationships between all entity pairs",
+        "sentiment_relationships": [
+          "Identify expressions of liking/disliking between persons",
+          "Extract positive/negative attitudes toward objects",
+          "Determine relationship valence and strength",
+          "Handle implicit or contextual evaluations"
+        ],
+        "unit_relationships": [
+          "Identify belonging, association, or ownership relations",
+          "Extract advocacy, support, or representation relationships",
+          "Determine group memberships and affiliations",
+          "Map institutional or organizational connections"
+        ],
+        "output_format": "P [sentiment/unit] [+/-] O/X"
+      },
+      "step_4_triadic_configuration": {
+        "description": "Construct all possible triadic relationships from identified entities",
+        "triad_types": [
+          "P-O-X (person-person-object)",
+          "P-X-Y (person-object-object)",
+          "P-O1-O2 (person-person-person)"
+        ],
+        "triad_notation": "POX, PXY, PO1O2 with relationship signs",
+        "completeness_check": "Ensure all meaningful triadic combinations identified"
+      },
+      "step_5_balance_calculation": {
+        "description": "Calculate balance/imbalance for each triad and overall configuration",
+        "balance_determination": [
+          "Apply multiplication rule: (+)(+)(+)=balanced, (+)(+)(-)=imbalanced, etc.",
+          "Identify balanced vs. imbalanced triads",
+          "Calculate overall balance coefficient",
+          "Determine tension sources and magnitudes"
+        ]
+      }
+    },
+    "stage_2_analytic_evaluation": {
+      "step_1_balance_pattern_analysis": {
+        "description": "Analyze overall balance/imbalance patterns and their implications",
+        "components": [
+          "Categorize triads by balance status",
+          "Identify systematic imbalance patterns",
+          "Assess psychological tension levels",
+          "Evaluate stability of current configuration"
+        ]
+      },
+      "step_2_tension_source_identification": {
+        "description": "Pinpoint specific relationships creating imbalance and psychological tension",
+        "tension_analysis": [
+          "Identify relationships involved in multiple imbalanced triads",
+          "Assess magnitude of tension from each imbalanced configuration",
+          "Prioritize tension sources by psychological pressure",
+          "Map interconnected tension patterns"
+        ]
+      },
+      "step_3_change_prediction": {
+        "description": "Predict likely attitude changes to restore balance",
+        "prediction_logic": [
+          "Identify minimum changes needed for balance restoration",
+          "Consider resistance to change for different relationship types",
+          "Predict most probable change pathways",
+          "Assess feasibility of different balance restoration routes"
+        ],
+        "change_types": [
+          "Attitude change toward objects",
+          "Relationship change toward persons",
+          "Cognitive restructuring or differentiation"
+        ]
+      },
+      "step_4_persuasion_implications": {
+        "description": "Analyze persuasion opportunities and resistance patterns",
+        "persuasion_analysis": [
+          "Identify leverage points for attitude change",
+          "Predict resistance to persuasion attempts",
+          "Assess optimal persuasion strategies based on balance dynamics",
+          "Evaluate potential boomerang effects"
+        ]
+      }
+    }
+  },
+  "validation": {
+    "internal_consistency": {
+      "relationship_coherence": "All relationships properly categorized as sentiment or unit",
+      "valence_consistency": "Consistent application of positive/negative valences",
+      "triadic_completeness": "All relevant triadic combinations identified",
+      "balance_calculation_accuracy": "Correct application of multiplication rule"
+    },
+    "theoretical_fidelity": {
+      "heider_principle_compliance": "Strict adherence to original balance theory principles",
+      "triadic_focus": "Analysis centered on three-entity configurations",
+      "cognitive_consistency_emphasis": "Focus on psychological tension and consistency motivation",
+      "prediction_logic": "Change predictions follow balance restoration logic"
+    },
+    "empirical_validation": {
+      "relationship_identification_accuracy": "All explicit and clearly implicit relationships captured",
+      "balance_assessment_validity": "Mathematically correct balance/imbalance determinations",
+      "tension_measurement": "Valid assessment of psychological pressure magnitudes",
+      "change_prediction_plausibility": "Realistic and theoretically grounded predictions"
+    },
+    "predictive_validation": {
+      "attitude_change_prediction": "Specific, testable predictions about attitude changes",
+      "relationship_stability_assessment": "Valid predictions about relationship durability",
+      "persuasion_effectiveness": "Accurate predictions about persuasion success/failure",
+      "temporal_dynamics": "Realistic timelines for balance restoration processes"
+    }
+  },
+  "mode": "open",
+  "schema_id": "heider_balance_theory_1958"
+}

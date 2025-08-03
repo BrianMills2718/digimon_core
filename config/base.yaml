@@ -1,0 +1,77 @@
+# KGAS Base Configuration
+# This file contains the default configuration settings for all environments.
+# Environment-specific files (development.yaml, production.yaml) override these settings.
+
+database:
+  neo4j:
+    host: "localhost"
+    port: 7687
+    username: "neo4j"
+    password: ""
+    database: "neo4j"
+    max_connections: 50
+    connection_timeout: 30
+    read_timeout: 300
+
+llm:
+  openai:
+    provider: "openai"
+    model: "gpt-4"
+    max_tokens: 4000
+    temperature: 0.1
+    timeout: 60
+    max_retries: 3
+    rate_limit_per_minute: 60
+  
+  anthropic:
+    provider: "anthropic"
+    model: "claude-3-sonnet-20240229"
+    max_tokens: 4000
+    temperature: 0.1
+    timeout: 60
+    max_retries: 3
+    rate_limit_per_minute: 60
+  
+  google:
+    provider: "google"
+    model: "gemini-pro"
+    max_tokens: 4000
+    temperature: 0.1
+    timeout: 60
+    max_retries: 3
+    rate_limit_per_minute: 60
+
+schema:
+  enabled_paradigms:
+    - "uml"
+    - "rdf_owl"
+    - "orm"
+    - "typedb"
+    - "nary"
+  default_paradigm: "rdf_owl"
+  cross_paradigm_validation: true
+  auto_transform: true
+  validation_timeout: 30
+
+error_handling:
+  circuit_breaker_enabled: true
+  circuit_breaker_threshold: 5
+  circuit_breaker_timeout: 60
+  max_retries: 3
+  retry_delay: 1.0
+  exponential_backoff: true
+  health_check_interval: 60
+  metrics_enabled: true
+
+security:
+  encrypt_credentials: true
+  pii_encryption: true
+  api_key_rotation_days: 90
+  audit_logging: true
+
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: "logs/kgas.log"
+  max_file_size: "10MB"
+  backup_count: 5

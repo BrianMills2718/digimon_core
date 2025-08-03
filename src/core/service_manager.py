@@ -8,10 +8,12 @@ Target: 10x speedup by eliminating redundant service creation.
 from typing import Optional, Dict, Any
 import threading
 from neo4j import GraphDatabase
+import sqlite3
+from pathlib import Path
 
-from .identity_service import IdentityService
-from .provenance_service import ProvenanceService
-from .quality_service import QualityService
+from src.services.identity_service import IdentityService as RealIdentityService
+from src.services.provenance_service import ProvenanceService as RealProvenanceService
+from src.services.quality_service import QualityService as RealQualityService
 from .config_manager import get_config
 from .logging_config import get_logger
 
@@ -43,12 +45,17 @@ class ServiceManager:
                 self.logger = get_logger("core.service_manager")
     
     @property
-    def identity_service(self) -> IdentityService:
+    def identity_service(self) -> RealIdentityService:
         """Get shared identity service instance."""
         if not self._identity_service:
-            # Use configuration if set, otherwise default to minimal behavior
-            config = self._identity_config or {}
-            self._identity_service = IdentityService(**config)
+            # Get Neo4j driver first
+            neo4j_driver = self.get_neo4j_driver()
+            if neo4j_driver:
+                self._identity_service = RealIdentityService(neo4j_driver)
+                self.logger.info("Initialized real IdentityService with Neo4j")
+            else:
+                self.logger.error("Cannot create IdentityService without Neo4j connection")
+                raise RuntimeError("Neo4j connection required for IdentityService")
         return self._identity_service
     
     def configure_identity_service(self, **config):
@@ -65,17 +72,29 @@ class ServiceManager:
         self._identity_config = config
     
     @property
-    def provenance_service(self) -> ProvenanceService:
+    def provenance_service(self) -> RealProvenanceService:
         """Get shared provenance service instance."""
         if not self._provenance_service:
-            self._provenance_service = ProvenanceService()
+            # Create SQLite connection for provenance
+            db_path = Path("data/provenance.db")
+            db_path.parent.mkdir(parents=True, exist_ok=True)
+            conn = sqlite3.connect(str(db_path))
+            self._provenance_service = RealProvenanceService(connection=conn)
+            self.logger.info(f"Initialized real ProvenanceService with SQLite at {db_path}")
         return self._provenance_service
     
     @property
-    def quality_service(self) -> QualityService:
+    def quality_service(self) -> RealQualityService:
         """Get shared quality service instance."""
         if not self._quality_service:
-            self._quality_service = QualityService()
+            # Get Neo4j driver first
+            neo4j_driver = self.get_neo4j_driver()
+            if neo4j_driver:
+                self._quality_service = RealQualityService(neo4j_driver)
+                self.logger.info("Initialized real QualityService with Neo4j")
+            else:
+                self.logger.error("Cannot create QualityService without Neo4j connection")
+                raise RuntimeError("Neo4j connection required for QualityService")
         return self._quality_service
     
     def get_neo4j_driver(
@@ -87,12 +106,12 @@ class ServiceManager:
         """Get shared Neo4j driver instance with connection pooling using configuration."""
         # Load configuration if parameters not provided
         config = get_config()
-        neo4j_config = config.neo4j
+        database_config = config.database  # Changed from neo4j to database
         
         # Use provided parameters or fall back to configuration
-        uri = uri or neo4j_config.uri
-        user = user or neo4j_config.user
-        password = password or neo4j_config.password
+        uri = uri or database_config.uri
+        user = user or database_config.username  # Changed from user to username
+        password = password or database_config.password
         
         config_key = f"{uri}:{user}"
         
@@ -109,9 +128,9 @@ class ServiceManager:
                     self._neo4j_driver = GraphDatabase.driver(
                         uri,
                         auth=(user, password),
-                        max_connection_pool_size=neo4j_config.max_connection_pool_size,
-                        connection_acquisition_timeout=neo4j_config.connection_acquisition_timeout,
-                        keep_alive=neo4j_config.keep_alive
+                        max_connection_pool_size=database_config.max_connection_pool_size,
+                        connection_acquisition_timeout=database_config.connection_acquisition_timeout,
+                        keep_alive=database_config.keep_alive
                     )
                     self._neo4j_config = config_key
                     
@@ -135,15 +154,15 @@ class ServiceManager:
             self._neo4j_driver = None
         self._neo4j_config = None
     
-    def get_identity_service(self) -> IdentityService:
+    def get_identity_service(self) -> RealIdentityService:
         """Get shared identity service instance."""
         return self.identity_service
     
-    def get_provenance_service(self) -> ProvenanceService:
+    def get_provenance_service(self) -> RealProvenanceService:
         """Get shared provenance service instance."""
         return self.provenance_service
     
-    def get_quality_service(self) -> QualityService:
+    def get_quality_service(self) -> RealQualityService:
         """Get shared quality service instance."""
         return self.quality_service
     

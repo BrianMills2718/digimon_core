@@ -10,8 +10,7 @@ KGAS implements a **simplified, direct tool registry pattern** that eliminates t
 
 ## Architecture Comparison
 
-### Previous Over-Abstracted Approach ❌
-```
+### Previous Over-Abstracted Approach ```
 ToolFactory → Adapter → Tool → Protocol Implementation
      ↓           ↓        ↓              ↓
   Creates    Wraps    Implements    Defines Interface
@@ -25,8 +24,7 @@ ToolFactory → Adapter → Tool → Protocol Implementation
 - Adapter layers that add no value
 - Difficult to understand and maintain
 
-### New Simplified Approach ✅
-```
+### New Simplified Approach ```
 ToolRegistry → BaseTool Implementation
      ↓               ↓
   Direct         Implements

@@ -1,0 +1,219 @@
+tool_id: "T85_TWITTER_EXPLORER"
+name: "Twitter API Explorer"
+description: "Explore Twitter data via natural language queries with graph building capabilities"
+version: "1.0.0"
+category: "social_media_analysis"
+
+input_schema:
+  type: object
+  properties:
+    query:
+      type: string
+      minLength: 1
+      maxLength: 500
+      description: "Natural language query about Twitter data"
+    api_keys:
+      type: object
+      properties:
+        gemini_key:
+          type: string
+          minLength: 1
+          description: "Google Gemini API key for query planning"
+        rapidapi_key:
+          type: string
+          minLength: 1
+          description: "RapidAPI key for Twitter API access"
+      required: ["gemini_key", "rapidapi_key"]
+    workflow_id:
+      type: string
+      description: "Workflow identifier for tracking"
+    max_results:
+      type: integer
+      minimum: 1
+      maximum: 1000
+      default: 100
+      description: "Maximum number of results to retrieve"
+    include_graph:
+      type: boolean
+      default: true
+      description: "Whether to build graph data for visualization"
+    timeout_seconds:
+      type: integer
+      minimum: 10
+      maximum: 300
+      default: 60
+      description: "API timeout in seconds"
+  required: ["query", "api_keys"]
+
+output_schema:
+  type: object
+  properties:
+    summary:
+      type: string
+      description: "LLM-generated summary of findings"
+    entities:
+      type: array
+      items:
+        type: object
+        properties:
+          entity_id:
+            type: string
+            description: "Unique entity identifier"
+          entity_type:
+            type: string
+            enum: ["TwitterUser", "Tweet", "TwitterList", "TwitterSpace", "TwitterCommunity"]
+            description: "Type of Twitter entity"
+          surface_form:
+            type: string
+            description: "Display name or text"
+          canonical_name:
+            type: string
+            description: "Canonical identifier (screen_name, tweet_id, etc.)"
+          confidence:
+            type: number
+            minimum: 0
+            maximum: 1
+            description: "Confidence in entity extraction"
+          metadata:
+            type: object
+            description: "Entity-specific metadata"
+        required: ["entity_id", "entity_type", "surface_form", "confidence"]
+      description: "Extracted Twitter entities"
+    relationships:
+      type: array
+      items:
+        type: object
+        properties:
+          relationship_id:
+            type: string
+            description: "Unique relationship identifier"
+          source_entity_id:
+            type: string
+            description: "Source entity ID"
+          target_entity_id:
+            type: string
+            description: "Target entity ID"
+          relationship_type:
+            type: string
+            enum: ["FOLLOWS", "MENTIONS", "RETWEETS", "REPLIES_TO", "QUOTES", "MEMBER_OF", "OWNS"]
+            description: "Type of relationship"
+          confidence:
+            type: number
+            minimum: 0
+            maximum: 1
+            description: "Confidence in relationship extraction"
+          metadata:
+            type: object
+            description: "Relationship-specific metadata"
+        required: ["relationship_id", "source_entity_id", "target_entity_id", "relationship_type", "confidence"]
+      description: "Extracted relationships between entities"
+    graph_data:
+      type: object
+      properties:
+        nodes:
+          type: array
+          description: "Graph nodes in Neo4j format"
+        edges:
+          type: array
+          description: "Graph edges in Neo4j format"
+        metadata:
+          type: object
+          properties:
+            node_count:
+              type: integer
+            edge_count:
+              type: integer
+            connected_components:
+              type: integer
+          description: "Graph statistics"
+      description: "Graph data for Neo4j storage and visualization"
+    api_execution_log:
+      type: array
+      items:
+        type: object
+        properties:
+          step:
+            type: integer
+            description: "Execution step number"
+          endpoint:
+            type: string
+            description: "Twitter API endpoint called"
+          parameters:
+            type: object
+            description: "API call parameters"
+          response_time:
+            type: number
+            description: "API response time in seconds"
+          status:
+            type: string
+            enum: ["success", "error"]
+            description: "API call status"
+        required: ["step", "endpoint", "status"]
+      description: "Log of API calls executed"
+    processing_stats:
+      type: object
+      properties:
+        total_api_calls:
+          type: integer
+        total_execution_time:
+          type: number
+        entities_extracted:
+          type: integer
+        relationships_extracted:
+          type: integer
+        query_complexity_score:
+          type: number
+          minimum: 0
+          maximum: 1
+      description: "Processing statistics"
+  required: ["summary", "entities", "relationships", "processing_stats"]
+
+depends_on: []
+
+dependencies:
+  - "google-generativeai"
+  - "requests"
+  - "networkx"
+  - "identity_service"
+  - "provenance_service"
+  - "quality_service"
+
+performance_requirements:
+  max_execution_time: 120.0
+  max_memory_mb: 500
+  min_accuracy: 0.85
+  max_api_calls_per_query: 20
+
+error_conditions:
+  - "INVALID_QUERY"
+  - "MISSING_API_KEYS"
+  - "INVALID_API_CREDENTIALS"
+  - "RATE_LIMIT_EXCEEDED"
+  - "API_TIMEOUT"
+  - "QUERY_TOO_COMPLEX"
+  - "UNSUPPORTED_QUERY_TYPE"
+  - "GRAPH_CONSTRUCTION_FAILED"
+  - "ENTITY_EXTRACTION_FAILED"
+  - "SERVICE_INTEGRATION_FAILED"
+
+integration_points:
+  identity_service:
+    - "create_entity"
+    - "create_mention"
+    - "resolve_entity"
+  provenance_service:
+    - "log_execution"
+    - "track_lineage"
+  quality_service:
+    - "assess_confidence"
+    - "validate_extraction"
+  graph_service:
+    - "store_graph_data"
+    - "create_relationships"
+
+theory_compliance:
+  meta_schema_version: "v9.1"
+  ontology_alignment: "MANUAL"
+  extraction_strategy: "LLM_GUIDED"
+  domain_specific: true
+  domain: "social_media_analysis"

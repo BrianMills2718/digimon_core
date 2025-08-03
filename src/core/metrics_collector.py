@@ -175,8 +175,6 @@ class MetricsCollector:
         
         if metric_count != 41:
             from .config_manager import ConfigurationError
-from src.core.config_manager import get_config
-
             raise ConfigurationError(f"Expected 41 metrics, initialized {metric_count}. Metrics: {metric_attributes}")
     
     def start_metrics_server(self):

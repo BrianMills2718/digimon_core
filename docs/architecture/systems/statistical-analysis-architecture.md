@@ -6,7 +6,32 @@
 
 ## Overview
 
-The Statistical Analysis System provides comprehensive quantitative analysis capabilities integrated with KGAS's cross-modal architecture. This system enables researchers to perform advanced statistical analyses including SEM, multivariate analysis, and theory-driven model specification while maintaining full integration with graph and vector analysis capabilities.
+The Statistical Analysis System provides comprehensive quantitative analysis capabilities **aligned with KGAS's world analysis purpose**. This system enables researchers to perform advanced statistical analyses including SEM, multivariate analysis, and theory-driven model specification to **understand real-world phenomena through discourse analysis**, while maintaining full integration with graph and vector analysis capabilities.
+
+## World Analysis-Focused Statistical Architecture
+
+### **Statistical Analysis for World Phenomena Understanding**
+
+**Primary Focus**: Use statistical methods to **quantify and analyze world phenomena** as revealed through discourse patterns, not just text properties.
+
+**V13 Theory Integration**: Statistical analyses are **guided by V13 theory schemas** that specify:
+- **Expected relationships** (`theoretical_structure.relations`) → Statistical model specifications
+- **Measurable properties** (`entities.properties.measurement`) → Variable definitions and scales  
+- **Mathematical formulas** (`algorithms.mathematical`) → Direct computational implementations
+- **Analytical purposes** (`telos.analytical_questions`) → Appropriate statistical methods
+
+**World Analysis Statistical Workflow**:
+1. **Theory Selection** → V13 `telos.analytical_questions` matches human research questions
+2. **Variable Extraction** → V13 `theoretical_structure` guides entity/property measurement from discourse
+3. **Model Specification** → V13 `algorithms` section provides statistical formulations
+4. **Analysis Execution** → Statistical methods reveal world patterns through discourse data
+5. **Interpretation** → Results interpreted as insights about world phenomena, not text patterns
+
+**Cross-Modal Statistical Integration**:
+- **Graph → Statistics**: Network structures inform statistical model specifications (e.g., SEM path models)
+- **Statistics → Graph**: Statistical relationships converted to analyzable network structures  
+- **Vector → Statistics**: Semantic similarities inform clustering and classification analyses
+- **Theory Guidance**: V13 `computational_representation.primary_format` determines optimal cross-modal flow
 
 ## System Architecture
 

@@ -1,30 +1,115 @@
 tool_id: "T49_MULTI_HOP_QUERY"
+name: "Multi-hop Graph Query"
 description: "Executes multi-hop graph queries to find relationships and patterns"
-category: "Retrieval"
+version: "1.0.0"
+category: "analysis"
 
-input_contract:
-  required_data_types:
-    - type: "WorkflowState"
-      attributes: ["query", "max_hops"]
-  required_state:
-    edges_built: true
+input_schema:
+  type: object
+  properties:
+    query_text:
+      type: string
+      minLength: 1
+      description: "Natural language query to execute"
+    max_hops:
+      type: integer
+      minimum: 1
+      maximum: 5
+      default: 2
+      description: "Maximum hops to traverse in graph"
+    result_limit:
+      type: integer
+      minimum: 1
+      maximum: 100
+      default: 10
+      description: "Maximum number of results to return"
+    entity_types:
+      type: array
+      items:
+        type: string
+      description: "Filter results to specific entity types"
+    confidence_threshold:
+      type: number
+      minimum: 0
+      maximum: 1
+      default: 0.1
+      description: "Minimum confidence threshold for results"
+  required: ["query_text"]
 
-output_contract:
-  produced_data_types:
-    - type: "Entity"
-      attributes: ["entity_id", "canonical_name", "entity_type"]
-    - type: "Relationship"  
-      attributes: ["relationship_id", "source_id", "target_id", "relationship_type"]
-  produced_state:
-    query_executed: true
+output_schema:
+  type: object
+  properties:
+    results:
+      type: array
+      items:
+        type: object
+        properties:
+          path:
+            type: array
+            description: "Path of entities and relationships"
+          entities:
+            type: array
+            items:
+              type: object
+              properties:
+                entity_id:
+                  type: string
+                canonical_name:
+                  type: string
+                entity_type:
+                  type: string
+                confidence:
+                  type: number
+          relationships:
+            type: array
+            items:
+              type: object
+              properties:
+                relationship_id:
+                  type: string
+                relationship_type:
+                  type: string
+                confidence:
+                  type: number
+          path_weight:
+            type: number
+          relevance_score:
+            type: number
+        required: ["path", "entities", "relationships", "path_weight"]
+    total_results:
+      type: integer
+      minimum: 0
+    query_analysis:
+      type: object
+      properties:
+        extracted_entities:
+          type: array
+        query_complexity:
+          type: string
+        execution_time:
+          type: number
+    graph_stats:
+      type: object
+      properties:
+        nodes_searched:
+          type: integer
+        paths_evaluated:
+          type: integer
+  required: ["results", "total_results"]
 
-error_codes:
-  - code: "DATABASE_CONNECTION_ERROR"
-    description: "Failed to connect to Neo4j database for query execution"
-    severity: "error"
-  - code: "INVALID_QUERY"
-    description: "Query format is invalid or contains syntax errors"
-    severity: "error"
-  - code: "NO_RESULTS_FOUND"
-    description: "Query executed successfully but returned no results"
-    severity: "info"
+depends_on: ["T31_ENTITY_BUILDER", "T34_EDGE_BUILDER"]
+
+dependencies:
+  - "neo4j"
+  - "spacy"
+
+performance_requirements:
+  max_execution_time: 30.0
+  max_memory_mb: 512
+  min_accuracy: 0.80
+
+error_conditions:
+  - "DATABASE_CONNECTION_ERROR"
+  - "INVALID_QUERY"
+  - "NO_RESULTS_FOUND"
+  - "INVALID_INPUT"

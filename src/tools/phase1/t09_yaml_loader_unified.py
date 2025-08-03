@@ -26,7 +26,7 @@ class T09YAMLLoaderUnified(BaseTool):
     def __init__(self, service_manager: ServiceManager):
         """Initialize with service manager"""
         super().__init__(service_manager)
-        self.tool_id = "T09"
+        self.tool_id = "T09_YAML_LOADER"
         self.identity_service = service_manager.identity_service
         self.provenance_service = service_manager.provenance_service
         self.quality_service = service_manager.quality_service

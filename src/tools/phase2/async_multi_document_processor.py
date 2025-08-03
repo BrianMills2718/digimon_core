@@ -17,6 +17,19 @@ from src.core.config_manager import get_config
 from src.core.async_api_clients import AsyncOpenAIClient
 from src.core.memory_manager import get_memory_manager, MemoryConfiguration
 
+@dataclass 
+class DocumentInput:
+    """Input specification for document processing."""
+    file_path: str
+    document_id: str = None
+    metadata: Dict[str, Any] = None
+    
+    def __post_init__(self):
+        if self.document_id is None:
+            self.document_id = Path(self.file_path).stem
+        if self.metadata is None:
+            self.metadata = {}
+
 @dataclass
 class ProcessingResult:
     """Result of document processing."""

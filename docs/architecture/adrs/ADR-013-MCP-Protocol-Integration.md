@@ -1,12 +1,14 @@
-# ADR-013: MCP Protocol Integration
+# ADR-013: MCP Protocol Integration (Layer 3: External API Access)
 
 **Status**: Accepted  
 **Date**: 2025-07-23  
+**Layer**: **Layer 3 - External API Access** (see [ADR-028](ADR-028-Tool-Interface-Layer-Architecture.md) for complete layer architecture)  
+**Related**: [ADR-001](ADR-001-Phase-Interface-Design.md) (Layer 2 contracts), [ADR-002](ADR-002-Pipeline-Orchestrator-Architecture.md) (Layer 1→2 adapters)  
 **Context**: System requires standardized tool interface protocol for exposing analysis capabilities to external clients and enabling tool composition workflows.
 
 ## Decision
 
-We will integrate the **Model Context Protocol (MCP)** as the standard interface for exposing KGAS tools:
+We will integrate the **Model Context Protocol (MCP)** as **Layer 3 (External API Access)** in the [three-layer tool interface architecture](ADR-028-Tool-Interface-Layer-Architecture.md). MCP provides the standard interface for exposing KGAS tools to external systems and AI orchestration:
 
 ```python
 # MCP integration pattern
@@ -32,11 +34,12 @@ def extract_entities(
     return result.data if result.status == "success" else {"error": result.error}
 ```
 
-### **Core Integration Principles**
-1. **Standard interface**: All KGAS tools exposed via MCP protocol
-2. **Tool composition**: MCP enables chaining tools for complex workflows  
-3. **External integration**: MCP allows integration with Claude, other AI systems
-4. **Academic workflow support**: MCP tools designed for research use cases
+### **Layer 3 Integration Principles**
+1. **External API standard**: All KGAS tools exposed via MCP protocol for external access
+2. **AI orchestration**: MCP enables Claude and other AI systems to chain tools for complex workflows  
+3. **Cross-system integration**: MCP allows integration with other MCP-compatible research tools
+4. **JSON serialization**: Layer 3 enforces JSON-compatible data formats for cross-language compatibility
+5. **Wraps Layer 2**: MCP tools call Layer 2 KGASTool contracts internally
 
 ## Rationale
 
@@ -63,28 +66,28 @@ def extract_entities(
 ### **Why Not Alternative Protocol Approaches?**
 
 **REST API**:
-- ❌ **More implementation overhead**: Requires full HTTP server implementation
-- ❌ **Less type safety**: JSON REST APIs lack built-in type validation
-- ❌ **Manual documentation**: Requires separate API documentation maintenance
-- ❌ **Limited tool composition**: No built-in support for tool chaining workflows
+- **More implementation overhead**: Requires full HTTP server implementation
+- **Less type safety**: JSON REST APIs lack built-in type validation
+- **Manual documentation**: Requires separate API documentation maintenance
+- **Limited tool composition**: No built-in support for tool chaining workflows
 
 **GraphQL**:
-- ❌ **Complexity overhead**: GraphQL adds significant complexity for simple tool interfaces
-- ❌ **Academic research mismatch**: GraphQL optimized for data queries, not tool execution
-- ❌ **Limited AI integration**: No specific support for AI tool orchestration
-- ❌ **Learning curve**: Requires GraphQL expertise for researchers and developers
+- **Complexity overhead**: GraphQL adds significant complexity for simple tool interfaces
+- **Academic research mismatch**: GraphQL optimized for data queries, not tool execution
+- **Limited AI integration**: No specific support for AI tool orchestration
+- **Learning curve**: Requires GraphQL expertise for researchers and developers
 
 **Python API Only**:
-- ❌ **Language limitation**: Restricts integration to Python-only environments
-- ❌ **No external access**: Cannot be accessed by external AI systems or tools
-- ❌ **Limited composition**: No standardized way to chain tools across different systems
-- ❌ **Academic workflow isolation**: Cannot integrate with broader academic tool ecosystem
+- **Language limitation**: Restricts integration to Python-only environments
+- **No external access**: Cannot be accessed by external AI systems or tools
+- **Limited composition**: No standardized way to chain tools across different systems
+- **Academic workflow isolation**: Cannot integrate with broader academic tool ecosystem
 
 **Custom Protocol**:
-- ❌ **Implementation burden**: Requires designing, implementing, and maintaining custom protocol
-- ❌ **No ecosystem**: Lacks existing tool ecosystem and client implementations
-- ❌ **Documentation overhead**: Requires custom documentation and client libraries
-- ❌ **Integration barriers**: Other systems would need custom integration code
+- **Implementation burden**: Requires designing, implementing, and maintaining custom protocol
+- **No ecosystem**: Lacks existing tool ecosystem and client implementations
+- **Documentation overhead**: Requires custom documentation and client libraries
+- **Integration barriers**: Other systems would need custom integration code
 
 ## Alternatives Considered
 
@@ -334,6 +337,9 @@ KGAS tools can integrate with other academic MCP tools:
 
 ## Related ADRs
 
+- **[ADR-028](ADR-028-Tool-Interface-Layer-Architecture.md)**: Defines this ADR as Layer 3 in three-layer architecture
+- **[ADR-001](ADR-001-Phase-Interface-Design.md)**: Layer 2 contract interface that MCP tools wrap and call
+- **[ADR-002](ADR-002-Pipeline-Orchestrator-Architecture.md)**: Layer 1→2 adapters that enable legacy tool access via MCP
 - **ADR-011**: Academic Research Focus (MCP tools designed for research workflows)
 - **ADR-008**: Core Service Architecture (MCP tools integrate with core services)
 - **ADR-010**: Quality System Design (MCP tools return confidence and quality metrics)

@@ -37,7 +37,10 @@ class OntologyStorageService:
     Ensures academic reproducibility and examinability (TORC compliance).
     """
     
-    def __init__(self, db_path: str = "./data/ontology_storage.db"):
+    def __init__(self, db_path: str = None):
+        if db_path is None:
+            from .standard_config import get_file_path
+            db_path = f"{get_file_path('data_dir')}/ontology_storage.db"
         """
         Initialize storage service.
         

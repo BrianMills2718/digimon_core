@@ -17,11 +17,13 @@ from datetime import datetime
 sys.path.append(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'universal_llm_kit'))
 
 try:
-    from universal_llm import structured, get_llm
+    import litellm
+    from dotenv import load_dotenv
+    load_dotenv()  # Load API keys from .env
+    litellm_available = True
 except ImportError:
-    logging.warning("Universal LLM Kit not available - structured output will be simulated")
-    get_llm = None
-    structured = None
+    logging.warning("LiteLLM not available - structured output will be simulated")
+    litellm_available = False
 
 logger = logging.getLogger(__name__)
 
@@ -45,18 +47,24 @@ class StructuredLLMService:
         self.default_model = default_model
         self.logger = logging.getLogger(f"{__name__}.{self.__class__.__name__}")
         
-        # Check Universal LLM Kit availability
-        self.available = get_llm is not None and structured is not None
+        # Check LiteLLM availability
+        self.available = litellm_available
         
         if self.available:
             try:
-                self.llm = get_llm()
-                self.logger.info("Structured LLM service initialized with Universal LLM Kit")
+                # Test API availability with a simple check
+                import os
+                has_keys = bool(os.getenv("GEMINI_API_KEY") or os.getenv("OPENAI_API_KEY") or os.getenv("ANTHROPIC_API_KEY"))
+                if not has_keys:
+                    self.logger.warning("No API keys found in environment")
+                    self.available = False
+                else:
+                    self.logger.info("Structured LLM service initialized with LiteLLM direct")
             except Exception as e:
-                self.logger.error(f"Failed to initialize Universal LLM Kit: {e}")
+                self.logger.error(f"Failed to initialize LiteLLM: {e}")
                 self.available = False
         else:
-            self.logger.warning("Universal LLM Kit not available - service will fail fast")
+            self.logger.warning("LiteLLM not available - service will fail fast")
         
         # Performance tracking
         self.stats = {
@@ -71,7 +79,7 @@ class StructuredLLMService:
         prompt: str, 
         schema: Type[T], 
         model: Optional[str] = None,
-        temperature: float = 0.1,
+        temperature: float = 0.05,
         max_tokens: int = 32000
     ) -> T:
         """
@@ -95,24 +103,70 @@ class StructuredLLMService:
         self.stats["total_requests"] += 1
         start_time = datetime.now()
         
-        # Fail fast if service not available
-        if not self.available:
-            self.stats["llm_failures"] += 1
-            raise RuntimeError(
-                "Universal LLM Kit not available. Cannot generate structured output. "
-                "Ensure universal_llm_kit is installed and configured with API keys."
-            )
+        # Import monitoring
+        try:
+            from ..monitoring.structured_output_monitor import get_monitor
+            monitor = get_monitor()
+        except ImportError:
+            monitor = None
         
+        # Determine model for tracking
         model_to_use = model or self.default_model
+        model_mapping = {
+            "smart": "gemini/gemini-2.5-flash",
+            "fast": "gemini/gemini-2.5-flash-lite",  
+            "code": "gemini/gemini-2.5-flash",
+            "reasoning": "gpt-4o",
+        }
+        litellm_model = model_mapping.get(model_to_use, model_to_use) or "gemini/gemini-2.5-flash"
+        
+        # Start monitoring if available
+        monitor_context = None
+        if monitor:
+            monitor_context = monitor.track_operation(
+                component="structured_llm_service",
+                schema_name=schema.__name__,
+                model=litellm_model,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                input_text=prompt
+            )
         
         try:
-            self.logger.debug(f"Generating structured output with {schema.__name__} schema using {model_to_use}")
+            if monitor_context:
+                tracker = monitor_context.__enter__()
             
-            # Use Universal LLM Kit structured output
-            response_json = structured(
-                prompt=prompt, 
-                schema=schema
+            # Fail fast if service not available
+            if not self.available:
+                self.stats["llm_failures"] += 1
+                error_msg = ("LiteLLM not available or no API keys found. Cannot generate structured output. "
+                           "Ensure API keys are set in .env file.")
+                if monitor_context and tracker:
+                    tracker.set_llm_error(error_msg)
+                raise RuntimeError(error_msg)
+            
+            self.logger.debug(f"Generating structured output with {schema.__name__} schema using {litellm_model}")
+            
+            # Build schema-guided prompt
+            schema_json = schema.model_json_schema()
+            structured_prompt = f"""{prompt}
+
+IMPORTANT: Respond with valid JSON that matches this exact schema:
+
+{schema_json}
+
+Your response must be valid JSON only, no markdown formatting."""
+            
+            # Use LiteLLM directly with structured output
+            response = litellm.completion(
+                model=litellm_model,
+                messages=[{"role": "user", "content": structured_prompt}],
+                response_format={"type": "json_object"},
+                temperature=temperature,
+                max_tokens=max_tokens
             )
+            
+            response_json = response.choices[0].message.content
             
             self.logger.debug(f"Received response: {response_json[:200]}...")
             
@@ -122,6 +176,10 @@ class StructuredLLMService:
             # Success metrics
             self.stats["successful_requests"] += 1
             execution_time = (datetime.now() - start_time).total_seconds()
+            
+            # Update monitoring
+            if monitor_context and tracker:
+                tracker.set_success(True, validated_response)
             
             self.logger.info(
                 f"Structured output successful: {schema.__name__} validated in {execution_time:.3f}s"
@@ -133,10 +191,15 @@ class StructuredLLMService:
             self.stats["validation_failures"] += 1
             execution_time = (datetime.now() - start_time).total_seconds()
             
-            self.logger.error(f"Schema validation failed for {schema.__name__}: {e}")
+            error_msg = f"Schema validation failed for {schema.__name__}: {e}"
+            self.logger.error(error_msg)
             self.logger.debug(f"Raw response that failed validation: {response_json}")
             self.logger.debug(f"Expected schema: {schema.model_json_schema()}")
             self.logger.debug(f"Failed after {execution_time:.3f}s")
+            
+            # Update monitoring
+            if monitor_context and tracker:
+                tracker.set_validation_error(str(e))
             
             raise ValidationError(
                 f"LLM response does not match {schema.__name__} schema: {e}"
@@ -146,11 +209,23 @@ class StructuredLLMService:
             self.stats["llm_failures"] += 1
             execution_time = (datetime.now() - start_time).total_seconds()
             
-            self.logger.error(f"LLM generation failed for {schema.__name__}: {e}")
-            self.logger.debug(f"Model: {model_to_use}, Temperature: {temperature}, Max tokens: {max_tokens}")
+            error_msg = f"LLM generation failed for {schema.__name__}: {e}"
+            self.logger.error(error_msg)
+            self.logger.debug(f"Model: {litellm_model}, Temperature: {temperature}, Max tokens: {max_tokens}")
             self.logger.debug(f"Failed after {execution_time:.3f}s")
             
+            # Update monitoring
+            if monitor_context and tracker:
+                tracker.set_llm_error(str(e))
+            
             raise Exception(f"Structured LLM generation failed: {e}")
+            
+        finally:
+            if monitor_context:
+                try:
+                    monitor_context.__exit__(None, None, None)
+                except Exception as monitor_error:
+                    self.logger.warning(f"Monitoring context cleanup failed: {monitor_error}")
     
     async def async_structured_completion(
         self, 

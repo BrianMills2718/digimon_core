@@ -1,28 +1,83 @@
 tool_id: "T23A_SPACY_NER"
+name: "spaCy Named Entity Recognition"
 description: "Extracts named entities from text chunks using SpaCy NLP models"
-category: "Processing"
+version: "1.0.0"
+category: "entity_extraction"
 
-input_contract:
-  required_data_types:
-    - type: "Chunk"
-      attributes: ["text", "chunk_id", "source_document"]
-  required_state:
-    text_chunked: true
+input_schema:
+  type: object
+  properties:
+    chunk_ref:
+      type: string
+      description: "Reference to source text chunk"
+    text:
+      type: string
+      minLength: 1
+      description: "Text to analyze for entities"
+    chunk_confidence:
+      type: number
+      minimum: 0
+      maximum: 1
+      default: 0.8
+      description: "Confidence score from chunk"
+    confidence_threshold:
+      type: number
+      minimum: 0
+      maximum: 1
+      default: 0.5
+      description: "Minimum confidence threshold for entities"
+  required: ["chunk_ref", "text"]
 
-output_contract:
-  produced_data_types:
-    - type: "Entity"
-      attributes: ["text", "entity_type", "confidence", "start_position", "end_position"]
-  produced_state:
-    entities_extracted: true
+output_schema:
+  type: object
+  properties:
+    entities:
+      type: array
+      items:
+        type: object
+        properties:
+          entity_id:
+            type: string
+          mention_id:
+            type: string
+          surface_form:
+            type: string
+          entity_type:
+            type: string
+          confidence:
+            type: number
+            minimum: 0
+            maximum: 1
+          start_pos:
+            type: integer
+          end_pos:
+            type: integer
+          chunk_ref:
+            type: string
+        required: ["entity_id", "surface_form", "entity_type", "confidence"]
+    total_entities:
+      type: integer
+      minimum: 0
+    entity_types:
+      type: object
+      description: "Count of entities by type"
+  required: ["entities", "total_entities"]
 
-error_codes:
-  - code: "SPACY_MODEL_ERROR"
-    description: "SpaCy model failed to load or process text"
-    severity: "error"
-  - code: "EMPTY_CHUNK_ERROR"
-    description: "Input chunk contains no text to process"
-    severity: "error"
-  - code: "ENTITY_PROCESSING_ERROR"
-    description: "Failed to process entities from text chunk"
-    severity: "error"
+depends_on: ["T15A_TEXT_CHUNKER"]
+
+dependencies:
+  - "spacy"
+  - "identity_service"
+  - "provenance_service"
+  - "quality_service"
+
+performance_requirements:
+  max_execution_time: 10.0
+  max_memory_mb: 500
+  min_accuracy: 0.85
+
+error_conditions:
+  - "SPACY_MODEL_ERROR"
+  - "EMPTY_CHUNK_ERROR"
+  - "ENTITY_PROCESSING_ERROR"
+  - "INVALID_INPUT"

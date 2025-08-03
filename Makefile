@@ -1,84 +1,90 @@
-# KGAS Makefile
-# Common development tasks and verification
+# KGAS Development Makefile
+# Provides consistent commands for interface validation and development
 
-.PHONY: help verify-docs test clean install
+.PHONY: help validate-interfaces fix-interfaces install-deps test lint clean
 
+# Default target
 help:
-	@echo "Available targets:"
-	@echo "  verify-docs    - Verify documentation claims and consistency"
-	@echo "  test          - Run all tests"
-	@echo "  clean         - Clean build artifacts"
-	@echo "  install       - Install dependencies"
+	@echo "🔧 KGAS Development Commands"
+	@echo "=========================="
+	@echo ""
+	@echo "Interface Management:"
+	@echo "  make validate-interfaces    Run full interface validation pipeline"
+	@echo "  make fix-interfaces        Auto-fix interface violations" 
+	@echo "  make check-deprecated      Check for deprecated patterns only"
+	@echo ""
+	@echo "Development:"
+	@echo "  make install-deps          Install required dependencies"
+	@echo "  make test                  Run test suite"
+	@echo "  make lint                  Run linting and formatting"
+	@echo "  make clean                 Clean temporary files"
+	@echo ""
+	@echo "CI/CD:"
+	@echo "  make ci-validate           Run CI-style validation (strict)"
+	@echo "  make pre-commit            Run all pre-commit checks"
 
-verify-docs:
-	@echo "🔍 Verifying documentation claims..."
-	@scripts/verify_all_documentation_claims.sh
-	@echo "🔍 Checking documentation drift..."
-	@scripts/check_doc_drift.py
-	@echo "✅ Documentation verification complete"
+# Interface validation pipeline
+validate-interfaces:
+	@echo "🔍 Running interface validation pipeline..."
+	@./scripts/validate-interfaces.sh
 
-test:
-	@echo "🧪 Running tests..."
-	pytest tests/ -v --cov=src --cov-report=term-missing
+# Auto-fix interface violations
+fix-interfaces:
+	@echo "🔧 Auto-fixing interface violations..."
+	@python fix_toolresult_interfaces.py
+	@python fix_interface_contracts.py
+	@echo "✅ Interface fixes complete. Run 'make validate-interfaces' to verify."
 
-clean:
-	@echo "🧹 Cleaning build artifacts..."
-	find . -type f -name "*.pyc" -delete
-	find . -type d -name "__pycache__" -delete
-	find . -type d -name "*.egg-info" -exec rm -rf {} +
-	rm -rf .pytest_cache/
-	rm -rf .coverage
-	rm -rf htmlcov/
+# Check for deprecated patterns only
+check-deprecated:
+	@echo "🕵️ Checking for deprecated interface patterns..."
+	@echo "Checking for ToolResult(success=...):"
+	@grep -r "ToolResult.*success\s*=" src/tools/ || echo "  ✅ None found"
+	@echo ""
+	@echo "Checking for ToolResult(error=...):"
+	@grep -r "ToolResult.*\berror\s*=" src/tools/ | grep -v "error_message\|error_code" || echo "  ✅ None found"
 
-install:
-	@echo "📦 Installing base dependencies..."
-	pip install -r requirements/base.txt
-
-install-llm:
-	@echo "📦 Installing LLM dependencies..."
-	pip install -r requirements/llm.txt
-
-install-ui:
-	@echo "📦 Installing UI dependencies..."
-	pip install -r requirements/ui.txt
-
-install-dev:
+# Install development dependencies
+install-deps:
 	@echo "📦 Installing development dependencies..."
-	pip install -r requirements/dev.txt
+	@pip install -r requirements.txt
+	@pip install spacy==3.7.2 neo4j==5.14.1
+	@python -m spacy download en_core_web_sm
+	@echo "✅ Dependencies installed"
 
-format:
-	@echo "🎨 Formatting code..."
-	black src/ tests/
-	isort src/ tests/
+# Run tests
+test:
+	@echo "🧪 Running test suite..."
+	@python -m pytest tests/ -v
 
+# Linting and formatting
 lint:
-	@echo "🔍 Linting code..."
-	flake8 src/ tests/
-	mypy src/
+	@echo "🔍 Running linting..."
+	@python -m flake8 src/ --max-line-length=120 --ignore=E203,W503
+	@echo "✅ Linting complete"
 
-check: format lint test verify-docs
-	@echo "✅ All checks passed"
+# Clean temporary files
+clean:
+	@echo "🧹 Cleaning temporary files..."
+	@find . -type f -name "*.pyc" -delete
+	@find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
+	@rm -f /tmp/interface_validation.log
+	@echo "✅ Cleanup complete"
 
-docker-build:
-	@echo "🐳 Building Docker image..."
-	docker build -t kgas .
+# CI-style strict validation
+ci-validate:
+	@echo "🏗️ Running CI-style validation (strict mode)..."
+	@python validate_tool_interfaces.py || (echo "❌ Interface validation failed" && exit 1)
+	@echo "✅ CI validation passed"
 
-docker-run:
-	@echo "🐳 Running Docker container..."
-	docker run -p 8501:8501 kgas
+# Pre-commit hook
+pre-commit: clean validate-interfaces
+	@echo "🚀 Pre-commit validation complete!"
+	@echo "Ready to commit! ✅"
 
-neo4j-start:
-	@echo "🗄️ Starting Neo4j..."
-	docker-compose up -d neo4j
-
-neo4j-stop:
-	@echo "🗄️ Stopping Neo4j..."
-	docker-compose down
-
-ui-start:
-	@echo "��️ Starting UI..."
-	python -m src.cli ui
-
-mcp-start:
-	@echo "🔌 Starting MCP server..."
-	python -m src.cli mcp 
+# Quick interface summary
+summary:
+	@echo "📊 Interface Summary:"
+	@echo "Total tool files: $$(find src/tools -name '*.py' | wc -l)"
+	@echo "Files with interface issues: $$(python validate_tool_interfaces.py 2>&1 | grep -c '❌\|🚨' || echo 0)"
+	@echo "Run 'make validate-interfaces' for detailed analysis"

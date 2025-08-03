@@ -137,19 +137,19 @@ workflow:
 
 ## Anti-Patterns to Avoid
 
-### ❌ Lossy Conversion Chains
+### Lossy Conversion Chains
 ```python
 # Bad: Information loss at each step
 graph → adjacency_matrix → table → vector
 ```
 
-### ❌ Mode Lock-in
+### Mode Lock-in
 ```python
 # Bad: Forcing all analysis in one mode
 "We're a graph database, so everything must be graph queries"
 ```
 
-### ❌ Disconnected Representations
+### Disconnected Representations
 ```python
 # Bad: Same entity, different IDs in different stores
 neo4j_entity.id ≠ sqlite_entity.id ≠ vector_store.id
@@ -157,7 +157,7 @@ neo4j_entity.id ≠ sqlite_entity.id ≠ vector_store.id
 
 ## Best Practices
 
-### ✅ Synchronized Identity
+### Synchronized Identity
 ```python
 # Good: Same ID across all representations
 entity_id = "person_123"
@@ -166,7 +166,7 @@ table_row = sqlite.get_row(entity_id)
 vector = vector_store.get_embedding(entity_id)
 ```
 
-### ✅ Enrichment Pipelines
+### Enrichment Pipelines
 ```python
 # Good: Each step adds information
 entity = extract_entity(text)
@@ -175,7 +175,7 @@ entity = enrich_with_statistics(entity)
 entity = enrich_with_embeddings(entity)
 ```
 
-### ✅ Mode-Appropriate Operations
+### Mode-Appropriate Operations
 ```python
 # Good: Use the right tool for each job
 communities = neo4j.detect_communities()  # Graph operation

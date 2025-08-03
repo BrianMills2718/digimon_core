@@ -1,29 +1,75 @@
-# Fixed contract that passes schema validation
 tool_id: "T01_PDF_LOADER"
+name: "PDF Document Loader"
 description: "Loads PDF documents and converts to standardized document format"
-category: "Ingestion"
+version: "1.0.0"
+category: "document_processing"
 
-input_contract:
-  required_data_types:
-    - type: "Document"
-      attributes: ["file_path", "file_extension"]
-  required_state:
-    document_available: true
+input_schema:
+  type: object
+  properties:
+    file_path:
+      type: string
+      minLength: 1
+      description: "Path to the PDF file to load"
+    workflow_id:
+      type: string
+      description: "Workflow identifier for tracking"
+    extract_metadata:
+      type: boolean
+      default: true
+      description: "Whether to extract document metadata"
+  required: ["file_path"]
 
-output_contract:
-  produced_data_types:
-    - type: "Document"
-      attributes: ["text", "metadata", "source_file"]
-  produced_state:
-    document_loaded: true
+output_schema:
+  type: object
+  properties:
+    document_ref:
+      type: string
+      description: "Reference to the loaded document"
+    text:
+      type: string
+      description: "Extracted text content"
+    metadata:
+      type: object
+      properties:
+        title:
+          type: string
+        author:
+          type: string
+        page_count:
+          type: integer
+        file_size:
+          type: integer
+        created_date:
+          type: string
+    confidence:
+      type: number
+      minimum: 0
+      maximum: 1
+      description: "Confidence in text extraction quality"
+    processing_stats:
+      type: object
+      properties:
+        pages_processed:
+          type: integer
+        text_length:
+          type: integer
+        extraction_time:
+          type: number
+  required: ["document_ref", "text", "confidence"]
 
-error_codes:
-  - code: "PDF_LOAD_ERROR"
-    description: "Failed to load PDF file due to file access or corruption issues"
-    severity: "error"
-  - code: "PDF_PARSE_ERROR"
-    description: "Failed to parse PDF content or extract text"
-    severity: "error"
-  - code: "INVALID_FILE_PATH"
-    description: "Provided file path is invalid or file does not exist"
-    severity: "error"
+depends_on: []
+
+dependencies:
+  - "pypdf"
+
+performance_requirements:
+  max_execution_time: 30.0
+  max_memory_mb: 200
+  min_accuracy: 0.95
+
+error_conditions:
+  - "PDF_LOAD_ERROR"
+  - "PDF_PARSE_ERROR"
+  - "INVALID_FILE_PATH"
+  - "INVALID_INPUT"

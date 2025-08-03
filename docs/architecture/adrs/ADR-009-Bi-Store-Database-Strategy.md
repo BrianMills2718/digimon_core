@@ -1,12 +1,13 @@
-# ADR-009: Bi-Store Database Strategy
+# ADR-009: Bi-Store Database Strategy Rationale
 
 **Status**: Accepted  
 **Date**: 2025-07-23  
-**Context**: System requires both graph analysis capabilities and operational metadata storage for academic research workflows.
+**Builds on**: [ADR-003: Vector Store Consolidation](ADR-003-Vector-Store-Consolidation.md) (established bi-store architecture)  
+**Context**: This ADR provides comprehensive rationale for the bi-store architecture decision made in ADR-003, focusing on academic research workflow requirements.
 
 ## Decision
 
-We will implement a **bi-store architecture** using:
+This ADR provides comprehensive rationale for the **bi-store architecture** established in [ADR-003](ADR-003-Vector-Store-Consolidation.md), demonstrating why this approach optimally serves academic research workflows using:
 
 1. **Neo4j (v5.13+)**: Primary graph database for entities, relationships, and vector embeddings
 2. **SQLite**: Operational metadata database for provenance, workflow state, and PII vault
@@ -59,21 +60,21 @@ RETURN influenced.name, length(path) as degrees_of_separation
 ### **Why Not Single Database Solutions?**
 
 **Neo4j Only**:
-- ❌ **Poor relational operations**: Complex joins and aggregations are inefficient
-- ❌ **Metadata bloat**: Operational metadata clutters graph with non-analytical data
-- ❌ **ACID limitations**: Neo4j transactions less robust for operational metadata
-- ❌ **PII security**: Graph databases not optimized for encrypted key-value storage
+- **Poor relational operations**: Complex joins and aggregations are inefficient
+- **Metadata bloat**: Operational metadata clutters graph with non-analytical data
+- **ACID limitations**: Neo4j transactions less robust for operational metadata
+- **PII security**: Graph databases not optimized for encrypted key-value storage
 
 **SQLite Only**:
-- ❌ **Graph operations**: Recursive CTEs cannot match Neo4j's graph algorithm performance
-- ❌ **Vector operations**: No native vector similarity search capabilities
-- ❌ **Scalability**: Graph traversals become exponentially slow with data growth
-- ❌ **Cypher equivalent**: No domain-specific query language for graph patterns
+- **Graph operations**: Recursive CTEs cannot match Neo4j's graph algorithm performance
+- **Vector operations**: No native vector similarity search capabilities
+- **Scalability**: Graph traversals become exponentially slow with data growth
+- **Cypher equivalent**: No domain-specific query language for graph patterns
 
 **PostgreSQL Only**:
-- ❌ **Local deployment**: Requires server setup incompatible with academic research environments
-- ❌ **Graph extensions**: Extensions like AGE add complexity without matching Neo4j performance
-- ❌ **Vector search**: Extensions available but not as mature as Neo4j's native support
+- **Local deployment**: Requires server setup incompatible with academic research environments
+- **Graph extensions**: Extensions like AGE add complexity without matching Neo4j performance
+- **Vector search**: Extensions available but not as mature as Neo4j's native support
 
 ## Alternatives Considered
 
@@ -220,11 +221,11 @@ def distributed_transaction():
 
 ## Related ADRs
 
+- **[ADR-003: Vector Store Consolidation](ADR-003-Vector-Store-Consolidation.md)**: **Foundational Decision** - Established bi-store architecture by consolidating from tri-store
+- **[ADR-030: PostgreSQL Migration Strategy](ADR-030-PostgreSQL-Migration-Strategy.md)**: **Scale-Driven Evolution** - Migration plan for 50,000+ entity research requirements
 - **ADR-008**: Core Service Architecture (services use both databases)
 - **ADR-006**: Cross-Modal Analysis (requires graph and metadata coordination)
-- **ADR-003**: Vector Store Consolidation (Neo4j vector capabilities)
 
-## Implementation Status
 
 This ADR describes the **target bi-store database architecture** - the intended Neo4j + SQLite design. For current database implementation status and data layer progress, see:
 

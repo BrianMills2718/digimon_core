@@ -29,6 +29,8 @@ The `docs/development/` directory contains guides, standards, and best practices
 - **Zero tolerance for deceptive practices**: No mocks, stubs, or fabricated evidence
 - **Contract-first design**: All components interact via defined, verifiable contracts
 - **Comprehensive testing**: Unit, integration, and adversarial testing for critical components
+- **Structured LLM operations**: All LLM integrations use schema-validated structured output
+- **Real-time monitoring**: Performance and health monitoring for all critical operations
 
 ## Development Workflow
 
@@ -70,6 +72,8 @@ make typecheck     # Type checking with mypy
 make test-unit     # Unit tests
 make test-integration  # Integration tests (if applicable)
 make validate-contracts  # Contract validation
+make test-structured-output  # Structured output validation
+make monitor-health  # System health checks
 ```
 
 ## Coding Standards
@@ -94,6 +98,8 @@ from pathlib import Path
 
 # Local imports after standard library and third-party
 from src.core.service_manager import ServiceManager
+from src.core.structured_llm_service import get_structured_llm_service
+from src.monitoring.structured_output_monitor import track_structured_output
 from src.utils.validation import validate_input
 
 logger = logging.getLogger(__name__)
@@ -113,6 +119,7 @@ class ComponentName:
     
     def __init__(self, service_manager: ServiceManager) -> None:
         self.services = service_manager
+        self.structured_llm = get_structured_llm_service()
         self.logger = logging.getLogger(f"{__name__}.{self.__class__.__name__}")
     
     def process(self, data: Dict[str, Any]) -> Dict[str, Any]:
@@ -133,10 +140,12 @@ class ComponentName:
             # Input validation
             validate_input(data, self._get_input_schema())
             
-            # Processing with logging
-            self.logger.info(f"Processing started for {len(data)} items")
-            result = self._core_processing(data)
-            self.logger.info("Processing completed successfully")
+            # Processing with monitoring
+            with track_structured_output("component_name", "ProcessingSchema") as tracker:
+                self.logger.info(f"Processing started for {len(data)} items")
+                result = self._core_processing(data)
+                tracker.set_success(True, result)
+                self.logger.info("Processing completed successfully")
             
             return {"status": "success", "data": result}
             

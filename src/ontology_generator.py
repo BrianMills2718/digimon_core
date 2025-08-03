@@ -1,6 +1,8 @@
+#!/usr/bin/env python3
 """
 Ontology Generator Module - Gemini Integration
 Handles LLM-based ontology generation and refinement
+CLEANED VERSION - No mock/fallback patterns
 """
 
 import os
@@ -70,9 +72,14 @@ class OntologyGenerator:
     
     # IMPORTANT: DO NOT CHANGE DEFAULT MODEL - gemini-2.5-flash has 1000 RPM limit
     # Other models have much lower limits (e.g., 10 RPM) and will cause quota errors
-    def __init__(self, model_name: str = "gemini-2.5-flash"):
+    def __init__(self, model_name: Optional[str] = None):
         """Initialize the generator with specified model"""
-        self.model_name = model_name
+        # Get model from standard config (single source of truth)
+        if model_name is None:
+            from src.core.standard_config import get_model
+            self.model_name = get_model("ontology_generator")
+        else:
+            self.model_name = model_name
         self.model = None
         if GOOGLE_API_KEY:
             try:
@@ -193,8 +200,7 @@ Format as JSON:
         """Generate a new ontology from domain description"""
         # TODO: enforce v9 required fields
         if not self.model:
-            # Return mock data if no model
-            return self._generate_mock_ontology(domain_description)
+            raise ValueError("Gemini model not available. Check GOOGLE_API_KEY environment variable.")
         
         try:
             # Prepare the prompt
@@ -231,21 +237,18 @@ Format as JSON:
             )
             
         except Exception as e:
-            print(f"Error generating ontology: {e}")
-            return self._generate_mock_ontology(domain_description)
+            raise RuntimeError(f"Failed to generate ontology with Gemini: {e}") from e
     
     def refine_ontology(self, current_ontology: Ontology, refinement_request: str) -> Ontology:
         """Refine an existing ontology based on user feedback"""
         if not self.model:
-            # Return slightly modified mock
-            current_ontology.modified_at = datetime.now().isoformat()
-            return current_ontology
+            raise ValueError("Gemini model not available. Check GOOGLE_API_KEY environment variable.")
         
         try:
             # Convert ontology to dict for prompt
             ontology_dict = asdict(current_ontology)
             
-            # Prepare prompt
+            # Prepare the prompt
             prompt = self.prompts["refine_ontology"].format(
                 current_ontology=json.dumps(ontology_dict, indent=2),
                 refinement_request=refinement_request
@@ -255,21 +258,21 @@ Format as JSON:
             response = self.model.generate_content(
                 prompt,
                 generation_config=genai.GenerationConfig(
-                    temperature=0.7,
+                    temperature=0.3,  # Lower temperature for refinement
                     response_mime_type="application/json"
                 )
             )
             
             # Parse response
-            refined_data = json.loads(response.text)
+            ontology_data = json.loads(response.text)
             
             # Convert to Ontology object
-            entity_types = [EntityType(**et) for et in refined_data["entity_types"]]
-            relation_types = [RelationType(**rt) for rt in refined_data["relation_types"]]
+            entity_types = [EntityType(**et) for et in ontology_data["entity_types"]]
+            relation_types = [RelationType(**rt) for rt in ontology_data["relation_types"]]
             
             return Ontology(
-                domain=refined_data["domain"],
-                description=refined_data["description"],
+                domain=ontology_data["domain"],
+                description=ontology_data["description"],
                 entity_types=entity_types,
                 relation_types=relation_types,
                 version=current_ontology.version,
@@ -278,35 +281,32 @@ Format as JSON:
             )
             
         except Exception as e:
-            print(f"Error refining ontology: {e}")
-            current_ontology.modified_at = datetime.now().isoformat()
-            return current_ontology
+            raise RuntimeError(f"Failed to refine ontology with Gemini: {e}") from e
     
     def extract_entities(self, text: str, ontology: Ontology) -> List[Dict[str, Any]]:
         """Extract entities from text using the ontology"""
         if not self.model:
-            # Return mock extractions
-            return self._mock_entity_extraction()
+            raise ValueError("Gemini model not available. Check GOOGLE_API_KEY environment variable.")
         
         try:
             # Prepare prompt
             ontology_summary = {
                 "entity_types": [
-                    {"name": et.name, "description": et.description, "attributes": et.attributes}
+                    {"name": et.name, "description": et.description}
                     for et in ontology.entity_types
                 ]
             }
             
             prompt = self.prompts["extract_entities"].format(
                 ontology=json.dumps(ontology_summary, indent=2),
-                text=text[:2000]  # Limit text length
+                text=text
             )
             
             # Generate with Gemini
             response = self.model.generate_content(
                 prompt,
                 generation_config=genai.GenerationConfig(
-                    temperature=0.3,
+                    temperature=0.1,  # Low temperature for extraction
                     response_mime_type="application/json"
                 )
             )
@@ -316,233 +316,49 @@ Format as JSON:
             return result.get("entities", [])
             
         except Exception as e:
-            print(f"Error extracting entities: {e}")
-            return self._mock_entity_extraction()
+            raise RuntimeError(f"Failed to extract entities with Gemini: {e}") from e
     
     def validate_with_text(self, ontology: Ontology, sample_text: str) -> Dict[str, Any]:
         """Validate ontology completeness using sample text"""
         # Extract entities
         entities = self.extract_entities(sample_text, ontology)
         
-        # Analyze coverage
-        entity_types_found = set(e["type"] for e in entities)
-        coverage = len(entity_types_found) / len(ontology.entity_types) if ontology.entity_types else 0
+        # Calculate coverage metrics
+        entity_types_found = set(entity["type"] for entity in entities)
+        total_entity_types = len(ontology.entity_types)
+        coverage = len(entity_types_found) / total_entity_types if total_entity_types > 0 else 0
         
-        # Generate suggestions
-        suggestions = []
-        if coverage < 0.5:
-            suggestions.append("Low coverage - consider adding more specific entity types")
+        # Generate suggestions for improvement
+        unused_types = [et.name for et in ontology.entity_types if et.name not in entity_types_found]
+        suggestions = [f"Consider adding examples for {et}" for et in unused_types[:3]]
         
-        # Look for patterns in unmatched text (mock for now)
-        suggestions.extend([
-            "Consider adding temporal entities for date/time references",
-            "Relationship types could be expanded for better connectivity"
-        ])
+        # Look for patterns in unmatched text (simplified analysis)
+        text_words = set(sample_text.lower().split())
+        ontology_words = set()
+        for et in ontology.entity_types:
+            ontology_words.update(ex.lower() for ex in et.examples)
+        
+        unmatched_words = text_words - ontology_words
+        if len(unmatched_words) > 5:
+            suggestions.append("Consider adding entity types for domain-specific terms found in text")
         
         return {
             "entities_found": len(entities),
-            "relations_found": len(entities) // 2,  # Mock relation count
+            "relations_found": len(entities) // 2,  # Estimate relation count
             "coverage": coverage,
             "entity_types_used": list(entity_types_found),
             "suggestions": suggestions[:3]  # Limit suggestions
         }
-    
-    def _generate_mock_ontology(self, domain_description: str) -> Ontology:
-        """Generate a mock ontology for testing without API"""
-        # Detect domain from description
-        domain_lower = domain_description.lower()
-        
-        if "climate" in domain_lower:
-            return self._mock_climate_ontology()
-        elif "medical" in domain_lower or "health" in domain_lower:
-            return self._mock_medical_ontology()
-        else:
-            return self._mock_generic_ontology(domain_description)
-    
-    def _mock_climate_ontology(self) -> Ontology:
-        """Mock climate policy ontology"""
-        return Ontology(
-            domain="Climate Policy Analysis",
-            description="Ontology for analyzing climate change policies and their impacts",
-            entity_types=[
-                EntityType(
-                    name="CLIMATE_POLICY",
-                    description="Government or organizational policies addressing climate change",
-                    attributes=["policy_name", "jurisdiction", "implementation_date", "target_year"],
-                    examples=["Paris Agreement", "EU Green Deal", "Carbon Tax Policy"]
-                ),
-                EntityType(
-                    name="EMISSION_TARGET",
-                    description="Specific emission reduction targets",
-                    attributes=["target_value", "baseline_year", "target_year", "measurement_unit"],
-                    examples=["Net-zero by 2050", "50% reduction by 2030", "Carbon neutral by 2040"]
-                ),
-                EntityType(
-                    name="POLICY_INSTRUMENT",
-                    description="Specific tools or mechanisms used to implement climate policies",
-                    attributes=["instrument_type", "scope", "enforcement_mechanism"],
-                    examples=["Carbon pricing", "Renewable energy subsidies", "Emission trading system"]
-                ),
-                EntityType(
-                    name="STAKEHOLDER",
-                    description="Organizations or groups involved in climate policy",
-                    attributes=["name", "type", "role", "influence_level"],
-                    examples=["Environmental Protection Agency", "Greenpeace", "Oil Industry Association"]
-                )
-            ],
-            relation_types=[
-                RelationType(
-                    name="IMPLEMENTS",
-                    description="Stakeholder implements or enforces a climate policy",
-                    source_types=["STAKEHOLDER"],
-                    target_types=["CLIMATE_POLICY"],
-                    examples=["EPA implements Clean Air Act", "EU Commission implements Green Deal"]
-                ),
-                RelationType(
-                    name="TARGETS",
-                    description="Policy aims to achieve specific emission targets",
-                    source_types=["CLIMATE_POLICY"],
-                    target_types=["EMISSION_TARGET"],
-                    examples=["Paris Agreement targets 1.5°C warming limit"]
-                ),
-                RelationType(
-                    name="USES_INSTRUMENT",
-                    description="Policy employs specific policy instruments",
-                    source_types=["CLIMATE_POLICY"],
-                    target_types=["POLICY_INSTRUMENT"],
-                    examples=["EU ETS uses carbon trading", "Carbon tax policy uses pricing mechanism"]
-                )
-            ],
-            created_at=datetime.now().isoformat()
-        )
-    
-    def _mock_medical_ontology(self) -> Ontology:
-        """Mock medical/healthcare ontology"""
-        return Ontology(
-            domain="Clinical Research",
-            description="Ontology for clinical trials and medical research",
-            entity_types=[
-                EntityType(
-                    name="CLINICAL_TRIAL",
-                    description="Formal study of medical interventions",
-                    attributes=["trial_id", "phase", "status", "start_date", "end_date"],
-                    examples=["NCT04280705", "RECOVERY Trial", "Phase III Vaccine Study"]
-                ),
-                EntityType(
-                    name="MEDICAL_CONDITION",
-                    description="Disease or health condition being studied",
-                    attributes=["condition_name", "icd_code", "severity", "prevalence"],
-                    examples=["COVID-19", "Type 2 Diabetes", "Alzheimer's Disease"]
-                ),
-                EntityType(
-                    name="INTERVENTION",
-                    description="Treatment or procedure being tested",
-                    attributes=["intervention_type", "dosage", "administration_route", "duration"],
-                    examples=["Remdesivir 200mg IV", "mRNA Vaccine", "Behavioral Therapy"]
-                ),
-                EntityType(
-                    name="RESEARCH_SITE",
-                    description="Location where research is conducted",
-                    attributes=["site_name", "location", "principal_investigator", "capacity"],
-                    examples=["Johns Hopkins Hospital", "Mayo Clinic", "UCLA Medical Center"]
-                )
-            ],
-            relation_types=[
-                RelationType(
-                    name="STUDIES",
-                    description="Clinical trial studies a medical condition",
-                    source_types=["CLINICAL_TRIAL"],
-                    target_types=["MEDICAL_CONDITION"],
-                    examples=["RECOVERY Trial studies COVID-19"]
-                ),
-                RelationType(
-                    name="TESTS",
-                    description="Clinical trial tests an intervention",
-                    source_types=["CLINICAL_TRIAL"],
-                    target_types=["INTERVENTION"],
-                    examples=["NCT04280705 tests Remdesivir"]
-                ),
-                RelationType(
-                    name="CONDUCTED_AT",
-                    description="Clinical trial is conducted at research site",
-                    source_types=["CLINICAL_TRIAL"],
-                    target_types=["RESEARCH_SITE"],
-                    examples=["Phase III trial conducted at Mayo Clinic"]
-                )
-            ],
-            created_at=datetime.now().isoformat()
-        )
-    
-    def _mock_generic_ontology(self, domain_description: str) -> Ontology:
-        """Generic ontology for any domain"""
-        domain_name = domain_description.split('.')[0][:50]  # First sentence, max 50 chars
-        
-        return Ontology(
-            domain=domain_name,
-            description=domain_description[:200],
-            entity_types=[
-                EntityType(
-                    name="PRIMARY_ENTITY",
-                    description="Main entity type in this domain",
-                    attributes=["identifier", "name", "description", "status"],
-                    examples=["Example 1", "Example 2", "Example 3"]
-                ),
-                EntityType(
-                    name="SECONDARY_ENTITY",
-                    description="Supporting entity type",
-                    attributes=["identifier", "type", "properties"],
-                    examples=["Support 1", "Support 2"]
-                )
-            ],
-            relation_types=[
-                RelationType(
-                    name="RELATES_TO",
-                    description="Generic relationship between entities",
-                    source_types=["PRIMARY_ENTITY"],
-                    target_types=["SECONDARY_ENTITY"],
-                    examples=["Entity A relates to Entity B"]
-                )
-            ],
-            created_at=datetime.now().isoformat()
-        )
-    
-    def _mock_entity_extraction(self) -> List[Dict[str, Any]]:
-        """Mock entity extraction results"""
-        return [
-            {
-                "text": "Paris Agreement",
-                "type": "CLIMATE_POLICY",
-                "confidence": 0.95,
-                "attributes": {"policy_name": "Paris Agreement", "jurisdiction": "International"}
-            },
-            {
-                "text": "net-zero by 2050",
-                "type": "EMISSION_TARGET",
-                "confidence": 0.88,
-                "attributes": {"target_value": "net-zero", "target_year": "2050"}
-            },
-            {
-                "text": "carbon pricing",
-                "type": "POLICY_INSTRUMENT",
-                "confidence": 0.82,
-                "attributes": {"instrument_type": "economic"}
-            }
-        ]
 
-# Convenience functions for direct use
-def generate_ontology_from_description(
+
+# Convenience functions for external use
+def generate_domain_ontology(
     domain_description: str,
     config: Optional[Dict[str, Any]] = None
 ) -> Ontology:
-    """Generate an ontology from a domain description"""
+    """Generate an ontology for a domain"""
     if config is None:
-        config = {
-            "temperature": 0.7,
-            "max_entities": 20,
-            "max_relations": 15,
-            "include_hierarchies": True,
-            "auto_suggest_attributes": True
-        }
+        config = {}
     
     generator = OntologyGenerator()
     return generator.generate_ontology(domain_description, config)

@@ -1,0 +1,277 @@
+{
+  "theory_id": "agenda_setting_mccombs_shaw_1972",
+  "theory_name": "Agenda Setting Theory",
+  "theory_version": "1.0",
+  "meta_schema_version": "11.1",
+  "created_date": "2025-07-26",
+  "theory_metadata": {
+    "primary_authors": [
+      "Maxwell McCombs",
+      "Donald Shaw"
+    ],
+    "publication_year": 1972,
+    "source_work": "The Agenda-Setting Function of Mass Media",
+    "theoretical_tradition": "Mass communication, media effects, political communication",
+    "original_purpose": "Explain how media attention to issues influences public perception of issue importance and salience"
+  },
+  "telos": {
+    "primary_purpose": "Predict and explain how media coverage affects public and political agenda priorities through salience transfer",
+    "secondary_purposes": [
+      "Analyze issue attention cycles and media influence patterns",
+      "Predict which issues will gain prominence in public discourse",
+      "Explain gatekeeping and issue selection processes",
+      "Model attribute agenda-setting and framing effects"
+    ],
+    "theoretical_scope": "Media influence on issue salience at individual and societal levels",
+    "domain_applicability": "Political speeches, media coverage, issue discussions, policy priorities, public attention patterns"
+  },
+  "classification": {
+    "analytical_tier": "explanatory",
+    "tier_justification": "Explains how issue salience is transferred from media to public/political agendas and predicts attention patterns",
+    "paradigm": "media_effects",
+    "level_of_analysis": "individual_to_societal",
+    "temporal_scope": "process_oriented",
+    "complexity": "medium",
+    "formalization_level": "moderately_formalized"
+  },
+  "ontology": {
+    "core_entities": {
+      "issues": {
+        "definition": "Problems, topics, or concerns that compete for attention on public and political agendas",
+        "properties": [
+          "issue_type",
+          "complexity",
+          "controversy_level",
+          "temporal_characteristics"
+        ],
+        "examples": [
+          "US-Soviet relations",
+          "nuclear weapons",
+          "human rights",
+          "economic policy",
+          "military spending"
+        ]
+      },
+      "agendas": {
+        "definition": "Hierarchical arrangements of issues by importance and attention priority",
+        "properties": [
+          "agenda_type",
+          "issue_hierarchy",
+          "capacity_limits",
+          "stability"
+        ],
+        "types": [
+          "media_agenda",
+          "public_agenda",
+          "political_agenda",
+          "policy_agenda"
+        ],
+        "examples": [
+          "presidential speech topics",
+          "news coverage priorities",
+          "public opinion polls",
+          "legislative priorities"
+        ]
+      },
+      "salience": {
+        "definition": "Perceived importance or prominence of issues in consciousness and attention",
+        "properties": [
+          "salience_level",
+          "measurement_method",
+          "temporal_stability",
+          "source"
+        ],
+        "measurement": [
+          "attention_time",
+          "prominence_indicators",
+          "ranking_position",
+          "mention_frequency"
+        ]
+      },
+      "agenda_transfer": {
+        "definition": "Process by which issue salience moves between different agenda levels",
+        "properties": [
+          "transfer_direction",
+          "transfer_strength",
+          "time_lag",
+          "conditioning_factors"
+        ],
+        "types": [
+          "media_to_public",
+          "political_to_media",
+          "public_to_political",
+          "elite_to_mass"
+        ]
+      }
+    },
+    "agenda_setting_levels": {
+      "first_level_agenda_setting": {
+        "definition": "Transfer of issue salience - what to think about",
+        "mechanism": "Media attention determines which issues public considers important",
+        "measurement": "Correlation between media coverage and public issue rankings"
+      },
+      "second_level_agenda_setting": {
+        "definition": "Transfer of attribute salience - how to think about issues",
+        "mechanism": "Media emphasis on issue attributes affects public attribute priorities",
+        "measurement": "Correlation between media attribute emphasis and public attribute importance"
+      },
+      "third_level_agenda_setting": {
+        "definition": "Network agenda setting - connections between issues",
+        "mechanism": "Media bundling of issues affects public perception of issue relationships",
+        "measurement": "Correlation between media issue networks and public issue associations"
+      }
+    },
+    "conditioning_factors": {
+      "issue_characteristics": {
+        "obtrusiveness": "Personal experience with issue reduces agenda-setting effects",
+        "complexity": "More complex issues show stronger agenda-setting effects",
+        "controversy": "Controversial issues may show different agenda-setting patterns"
+      },
+      "audience_characteristics": {
+        "political_interest": "High interest audiences show stronger agenda-setting effects",
+        "education_level": "Education moderates agenda-setting susceptibility",
+        "media_exposure": "Higher exposure increases agenda-setting effects"
+      },
+      "media_characteristics": {
+        "credibility": "More credible sources show stronger agenda-setting effects",
+        "reach": "Broader reach increases agenda-setting potential",
+        "repetition": "Repeated coverage increases salience transfer"
+      }
+    }
+  },
+  "execution": {
+    "stage_1_comprehensive_structuring": {
+      "step_1_applicability_assessment": {
+        "description": "Evaluate text suitability for agenda-setting analysis",
+        "criteria": {
+          "multiple_issues_present": "Multiple competing issues or topics for attention allocation",
+          "salience_indicators": "Evidence of issue importance ranking or priority setting",
+          "attention_allocation": "Limited attention distributed across different issues",
+          "influence_context": "Communication intended to affect audience priorities or attention"
+        },
+        "scoring": "0.0-1.0 scale based on presence and clarity of agenda-setting elements",
+        "threshold": "0.6 minimum for meaningful agenda-setting analysis"
+      },
+      "step_2_issue_identification": {
+        "description": "Identify all issues competing for attention in the text",
+        "issue_extraction": [
+          "Extract explicitly mentioned issues and topics",
+          "Identify implicit issues from context and discussion",
+          "Categorize issues by domain (foreign policy, domestic, economic, social)",
+          "Assess issue characteristics (complexity, controversy, obtrusiveness)"
+        ],
+        "issue_properties": [
+          "Determine issue scope and boundaries",
+          "Assess issue temporal characteristics (urgent vs. long-term)",
+          "Evaluate issue controversy and conflict potential",
+          "Identify issue stakeholders and constituencies"
+        ]
+      },
+      "step_3_salience_measurement": {
+        "description": "Measure and analyze issue salience indicators in the text",
+        "salience_indicators": [
+          "Time/space allocation to different issues",
+          "Prominence indicators (position, emphasis, repetition)",
+          "Evaluative language and importance markers",
+          "Causal attribution and consequence discussion"
+        ],
+        "measurement_methods": [
+          "Quantitative content analysis (word counts, time allocation)",
+          "Positional analysis (issue ordering and placement)",
+          "Emphasis analysis (rhetorical devices, emotional language)",
+          "Relational analysis (issue connections and bundling)"
+        ]
+      },
+      "step_4_agenda_structure_analysis": {
+        "description": "Analyze the hierarchical structure of issue priorities",
+        "agenda_analysis": [
+          "Rank issues by salience indicators and attention allocation",
+          "Identify agenda capacity constraints and trade-offs",
+          "Assess agenda stability vs. change patterns",
+          "Determine agenda coherence and thematic organization"
+        ],
+        "hierarchy_assessment": [
+          "Primary issues (highest salience and attention)",
+          "Secondary issues (moderate attention and importance)",
+          "Background issues (minimal attention but present)",
+          "Absent issues (notable omissions from agenda)"
+        ]
+      },
+      "step_5_transfer_mechanism_identification": {
+        "description": "Identify agenda-setting mechanisms and influence processes",
+        "transfer_analysis": [
+          "Identify source of issue salience (media, political, public)",
+          "Assess direction of agenda influence (top-down, bottom-up, lateral)",
+          "Evaluate agenda-setting strategies and techniques",
+          "Determine conditioning factors affecting transfer effectiveness"
+        ]
+      }
+    },
+    "stage_2_analytic_evaluation": {
+      "step_1_agenda_setting_level_analysis": {
+        "description": "Analyze first, second, and third-level agenda-setting processes",
+        "level_analysis": [
+          "First-level: What issues are prioritized and how",
+          "Second-level: Which issue attributes are emphasized",
+          "Third-level: How issues are connected and bundled",
+          "Cross-level interactions and reinforcement effects"
+        ]
+      },
+      "step_2_salience_transfer_assessment": {
+        "description": "Evaluate mechanisms and effectiveness of salience transfer",
+        "transfer_assessment": [
+          "Identify salience transfer strategies used",
+          "Assess potential effectiveness based on conditioning factors",
+          "Evaluate audience susceptibility to agenda influence",
+          "Predict likely agenda-setting success"
+        ]
+      },
+      "step_3_agenda_competition_analysis": {
+        "description": "Analyze competition between issues for limited attention",
+        "competition_analysis": [
+          "Identify zero-sum attention allocation patterns",
+          "Assess issue displacement and crowding effects",
+          "Evaluate strategic issue positioning and timing",
+          "Analyze issue bundling and unbundling strategies"
+        ]
+      },
+      "step_4_temporal_dynamics_prediction": {
+        "description": "Predict agenda evolution and issue attention cycles",
+        "temporal_analysis": [
+          "Predict issue attention peaks and declines",
+          "Forecast agenda stability vs. change patterns",
+          "Anticipate issue cycle progression and replacement",
+          "Assess long-term vs. short-term agenda effects"
+        ]
+      }
+    }
+  },
+  "validation": {
+    "internal_consistency": {
+      "issue_identification_completeness": "All significant issues competing for attention properly identified",
+      "salience_measurement_validity": "Accurate assessment of issue importance indicators and rankings",
+      "agenda_hierarchy_coherence": "Logical and consistent issue priority ordering",
+      "transfer_mechanism_logic": "Clear connection between agenda-setting strategies and expected effects"
+    },
+    "theoretical_fidelity": {
+      "mccombs_shaw_principle_compliance": "Adherence to original agenda-setting theory principles",
+      "salience_transfer_focus": "Emphasis on how issue importance is communicated and adopted",
+      "limited_capacity_recognition": "Acknowledgment of attention limitations and agenda competition",
+      "conditioning_factor_consideration": "Attention to factors that moderate agenda-setting effects"
+    },
+    "empirical_validation": {
+      "issue_salience_measurement_accuracy": "Valid quantification of issue prominence and attention allocation",
+      "agenda_structure_identification": "Accurate characterization of issue hierarchy and organization",
+      "transfer_effectiveness_assessment": "Realistic evaluation of agenda-setting potential and success",
+      "temporal_pattern_recognition": "Valid identification of attention cycles and agenda dynamics"
+    },
+    "predictive_validation": {
+      "agenda_change_prediction_accuracy": "Valid prediction of issue salience changes and agenda evolution",
+      "attention_allocation_forecasting": "Accurate prediction of audience attention distribution across issues",
+      "issue_prominence_prediction": "Valid prediction of which issues will gain or lose salience",
+      "transfer_success_anticipation": "Accurate prediction of agenda-setting effectiveness under different conditions"
+    }
+  },
+  "mode": "open",
+  "schema_id": "agenda_setting_mccombs_shaw_1972"
+}

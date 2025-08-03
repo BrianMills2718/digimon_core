@@ -1,0 +1,113 @@
+This table provides a summary of Description Logic (DL) symbols used in OWL (Web Ontology Language) along with their Manchester syntax and semantics. Here's a terse but precise breakdown of key points with definitions for technical terms:
+
+Foundational Symbols and Interpretations
+Name	DL	Semantics
+Domain of interpretation	ΔI\Delta^I	The total universe of discourse—the maximal set of "things" considered in the ontology.
+Thing / Top concept	⊤\top	Represents everything in the domain: ⊤=ΔI\top = \Delta^I.
+Nothing / Bottom concept	⊥\bot	Represents the empty set: ⊥=∅\bot = \emptyset.
+
+Object and Data Properties (Roles)
+Name	DL	Semantics
+Top object property	UU	The universal binary relation: ΔI×ΔI\Delta^I \times \Delta^I (all ordered pairs of domain elements).
+Bottom object property	BB	Empty relation: no ordered pairs.
+Object property / Role	rr	A binary relation (a set of ordered pairs) between individuals (domain elements).
+Data property	tt	Binary relation between individuals and data values (e.g., string, number).
+	Technical term: Binary relation = a set of ordered pairs; e.g., likes = {(Alice, Bob), (Bob, Carol)}
+
+Individuals and Concepts
+Name	DL	Semantics
+Individual	cc	c∈ΔIc \in \Delta^I: a specific entity in the domain.
+Class / Concept	CC	C⊆ΔIC \subseteq \Delta^I: a subset of individuals (e.g., the class "Human").
+
+Axioms (Logical Constraints)
+Name	DL	Semantics
+Concept subsumption	C⊑DC \sqsubseteq D	Class CC is a subclass (subset) of DD; all instances of CC are instances of DD.
+Concept equivalence	C≡DC \equiv D	Classes CC and DD denote exactly the same set of individuals.
+Role subsumption	r⊑sr \sqsubseteq s	Role rr is a subproperty of ss; every pair in rr is also in ss.
+
+Assertional Axioms and Identity
+DL Notation	Manchester	Semantics
+r≡sr \equiv s	ObjectProperty r: EquivalentTo: s	Role equivalence: all pairs in relation rr are in ss and vice versa. Think: two identical relationships (e.g., "hasParent" ≡ "isChildOf⁻¹").
+C(x)C(x)	Class: C; Individual: x; Type: C	Concept assertion: xx is an instance of class CC (i.e., the individual belongs to the group).
+r(x,y)r(x, y)	ObjectProperty: r; Individual: x, y; Facts: r y	Role assertion: individual xx is related to individual yy via property rr.
+x≈yx \approx y	SameAs	Identity: individuals xx and yy refer to the same entity.
+x≉yx \not\approx y	DifferentFrom	Inequality: individuals xx and yy are not the same entity.
+
+Concept Constructors
+DL Notation	Manchester	Semantics
+¬C\neg C	not C	Concept negation: everything not in CC.
+C⊓DC \sqcap D	C and D	Intersection: things in both CC and DD.
+C⊔DC \sqcup D	C or D	Union: things in CC, DD, or both.
+
+Existential and Universal Restrictions
+DL Notation	Manchester	Semantics
+∃r.C\exists r.C	r some C	Qualified existential restriction: an individual is in this set if it has some relationship rr to at least one individual in class CC. (e.g., "Person who owns some Dog")
+∃r\exists r or ∃r.⊤\exists r.\top	r some owl:Thing	Unqualified existential restriction: the individual has some relation rr to something, regardless of type.
+∃r.{x}\exists r.\{x\}	r hasValue x	Value restriction: individual is related by rr specifically to xx. (e.g., "Person whose mother is Alice")
+∀r.C\forall r.C	r only C	Qualified universal restriction: all rr-related individuals are in class CC. (e.g., "Person who only owns Dogs")
+
+
+
+
+
+Distilled into first-order logic forms or illustrated with OWL/RDF syntax examples?
+
+1. Concept Assertion — C(x)C(x)
+Semantics: Individual xx is an instance of concept CC.
+	• FOL: C(x)C(x)
+	• OWL: ClassAssertion( :C :x )
+	• Example: If C=HumanC = \text{Human}, x=Alicex = \text{Alice}, then:
+ClassAssertion( :Human :Alice )
+
+2. Role Assertion — r(x,y)r(x, y)
+Semantics: Individual xx is related to yy via property rr.
+	• FOL: r(x,y)r(x, y)
+	• OWL: ObjectPropertyAssertion( :r :x :y )
+	• Example: ObjectPropertyAssertion( :hasParent :Bob :Alice )
+
+3. Same Individual — x≈yx \approx y
+FOL: x=yx = y
+OWL: SameIndividual( :x :y )
+
+4. Different Individuals — x≉yx \not\approx y
+FOL: x≠yx \neq y
+OWL: DifferentIndividuals( :x :y )
+
+5. Concept Negation — ¬C\neg C
+FOL: ¬C(x)\neg C(x)
+OWL: ComplementOf( :C )
+
+6. Intersection — C⊓DC \sqcap D
+FOL: C(x)∧D(x)C(x) \land D(x)
+OWL: IntersectionOf( :C :D )
+Example: Someone who is both Human and Student
+
+7. Disjunction — C⊔DC \sqcup D
+FOL: C(x)∨D(x)C(x) \lor D(x)
+OWL: UnionOf( :C :D )
+
+8. Existential Restriction — ∃r.C\exists r.C
+FOL: ∃y (r(x,y)∧C(y))\exists y\ (r(x, y) \land C(y))
+OWL: ObjectSomeValuesFrom( :r :C )
+Example: Humans who own a dog:
+SubClassOf( :Human ObjectSomeValuesFrom( :owns :Dog ) )
+
+9. Unqualified Existential Restriction — ∃r\exists r or ∃r.⊤\exists r.\top
+FOL: ∃y r(x,y)\exists y\ r(x, y)
+OWL: ObjectSomeValuesFrom( :r owl:Thing )
+Example: Anyone who owns something, anything:
+ObjectSomeValuesFrom( :owns owl:Thing )
+
+10. Value Restriction — ∃r.{x}\exists r.\{x\}
+FOL: r(y,x)r(y, x)
+OWL: ObjectHasValue( :r :x )
+Example: Those who own Alice:
+ObjectHasValue( :owns :Alice )
+
+11. Universal Restriction — ∀r.C\forall r.C
+FOL: ∀y (r(x,y)→C(y))\forall y\ (r(x, y) \rightarrow C(y))
+OWL: ObjectAllValuesFrom( :r :C )
+Example: All pets someone owns are dogs:
+SubClassOf( :Person ObjectAllValuesFrom( :owns :Dog ) )
+
+Would you like this as LaTeX or tabulated in CSV? Or would you prefer I walk through how this translates into RDF triples?

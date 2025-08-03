@@ -1,0 +1,310 @@
+{
+  "theory_id": "framing_theory_entman_1993",
+  "theory_name": "Framing Theory",
+  "theory_version": "1.0",
+  "meta_schema_version": "11.1",
+  "created_date": "2025-07-26",
+  "theory_metadata": {
+    "primary_authors": [
+      "Robert Entman",
+      "Erving Goffman",
+      "Shanto Iyengar"
+    ],
+    "publication_year": 1993,
+    "source_work": "Framing: Toward Clarification of a Fractured Paradigm (Entman)",
+    "theoretical_tradition": "Communication theory, political psychology, sociology",
+    "original_purpose": "Explain how information presentation affects audience understanding and interpretation of issues and events"
+  },
+  "telos": {
+    "primary_purpose": "Analyze how communication frames shape audience perception, interpretation, and evaluation of issues through selective emphasis and exclusion",
+    "secondary_purposes": [
+      "Identify frame elements that influence audience understanding",
+      "Predict frame effects on attitude formation and change",
+      "Analyze strategic framing in political communication",
+      "Understand frame competition and resonance factors"
+    ],
+    "theoretical_scope": "Communication influence on cognitive interpretation and evaluation processes",
+    "domain_applicability": "Political speeches, media content, policy discussions, persuasive communication, issue presentations"
+  },
+  "classification": {
+    "analytical_tier": "explanatory",
+    "tier_justification": "Explains how frames influence interpretation and predicts audience responses to different frame presentations",
+    "paradigm": "constructivist-interpretive",
+    "level_of_analysis": "individual_to_societal",
+    "temporal_scope": "process_oriented",
+    "complexity": "medium",
+    "formalization_level": "moderately_formalized"
+  },
+  "ontology": {
+    "core_entities": {
+      "frames": {
+        "definition": "Organizing principles that select and highlight particular aspects of reality while obscuring others",
+        "properties": [
+          "frame_type",
+          "comprehensiveness",
+          "coherence",
+          "resonance"
+        ],
+        "components": [
+          "problem_definition",
+          "causal_interpretation",
+          "moral_evaluation",
+          "solution_recommendation"
+        ],
+        "examples": [
+          "conflict frame",
+          "cooperation frame",
+          "security frame",
+          "human rights frame"
+        ]
+      },
+      "frame_elements": {
+        "definition": "Specific components that constitute frames and guide interpretation",
+        "properties": [
+          "element_type",
+          "salience",
+          "consistency",
+          "accessibility"
+        ],
+        "types": [
+          "keywords",
+          "metaphors",
+          "concepts",
+          "symbols",
+          "visual_images"
+        ],
+        "examples": [
+          "iron curtain metaphor",
+          "balance of power concept",
+          "freedom vs. tyranny opposition"
+        ]
+      },
+      "audiences": {
+        "definition": "Recipients of framed communication who interpret and evaluate information",
+        "properties": [
+          "prior_knowledge",
+          "value_systems",
+          "cognitive_capacity",
+          "motivation"
+        ],
+        "examples": [
+          "military officers",
+          "general public",
+          "policy elites",
+          "media audiences"
+        ]
+      },
+      "frame_effects": {
+        "definition": "Changes in audience cognition, evaluation, or behavior resulting from frame exposure",
+        "properties": [
+          "effect_type",
+          "magnitude",
+          "duration",
+          "scope"
+        ],
+        "types": [
+          "interpretive_effects",
+          "evaluative_effects",
+          "behavioral_effects"
+        ]
+      }
+    },
+    "frame_functions": {
+      "problem_definition": "Identifies what is at issue and what needs attention",
+      "causal_interpretation": "Explains who or what is responsible for the problem",
+      "moral_evaluation": "Provides judgments about the problem and responsible parties",
+      "solution_recommendation": "Suggests remedies or improvements to address the problem"
+    },
+    "frame_types": {
+      "episodic_frames": {
+        "definition": "Focus on specific events or individual cases",
+        "characteristics": [
+          "concrete",
+          "event_focused",
+          "limited_context"
+        ],
+        "effects": [
+          "individual_attribution",
+          "reduced_policy_support"
+        ]
+      },
+      "thematic_frames": {
+        "definition": "Focus on general conditions and systemic issues",
+        "characteristics": [
+          "abstract",
+          "context_rich",
+          "systemic_perspective"
+        ],
+        "effects": [
+          "societal_attribution",
+          "increased_policy_support"
+        ]
+      },
+      "conflict_frames": {
+        "definition": "Emphasize disagreement and opposition between parties",
+        "characteristics": [
+          "zero_sum",
+          "adversarial",
+          "competitive"
+        ],
+        "effects": [
+          "polarization",
+          "decreased_compromise"
+        ]
+      },
+      "cooperation_frames": {
+        "definition": "Emphasize collaboration and mutual benefit",
+        "characteristics": [
+          "positive_sum",
+          "collaborative",
+          "integrative"
+        ],
+        "effects": [
+          "compromise",
+          "mutual_understanding"
+        ]
+      }
+    },
+    "framing_processes": {
+      "frame_building": "Process by which frames are constructed and developed",
+      "frame_setting": "Process by which frames are transmitted to audiences",
+      "frame_effects": "Process by which frames influence audience responses",
+      "frame_feedback": "Process by which audience responses affect future framing"
+    }
+  },
+  "execution": {
+    "stage_1_comprehensive_structuring": {
+      "step_1_applicability_assessment": {
+        "description": "Evaluate text suitability for framing analysis",
+        "criteria": {
+          "interpretive_content_present": "Issues or events requiring interpretation and evaluation",
+          "selective_emphasis_evident": "Clear choices about what to highlight or obscure",
+          "frame_elements_identifiable": "Presence of keywords, metaphors, concepts that shape interpretation",
+          "audience_directed_communication": "Content intended to influence audience understanding"
+        },
+        "scoring": "0.0-1.0 scale based on presence and clarity of framing elements",
+        "threshold": "0.7 minimum for meaningful framing analysis"
+      },
+      "step_2_frame_identification": {
+        "description": "Identify dominant and competing frames used to present issues",
+        "frame_extraction": [
+          "Identify explicit frame labels and categories",
+          "Extract implicit frames from patterns of emphasis",
+          "Determine frame scope and comprehensiveness",
+          "Assess frame coherence and internal consistency"
+        ],
+        "frame_categorization": [
+          "Classify frames by type (episodic/thematic, conflict/cooperation)",
+          "Identify frame hierarchies and relationships",
+          "Assess frame dominance and subordination patterns",
+          "Determine frame competition and alternatives"
+        ]
+      },
+      "step_3_frame_element_analysis": {
+        "description": "Analyze specific elements that constitute identified frames",
+        "element_extraction": [
+          "Identify keywords and terminology choices",
+          "Extract metaphors and analogies used",
+          "Determine key concepts and their definitions",
+          "Identify symbols and cultural references"
+        ],
+        "element_assessment": [
+          "Evaluate element salience and prominence",
+          "Assess element consistency across frame usage",
+          "Determine element accessibility and familiarity",
+          "Analyze element emotional and evaluative content"
+        ]
+      },
+      "step_4_frame_function_analysis": {
+        "description": "Analyze how frames perform their four key functions",
+        "function_analysis": [
+          "Problem Definition: What issues are identified as problematic?",
+          "Causal Interpretation: What causes are attributed to problems?",
+          "Moral Evaluation: What judgments are made about problems and actors?",
+          "Solution Recommendation: What remedies are suggested or implied?"
+        ],
+        "function_assessment": [
+          "Evaluate completeness of frame functions",
+          "Assess consistency across frame functions",
+          "Determine emphasis patterns among functions",
+          "Identify gaps or weaknesses in frame performance"
+        ]
+      },
+      "step_5_frame_resonance_assessment": {
+        "description": "Evaluate factors affecting frame effectiveness and audience resonance",
+        "resonance_factors": [
+          "Cultural compatibility with audience values and beliefs",
+          "Cognitive accessibility based on audience knowledge",
+          "Experiential resonance with audience life experiences",
+          "Narrative coherence and logical consistency"
+        ]
+      }
+    },
+    "stage_2_analytic_evaluation": {
+      "step_1_frame_competition_analysis": {
+        "description": "Analyze competition between different frames for the same issue",
+        "competition_analysis": [
+          "Identify alternative frames for the same issues",
+          "Assess relative strength and dominance of competing frames",
+          "Evaluate frame complementarity vs. contradiction",
+          "Analyze strategic frame choices and positioning"
+        ]
+      },
+      "step_2_frame_effect_prediction": {
+        "description": "Predict likely audience responses to identified frames",
+        "effect_prediction": [
+          "Interpretive effects: How will audiences understand the issue?",
+          "Evaluative effects: How will audiences judge actors and actions?",
+          "Behavioral effects: What actions might audiences take?",
+          "Attitude effects: How might audience attitudes change?"
+        ]
+      },
+      "step_3_strategic_framing_assessment": {
+        "description": "Evaluate strategic aspects of framing choices and effectiveness",
+        "strategic_analysis": [
+          "Identify framing objectives and intended effects",
+          "Assess framing consistency with communicator goals",
+          "Evaluate framing adaptation to audience characteristics",
+          "Analyze counter-framing vulnerabilities and strengths"
+        ]
+      },
+      "step_4_frame_evolution_analysis": {
+        "description": "Analyze how frames develop and change over time",
+        "evolution_analysis": [
+          "Identify frame stability vs. adaptation patterns",
+          "Assess frame learning and refinement processes",
+          "Evaluate contextual influences on frame development",
+          "Predict future frame evolution trajectories"
+        ]
+      }
+    }
+  },
+  "validation": {
+    "internal_consistency": {
+      "frame_identification_coherence": "Frames properly identified with clear boundaries and characteristics",
+      "element_extraction_completeness": "All significant frame elements identified and categorized",
+      "function_analysis_thoroughness": "All four frame functions analyzed systematically",
+      "resonance_assessment_validity": "Realistic evaluation of frame effectiveness factors"
+    },
+    "theoretical_fidelity": {
+      "entman_framework_compliance": "Adherence to Entman's four-function framing model",
+      "selection_salience_emphasis": "Focus on what is selected and made salient vs. what is excluded",
+      "interpretation_influence_focus": "Emphasis on how frames shape audience understanding",
+      "strategic_communication_recognition": "Acknowledgment of purposive framing choices"
+    },
+    "empirical_validation": {
+      "frame_element_identification_accuracy": "Valid extraction of keywords, metaphors, concepts from text",
+      "function_performance_assessment": "Accurate evaluation of how frames define problems, assign causation, evaluate morally, recommend solutions",
+      "audience_resonance_evaluation": "Realistic assessment of frame compatibility with audience characteristics",
+      "effect_prediction_plausibility": "Credible prediction of frame influence on audience responses"
+    },
+    "predictive_validation": {
+      "interpretation_effect_prediction_accuracy": "Valid prediction of how frames will shape audience understanding",
+      "evaluation_effect_forecasting": "Accurate prediction of frame influence on audience judgments",
+      "behavioral_response_anticipation": "Valid prediction of audience behavioral responses to frames",
+      "frame_competition_outcome_prediction": "Accurate prediction of which frames will dominate in competitive situations"
+    }
+  },
+  "mode": "open",
+  "schema_id": "framing_theory_entman_1993"
+}

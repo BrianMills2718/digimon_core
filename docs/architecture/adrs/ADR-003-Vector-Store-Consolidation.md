@@ -43,7 +43,7 @@ This technical improvement directly nullifies the original reason for including 
 
 ---
 
-## ✅ **Selected Solution: Bi-Store Architecture**
+## **Selected Solution: Bi-Store Architecture**
 
 1.  **Data Stores**:
     -   **Neo4j**: Will store both the property graph and the vector embeddings for all entities. An `HNSW` index will be created on the `embedding` property of `:Entity` nodes.
@@ -62,10 +62,10 @@ This technical improvement directly nullifies the original reason for including 
 ### **Consequences**
 
 **Positive**:
--   ✅ **Architectural Simplification**: Eliminates an entire service and the complex cross-service consistency logic.
--   ✅ **Strong Consistency**: Vector and graph data are now updated atomically within the same transaction. The orphan-reference problem is eliminated.
--   ✅ **Reduced Maintenance**: Fewer code components and operational processes to manage.
--   ✅ **Future-Proof**: The `VectorStore` interface provides a clean extension point for future scalability needs.
+-   **Architectural Simplification**: Eliminates an entire service and the complex cross-service consistency logic.
+-   **Strong Consistency**: Vector and graph data are now updated atomically within the same transaction. The orphan-reference problem is eliminated.
+-   **Reduced Maintenance**: Fewer code components and operational processes to manage.
+-   **Future-Proof**: The `VectorStore` interface provides a clean extension point for future scalability needs.
 
 **Negative**:
 -   **Scalability Ceiling**: Neo4j's native index may not perform as well as a dedicated store like Qdrant at extremely large scales (>100M vectors). This is an acceptable trade-off for this project's scope.
@@ -174,4 +174,7 @@ The VectorStore abstraction ensures this future migration would be straightforwa
 
 ---
 
-**Related ADRs**: Supersedes the "Tri-Store Consistency" section of ADR-001/ADR-002 discussions. Complements the workflow state management approach. 
+**Related ADRs**: 
+- Supersedes the "Tri-Store Consistency" section of ADR-001/ADR-002 discussions
+- **[ADR-009: Bi-Store Database Strategy Rationale](ADR-009-Bi-Store-Database-Strategy.md)**: Provides comprehensive academic workflow rationale for the bi-store architecture established by this ADR
+- Complements the workflow state management approach 

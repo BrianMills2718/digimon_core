@@ -34,10 +34,10 @@ class MemoryStats:
 @dataclass
 class MemoryConfiguration:
     """Memory management configuration"""
-    max_memory_mb: int = 1024  # 1GB default
-    warning_threshold: float = 0.8  # 80% warning
-    critical_threshold: float = 0.9  # 90% critical
-    cleanup_threshold: float = 0.85  # 85% cleanup trigger
+    max_memory_mb: int = 1024  # 1GB process limit (for operation size checks)
+    warning_threshold: float = 80.0  # 80% of system memory warning
+    critical_threshold: float = 90.0  # 90% of system memory critical  
+    cleanup_threshold: float = 85.0  # 85% of system memory cleanup trigger
     gc_frequency: int = 100  # operations between GC
     chunk_size_mb: int = 50  # Default chunk size for streaming
     max_cache_size_mb: int = 256  # Maximum cache size
@@ -90,26 +90,10 @@ class MemoryManager:
             except Exception as e:
                 self.logger.error(f"Memory monitoring error: {e}")
             
-            # Use event-based monitoring instead of blocking sleep
-            # In async context, this would be: await asyncio.sleep(30)
-            import asyncio
-            try:
-                asyncio.create_task(asyncio.sleep(30))
-            except RuntimeError:
-                # Non-async fallback - use shorter intervals to reduce blocking
-                import time
-                # Use async sleep if possible to avoid blocking
-                try:
-                    import asyncio
-                    loop = asyncio.get_running_loop()
-                    if loop:
-                        asyncio.create_task(asyncio.sleep(1.0))
-                    else:
-                        import time
-                        time.sleep(0.1)  # Reduced to 100ms for better responsiveness
-                except RuntimeError:
-                    import time
-                    time.sleep(0.1)  # Minimal blocking fallback
+            # Use non-blocking sleep for memory monitoring
+            # Avoid async calls in synchronous context
+            import time
+            time.sleep(1.0)  # Use simple blocking sleep in monitoring thread
     
     def get_memory_stats(self) -> MemoryStats:
         """Get current memory statistics"""
@@ -120,7 +104,9 @@ class MemoryManager:
             
             current_memory_mb = memory_info.rss / (1024 * 1024)
             available_memory_mb = virtual_memory.available / (1024 * 1024)
-            memory_usage_percent = (current_memory_mb / self.config.max_memory_mb) * 100
+            total_system_memory_mb = virtual_memory.total / (1024 * 1024)
+            # Use system memory percentage instead of arbitrary config limit
+            memory_usage_percent = (current_memory_mb / total_system_memory_mb) * 100
             swap_usage_mb = getattr(memory_info, 'vms', 0) / (1024 * 1024)
             
             with self._lock:

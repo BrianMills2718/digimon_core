@@ -1,0 +1,8 @@
+
+
+Description Logic ontologies typically consists of a TBox and an ABox. The TBox defines the terminology which describes the concepts and (binary) relationships between concepts. This can be thought of as the "schema" in database terms. The ABox describes the world consisting of individuals. This can be thought of as the "data" in database terms.
+
+As an example a TBox can state that the concept C1 is subsumed by the concept C2 and that every individual of concept D1 is related via the relationship R to at least one individual of concept D2. Then in the ABox one can state that individual a is of type C1 and that individuals x and y are related via R.
+
+A book that can be helpful in this regard is: An Introduction to Description Logics.
+https://www.amazon.co.uk/Introduction-Description-Logic-Franz-Baader/dp/0521695422/ref=sr_1_1

@@ -1,0 +1,387 @@
+{
+  "schema_id": "network_theory_wasserman_faust_1994",
+  "mode": "open",
+  "theory_id": "network_theory_wasserman_faust_1994",
+  "theory_name": "Network Theory (Social Network Analysis)",
+  "theory_version": "1.0",
+  "meta_schema_version": "11.1",
+  "created_date": "2025-07-26",
+  
+  "theory_metadata": {
+    "primary_authors": ["Stanley Wasserman", "Katherine Faust", "Mark Granovetter", "James Coleman"],
+    "publication_year": 1994,
+    "source_work": "Social Network Analysis: Methods and Applications (Wasserman & Faust)",
+    "theoretical_tradition": "Sociology, social psychology, political science, organizational theory",
+    "original_purpose": "Analyze social structures through patterns of relationships between actors and explain outcomes through network positions and dynamics"
+  },
+
+  "telos": {
+    "primary_purpose": "Explain behavior and outcomes through network positions, relationship patterns, and structural characteristics of social networks",
+    "secondary_purposes": [
+      "Identify influential actors through centrality measures",
+      "Analyze information and resource flows through network structures",
+      "Explain collective action and coordination through network properties",
+      "Predict network evolution and relationship formation"
+    ],
+    "theoretical_scope": "Relational structures and their effects on individual and collective behavior",
+    "domain_applicability": "Relationship descriptions, network communications, alliance discussions, organizational interactions, collaboration patterns"
+  },
+
+  "classification": {
+    "analytical_tier": "explanatory", 
+    "tier_justification": "Explains outcomes through network structure analysis and predicts behavior based on network positions and dynamics",
+    "paradigm": "structural-relational",
+    "level_of_analysis": "relational",
+    "temporal_scope": "structural_dynamic",
+    "complexity": "high",
+    "formalization_level": "highly_formalized"
+  },
+
+  "ontology": {
+    "core_entities": {
+      "actors": {
+        "definition": "Individual or collective entities that form nodes in social networks",
+        "properties": ["actor_type", "attributes", "resources", "positions"],
+        "examples": ["individuals", "organizations", "nation-states", "institutions", "groups"]
+      },
+      "ties": {
+        "definition": "Relationships or connections between actors that form network links",
+        "properties": ["tie_type", "strength", "direction", "multiplexity", "duration"],
+        "types": ["communication", "collaboration", "authority", "exchange", "similarity"],
+        "examples": ["alliance relationships", "communication channels", "influence ties", "resource flows"]
+      },
+      "networks": {
+        "definition": "Complete sets of actors and their relationships forming structured social systems",
+        "properties": ["network_type", "size", "density", "structure", "boundaries"],
+        "examples": ["alliance networks", "communication networks", "policy networks", "organizational networks"]
+      },
+      "positions": {
+        "definition": "Locations of actors within network structures that determine opportunities and constraints",
+        "properties": ["position_type", "centrality", "structural_equivalence", "brokerage_potential"],
+        "examples": ["central positions", "peripheral positions", "bridge positions", "structural holes"]
+      }
+    },
+    
+    "network_properties": {
+      "structural_measures": {
+        "density": "Proportion of possible ties that actually exist in the network",
+        "centralization": "Degree to which network ties are concentrated around particular actors",
+        "clustering": "Tendency for actors' neighbors to be connected to each other",
+        "path_length": "Average shortest path between all pairs of actors",
+        "components": "Number of disconnected subgroups within the network"
+      },
+      "centrality_measures": {
+        "degree_centrality": "Number of direct connections an actor has",
+        "betweenness_centrality": "Extent to which actor lies on paths between other actors",
+        "closeness_centrality": "Average shortest path from actor to all other actors",
+        "eigenvector_centrality": "Connections to well-connected others",
+        "bonacich_power": "Power derived from connections to less powerful others"
+      },
+      "cohesion_measures": {
+        "cliques": "Maximally connected subgroups where all members are connected",
+        "k_cores": "Maximal subgroups where each member connects to k others within group",
+        "structural_equivalence": "Actors with identical patterns of relationships",
+        "blocks": "Groups of structurally equivalent actors"
+      }
+    },
+
+    "network_mechanisms": {
+      "social_capital": {
+        "definition": "Resources available through network relationships",
+        "types": ["bonding_capital", "bridging_capital", "linking_capital"],
+        "effects": ["information_access", "influence_potential", "collective_efficacy"]
+      },
+      "structural_holes": {
+        "definition": "Lack of connections between actors that creates brokerage opportunities",
+        "benefits": ["information_control", "arbitrage_opportunities", "innovation_potential"],
+        "constraints": ["maintenance_costs", "trust_challenges", "role_conflicts"]
+      },
+      "network_effects": {
+        "contagion": "Spread of behaviors, attitudes, or information through network ties",
+        "social_influence": "Change in behavior due to network partner influence",
+        "social_selection": "Formation of ties based on similarity",
+        "structural_embeddedness": "Economic action embedded in ongoing social relationships"
+      }
+    },
+
+    "mathematical_algorithms": {
+      "adjacency_matrix": {
+        "description": "NxN binary matrix representing network connections",
+        "formula": "A[i,j] = 1 if tie exists between actor i and j, 0 otherwise",
+        "implementation": "Sparse matrix representation for large networks",
+        "input_requirements": ["actor_list", "tie_list"],
+        "output": "Binary adjacency matrix"
+      },
+      "degree_centrality": {
+        "formula": "C_D(i) = Σ A[i,j] for all j ≠ i",
+        "normalized_formula": "C'_D(i) = C_D(i) / (n-1) where n = number of actors",
+        "implementation": "Sum of row/column in adjacency matrix",
+        "interpretation": "Higher values indicate more direct connections",
+        "output": "Centrality score 0.0-1.0 (normalized)"
+      },
+      "betweenness_centrality": {
+        "formula": "C_B(i) = Σ(σ_jk(i) / σ_jk) for all pairs j,k where j≠k≠i",
+        "variables": {
+          "σ_jk": "Number of shortest paths between j and k",
+          "σ_jk(i)": "Number of shortest paths between j and k that pass through i"
+        },
+        "algorithm": "Floyd-Warshall or Brandes algorithm for shortest paths",
+        "implementation": "Graph shortest path algorithms",
+        "interpretation": "Higher values indicate greater brokerage potential",
+        "output": "Centrality score 0.0-1.0 (normalized)"
+      },
+      "closeness_centrality": {
+        "formula": "C_C(i) = (n-1) / Σ d(i,j) for all j ≠ i",
+        "variables": {
+          "d(i,j)": "Shortest path distance between actor i and j",
+          "n": "Number of actors in network"
+        },
+        "algorithm": "Dijkstra's algorithm for shortest paths",
+        "implementation": "Graph traversal algorithms",
+        "interpretation": "Higher values indicate faster access to all other actors",
+        "output": "Centrality score 0.0-1.0"
+      },
+      "eigenvector_centrality": {
+        "formula": "C_E(i) = λ^(-1) Σ A[i,j] * C_E(j) for all j",
+        "algorithm": "Power iteration method to find dominant eigenvector of adjacency matrix",
+        "implementation": "Iterative matrix multiplication until convergence",
+        "interpretation": "Higher values indicate connections to well-connected others",
+        "convergence_criteria": "||x_k+1 - x_k|| < tolerance (typically 1e-6)",
+        "output": "Centrality score 0.0-1.0 (normalized)"
+      },
+      "network_density": {
+        "formula": "D = 2E / (n(n-1)) for undirected networks, D = E / (n(n-1)) for directed networks",
+        "variables": {
+          "E": "Number of edges in network",
+          "n": "Number of nodes in network"
+        },
+        "implementation": "Count existing ties divided by maximum possible ties",
+        "interpretation": "0.0 = no connections, 1.0 = all possible connections exist",
+        "output": "Density score 0.0-1.0"
+      },
+      "clustering_coefficient": {
+        "local_formula": "C_i = 2e_i / (k_i(k_i-1)) where e_i = edges among neighbors of i, k_i = degree of i",
+        "global_formula": "C = (1/n) Σ C_i for all nodes i",
+        "algorithm": "For each node, count triangles formed with neighbors",
+        "implementation": "Triangle counting algorithm",
+        "interpretation": "Higher values indicate more tightly knit local neighborhoods",
+        "output": "Clustering coefficient 0.0-1.0"
+      },
+      "text_to_network_conversion": {
+        "actor_identification": {
+          "method": "Named entity recognition and relationship extraction",
+          "entity_types": ["persons", "organizations", "institutions", "groups"],
+          "consolidation": "Entity resolution to merge duplicate references"
+        },
+        "tie_strength_estimation": {
+          "method": "Convert linguistic relationship indicators to numerical weights",
+          "linguistic_mappings": {
+            "alliance/partnership": "0.8-1.0",
+            "cooperation/collaboration": "0.6-0.79",
+            "communication/interaction": "0.4-0.59",
+            "competition/rivalry": "-0.4 to -0.59",
+            "conflict/opposition": "-0.6 to -0.79",
+            "hostility/enemy": "-0.8 to -1.0"
+          },
+          "directionality": "Determine if relationships are mutual or asymmetric"
+        },
+        "network_boundary_determination": {
+          "inclusion_criteria": "Actors with explicit relationships mentioned in text",
+          "exclusion_criteria": "Actors mentioned only in passing without relational context",
+          "boundary_specification": "Manual or algorithm-based boundary drawing"
+        }
+      }
+    }
+  },
+
+  "execution": {
+    "stage_1_comprehensive_structuring": {
+      "step_1_applicability_assessment": {
+        "description": "Evaluate text suitability for network analysis",
+        "criteria": {
+          "relational_content_present": "Clear relationships and connections between identifiable actors",
+          "network_structure_identifiable": "Patterns of relationships that form coherent network structures",
+          "positional_differences": "Evidence that actor positions within networks affect outcomes",
+          "relationship_consequences": "Indication that relationships matter for behavior or outcomes"
+        },
+        "scoring": "0.0-1.0 scale based on presence and clarity of network elements",
+        "threshold": "0.6 minimum for meaningful network analysis"
+      },
+      
+      "step_2_actor_identification": {
+        "description": "Identify all actors that constitute network nodes",
+        "actor_extraction": [
+          "Extract explicitly mentioned individual and collective actors",
+          "Identify implicit actors from context and relationship descriptions",
+          "Categorize actors by type (individuals, organizations, states, institutions)",
+          "Assess actor attributes and resources relevant to network position"
+        ],
+        "actor_characterization": [
+          "Determine actor capabilities and resources",
+          "Assess actor goals and interests",
+          "Evaluate actor autonomy and constraints",
+          "Identify actor roles and functions within networks"
+        ]
+      },
+      
+      "step_3_tie_identification": {
+        "description": "Identify relationships and connections between actors",
+        "tie_extraction": [
+          "Extract explicit relationships and connections",
+          "Identify implicit ties from interaction patterns and contexts",
+          "Categorize ties by type (communication, collaboration, authority, exchange)",
+          "Assess tie properties (strength, direction, duration, multiplexity)"
+        ],
+        "tie_properties": [
+          "Strength: Intensity, frequency, or importance of relationship",
+          "Direction: Unidirectional vs. bidirectional relationships",
+          "Multiplexity: Single vs. multiple types of relationships between actors",
+          "Duration: Temporary vs. permanent relationship characteristics"
+        ]
+      },
+      
+      "step_4_network_structure_analysis": {
+        "description": "Analyze overall network structure and properties",
+        "structure_analysis": [
+          "Map complete network structure from identified actors and ties",
+          "Calculate basic network measures (size, density, components)",
+          "Identify subgroups and cohesive structures",
+          "Assess network boundaries and closure"
+        ],
+        "structural_patterns": [
+          "Centralization patterns and hierarchy",
+          "Clustering and cohesion patterns",
+          "Bridge and broker positions",
+          "Structural holes and disconnections"
+        ]
+      },
+      
+      "step_5_position_analysis": {
+        "description": "Analyze actor positions within network structures",
+        "position_assessment": [
+          "Calculate centrality measures for key actors",
+          "Identify structural equivalence and role similarity",
+          "Assess brokerage positions and structural holes",
+          "Evaluate position advantages and constraints"
+        ]
+      },
+
+      "step_6_network_matrix_construction": {
+        "description": "Convert extracted relationships into mathematical network representation",
+        "matrix_construction": [
+          "Apply actor_identification algorithms to create node list",
+          "Apply tie_strength_estimation to convert linguistic relationships to numerical weights",
+          "Construct adjacency matrix A[i,j] with tie strengths as values",
+          "Handle directed vs. undirected relationships appropriately",
+          "Validate matrix for completeness and logical consistency"
+        ],
+        "output_format": {
+          "adjacency_matrix": "NxN matrix with tie strengths as values",
+          "actor_list": "Ordered list of network actors",
+          "tie_metadata": "Additional information about relationship types and contexts",
+          "network_boundary": "Definition of included vs. excluded actors"
+        }
+      }
+    },
+
+    "stage_2_analytic_evaluation": {
+      "step_1_centrality_and_influence_analysis": {
+        "description": "Analyze actor influence and importance through centrality measures",
+        "centrality_analysis": [
+          "Degree centrality: Direct connection influence",
+          "Betweenness centrality: Brokerage and control potential",
+          "Closeness centrality: Efficiency and information access",
+          "Eigenvector centrality: Influence through high-status connections"
+        ]
+      },
+      
+      "step_2_structural_advantage_assessment": {
+        "description": "Evaluate how network positions create advantages or constraints",
+        "advantage_analysis": [
+          "Information advantages from network position",
+          "Control advantages from brokerage positions",
+          "Resource access through network connections",
+          "Influence potential through centrality and connections"
+        ]
+      },
+      
+      "step_3_network_dynamics_analysis": {
+        "description": "Analyze network formation, maintenance, and change processes",
+        "dynamics_analysis": [
+          "Tie formation mechanisms and drivers",
+          "Network maintenance and stability factors",
+          "Network change and evolution patterns",
+          "Network dissolution and fragmentation processes"
+        ]
+      },
+      
+      "step_4_collective_outcomes_prediction": {
+        "description": "Predict collective outcomes based on network structure",
+        "outcome_prediction": [
+          "Collective action potential based on network cohesion",
+          "Information diffusion patterns through network structure",
+          "Coordination capacity based on centralization and clustering",
+          "Innovation and adaptation potential through structural diversity"
+        ]
+      },
+
+      "step_5_mathematical_network_analysis": {
+        "description": "Execute mathematical algorithms to calculate network measures and generate predictions",
+        "computational_steps": [
+          "Calculate degree centrality C_D(i) = Σ A[i,j] for all actors",
+          "Calculate betweenness centrality using Floyd-Warshall or Brandes algorithm",
+          "Calculate closeness centrality C_C(i) = (n-1) / Σ d(i,j) using shortest path algorithms",
+          "Calculate eigenvector centrality using power iteration until convergence",
+          "Calculate network-level measures: density, clustering coefficient, path length",
+          "Identify structural holes and brokerage opportunities",
+          "Generate network visualizations and structural analysis"
+        ],
+        "algorithms_required": [
+          "Sparse matrix operations for large networks",
+          "Graph shortest path algorithms (Dijkstra, Floyd-Warshall, Brandes)",
+          "Eigenvalue/eigenvector computation (power iteration)",
+          "Triangle counting for clustering coefficient",
+          "Community detection algorithms (optional)",
+          "Network visualization algorithms (force-directed layouts)"
+        ],
+        "output_format": {
+          "centrality_scores": "Dictionary of centrality measures for each actor",
+          "network_measures": "Overall network statistics (density, clustering, etc.)",
+          "structural_analysis": "Identification of key positions, brokers, communities",
+          "influence_rankings": "Ranked list of actors by various centrality measures",
+          "network_visualization": "Graph layout coordinates for visualization"
+        }
+      }
+    }
+  },
+
+  "validation": {
+    "internal_consistency": {
+      "actor_identification_completeness": "All relevant network actors properly identified and characterized",
+      "tie_extraction_accuracy": "All significant relationships between actors identified and properly characterized",
+      "network_structure_coherence": "Network structure accurately represents actual relationship patterns",
+      "position_analysis_validity": "Actor positions and their implications correctly analyzed"
+    },
+    
+    "theoretical_fidelity": {
+      "structural_explanation_emphasis": "Focus on how network structure affects behavior and outcomes",
+      "relational_rather_than_attributional": "Emphasis on relationships rather than individual attributes",
+      "position_consequence_recognition": "Analysis of how network positions create opportunities and constraints",
+      "structural_embeddedness_consideration": "Recognition that action is embedded in ongoing social relationships"
+    },
+    
+    "empirical_validation": {
+      "relationship_identification_accuracy": "Valid extraction of actual relationships from textual evidence",
+      "structural_measure_calculation": "Mathematically correct calculation of network properties",
+      "centrality_assessment_validity": "Accurate assessment of actor importance and influence",
+      "network_boundary_determination": "Appropriate specification of network boundaries and membership"
+    },
+    
+    "predictive_validation": {
+      "influence_pattern_prediction_accuracy": "Valid prediction of influence and power patterns",
+      "information_flow_forecasting": "Accurate prediction of information and resource flows",
+      "collective_outcome_anticipation": "Valid prediction of collective action and coordination outcomes",
+      "network_evolution_prediction": "Accurate prediction of network change and development patterns"
+    }
+  }
+}

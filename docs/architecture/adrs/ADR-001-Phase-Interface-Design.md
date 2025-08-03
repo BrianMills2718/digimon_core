@@ -1,11 +1,12 @@
 **Doc status**: Living – auto-checked by doc-governance CI
 
-# ADR-001: Contract-First Tool Interface Design
+# ADR-001: Contract-First Tool Interface Design (Layer 2: Internal Contract)
 
 **Date**: 2025-01-27  
 **Status**: Partially Implemented - 10 tools use legacy interfaces, 9 tools have unified interface, contract-first design remains architectural goal  
 **Deciders**: Development Team  
-**Context**: Tool integration failures due to incompatible interfaces
+**Context**: Tool integration failures due to incompatible interfaces  
+**Layer**: **Layer 2 - Internal Contract Interface** (see [ADR-028](ADR-028-Tool-Interface-Layer-Architecture.md) for complete layer architecture)
 
 ---
 
@@ -13,7 +14,9 @@
 
 **Use contract-first design for all tool interfaces with theory schema integration**
 
-All tools must implement standardized contracts with theory schema support to enable agent-orchestrated workflows and cross-modal analysis.
+This ADR defines **Layer 2 (Internal Contract Interface)** in the [three-layer tool interface architecture](ADR-028-Tool-Interface-Layer-Architecture.md). All tools must implement standardized contracts with theory schema support to enable agent-orchestrated workflows and cross-modal analysis.
+
+**Layer 2 Scope**: Internal KGAS services, agent orchestration, cross-modal analysis, theory integration
 
 ---
 
@@ -121,7 +124,7 @@ The contract abstraction provides flexibility to evolve the implementation while
 
 ---
 
-## ✅ **Selected Solution**
+## **Selected Solution**
 
 ### **Contract-First Tool Interface**
 ```python
@@ -250,7 +253,6 @@ class KGASTool(ABC):
 
 ---
 
-## Implementation Status
 
 This ADR describes the **target tool interface design** - the intended contract-first architecture. For current tool interface implementation status and migration progress, see:
 
@@ -258,7 +260,11 @@ This ADR describes the **target tool interface design** - the intended contract-
 - **[Phase TDD Progress](../../roadmap/phases/phase-tdd/tdd-implementation-progress.md)** - Active tool interface migration progress
 - **[Tool Implementation Evidence](../../roadmap/phases/phase-1-implementation-evidence.md)** - Completed unified interface implementations
 
-**Related ADRs**: None (first ADR)  
+**Related ADRs**: 
+- **[ADR-028](ADR-028-Tool-Interface-Layer-Architecture.md)**: Defines this ADR as Layer 2 in three-layer architecture
+- **[ADR-002](ADR-002-Pipeline-Orchestrator-Architecture.md)**: Provides Layer 1→2 adapters for legacy tools  
+- **[ADR-013](ADR-013-MCP-Protocol-Integration.md)**: Defines Layer 3 external API that wraps Layer 2 contracts
+
 **Related Documentation**: `ARCHITECTURE_OVERVIEW.md`, `contract-system.md`
 
 *This ADR contains no implementation status information by design - all status tracking occurs in the roadmap documentation.*

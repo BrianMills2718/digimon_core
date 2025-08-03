@@ -43,7 +43,10 @@ class ToolPerformanceMonitor:
     to ensure tools meet performance requirements.
     """
     
-    def __init__(self, storage_dir: str = "./data/performance"):
+    def __init__(self, storage_dir: str = None):
+        if storage_dir is None:
+            from ...core.standard_config import get_file_path
+            storage_dir = f"{get_file_path('data_dir')}/performance"
         self.metrics: List[ToolPerformanceMetrics] = []
         self.benchmarks: Dict[str, Dict[str, float]] = {}
         self.performance_requirements: Dict[str, Dict[str, Any]] = {}

@@ -1,28 +1,84 @@
 tool_id: "T68_PAGE_RANK"
+name: "PageRank Calculator"
 description: "Calculates PageRank scores for entities in the graph database"
-category: "Analysis"
+version: "1.0.0"
+category: "analysis"
 
-input_contract:
-  required_data_types:
-    - type: "WorkflowState"
-      attributes: ["damping_factor", "max_iterations"]
-  required_state:
-    edges_built: true
+input_schema:
+  type: object
+  properties:
+    damping_factor:
+      type: number
+      minimum: 0
+      maximum: 1
+      default: 0.85
+      description: "PageRank damping factor"
+    max_iterations:
+      type: integer
+      minimum: 1
+      maximum: 1000
+      default: 100
+      description: "Maximum iterations for convergence"
+    tolerance:
+      type: number
+      minimum: 0
+      default: 0.000001
+      description: "Convergence tolerance"
+  required: []
 
-output_contract:
-  produced_data_types:
-    - type: "Entity"
-      attributes: ["entity_id", "canonical_name", "pagerank_score", "rank"]
-  produced_state:
-    pagerank_calculated: true
+output_schema:
+  type: object
+  properties:
+    ranked_entities:
+      type: array
+      items:
+        type: object
+        properties:
+          entity_id:
+            type: string
+          canonical_name:
+            type: string
+          pagerank_score:
+            type: number
+          rank:
+            type: integer
+        required: ["entity_id", "pagerank_score", "rank"]
+    total_entities:
+      type: integer
+      minimum: 0
+    algorithm_stats:
+      type: object
+      properties:
+        iterations:
+          type: integer
+        converged:
+          type: boolean
+        damping_factor:
+          type: number
+        tolerance:
+          type: number
+    graph_stats:
+      type: object
+      properties:
+        node_count:
+          type: integer
+        edge_count:
+          type: integer
+  required: ["ranked_entities", "total_entities"]
 
-error_codes:
-  - code: "DATABASE_CONNECTION_ERROR"
-    description: "Failed to connect to Neo4j database for PageRank calculation"
-    severity: "error"
-  - code: "INSUFFICIENT_DATA"
-    description: "Not enough entities or relationships for meaningful PageRank calculation"
-    severity: "error"
-  - code: "CONVERGENCE_ERROR"
-    description: "PageRank algorithm failed to converge within maximum iterations"
-    severity: "warning"
+depends_on: ["T31_ENTITY_BUILDER", "T34_EDGE_BUILDER"]
+
+dependencies:
+  - "neo4j"
+  - "networkx"
+
+performance_requirements:
+  max_execution_time: 60.0
+  max_memory_mb: 1000
+  min_accuracy: 0.95
+
+error_conditions:
+  - "DATABASE_CONNECTION_ERROR"
+  - "INSUFFICIENT_DATA"
+  - "CONVERGENCE_ERROR"
+  - "INVALID_INPUT"

@@ -58,7 +58,7 @@ class TheoryValidator:
         if not entities:
             return 0.0, {"error": "No entities to validate"}
         
-        validation_details = {
+        validation_details: Dict[str, Any] = {
             "total_entities": len(entities),
             "validated_entities": 0,
             "concept_matches": 0,
@@ -100,7 +100,7 @@ class TheoryValidator:
         if not relationships:
             return 0.0, {"error": "No relationships to validate"}
         
-        validation_details = {
+        validation_details: Dict[str, Any] = {
             "total_relationships": len(relationships),
             "validated_relationships": 0,
             "type_matches": 0,

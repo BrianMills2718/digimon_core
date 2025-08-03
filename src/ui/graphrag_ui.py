@@ -17,6 +17,13 @@ except ImportError:
     from src.core.config_manager import get_config
     from core.pipeline_orchestrator import PipelineOrchestrator
 
+# Import enhanced dashboard components
+try:
+    from src.ui.enhanced_dashboard import EnhancedDashboard
+    ENHANCED_DASHBOARD_AVAILABLE = True
+except ImportError:
+    ENHANCED_DASHBOARD_AVAILABLE = False
+
 logger = logging.getLogger(__name__)
 
 
@@ -36,6 +43,15 @@ class GraphRAGUI:
         # UI state
         self.current_phase = "phase1"
         self.session_id = f"ui_session_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        
+        # Initialize enhanced dashboard if available
+        self.enhanced_dashboard = None
+        if ENHANCED_DASHBOARD_AVAILABLE:
+            try:
+                self.enhanced_dashboard = EnhancedDashboard()
+                logger.info("Enhanced dashboard initialized successfully")
+            except Exception as e:
+                logger.warning(f"Could not initialize enhanced dashboard: {e}")
         
         logger.info(f"GraphRAG UI initialized for session: {self.session_id}")
     
@@ -523,7 +539,7 @@ class GraphRAGUI:
         except Exception as e:
             # Log to evidence file
             from src.core.evidence_logger import EvidenceLogger
-from src.core.config_manager import get_config
+            from src.core.config_manager import get_config
 
             logger_evidence = EvidenceLogger()
             logger_evidence.log_test_execution(
@@ -568,6 +584,44 @@ from src.core.config_manager import get_config
             "session_id": self.session_id,
             "current_phase": self.current_phase
         }
+    
+    def launch_enhanced_dashboard(self):
+        """Launch the enhanced dashboard interface.
+        
+        Returns:
+            The enhanced dashboard instance or None if not available
+        """
+        if self.enhanced_dashboard:
+            logger.info("Launching enhanced dashboard")
+            return self.enhanced_dashboard.render_main_dashboard()
+        else:
+            logger.warning("Enhanced dashboard not available")
+            return None
+    
+    def get_dashboard_status(self) -> Dict[str, Any]:
+        """Get enhanced dashboard status.
+        
+        Returns:
+            Dictionary containing dashboard status information
+        """
+        try:
+            return {
+                "dashboard_available": ENHANCED_DASHBOARD_AVAILABLE,
+                "dashboard_initialized": self.enhanced_dashboard is not None,
+                "components": {
+                    "graph_explorer": hasattr(self.enhanced_dashboard, 'graph_explorer') and self.enhanced_dashboard.graph_explorer is not None if self.enhanced_dashboard else False,
+                    "batch_monitor": hasattr(self.enhanced_dashboard, 'batch_monitor') and self.enhanced_dashboard.batch_monitor is not None if self.enhanced_dashboard else False,
+                    "research_analytics": hasattr(self.enhanced_dashboard, 'research_analytics') and self.enhanced_dashboard.research_analytics is not None if self.enhanced_dashboard else False
+                } if self.enhanced_dashboard else {}
+            }
+        except Exception as e:
+            logger.error(f"Error getting dashboard status: {e}")
+            return {
+                "dashboard_available": False,
+                "dashboard_initialized": False,
+                "components": {},
+                "error": str(e)
+            }
     
     def close(self):
         """Close the UI and cleanup resources."""

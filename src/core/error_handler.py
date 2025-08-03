@@ -588,3 +588,19 @@ class ServiceUnavailableError(Exception):
 class ConfigurationError(Exception):
     """Critical configuration error."""
     pass
+
+class ValidationError(Exception):
+    """Data validation error."""
+    pass
+
+class ProcessingError(Exception):
+    """Processing operation error."""
+    pass
+
+class DatabaseConnectionError(Exception):
+    """Database connection error."""
+    pass
+
+class SystemError(Exception):
+    """System-level error."""
+    pass

@@ -53,6 +53,10 @@ class HealthCheck:
         return result
 
 
+    def _get_default_model(self) -> str:
+        """Get default model from standard config"""
+        return get_model()
+
 class HealthChecker:
     """Comprehensive health checker for all system dependencies."""
     

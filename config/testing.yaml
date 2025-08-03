@@ -1,0 +1,51 @@
+# KGAS Testing Configuration
+# Settings specific to testing environment
+# Overrides base.yaml settings
+
+database:
+  neo4j:
+    database: "test_neo4j"
+    max_connections: 5
+
+# Test-specific LLM settings
+llm:
+  openai:
+    model: "gpt-3.5-turbo"
+    max_tokens: 1000
+    timeout: 30
+    max_retries: 1
+  
+  anthropic:
+    model: "claude-3-haiku-20240307"
+    max_tokens: 1000
+    timeout: 30
+    max_retries: 1
+
+security:
+  encrypt_credentials: false
+  pii_encryption: false
+  audit_logging: false
+
+logging:
+  level: "WARNING"
+  debug: false
+  console_output: true
+  file: null  # No file logging in tests
+
+error_handling:
+  circuit_breaker_enabled: false
+  max_retries: 1
+  retry_delay: 0.1
+  health_check_interval: 1
+
+schema:
+  cross_paradigm_validation: false
+  auto_transform: false
+  validation_timeout: 5
+
+# Fast settings for tests
+test_mode:
+  enabled: true
+  mock_llm_responses: true
+  skip_expensive_operations: true
+  reduced_timeouts: true

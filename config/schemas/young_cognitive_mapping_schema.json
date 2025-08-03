@@ -1,0 +1,250 @@
+{
+  "theory_id": "young_cognitive_mapping_1996",
+  "theory_name": "Young's Cognitive Mapping with Semantic Networks",
+  "theory_version": "1.0",
+  "meta_schema_version": "11.1",
+  "created_date": "2025-07-26",
+  "theory_metadata": {
+    "primary_authors": [
+      "Michael D. Young"
+    ],
+    "publication_year": 1996,
+    "source_paper": "Cognitive Mapping Meets Semantic Networks",
+    "theoretical_tradition": "Cognitive mapping, political psychology, foreign policy analysis",
+    "original_purpose": "Enhance cognitive mapping through semantic network representations with differentiated relationships and truth values"
+  },
+  "telos": {
+    "primary_purpose": "Map decision-makers' cognitive belief structures through semantic networks to understand reasoning patterns and predict policy choices",
+    "secondary_purposes": [
+      "Enable process model simulation of decision-maker reasoning",
+      "Support comparative analysis of different leaders' worldviews",
+      "Facilitate predictive modeling of policy responses",
+      "Provide structured representation for belief system analysis"
+    ],
+    "theoretical_scope": "Individual-level cognitive structures in political decision-making contexts",
+    "domain_applicability": "Political speeches, policy statements, interviews, memoirs containing substantive belief expressions"
+  },
+  "classification": {
+    "analytical_tier": "explanatory",
+    "tier_justification": "Explains decision-making through cognitive structure analysis and enables prediction through process modeling",
+    "paradigm": "cognitive-behavioral",
+    "level_of_analysis": "individual",
+    "temporal_scope": "synchronic_with_diachronic_potential",
+    "complexity": "high",
+    "formalization_level": "highly_formalized"
+  },
+  "ontology": {
+    "core_entities": {
+      "concepts": {
+        "definition": "Substantive ideas, actors, objects, or abstractions in decision-maker's cognitive space",
+        "properties": [
+          "concept_name",
+          "salience_score",
+          "concept_type"
+        ],
+        "measurement": "Frequency of mention weighted by contextual emphasis",
+        "examples": [
+          "Soviet Union",
+          "nuclear weapons",
+          "detente",
+          "cooperation"
+        ]
+      },
+      "relationships": {
+        "definition": "Directed connections between concepts with specified properties",
+        "properties": [
+          "relationship_type",
+          "truth_value",
+          "temporal_modifier",
+          "salience"
+        ],
+        "relationship_types": [
+          "positive_cause",
+          "negative_cause",
+          "attribute",
+          "is_a",
+          "if_then",
+          "possess",
+          "strategy",
+          "know",
+          "warrant_for",
+          "location",
+          "equals"
+        ],
+        "examples": [
+          "Soviet Union strategy world-domination",
+          "cooperation if-then peace"
+        ]
+      },
+      "conjunctions": {
+        "definition": "Logical connectors linking multiple concepts or relationships",
+        "types": [
+          "and",
+          "or",
+          "but",
+          "unless"
+        ],
+        "function": "Handle compound statements and complex logical structures"
+      }
+    },
+    "relationship_taxonomy": {
+      "causal_relationships": {
+        "positive_cause": "A increases/enables B",
+        "negative_cause": "A decreases/prevents B"
+      },
+      "descriptive_relationships": {
+        "attribute": "A has property B",
+        "is_a": "A is a type of B",
+        "possess": "A owns/controls B",
+        "location": "A is located at B"
+      },
+      "logical_relationships": {
+        "if_then": "If A then B (conditional)",
+        "equals": "A is equivalent to B"
+      },
+      "strategic_relationships": {
+        "strategy": "A uses means B to achieve end C",
+        "know": "A knows fact B",
+        "warrant_for": "A justifies action B"
+      }
+    },
+    "truth_values": [
+      "true",
+      "false",
+      "partial",
+      "possible",
+      "impossible"
+    ],
+    "temporal_modifiers": [
+      "past",
+      "present",
+      "future",
+      "goal",
+      "hypothetical",
+      "normative"
+    ],
+    "structural_measures": {
+      "dependency": "Hierarchical organization measure (0-1 scale)",
+      "connectedness": "Interconnection density measure (0-1 scale)",
+      "size": "Total number of distinct concepts",
+      "salience_distribution": "Statistical distribution of concept importance"
+    }
+  },
+  "execution": {
+    "stage_1_comprehensive_structuring": {
+      "step_1_applicability_assessment": {
+        "description": "Evaluate text suitability for cognitive mapping analysis",
+        "criteria": {
+          "concept_density": "Rich substantive concepts for semantic nodes",
+          "relationship_centrality": "Explicit causal/strategic relationships between concepts",
+          "belief_structure_relevance": "Expressions of cognitive beliefs rather than event descriptions"
+        },
+        "scoring": "0.0-1.0 scale with detailed justification",
+        "threshold": "0.6 minimum for meaningful analysis"
+      },
+      "step_2_concept_extraction": {
+        "description": "Identify all substantive concepts in the text",
+        "process": [
+          "Extract noun phrases representing actors, objects, ideas, policies",
+          "Calculate salience through frequency and contextual emphasis",
+          "Categorize by concept type (actors, policies, abstract concepts, etc.)",
+          "Create comprehensive concept inventory with properties"
+        ],
+        "output_format": "concept_name (salience: X, type: Y)"
+      },
+      "step_3_relationship_identification": {
+        "description": "Extract directed relationships between concepts using Young's taxonomy",
+        "process": [
+          "Identify explicit causal, strategic, descriptive relationships",
+          "Apply Young's 11-category relationship taxonomy",
+          "Assign truth values (true/false/partial/possible/impossible)",
+          "Add temporal modifiers (past/present/future/goal/hypothetical/normative)",
+          "Calculate relationship salience through frequency",
+          "Handle compound statements with conjunctions"
+        ],
+        "output_format": "concept1 --[relationship_type, truth_value, temporal_modifier]--> concept2"
+      },
+      "step_4_conjunction_analysis": {
+        "description": "Identify logical connectors handling complex statements",
+        "conjunction_types": [
+          "and",
+          "or",
+          "but",
+          "unless"
+        ],
+        "process": "Extract compound relationships and represent using conjunction nodes"
+      },
+      "step_5_structural_analysis": {
+        "description": "Calculate network structural properties",
+        "measures": {
+          "dependency": "Hierarchical organization based on bridging concepts",
+          "connectedness": "Density of interconnections between concepts",
+          "size": "Total distinct concepts identified",
+          "salience_uniformity": "Distribution statistics of concept importance"
+        }
+      }
+    },
+    "stage_2_analytic_evaluation": {
+      "step_1_cognitive_structure_analysis": {
+        "description": "Characterize overall belief system architecture",
+        "components": [
+          "Identify most central concepts (highest salience)",
+          "Analyze dominant relationship types and their implications",
+          "Characterize causal understanding patterns",
+          "Assess agency beliefs and temporal dynamics"
+        ]
+      },
+      "step_2_worldview_characterization": {
+        "description": "Generate substantive interpretation of cognitive map",
+        "elements": [
+          "Strategic thinking patterns",
+          "Causal reasoning style",
+          "Agency attribution patterns",
+          "Temporal orientation (past/present/future focus)",
+          "Cooperation vs. competition orientation"
+        ]
+      },
+      "step_3_process_model_preparation": {
+        "description": "Format results for directed-walk reasoning simulation",
+        "output_format": "(concept1 relationship truth_value temporal_modifier concept2)",
+        "purpose": "Enable computational reasoning simulation using belief network"
+      },
+      "step_4_comparative_analysis_setup": {
+        "description": "Structure results for cross-leader or temporal comparison",
+        "comparison_dimensions": [
+          "Concept centrality differences",
+          "Relationship pattern variations",
+          "Structural measure comparisons",
+          "Worldview characterization contrasts"
+        ]
+      }
+    }
+  },
+  "validation": {
+    "internal_consistency": {
+      "relationship_coherence": "All relationships use valid taxonomy categories",
+      "truth_value_logic": "Consistent application of truth values across similar statements",
+      "temporal_consistency": "Appropriate temporal modifiers for statement context",
+      "salience_validity": "Salience scores reflect actual textual emphasis"
+    },
+    "methodological_fidelity": {
+      "young_taxonomy_compliance": "Strict adherence to Young's 11-category system",
+      "semantic_network_structure": "Proper node-link representation",
+      "compound_statement_handling": "Appropriate use of conjunctions for complex statements",
+      "process_model_compatibility": "Results formatted for directed-walk simulation"
+    },
+    "empirical_validation": {
+      "concept_extraction_accuracy": "All major substantive concepts identified",
+      "relationship_identification_completeness": "All explicit relationships captured",
+      "structural_measure_calculation": "Mathematical validity of dependency/connectedness",
+      "interpretive_validity": "Worldview characterization supported by evidence"
+    },
+    "comparative_validation": {
+      "cross_text_reliability": "Consistent application across different texts",
+      "temporal_stability": "Reliable measurement of belief evolution over time",
+      "inter_leader_comparison": "Valid basis for comparative cognitive analysis"
+    }
+  },
+  "mode": "open",
+  "schema_id": "young_cognitive_mapping_1996"
+}

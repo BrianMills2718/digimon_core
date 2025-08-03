@@ -48,6 +48,32 @@ class ConfidenceScore:
 - Confidence preserved in storage
 - Basic propagation in tool chains
 
+#### 🚨 **CRITICAL TASK: Uncertainty Provenance Integration** (IMMEDIATE PRIORITY)
+**Status**: Required for Layer 1 completion  
+**Timeline**: 1-2 weeks  
+**Purpose**: Integrate uncertainty tracking with existing ProvenanceService
+
+**Implementation Requirements**:
+- **Provenance Integration**: Update `ProvenanceService` to track uncertainty calculation methods
+- **Calculation Transparency**: Record how confidence values were derived (root_sum_squares, ic_analysis, etc.)
+- **Decision Trace**: Maintain step-by-step confidence calculation paths
+- **Evidence Lineage**: Link confidence values to their supporting evidence
+- **Auditability**: Enable complete reproduction of uncertainty assessments
+
+**Task Breakdown**:
+1. **Week 1**: Extend provenance schema with uncertainty fields (COMPLETED ✅)
+2. **Week 2**: Integrate uncertainty provenance into existing tools and services
+3. **Testing**: Validate uncertainty audit trails across complete workflows
+4. **Documentation**: Update uncertainty documentation with provenance examples
+
+**Success Criteria**:
+- All confidence values have traceable provenance records
+- Uncertainty calculations can be fully reproduced from provenance data
+- ProvenanceService handles uncertainty metadata correctly
+- Complete audit trail from raw data to final confidence scores
+
+**Related Implementation**: See updated [Provenance Specification](../../architecture/specifications/PROVENANCE.md) for uncertainty provenance schema.
+
 ### 🚧 **Layer 2: Contextual Entity Resolution** (Phase 6-7)
 **Timeline**: 4-6 weeks  
 **Purpose**: Add context-aware entity disambiguation

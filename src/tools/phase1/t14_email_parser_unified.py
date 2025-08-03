@@ -45,7 +45,7 @@ class T14EmailParserUnified(BaseTool):
     
     def __init__(self, service_manager: ServiceManager):
         super().__init__(service_manager)
-        self.tool_id = "T14"
+        self.tool_id = "T14_EMAIL_PARSER"
         self.name = "Email Parser"
         self.category = "document_processing"
         self.service_manager = service_manager  # Store for use in methods

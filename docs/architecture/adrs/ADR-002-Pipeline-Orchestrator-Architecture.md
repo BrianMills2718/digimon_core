@@ -1,9 +1,11 @@
 **Doc status**: Living – auto-checked by doc-governance CI
 
-# ADR-002: PipelineOrchestrator Architecture
+# ADR-002: PipelineOrchestrator Architecture (Layer 1→2 Adapter Pattern)
 
 ## Status
-**ACCEPTED** - Implemented 2025-01-15
+**ACCEPTED** - Implemented 2025-01-15  
+**Layer**: **Layer 1→2 Adapter Implementation** (see [ADR-028](ADR-028-Tool-Interface-Layer-Architecture.md) for complete layer architecture)  
+**Related**: [ADR-001](ADR-001-Phase-Interface-Design.md) (Layer 2 contracts), [ADR-008](ADR-008-Core-Service-Architecture.md) (Core services), [ADR-014](ADR-014-Error-Handling-Strategy.md) (Error handling)
 
 ## Context
 The GraphRAG system suffered from massive code duplication across workflow implementations. Each phase (Phase 1, Phase 2, Phase 3) had separate workflow files with 70-95% duplicate execution logic, making maintenance impossible and introducing bugs.
@@ -20,7 +22,9 @@ The GraphRAG system suffered from massive code duplication across workflow imple
 External review by Gemini AI confirmed these issues as "**the largest technical debt**" requiring immediate architectural intervention.
 
 ## Decision
-Implement a unified **PipelineOrchestrator** architecture with the following components:
+Implement a unified **PipelineOrchestrator** architecture with adapter pattern components. This ADR provides **Layer 1→2 adaptation** in the [three-layer tool interface architecture](ADR-028-Tool-Interface-Layer-Architecture.md), bridging legacy tools to the Layer 2 contract interface.
+
+**Architecture Components:**
 
 ### 1. Tool Protocol Standardization
 ```python
@@ -29,11 +33,11 @@ class Tool(Protocol):
         ...
 ```
 
-### 2. Tool Adapter Pattern
+### 2. Tool Adapter Pattern (Layer 1→2 Bridge)
 - `PDFLoaderAdapter`, `TextChunkerAdapter`, `SpacyNERAdapter`
 - `RelationshipExtractorAdapter`, `EntityBuilderAdapter`, `EdgeBuilderAdapter`  
 - `PageRankAdapter`, `MultiHopQueryAdapter`
-- Bridges existing tools to unified protocol
+- **Purpose**: Bridges existing legacy tools (Layer 1) to unified Tool protocol, enabling integration with Layer 2 contracts
 
 ### 3. Configurable Pipeline Factory
 - `create_unified_workflow_config(phase, optimization_level)`
@@ -48,12 +52,12 @@ class Tool(Protocol):
 ## Consequences
 
 ### Positive
-- ✅ **95% reduction** in Phase 1 workflow duplication
-- ✅ **70% reduction** in Phase 2 workflow duplication  
-- ✅ **Single source of truth** for all pipeline execution
-- ✅ **Type-safe interfaces** between components
-- ✅ **Proper logging** throughout system
-- ✅ **Backward compatibility** maintained
+- **95% reduction** in Phase 1 workflow duplication
+- **70% reduction** in Phase 2 workflow duplication  
+- **Single source of truth** for all pipeline execution
+- **Type-safe interfaces** between components
+- **Proper logging** throughout system
+- **Backward compatibility** maintained
 
 ### Negative
 - Requires adapter layer for existing tools
@@ -63,14 +67,12 @@ class Tool(Protocol):
 ## Implementation Evidence
 ```bash
 # Verification commands
-python -c "from src.core.pipeline_orchestrator import PipelineOrchestrator; print('✅ Available')"
-python -c "from src.core.tool_adapters import PDFLoaderAdapter; print('✅ Tool adapters working')"
-python -c "from src.tools.phase1.vertical_slice_workflow import VerticalSliceWorkflow; w=VerticalSliceWorkflow(); print(f'✅ Uses orchestrator: {hasattr(w, \"orchestrator\")}')"
+python -c "from src.core.pipeline_orchestrator import PipelineOrchestrator; print('Available')"
+python -c "from src.core.tool_adapters import PDFLoaderAdapter; print('Tool adapters working')"
+python -c "from src.tools.phase1.vertical_slice_workflow import VerticalSliceWorkflow; w=VerticalSliceWorkflow(); print(f'Uses orchestrator: {hasattr(w, \"orchestrator\")}')"
 ```
 
-**Results:** All verification tests pass ✅
-
-## Alternatives Considered
+**Results:** All verification tests pass ## Alternatives Considered
 
 ### 1. Incremental Refactoring
 - **Rejected:** Would not address root cause of duplication
@@ -85,6 +87,9 @@ python -c "from src.tools.phase1.vertical_slice_workflow import VerticalSliceWor
 - **Issue:** Would introduce unnecessary abstraction layers
 
 ## Related Decisions
+- **[ADR-028](ADR-028-Tool-Interface-Layer-Architecture.md)**: Defines this ADR as Layer 1→2 adapter implementation
+- **[ADR-001](ADR-001-Phase-Interface-Design.md)**: Layer 2 contract interface that adapters integrate with
+- **[ADR-013](ADR-013-MCP-Protocol-Integration.md)**: Layer 3 external API that uses Layer 2 contracts
 - [ADR-002: Logging Standardization](ADR-002-Logging-Standardization.md)
 - [ADR-003: Quality Gate Enforcement](ADR-003-Quality-Gate-Enforcement.md)
 

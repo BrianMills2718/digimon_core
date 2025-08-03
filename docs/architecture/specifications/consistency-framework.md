@@ -172,11 +172,11 @@ python tests/integration/test_[component]_integration.py
 ⚠️ **API inconsistencies** between components
 
 ### Green Indicators (Healthy State)
-✅ **All verification commands work**  
-✅ **Performance claims within 7 days old**  
-✅ **Single authoritative source for each topic**  
-✅ **Feature claims match test results**  
-✅ **Consistent vision across all documents**
+**All verification commands work**  
+**Performance claims within 7 days old**  
+**Single authoritative source for each topic**  
+**Feature claims match test results**  
+**Consistent vision across all documents**
 
 ---
 

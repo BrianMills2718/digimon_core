@@ -1,0 +1,1358 @@
+https://cgi.di.uoa.gr/~pms509/lectures/dl-intro.pdf
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+Introduction to Description Logics
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+Outline
+• History of DLs
+• Informal introduction to DLs
+• A Simple DL: ALC
+• Semantics of ALC
+• Reasoning problems in ALC
+• The DLs ALCN , ALCQ and ALCQO
+• Translating DLs to FOL
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+DLs: Some History
+• The origins of DLs lie in research on semantic networks and
+frames. DLs are languages for describing the nature and
+structure of objects.
+• The DL approach to KR was developed in the 80’s and 90’s in
+parallel with pure FOL approaches and other languages for
+structured objects like Telos and F-logic. Recently, DLs have
+been used to provide the foundations for ontology
+languages for the Web e.g., OWL.
+• DLs are logics based on descriptions of concepts or terms.
+They are also known as terminological languages or
+concept languages.
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+DLs: Some History (cont’d)
+• It all started with work on Kl-One by Ron Brachman and
+colleagues. Kl-One is the root of the family of DLs.
+• There is currently a great body of theoretical work in DLs and
+many implemented DL systems (see the site
+http://www.dl.kr.org).
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+An Example of a Kl-One NetworkPerson
+Woman
+Parent
+Mother
+Female
+v/r
+hasChild
+(1,NIL)
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+Outline
+• History of DLs
+• Informal introduction to DLs
+• A Simple DL: ALC
+• Semantics of ALC
+• Reasoning problems in ALC
+• The DLs ALCN , ALCQ and ALCQO
+• Translating DLs to FOL
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+DLs are Logics for Knowledge Representation
+For each DL of interest, we will define:
+• Syntax
+• Semantics
+• Reasoning (inference, proof-theory)
+We will use DLs to represent knowledge about a domain of interest.
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+Syntax
+• Three disjoint alphabets of symbols:
+– Concept names
+– Role names
+– Individual names
+Concept names are the equivalent of class names in other
+languages.
+Role names are the equivalent of property or relationship
+names in other languages.
+Individual names are the equivalent of object names in other
+languages.
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+Syntax (cont’d)
+• Complex concepts and roles are built from symbols of the
+above 3 alphabets using constructors:
+– conjunction, disjunction and negation of concepts
+– value restrictions
+– number restrictions
+– ...
+• Sentences that express knowledge about a domain are made
+by relating concepts to each other, asserting that an individual
+belongs to a concept and relating two individuals via a role.
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+Examples - Syntax
+• Concept names: Person, Male, Female, Doctor,
+GreekUniversity
+• Role names: hasChild, isAlumniOf
+• Individual names: ANNA, JOHN
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+Examples - Syntax (cont’d)
+Complex concepts:
+• Person ⊓ ¬Female
+• Female ⊔ Male
+• ∀hasChild.Male
+• ∃hasChild.Male
+• ∃hasChild.Male ⊓ ∀hasChild.Person
+• (>3 hasChild)
+• (>3 hasChild.Male)
+• (>3 hasChild) ⊓ Male
+Note: The above constructors can be nicely read as: not, and, or,
+all, some, at least etc.
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+Examples - Syntax (cont’d)
+• ∃hasChild.(∃hasChild.Person)
+• ∀hasChild.(∃isAlumniOf.GreekUniversity)
+• ∀hasChild.(Doctor ⊓ ∃isAlumniOf.GreekUniversity)
+• (>3 hasChild.(∀isAlumniOf.GreekUniversity))
+• (>3 hasChild.(Doctor ⊓ ∀isAlumniOf.GreekUniversity))
+• Female⊓(>3 hasChild.(Doctor⊓∀isAlumniOf.GreekUniversity))
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+Syntactic Conventions
+• Individual names are written in uppercase.
+• Concept names start with an uppercase letter followed by a
+lowercase letter.
+• Role names start with a lowercase letter.
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+Knowledge Representation with DLs
+In DLs we make a clear distinction between intensional
+knowledge and extensional knowledge.
+A knowledge base (KB) consists of two components: a TBox
+and an ABox.
+• TBox: intensional knowledge in the form of sentences
+relating concepts (terms) to other concepts. In other
+frameworks, this is called schema knowledge.
+• ABox: extensional (assertional) knowledge. In other
+frameworks, this is called instance knowledge.
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+TBox
+In the TBox one defines concepts of the application domain, their
+properties and their relations to each other:
+Examples:
+Woman ≡ Person ⊓ Female
+GreekUniversityAlumni ≡ Person ⊓ ∃isAlumniOf.GreekUniversity
+Man ⊑ Person
+Man ⊑ ¬Woman
+Male ⊑ ¬Female
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+ABox
+In the ABox one makes assertions about the individuals in the
+application domain: membership in classes and role filling.
+Examples:
+Female(ANNA), hasChild(ANNA, JOHN),
+(Person ⊓ ¬Male)(ANNA), ((>3 hasChild) ⊓ Male)(JOHN),
+GreekUniversityAlumni(JOHN),
+(>3 hasChild.(Person ⊓ ∀isAlumniOf.GreekUniversity))(ANNA)
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+Semantics
+DL expressions and sentences can be used to represent knowledge
+about some domain of interest.
+The semantics of such DL expressions and sentences are given by
+introducing the notion of interpretation:
+• An interpretation has a domain.
+• Individual names are interpreted as elements of the domain.
+• Concept names are interpreted as subsets of the domain.
+• Role names are interpreted as binary relations over the
+domain.
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+Semantics (cont’d)
+• The semantics of complex DL concepts is defined by
+appropriate set expressions which refer to sets that give the
+semantics of the parts of these expressions (e.g., the semantics
+of conjunction is defined by set intersection).
+• The semantics of TBox or ABox sentences is defined by set
+theory (set membership, inclusion, equality, disjointness etc.).
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+Examples - Informal Semantics
+• Male
+The set of male individuals.
+• hasChild
+The set of pairs of individuals (x, y) such that y is a child of x.
+• Person ⊓ ¬Female
+The set of individuals that are persons but not female.
+• ∃hasChild.Male ⊓ ∀hasChild.Male
+The set of individuals that have at least one child who is male,
+and additionally, all of their children are male.
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+Examples - Informal Semantics (cont’d)
+• (>3 hasChild) ⊓ Male
+The set of individuals that have at least 3 children, and
+additionally, they are male.
+• (>3 hasChild.Male)
+The set of individuals that have at least 3 children that are
+male.
+• ∃hasChild.(∃hasChild.Person)
+The set of individuals that have at least one child who has at
+least one child that is a person (i.e., the set of individuals that
+are grandparents).
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+Examples - Informal Semantics (cont’d)
+• ∀hasChild.(∃isAlumniOf.GreekUniversity)
+The set of individuals such that all their children have
+graduated from at least one Greek University.
+• ∀hasChild.(Doctor ⊓ ∃isAlumniOf.GreekUniversity)
+The set of individuals such that all their children are doctors
+that have graduated from at least one Greek University.
+• (>3 hasChild.(∀isAlumniOf.GreekUniversity))
+The set of individuals that have at least three children such
+that all their degrees are from Greek Universities.
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+Examples - Informal Semantics (cont’d)
+• (>3 hasChild.(Doctor ⊓ ∀isAlumniOf.GreekUniversity))
+The set of individuals that have at least three children that are
+doctors and have degrees only from Greek Universities.
+• Female⊓(>3 hasChild.(Doctor⊓∀isAlumniOf.GreekUniversity))
+The set of female individuals that have at least three children that
+are doctors and all their degrees are from Greek Universities.
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+Examples - Informal Semantics (cont’d)
+• Male ⊑ ¬Female
+The set of male individuals and the set of female individuals are
+disjoint.
+• Woman ≡ Person ⊓ Female
+An individual is a woman if and only if she is a female person.
+• Female(ANNA)
+The individual denoted by ANNA is female.
+• hasChild(ANNA, JOHN)
+The individual denoted by JOHN is a child of the individual denoted
+by ANNA.
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+Examples - Informal Semantics (cont’d)
+• ((>3 hasChild) ⊓ Male)(JOHN)
+The individual denoted by JOHN is male and has a least 3 children.
+• Female ⊓ (>3 hasChild.(Doctor ⊓ ∀isAlumniOf.GreekUniversity))(ANNA)
+The individual denoted by ANNA is female and has at least three children
+that are doctors and all their degrees are from Greek Universities.
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+Outline
+• History of DLs
+• Informal Introduction to DLs
+• A Simple DL: ALC
+• Semantics of ALC
+• Reasoning problems in ALC
+• The DLs ALCN , ALCQ and ALCQO
+• Translating DLs to FOL
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+ALC: The Smallest Propositionally Closed DL
+Syntax Semantics Terminology
+A AI ⊆ ∆ atomic concept
+R RI ⊆ ∆ × ∆ atomic role
+⊤ ∆ top (universal) concept
+⊥ ∅ bottom concept
+¬C ∆ \ CI concept complement
+C ⊓ D CI ∩ DI concept conjunction
+C ⊔ D CI ∪ DI concept disjunction
+∀R.C {x | (∀y)((x, y) ∈ RI ⇒ y ∈ CI )} universal restriction
+∃R.C {x | (∃y)((x, y) ∈ RI ∧ y ∈ CI )} existential restriction
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+ALC Syntax
+To define the syntax of ALC, we start with the following three
+disjoint alphabets:
+• Concept names
+• Role names
+• Individual names
+Concept names and role names are also called atomic concepts
+and atomic roles.
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+ALC Syntax: Concepts
+The set of concept expressions or just concepts is defined
+inductively as follows:
+1. ⊤ (top concept) and ⊥ (bottom concept) are concepts.
+2. Every concept name is a concept.
+3. If C and D are concepts and R is a role name then the
+following are concepts:
+• ¬C (complement of C)
+• C ⊓ D (conjunction of C and D)
+• C ⊔ D (disjunction of C and D)
+• ∀R.C (universal restriction)
+• ∃R.C (existential restriction)
+4. Nothing else is a concept.
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+ALC Syntax: Terminological Axioms
+Let A be a concept name and C, D be concepts.
+A terminological axiom is a statement in any of the following
+forms:
+• Concept definitions: A ≡ D which is read “A is defined to
+be equivalent to D”.
+• Concept inclusions: C ⊑ D which is read “C is subsumed by
+D”.
+Note: In the literature, concept definitions are frequently written
+as C .
+= D.
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+Examples
+Woman ≡ Person ⊓ Female
+Mother ≡ Woman ⊓ ∃hasChild.Person
+Student ⊑ Person
+Student ⊑ ∃enrolled.Course
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+Intuitive Meaning of Concept Definitions
+Concept definitions are used to introduce new symbolic names
+for complex concept descriptions.
+In a set of concept definitions, we distinguish between name
+symbols that occur in the left-hand side of a definition and base
+symbols that occur only on the right-hand side of some axioms.
+Name symbols appearing in concept definitions are usually called
+defined concepts and base symbols primitive concepts.
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+Primitive vs. Defined Concepts
+An important feature of DLs is their ability to distinguish
+primitive from defined concepts:
+• Defined concepts have necessary and sufficient conditions for
+concept membership.
+Examples: woman, mother, driver, white wine etc.
+• Primitive concepts cannot be defined or need not be defined.
+However, we might know some necessary (but not sufficient)
+conditions for membership.
+Examples: dog (or any other natural kind), wine (in a food
+and wine recommendation application).
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+Necessary Conditions
+A concept inclusion of the form C ⊑ D states a necessary
+condition for membership in the concept C: For an individual to
+be in C, it is necessary that it is also in D (it has the properties
+expressed by D).
+Example: Student ⊑ ∃enrolled.Course
+Concept inclusions express “if” statements.
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+Necessary and Sufficient Conditions
+A concept equivalence (definition) of the form C ≡ D states a
+necessary and sufficient condition for membership in the
+concept C: For an individual to be in C, it is necessary that it is
+also in D (it has the properties expressed by D). If an individual is
+in D, this is a sufficient condition for concluding that it is also in
+C.
+Example:
+Mother ≡ Woman ⊓ ∃hasChild.Person
+Concept equivalences express “if and only if” statements.
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+Example: Family Relationships
+Woman ≡ Person ⊓ Female
+Man ≡ Person ⊓ ¬Woman
+Mother ≡ Woman ⊓ ∃hasChild.Person
+Father ≡ Man ⊓ ∃hasChild.Person
+Parent ≡ Mother ⊔ Father
+Grandmother ≡ Mother ⊓ ∃hasChild.Parent
+MotherWithoutDaughter ≡ Mother ⊓ ∀hasChild.¬Woman
+Wife ≡ Woman ⊓ ∃hasHusband.Man
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+Examples of Concept Inclusions
+Concept inclusions are useful for expressing properties of concepts
+and roles. For example:
+• Disjointness of concepts: Male ⊑ ¬Female
+• Coverings: ⊤ ⊑ Male ⊔ Female
+• Domain restrictions: ∃hasChild.⊤ ⊑ Parent
+• Range restrictions: ⊤ ⊑ ∀hasChild.Person
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+ALC Syntax: Assertions about Individuals
+In ALC, one can also describe a specific state of affairs of an
+application domain in terms of individuals, concepts and roles.
+This is done by:
+• Concept assertions: Statements of the form C(a) where C is
+a concept and a is an individual.
+• Role assertions: Statements of the form R(a, b) where R is a
+role and a, b are individuals.
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+Examples of Assertions
+Student(JOHN)
+enrolled(JOHN, CS415)
+(Student ⊔ Professor)(PAUL)
+(Female⊓(>3 hasChild.(Doctor⊓∀isAlumniOf.GreekUniversity)))(ANNA)
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+TBoxes, ABoxes and Knowledge Bases
+A TBox is a set of terminological axioms.
+An Abox is a set of concept and role assertions.
+A knowledge base K is a pair (T , A) where T is a TBox and A is
+an Abox.
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+Outline
+• History of DLs
+• Informal Introduction to DLs
+• A Simple DL: ALC
+• Semantics of ALC
+• Reasoning problems in ALC
+• The DLs ALCN , ALCQ and ALCQO
+• Translating DLs to FOL
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+ALC Semantics
+Definition. An interpretation I is a pair (∆I , ·I ) which consists
+of:
+• a nonempty set ∆I (the domain of the interpretation)
+• a function ·I (the interpretation function) which maps
+– every individual name a to an element aI of ∆I
+– every concept name C to a subset CI of ∆I
+– every role name R to a subset RI of ∆I × ∆I
+Unique Names Assumption (UNA): We will assume that if a
+and b are distinct individuals then aI̸ = bI .
+Note: The UNA might not be assumed in related ontology
+languages e.g., OWL.
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+ALC Semantics (cont’d)
+Then I is extended to arbitrary concepts as follows:
+⊤I = ∆I
+⊥I = ∅
+(¬C)I = ∆I \ CI
+(C ⊓ D)I = CI ∩ DI
+(C ⊔ D)I = CI ∪ DI
+(∀R.C)I = { x ∈ ∆I | (∀y)((x, y) ∈ RI ⇒ y ∈ CI ) }
+(∃R.C)I = { x ∈ ∆I | (∃y)((x, y) ∈ RI ∧ y ∈ CI ) }
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+ALC Semantics (cont’d)
+Notice that ALC is a propositionally closed language:
+• ¬⊤ ≡ ⊥
+• ¬⊥ ≡ ⊤
+• ¬(C ⊓ D) ≡ ¬C ⊔ ¬D
+• ¬(C ⊔ D) ≡ ¬C ⊓ ¬D
+• ¬(∀R.C) ≡ ∃R.¬C
+• ¬(∃R.C) ≡ ∀R.¬C
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+TBox: Semantics
+Satisfaction. Let I = (∆I , ·I ) be an interpretation.
+• I satisfies the statement C ⊑ D if CI ⊆ DI .
+• I satisfies the statement C ≡ D if CI = DI .
+Model. An interpretation I is a model for a TBox T if I satisfies
+all the statements in T .
+Satisfiability. A TBox T is satisfiable if it has a model.
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+ABox: Semantics
+Satisfaction. Let I = (∆I , ·I ) be an interpretation.
+• I satisfies C(a) if aI ∈ CI .
+• I satisfies R(a, b) if (aI , bI ) ∈ RI .
+Model. An interpretation I is a model of an ABox A if it satisfies
+every assertion of A.
+Satisfiability. An ABox A is satisfiable if it has a model.
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+Knowledge Bases - Semantics
+Satisfaction. An interpretation I = (∆I , ·I ) satisfies a
+knowledge base K = (T , A) if I satisfies both T and A.
+Model. An interpretation I = (∆I , ·I ) is a model of a knowledge
+base K = (T , A) if I is a model of T and A.
+Satisfiability. A knowledge base K is satisfiable if it has a model.
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+Entailment (Logical Implication)
+Definition. Let K be a knowledge base and φ a terminological
+axiom or an assertion. We will say that K entails φ (denoted by
+K |= φ) if every model of K is a model of φ.
+Example: Let the TBox T be
+Female ⊑ Person
+and the ABox A be
+Female(ANNA).
+If K = (T , A) then K |= Person(ANNA).
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+Example
+Let the TBox T be
+∃teaches.Course ⊑ ¬Undergrad ⊔ Professor
+and the ABox A be
+teaches(JOHN, CS415), Course(CS415), Undergrad(JOHN).
+If K = (T , A) then K |= Professor(JOHN).
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+Example (cont’d))
+There is nothing wrong with the entailment
+K |= Professor(JOHN)
+since the TBox has no axiom that precludes somebody from being
+and undergrad and also a professor.
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+Example (Revisited)
+Let the TBox T be
+∃teaches.Course ⊑ Undergrad ⊔ Professor
+and the ABox A be
+teaches(JOHN, CS415), Course(CS415), Undergrad(JOHN).
+If K = (T , A) which one of the following holds?
+K |= Professor(JOHN), K |= ¬Professor(JOHN)
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+Example
+Let the TBox T be
+∃hasChild.⊤ ⊑ Parent, ⊤ ⊑ ∀hasChild.Person
+and the ABox A be
+hasChild(ANNA, JOHN).
+If K = (T , A) then
+K |= Parent(ANNA) and K |= Person(JOHN).
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+Validity
+Definition. Let φ be a terminological axiom or assertion. We will
+say that φ is valid if every interpretation is a model of φ.
+Examples:
+A ⊓ B ⊑ A, A ⊓ B ⊓ C ⊑ A ⊓ B, ∀R.(A ⊓ B) ⊑ ∀R.A
+⊤(ANNA), ¬⊥(ANNA)
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+Outline
+• History of DLs
+• Informal Introduction to DLs
+• A Simple DL: ALC
+• Semantics of ALC
+• Reasoning problems in ALC
+• The DLs ALCN , ALCQ and ALCQO
+• Translating DLs to FOL
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+Typical Reasoning Problems
+• Concept satisfiability
+• Subsumption
+• Classification
+• Knowledge base satisfiability
+• Instance checking
+• Answering queries
+• Realization
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+Concept satisfiability
+This is the problem of checking whether a concept C is satisfiable
+with respect to a knowledge base K, i.e., whether there exists
+a model I of K such that CI̸ = ∅.
+Formally: K̸ |= C ≡ ⊥
+Knowledge Technologies M. Koubarakis'
+&
+$
+%
+Example
+Let us consider the knowledge base K containing exactly the following
+sentences:
+ParentOfOnlyMaleChildren ≡ Person ⊓ ∃hasChild.Male ⊓ ∀hasChild.Male
+Male ⊑ ¬Female
+Questions:
+• Is the concept
+ParentOfOnlyMaleChildren ⊓ ∃hasChild.Male
+satisfiable with respect to K?
+• Is the concept
+ParentOfOnlyMaleChildren ⊓ ∃hasChild.Female
+satisfiable with respect to K?
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+Subsumption
+This is the problem of checking whether C is subsumed by D
+with respect to a knowledge base K, i.e., whether CI ⊆ DI in
+every model I of K.
+Formally: K |= C ⊑ D
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+Example
+Let us consider the knowledge base K containing exactly the following
+sentences:
+Parent ≡ Person ⊓ ∃hasChild.Person ⊓ ∀hasChild.Person
+ParentOfOnlyMaleChildren ≡ Person ⊓ ∃hasChild.Male ⊓ ∀hasChild.Male
+Male ⊑ Person
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+Example (cont’d)
+Questions:
+• Does the subsumption relationship
+ParentOfOnlyMaleChildren ⊑ Parent
+hold with respect to K?
+• Does the subsumption relationship
+ParentOfOnlyMaleChildren ⊑ Male
+hold with respect to K?
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+Taxonomies
+COURSE
+INANIMATE
+TOP
+ANIMATE
+PERSON
+STUDENT PROFESSOR
+WORKING-STUDENT
+>
+6
+Z
+Z}
+6
+ @@I
+@@I 
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+Taxonomies (cont’d)
+• The subsumption relationship between concepts defined by ⊑ is
+a partial order (i.e., it is reflexive, antisymmetric and
+transitive).
+• Subsumption induces a taxonomy such as the one on the
+previous slide where only direct subsumptions have been
+explicitly drawn.
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+Taxonomies (cont’d)
+COURSE
+INANIMATE
+TOP
+ANIMATE
+PERSON
+STUDENT PROFESSOR
+WORKING-STUDENT
+>
+6
+Z
+Z}
+6
+ @@I
+@@I 
+Question: What is the place of the following concept in the above
+taxonomy?
+N ≡ ANIMATE ⊓ (STUDENT ⊔ PROFESSOR)
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+Taxonomies (cont’d)
+COURSE
+INANIMATE
+TOP
+ANIMATE
+PERSON
+STUDENT PROFESSOR
+WORKING-STUDENT
+>
+6
+Z
+Z}
+6
+ @@I
+@@I 
+Answer:
+STUDENT ⊑ N, PROFESSOR ⊑ N, N ⊑ Person
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+Classification
+• The problem of classification: Given a concept C and a TBox
+T , for all concepts D of T determine whether D subsumes C,
+or D is subsumed by C.
+• Intuitively, this amounts to finding the “right place” for C in
+the taxonomy implicitly present in T .
+• Classification is the task of inserting new concepts in a
+taxonomy. It is sorting in partial orders.
+• What is the solution to the classification problem posed in the
+previous slide?
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+Knowledge base satisfiability
+This is the problem of checking whether K is satisfiable, i.e.,
+whether it has a model.
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+Example
+Is the knowledge base containing exactly the following sentences satisfiable?
+ParentOfOnlyMaleChildren ≡ Person ⊓ ∃hasChild.Male ⊓ ∀hasChild.Male
+Male ⊑ Person
+Male ⊑ ¬Female
+Male(JOHN), Male(NICK), Female(ANNA),
+hasChild(JOHN, NICK), hasChild(JOHN, ANNA),
+ParentOfOnlyMaleChildren(JOHN)
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+Example
+Is the knowledge base containing exactly the following sentences satisfiable?
+ParentOfOnlyMaleChildren ≡ Person ⊓ ∃hasChild.Male ⊓ ∀hasChild.Male
+Male ⊑ ¬Female
+ParentOfOnlyMaleChildren ⊑ ∃hasChild.Female
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+Instance checking
+This is the problem of checking whether the assertion C(a) is
+satisfied in every model of K.
+Formally: K |= C(a)
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+Answering concept queries
+Find all a such that {a | K |= C(a)}.
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+Example
+Let us consider the knowledge base K containing exactly the following
+sentences:
+Parent ≡ Person ⊓ ∃hasChild.Person ⊓ ∀hasChild.Person
+ParentOfOnlyMaleChildren ≡ Person ⊓ ∃hasChild.Male ⊓ ∀hasChild.Male
+Male ⊑ Person
+Female ⊑ Person
+Male(JOHN), Male(NICK), Female(ANNA),
+hasChild(JOHN, NICK), hasChild(JOHN, ANNA)
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+Example (cont’d)
+Questions:
+• Which ones of the following assertions
+Person(NICK), Person(ANNA), Parent(JOHN), Parent(NICK),
+Parent(ANNA), ParentOfMaleChildren(JOHN),
+are entailed by K?
+• Find all individuals that are parents.
+• Find all individuals that are parents of only male children.
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+Realization
+Given an individual a, find the most specific concepts C such
+that K |= C(a). These concepts are the lowest ones in the
+taxonomy induced by the subsumption relationship.
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+Example
+Let us consider the knowledge base K containing exactly the following
+sentences:
+Parent ≡ Person ⊓ ∃hasChild.Person ⊓ ∀hasChild.Person
+ParentOfOnlyMaleChildren ≡ Person ⊓ ∃hasChild.Male ⊓ ∀hasChild.Male
+Male ⊑ Person
+Female ⊑ Person
+Male(JOHN), Male(NICK), Female(ANNA),
+hasChild(JOHN, NICK), hasChild(JOHN, ANNA)
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+Example (cont’d)
+Questions:
+• Draw the concept taxonomy corresponding to the above
+knowledge base.
+• Realize the following individuals:
+NICK, ANNA, JOHN
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+Reduction to Satisfiability
+Some of the previous reasoning problems can be solved by reducing them to
+the problem of knowledge base satisfiability:
+• Concept Satisfiability
+K̸ |= C ≡ ⊥ iff there exists an x such that K ∪ {C(x)} is satisfiable
+• Subsumption
+K |= C ⊑ D iff there exists an x such that K∪{(C⊓¬D)(x)} is not satisfiableAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAA
+AAAAA
+AAAAA
+AAAAA
+AAAAA
+C
+D
+¬D
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+Reduction to Satisfiability (cont’d)
+• Instance Checking
+K |= C(a) iff K ∪ {¬C(a)} is not satisfiable
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+Reasoning Algorithms
+• Terminating, complete and efficient algorithms for deciding
+satisfiability, and all the other reasoning problems mentioned
+earlier, are available for ALC.
+• These algorithms are based on tableaux-calculi techniques.
+• Completeness is important for the usability of description
+logics in real applications.
+• Such algorithms have been shown to be efficient for real
+knowledge bases, even if the problem in the corresponding logic
+is in PSPACE or EXPTIME.
+• We will talk about tableaux-calculi for DLs in the next lecture.
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+Outline
+• History of DLs
+• Informal introduction to DLs
+• A Simple DL: ALC
+• Semantics of ALC
+• Reasoning problems in ALC
+• The DLs ALCN , ALCQ and ALCQO
+• Translating DLs to FOL
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+Number Restrictions
+Role quantification cannot express that a teacher teaches at least
+3 (or at most 5) courses.
+Number restrictions can express arithmetic constraints on the
+number of fillers of a role.
+Examples:
+• BusyTeacher ≡ Teacher ⊓ (>3 teaches)
+• ConsciousTeacher ≡ Teacher ⊓ (65 teaches)
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+Number Restrictions (cont’d)
+Semantics:
+(>n R)I = {x ∈ ∆I | card({y | (x, y) ∈ RI }) ≥ n}
+(6n R)I = {x ∈ ∆I | card({y | (x, y) ∈ RI }) ≤ n}
+Observation: (>1 R) ≡ ∃R.⊤
+The above number restrictions are called unqualified.
+Notation: The description logic which extends ALC with number
+restrictions is denoted by ALCN .
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+Qualified Number Restrictions
+Qualified number restrictions constrain the number but also the type
+of fillers (they give the concepts to which fillers should belong).
+Examples:
+• BusyTeacher ≡ Teacher ⊓ (>3 teaches.Course)
+• ConsciousTeacher ≡ Teacher ⊓ (65 teaches.Course)
+Semantics:
+(>n R.C)I = {x ∈ ∆I | card({y | (x, y) ∈ RI and y ∈ CI }) ≥ n}
+(6n R.C)I = {x ∈ ∆I | card({y | (x, y) ∈ RI and y ∈ CI }) ≤ n}
+Notation: The description logic which extends ALC with qualified number
+restrictions is denoted by ALCQ.
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+Enumerations - Nominals
+Sometimes it is useful to define a concept that contains exactly
+the individuals I1, . . . , Im. This concept is written as
+{I1, . . . , Im}.
+Examples:
+Weekday ≡ {MON, TUE, WED, THU, FRI, SAT, SUN}
+Citizen ≡ Person ⊓ ∃hasCountry.Country
+Greek ≡ Citizen ⊓ ∃hasCountry.{GREECE}
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+Nominals
+A nominal is a concept that contains exactly one individual.
+If we have the ability to define nominals, then using ⊔, we can
+define concepts containing more than one individual.
+Example: Weekend ≡ {SAT, SUN}
+If we have nominals and we do not want to make the UNA,
+then we can explicity state whether two individuals are the same or
+different.
+Examples:
+{CRETA} ≡ {CRETE}, {CRETE} ⊓ {CYPRUS} ⊑ ⊥
+Notation: If we add nominals to DL ALCQ, we get the DL
+ALCQO.
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+A Naming Scheme for DLs
+Historically, in the family of languages we presented, the first
+language was AL (attributive concept description language).
+Extensions of AL have been studied and have been identified by
+strings of the form:
+AL[C][N ][Q] · · ·
+The name ALC originally comes from “attributive concept
+description language with complement”.
+Because combinations of constructs can simulate others there can
+be different names for languages that are essentially the same, i.e.,
+have the same expressive power.
+Example: ALCQ has same expressivity as ALCN Q. Why?
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+Example
+Let a knowledge base K be:
+BusyTeacher ≡ Teacher ⊓ (>3 teaches)
+ConsciousTeacher ≡ Teacher ⊓ (65 teaches)
+Teacher(MARY),
+teaches(MARY, AI), teaches(MARY, KR), teaches(MARY, DB)
+Questions:
+• K |= BusyTeacher(MARY) ?
+• K |= ConsciousTeacher(MARY) ?
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+Example
+Let K be the following knowledge base:
+Family(F)
+Father(F, JOHN), Mother(F, SUE)
+Son(F, PAUL), Son(F, GEORGE), Son(F, ALEX)
+Question: How many children does family F have?
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+OWA vs. CWA
+Contrary to databases, DLs make the Open World Assumption.
+Absence of information is not interpreted as presence of negative
+information but simply as lack of knowledge.
+Thus in the previous example:
+• K |= (>3 Son)(F) Yes
+• K |= (61 Son)(F) No
+• K |= (>5 Son)(F) Unknown
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+Outline
+• History of DLs
+• Informal introduction to DLs
+• A Simple DL: ALC
+• Semantics of ALC
+• Reasoning problems in ALC
+• The DLs ALCN , ALCQ and ALCQO
+• Translating DLs to FOL
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+Translating DLs to FOL
+We will now give a translation of ALCQO statements to FOL
+statements. This shows that ALCQO (and DLs in general) are
+subsets of FOL and provides us with an alternative semantics for
+DLs.
+We will give a function π that translates any axiom of an ALCQO
+knowledge base into a FOL statement (with equality and unary
+predicates ⊤ and ⊥ with obvious semantics).
+The resulting FOL statement will contain a unary predicate for
+each concept name and a binary predicate for each role name in the
+ALCQO axiom.
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+Translating Concept Inclusions
+Let A be a concept name, C, D be arbitrary concept expressions and R a
+role name. Then:
+π(C ⊑ D) = (∀x)(πx(C) ⇒ πx(D))
+πx(A) = A(x)
+πx(¬C) = ¬πx(C)
+πx(C ⊓ D) = πx(C) ∧ πx(D)
+πx(C ⊔ D) = πx(C) ∨ πx(D)
+πx(∀R.C) = (∀x1)(R(x, x1) ⇒ πx1 (C))
+πx(∃R.C) = (∃x1)(R(x, x1) ∧ πx1 (C))
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+Translating Concept Inclusions (cont’d)
+πx((>n R. C)) = (∃x1) · · · (∃xn)(∧
+i̸ =j
+(xi̸ = xj ) ∧ ∧
+i
+(R(x, xi) ∧ πxi (C)))
+πx((6n R. C)) = ¬(∃x1) · · · (∃xn+1)(∧
+i̸ =j
+(xi̸ = xj ) ∧ ∧
+i
+(R(x, xi) ∧ πxi (C)))
+πx({a}) = (x = a)
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+Notes on the Translation
+In the previous translation, πx, πx1 etc. are auxiliary functions
+where x, x1 etc. are FOL variables. The variables introduced in the
+right hand sides of the above translations must be new variables
+that have not been used before in the translation.
+Note: We do not give a translation for concept definition since
+they can be rewritten using concept inclusion and conjunction.
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+Translating ABox Assertions
+Let C be concept name, R a role name and a, b are individual
+names. Then:
+π(C(a)) = C(a)
+π(R(a, b)) = R(a, b)
+Note: We do not give a translation for the case when C is an
+arbitrary concept expression. Each such concept assertion C(a) can
+be written into two axioms D ≡ C, D(a) where D is a new concept
+name.
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+Example
+The FOL expression for concept inclusion
+Male ⊑ ¬Female
+is
+(∀x)(Male(x) ⇒ ¬Female(x)).
+The FOL expression for concept inclusion
+∀hasChild.(∃isAlumniOf.GreekUniversity) ⊑ ProudGreekFather
+is
+(∀x)((∀y)(hasChild(x, y) ⇒ (∃z)(isAlumniOf(y, z) ∧ GreekUniversity(z)))
+⇒ ProudGreekFather(x)).
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+Implemented DL Systems
+• The beginning of it all: Kl-One (1977)
+• Krypton (1983), Nikl (1983), Kandor (1984), Penni,
+Kl-Two (1985)
+• Second generation DL systems: Loom (1987), Classic (1989)
+• Back (1990), Flex (1995), Kris (1991), Crack (1995)
+• Optimization techniques take charge: FaCT (1997), DLP
+(1998), Racer (1999)
+• DL reasoners for the ontologies and Semantic Web era:
+FaCT++, RacerPro, KAON2, Pellet, HermiT
+See http://www.cs.man.ac.uk/~sattler/reasoners.html for
+pointers to Web pages of DL reasoners.
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+Applications of DLs
+• Conceptual Modelling
+• Data Integration
+• Configuration
+• Software Engineering
+• Medical Informatics
+• Bioinformatics
+• Natural Language Processing
+• Knowledge Representation and Reasoning in the Semantic Web
+(remaining of this course!)
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+Readings
+• Franz Baader, Ian Horrocks, and Ulrike Sattler. Description Logics.
+In Frank van Harmelen, Vladimir Lifschitz, and Bruce Porter,
+editors, Handbook of Knowledge Representation. Elsevier, 2007.
+Available from http://www.comlab.ox.ac.uk/people/ian.
+horrocks/Publications/complete.html#2007
+This is a recent comprehensive survey of the area of DLs.
+• Franz Baader. Description Logics. In “Reasoning Web: Semantic
+Technologies for Information Systems”. 5th International Summer
+School 2009, volume 5689 of Lecture Notes in Computer Science,
+pages 1-39. Springer-Verlag, 2009.
+Available from
+http://lat.inf.tu-dresden.de/research/papers.html.
+Another excellent recent survey of the area of DLs.
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+Readings (cont’d)
+• R. J. Brachman and D. L. McGuinness and P. Patel-Schneider and L. A.
+Resnick and A. Borgida. Living with CLASSIC: When and how to use a
+KL-ONE-like language. In Principles of Semantic Networks. John Sowa
+(editor), Morgan Kaufmann, 1991, pages 401-456.
+Available from:
+http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.31.9028
+This paper contains a lot of nice examples so it is great for explaining where
+to use description logics. The syntax used is that of the DL-based language
+CLASSIC, but this should not be a problem in appreciating the examples
+and discussion in the paper.
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+Readings (cont’d)
+• Chapter 1 (An Introduction to DLs) and Chapter 2 (Reasoning in
+DLs) and Chapter 10 (Conceptual Modelling with DLs) of the DL
+Handbook:
+F. Baader, D. Calvanese, D. McGuinness, D. Nardi and P. F.
+Patel-Schneider (editors). The Description Logic Handbook:
+Theory, Implementation and Applications. Cambridge University
+Press, 2002.
+Available from:
+http://www.inf.unibz.it/~franconi/dl/course/dlhb/home.html
+Chapters 1 and 2 are good introductions to DLs.
+Chapter 10 is useful for ontology development using DLs.
+Knowledge Technologies M. Koubarakis
+'
+&
+$
+%
+Acknowledgements
+These slides have been prepared by modifying slides by Enrico
+Franconi, University of Bolzano-Bozen, Italy.
+See http://www.inf.unibz.it/~franconi/dl/course/ for
+Enrico’s course on DLs.
+Some other courses on DLs are listed on
+http://dl.kr.org/courses.html.

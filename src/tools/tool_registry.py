@@ -80,20 +80,19 @@ class ToolRegistry:
             ("T04", "Markdown Loader", "Load and parse Markdown documents", 5, ImplementationStatus.UNIFIED, ["markdown", "yaml", "provenance_service"]),
             ("T05", "CSV Loader", "Load structured data from CSV files", 7, ImplementationStatus.UNIFIED, ["pandas", "provenance_service"]),
             
-            # JSON/HTML Loaders (T06-T07)
+            # Additional Loaders (T06-T14)
             ("T06", "JSON Loader", "Load and process JSON documents", 7, ImplementationStatus.UNIFIED, ["provenance_service"]),
             ("T07", "HTML Loader", "Load and parse HTML documents", 7, ImplementationStatus.UNIFIED, ["beautifulsoup4", "provenance_service"]),
-            ("T08", "Closeness Centrality", "Calculate closeness centrality", 6, ImplementationStatus.NOT_STARTED, ["networkx", "neo4j"]),
-            ("T09", "Eigenvector Centrality", "Calculate eigenvector centrality", 6, ImplementationStatus.NOT_STARTED, ["networkx", "neo4j"]),
-            ("T10", "PageRank Alternative", "Alternative PageRank implementation", 5, ImplementationStatus.NOT_STARTED, ["networkx", "neo4j"]),
+            ("T08", "XML Loader", "Load and parse XML documents", 7, ImplementationStatus.UNIFIED, ["lxml", "provenance_service"]),
+            ("T09", "YAML Loader", "Load and parse YAML documents", 7, ImplementationStatus.UNIFIED, ["pyyaml", "provenance_service"]),
+            ("T10", "Excel Loader", "Load Excel spreadsheets", 8, ImplementationStatus.UNIFIED, ["openpyxl", "pandas", "provenance_service"]),
             
-            # Community Detection (T11-T13)
-            ("T11", "Community Detection", "Detect communities using Louvain algorithm", 8, ImplementationStatus.NOT_STARTED, ["python-louvain", "neo4j"]),
-            ("T12", "Modularity Calculator", "Calculate network modularity", 6, ImplementationStatus.NOT_STARTED, ["networkx", "neo4j"]),
-            ("T13", "Label Propagation", "Community detection via label propagation", 5, ImplementationStatus.NOT_STARTED, ["networkx", "neo4j"]),
+            ("T11", "PowerPoint Loader", "Load and parse PowerPoint presentations", 7, ImplementationStatus.UNIFIED, ["python-pptx", "provenance_service"]),
+            ("T12", "ZIP Loader", "Load and extract ZIP archives", 7, ImplementationStatus.UNIFIED, ["zipfile", "provenance_service"]),
+            ("T13", "Web Scraper", "Scrape web content and extract text", 8, ImplementationStatus.UNIFIED, ["requests", "beautifulsoup4", "provenance_service"]),
+            ("T14", "Email Parser", "Parse and extract content from email files", 7, ImplementationStatus.UNIFIED, ["email", "provenance_service"]),
             
-            # Path Analysis (T14-T16)
-            ("T14", "Shortest Path", "Find shortest paths between nodes", 7, ImplementationStatus.NOT_STARTED, ["neo4j"]),
+            # Path Analysis (T15-T16)
             ("T15", "All Paths", "Find all paths between nodes", 5, ImplementationStatus.NOT_STARTED, ["neo4j"]),
             ("T15A", "Text Chunker", "Split text into overlapping chunks", 10, ImplementationStatus.IMPLEMENTED, ["quality_service"]),
             ("T16", "Path Analysis", "Analyze path patterns and properties", 6, ImplementationStatus.NOT_STARTED, ["neo4j"]),
@@ -153,21 +152,19 @@ class ToolRegistry:
             ("T47", "Anomaly Detector", "Detect anomalies in data", 7, ImplementationStatus.NOT_STARTED, ["scikit-learn"]),
             ("T48", "Data Validator", "Validate data against schemas", 7, ImplementationStatus.NOT_STARTED, ["jsonschema"]),
             ("T49", "Multi-hop Query", "Perform multi-hop graph queries", 9, ImplementationStatus.IMPLEMENTED, ["neo4j"]),
-            ("T50", "Data Cleaner", "Clean and standardize data", 6, ImplementationStatus.NOT_STARTED, ["pandas"]),
+            ("T50", "Community Detection", "Detect graph communities", 8, ImplementationStatus.UNIFIED, ["networkx", "neo4j"]),
             
-            # Visualization Prep (T51-T55)
-            ("T51", "Chart Data Prep", "Prepare data for charting", 6, ImplementationStatus.NOT_STARTED, ["pandas"]),
-            ("T52", "Graph Layout", "Calculate graph layout coordinates", 5, ImplementationStatus.NOT_STARTED, ["networkx"]),
-            ("T53", "Heatmap Generator", "Generate heatmap data", 5, ImplementationStatus.NOT_STARTED, ["numpy"]),
-            ("T54", "Timeline Generator", "Generate timeline visualizations", 5, ImplementationStatus.NOT_STARTED, ["pandas"]),
-            ("T55", "Dashboard Aggregator", "Aggregate data for dashboards", 6, ImplementationStatus.NOT_STARTED, ["pandas"]),
-            
-            # Export/Import (T56-T60)
-            ("T56", "Excel Exporter", "Export data to Excel format", 6, ImplementationStatus.NOT_STARTED, ["openpyxl"]),
-            ("T57", "JSON Exporter", "Export data to JSON format", 5, ImplementationStatus.NOT_STARTED, []),
-            ("T58", "SQL Importer", "Import data from SQL databases", 7, ImplementationStatus.NOT_STARTED, ["sqlalchemy"]),
-            ("T59", "API Connector", "Connect to external APIs", 7, ImplementationStatus.NOT_STARTED, ["requests"]),
-            ("T60", "Report Generator", "Generate analysis reports", 7, ImplementationStatus.NOT_STARTED, ["jinja2"])
+            # Graph Analytics (T51-T60) - Phase 2 Implementation
+            ("T51", "Centrality Analysis", "Calculate centrality measures", 8, ImplementationStatus.UNIFIED, ["networkx", "neo4j"]),
+            ("T52", "Graph Clustering", "Cluster graph nodes", 7, ImplementationStatus.UNIFIED, ["scikit-learn", "networkx"]),
+            ("T53", "Network Motifs", "Detect network motif patterns", 7, ImplementationStatus.UNIFIED, ["networkx"]),
+            ("T54", "Graph Visualization", "Generate graph visualizations", 8, ImplementationStatus.UNIFIED, ["plotly", "networkx"]),
+            ("T55", "Temporal Analysis", "Analyze temporal graph patterns", 7, ImplementationStatus.UNIFIED, ["networkx"]),
+            ("T56", "Graph Metrics", "Calculate graph-level metrics", 7, ImplementationStatus.UNIFIED, ["networkx"]),
+            ("T57", "Path Analysis", "Analyze graph paths", 7, ImplementationStatus.UNIFIED, ["networkx", "neo4j"]),
+            ("T58", "Graph Comparison", "Compare graph structures", 6, ImplementationStatus.UNIFIED, ["networkx"]),
+            ("T59", "Scale-Free Analysis", "Analyze scale-free properties", 8, ImplementationStatus.UNIFIED, ["networkx", "scipy"]),
+            ("T60", "Graph Export", "Export graphs to various formats", 7, ImplementationStatus.UNIFIED, ["networkx", "pandas"])
         ]
         
         self._register_tools(table_tools, ToolCategory.TABLE)
@@ -283,13 +280,16 @@ class ToolRegistry:
             if status in [ImplementationStatus.IMPLEMENTED, ImplementationStatus.UNIFIED]:
                 if category == ToolCategory.GRAPH:
                     if tool_id == "T15A":
-                        file_path = f"src/tools/phase1/t15a_text_chunker.py"
-                    elif tool_id in ["T01", "T02", "T05", "T06", "T07"]:
+                        file_path = f"src/tools/phase1/t15a_text_chunker_unified.py"
+                    elif tool_id in ["T01", "T02", "T03", "T04", "T05", "T06", "T07", "T08", "T09", "T10", "T11", "T12", "T13", "T14"]:
                         file_path = f"src/tools/phase1/{tool_id.lower()}_{name.lower().replace(' ', '_')}_unified.py"
-                    elif tool_id.startswith("T"):
-                        file_path = f"src/tools/phase1/{tool_id.lower()}_{name.lower().replace(' ', '_')}.py"
+                    elif tool_id in ["T23A", "T27", "T31", "T34", "T49", "T68"]:
+                        file_path = f"src/tools/phase1/{tool_id.lower()}_{name.lower().replace(' ', '_')}_unified.py"
                 elif category == ToolCategory.TABLE:
-                    file_path = f"src/tools/phase1/{tool_id.lower()}_{name.lower().replace(' ', '_')}.py"
+                    if tool_id in ["T50", "T51", "T52", "T53", "T54", "T55", "T56", "T57", "T58", "T59", "T60"]:
+                        file_path = f"src/tools/phase2/{tool_id.lower()}_{name.lower().replace(' ', '_')}_unified.py"
+                    else:
+                        file_path = f"src/tools/phase1/{tool_id.lower()}_{name.lower().replace(' ', '_')}.py"
                 elif category == ToolCategory.CROSS_MODAL:
                     if tool_id.startswith("T10") or tool_id.startswith("T11") or tool_id == "T121":
                         file_path = f"src/core/{name.lower().replace(' ', '_')}.py"
@@ -298,7 +298,7 @@ class ToolRegistry:
             mcp_exposed = tool_id in self._get_mcp_exposed_tools()
             
             # Check if tool implements unified interface
-            unified = tool_id in ["T01", "T02", "T05", "T06", "T07"] and status == ImplementationStatus.UNIFIED
+            unified = status == ImplementationStatus.UNIFIED
             
             entry = ToolRegistryEntry(
                 tool_id=tool_id,
@@ -321,36 +321,43 @@ class ToolRegistry:
     def _get_implemented_tools(self) -> set:
         """Get set of implemented tool IDs"""
         return {
-            "T01", "T02", "T05", "T06", "T07", "T15A", "T23A", "T27", "T31", "T34", "T68", "T49",  # Phase 1
-            "T107", "T110", "T111", "T121"  # Service tools
+            # Phase 1 Loaders (14 tools)
+            "T01", "T02", "T03", "T04", "T05", "T06", "T07", "T08", "T09", "T10", "T11", "T12", "T13", "T14",
+            # Phase 1 Analysis (7 tools)
+            "T15A", "T23A", "T27", "T31", "T34", "T49", "T68",
+            # Phase 2 Graph Analytics (10 tools)
+            "T50", "T51", "T52", "T53", "T54", "T55", "T56", "T57", "T58", "T59", "T60",
+            # Service tools (4 tools)
+            "T107", "T110", "T111", "T121"
         }
     
     def _get_mcp_exposed_tools(self) -> set:
         """Get set of tools exposed via MCP"""
         return {
-            "T01", "T02", "T05", "T06", "T07", "T15A", "T23A", "T27", "T31", "T34", "T68", "T49",  # Phase 1 pipeline
-            "T107", "T110", "T111", "T121"  # Service tools
+            # Phase 1 Core Pipeline (Primary MCP exposure)
+            "T01", "T02", "T03", "T04", "T05", "T06", "T07", "T08", "T09", "T10", "T11", "T12", "T13", "T14",
+            "T15A", "T23A", "T27", "T31", "T34", "T49", "T68",
+            # Phase 2 Graph Analytics (Available via MCP)
+            "T50", "T51", "T52", "T53", "T54", "T55", "T56", "T57", "T58", "T59", "T60",
+            # Service tools
+            "T107", "T110", "T111", "T121"
         }
     
     def _get_test_coverage(self, tool_id: str) -> float:
         """Get test coverage for tool (mock data for now)"""
         coverage_map = {
-            "T01": 95.0,  # Updated with TDD tests
-            "T02": 95.0,  # New TDD tests
-            "T05": 95.0,  # New TDD tests
-            "T06": 95.0,  # New TDD tests
-            "T07": 95.0,  # New TDD tests
-            "T15A": 90.0,
-            "T23A": 88.0,
-            "T27": 82.0,
-            "T31": 87.0,
-            "T34": 85.0,
-            "T68": 92.0,
-            "T49": 80.0,
-            "T107": 95.0,
-            "T110": 93.0,
-            "T111": 91.0,
-            "T121": 78.0
+            # Phase 1 Loaders
+            "T01": 95.0, "T02": 95.0, "T03": 90.0, "T04": 90.0, "T05": 95.0,
+            "T06": 95.0, "T07": 95.0, "T08": 85.0, "T09": 85.0, "T10": 90.0,
+            "T11": 85.0, "T12": 85.0, "T13": 80.0, "T14": 80.0,
+            # Phase 1 Analysis
+            "T15A": 90.0, "T23A": 88.0, "T27": 82.0, "T31": 87.0, "T34": 85.0,
+            "T49": 80.0, "T68": 92.0,
+            # Phase 2 Graph Analytics
+            "T50": 78.0, "T51": 75.0, "T52": 80.0, "T53": 75.0, "T54": 70.0,
+            "T55": 72.0, "T56": 78.0, "T57": 75.0, "T58": 70.0, "T59": 82.0, "T60": 85.0,
+            # Service tools
+            "T107": 95.0, "T110": 93.0, "T111": 91.0, "T121": 78.0
         }
         return coverage_map.get(tool_id, 0.0)
     

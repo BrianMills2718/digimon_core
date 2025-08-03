@@ -1,28 +1,76 @@
 tool_id: "T31_ENTITY_BUILDER"
+name: "Entity Builder"
 description: "Builds and persists entity nodes in Neo4j graph database"
-category: "Construction"
+version: "1.0.0"
+category: "graph_building"
 
-input_contract:
-  required_data_types:
-    - type: "Entity"
-      attributes: ["text", "entity_type", "confidence"]
-  required_state:
-    entities_extracted: true
+input_schema:
+  type: object
+  properties:
+    mentions:
+      type: array
+      items:
+        type: object
+        properties:
+          text:
+            type: string
+          entity_type:
+            type: string
+          confidence:
+            type: number
+            minimum: 0
+            maximum: 1
+          start:
+            type: integer
+          end:
+            type: integer
+        required: ["text", "entity_type"]
+      minItems: 1
+    source_refs:
+      type: array
+      items:
+        type: string
+  required: ["mentions"]
 
-output_contract:
-  produced_data_types:
-    - type: "Entity"
-      attributes: ["entity_id", "canonical_name", "entity_type", "neo4j_id"]
-  produced_state:
-    entities_built: true
+output_schema:
+  type: object
+  properties:
+    entities:
+      type: array
+      items:
+        type: object
+        properties:
+          entity_id:
+            type: string
+          canonical_name:
+            type: string
+          entity_type:
+            type: string
+          neo4j_id:
+            type: string
+          confidence:
+            type: number
+        required: ["entity_id", "canonical_name", "entity_type"]
+    entity_count:
+      type: integer
+    confidence:
+      type: number
+  required: ["entities", "entity_count"]
 
-error_codes:
-  - code: "DATABASE_CONNECTION_ERROR"
-    description: "Failed to connect to Neo4j database"
-    severity: "error"
-  - code: "ENTITY_BUILD_ERROR"
-    description: "Failed to create entity node in database"
-    severity: "error"
-  - code: "VALIDATION_ERROR"
-    description: "Entity data failed validation before database insertion"
-    severity: "error"
+depends_on: ["T23A_SPACY_NER"]
+
+dependencies:
+  - "neo4j"
+  - "identity_service"
+  - "provenance_service"
+
+performance_requirements:
+  max_execution_time: 30.0
+  max_memory_mb: 500
+  min_accuracy: 0.95
+
+error_conditions:
+  - "DATABASE_CONNECTION_ERROR"
+  - "ENTITY_BUILD_ERROR"
+  - "VALIDATION_ERROR"
+  - "INVALID_INPUT"

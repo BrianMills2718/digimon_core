@@ -1,0 +1,388 @@
+{
+  "theory_id": "prospect_theory_kahneman_tversky_1979",
+  "theory_name": "Prospect Theory",
+  "theory_version": "1.0",
+  "meta_schema_version": "11.1",
+  "created_date": "2025-07-26",
+  "theory_metadata": {
+    "primary_authors": [
+      "Daniel Kahneman",
+      "Amos Tversky"
+    ],
+    "publication_year": 1979,
+    "source_work": "Prospect Theory: An Analysis of Decision under Risk",
+    "theoretical_tradition": "Behavioral economics, decision theory, cognitive psychology",
+    "original_purpose": "Explain systematic deviations from expected utility theory in decision-making under risk and uncertainty"
+  },
+  "telos": {
+    "primary_purpose": "Predict decision-making behavior under risk by modeling reference point dependence, loss aversion, and probability weighting effects",
+    "secondary_purposes": [
+      "Explain framing effects in decision contexts",
+      "Predict risk-seeking vs. risk-averse behavior patterns",
+      "Analyze endowment effects and status quo bias",
+      "Model decision-making under uncertainty and ambiguity"
+    ],
+    "theoretical_scope": "Individual-level decision-making processes under risk and uncertainty",
+    "domain_applicability": "Risk assessments, policy decisions, strategic choices, resource allocation discussions, uncertainty contexts"
+  },
+  "classification": {
+    "analytical_tier": "predictive",
+    "tier_justification": "Generates specific predictions about choice behavior based on reference points, loss aversion, and probability weighting",
+    "paradigm": "behavioral-economic",
+    "level_of_analysis": "individual",
+    "temporal_scope": "decision_moment_focused",
+    "complexity": "high",
+    "formalization_level": "highly_formalized"
+  },
+  "ontology": {
+    "core_entities": {
+      "prospects": {
+        "definition": "Decision alternatives involving uncertain outcomes with associated probabilities",
+        "properties": [
+          "outcome_values",
+          "probabilities",
+          "framing",
+          "complexity"
+        ],
+        "examples": [
+          "policy options with uncertain consequences",
+          "strategic choices with risk",
+          "resource allocation alternatives"
+        ]
+      },
+      "reference_points": {
+        "definition": "Subjective baselines against which gains and losses are evaluated",
+        "properties": [
+          "reference_type",
+          "stability",
+          "salience",
+          "adaptability"
+        ],
+        "types": [
+          "status_quo",
+          "aspiration_level",
+          "social_comparison",
+          "historical_baseline"
+        ],
+        "examples": [
+          "current policy situation",
+          "desired outcomes",
+          "competitor performance",
+          "past achievements"
+        ]
+      },
+      "outcomes": {
+        "definition": "Potential consequences of decisions that can be framed as gains or losses",
+        "properties": [
+          "outcome_type",
+          "magnitude",
+          "probability",
+          "framing"
+        ],
+        "types": [
+          "gains",
+          "losses",
+          "mixed_outcomes"
+        ],
+        "examples": [
+          "policy success/failure",
+          "security improvements/deterioration",
+          "economic gains/costs"
+        ]
+      },
+      "decision_weights": {
+        "definition": "Subjective probabilities that differ from objective probabilities due to cognitive biases",
+        "properties": [
+          "objective_probability",
+          "decision_weight",
+          "transformation_pattern"
+        ],
+        "transformation_characteristics": [
+          "overweight_small_probabilities",
+          "underweight_moderate_probabilities",
+          "certainty_effect"
+        ]
+      }
+    },
+    "prospect_theory_principles": {
+      "reference_dependence": "Value is determined relative to reference point rather than absolute levels",
+      "loss_aversion": "Losses loom larger than gains of equivalent magnitude (typically 2:1 ratio)",
+      "diminishing_sensitivity": "Marginal impact decreases with distance from reference point",
+      "probability_weighting": "Small probabilities overweighted, moderate probabilities underweighted",
+      "certainty_effect": "Disproportionate preference for certain vs. uncertain outcomes"
+    },
+    "value_function_characteristics": {
+      "shape": "S-shaped curve with steeper slope for losses than gains",
+      "reference_point_dependence": "Outcomes evaluated as gains or losses from reference point",
+      "concavity_in_gains": "Risk averse behavior in gain domain",
+      "convexity_in_losses": "Risk seeking behavior in loss domain",
+      "loss_aversion_ratio": "Typically 2.25:1 ratio of loss impact to gain impact"
+    },
+    "probability_weighting_function": {
+      "overweighting_small_probabilities": "Probabilities near 0 receive disproportionate attention",
+      "underweighting_moderate_probabilities": "Probabilities 0.3-0.7 receive less than proportional weight",
+      "certainty_effect": "Probability 1.0 receives full weight, probability 0.95 substantially discounted",
+      "subcertainty": "Sum of decision weights typically less than 1.0"
+    },
+    "framing_effects": {
+      "gain_frame": "Presenting options as potential gains from reference point",
+      "loss_frame": "Presenting options as potential losses from reference point",
+      "mixed_frame": "Options containing both gain and loss elements",
+      "framing_reversals": "Different choices made for identical options with different frames"
+    },
+    "mathematical_algorithms": {
+      "value_function": {
+        "formula": "v(x) = x^\u03b1 if x \u2265 0 (gains), v(x) = -\u03bb(-x)^\u03b2 if x < 0 (losses)",
+        "parameters": {
+          "\u03b1": "0.88 (concavity parameter for gains)",
+          "\u03b2": "0.88 (convexity parameter for losses)",
+          "\u03bb": "2.25 (loss aversion coefficient)"
+        },
+        "implementation": "Power function with separate parameters for gains and losses",
+        "input_requirements": [
+          "outcome_values",
+          "reference_point"
+        ],
+        "output": "Subjective value relative to reference point"
+      },
+      "probability_weighting_function": {
+        "formula": "w(p) = p^\u03b3 / (p^\u03b3 + (1-p)^\u03b3)^(1/\u03b3)",
+        "parameters": {
+          "\u03b3": "0.61 for gains, 0.69 for losses (curvature parameter)"
+        },
+        "implementation": "Tversky-Kahneman weighting function",
+        "input_requirements": [
+          "objective_probabilities"
+        ],
+        "output": "Decision weights (subjective probabilities)"
+      },
+      "prospect_evaluation": {
+        "formula": "V = \u03a3 w(p_i) * v(x_i) for all outcomes i",
+        "implementation": "Sum of weighted values across all possible outcomes",
+        "input_requirements": [
+          "outcome_values",
+          "probabilities",
+          "reference_point"
+        ],
+        "output": "Overall prospect value for choice comparison"
+      },
+      "choice_prediction": {
+        "algorithm": "Compare prospect values and predict choice of higher-valued option",
+        "implementation": "argmax(V_prospect) across all available prospects",
+        "confidence_measures": [
+          "value_difference",
+          "probability_sensitivity"
+        ],
+        "output": "Predicted choice with confidence interval"
+      },
+      "text_to_numbers_conversion": {
+        "outcome_scaling": {
+          "method": "Relative magnitude estimation using linguistic indicators",
+          "scale": "0-100 with reference point at 50",
+          "linguistic_mappings": {
+            "catastrophic/devastating": "-90 to -100",
+            "major_loss": "-60 to -89",
+            "moderate_loss": "-20 to -59",
+            "minor_loss": "-1 to -19",
+            "status_quo": "0",
+            "minor_gain": "1 to 19",
+            "moderate_gain": "20 to 59",
+            "major_gain": "60 to 89",
+            "transformative": "90 to 100"
+          }
+        },
+        "probability_estimation": {
+          "method": "Convert linguistic uncertainty to numerical probabilities",
+          "linguistic_mappings": {
+            "certain/sure": "1.0",
+            "very_likely/probable": "0.8-0.9",
+            "likely/good_chance": "0.6-0.79",
+            "possible/maybe": "0.4-0.59",
+            "unlikely": "0.2-0.39",
+            "very_unlikely": "0.05-0.19",
+            "impossible/never": "0.0"
+          },
+          "confidence_intervals": "\u00b10.1 for most estimates"
+        }
+      }
+    }
+  },
+  "execution": {
+    "stage_1_comprehensive_structuring": {
+      "step_1_applicability_assessment": {
+        "description": "Evaluate text suitability for prospect theory analysis",
+        "criteria": {
+          "decision_under_risk_present": "Clear choices involving uncertain outcomes",
+          "reference_point_identifiable": "Implicit or explicit baseline for evaluating options",
+          "gain_loss_framing": "Outcomes describable as gains or losses from reference point",
+          "probability_information": "Information about likelihood of different outcomes"
+        },
+        "scoring": "0.0-1.0 scale based on presence and clarity of prospect theory elements",
+        "threshold": "0.6 minimum for meaningful prospect theory analysis"
+      },
+      "step_2_prospect_identification": {
+        "description": "Identify decision alternatives and their uncertain outcomes",
+        "prospect_extraction": [
+          "Extract explicit decision options and alternatives",
+          "Identify implicit choices and strategic alternatives",
+          "Determine outcome possibilities for each prospect",
+          "Assess outcome probabilities where available"
+        ],
+        "prospect_characterization": [
+          "Categorize prospects by complexity and risk level",
+          "Identify certain vs. uncertain outcome components",
+          "Assess temporal aspects of outcomes (immediate vs. delayed)",
+          "Evaluate outcome reversibility and commitment levels"
+        ]
+      },
+      "step_3_reference_point_determination": {
+        "description": "Identify subjective reference points for evaluating outcomes",
+        "reference_analysis": [
+          "Identify explicit reference points mentioned in text",
+          "Infer implicit baselines from context and comparisons",
+          "Determine reference point stability and salience",
+          "Assess multiple reference points and their relative importance"
+        ],
+        "reference_types": [
+          "Status quo reference points (current situation)",
+          "Aspiration level reference points (desired outcomes)",
+          "Social comparison reference points (peer/competitor performance)",
+          "Historical reference points (past performance or conditions)"
+        ]
+      },
+      "step_4_outcome_framing_analysis": {
+        "description": "Analyze how outcomes are framed as gains or losses",
+        "framing_analysis": [
+          "Identify gain-framed outcomes (improvements from reference point)",
+          "Identify loss-framed outcomes (deteriorations from reference point)",
+          "Assess mixed outcomes containing both gain and loss elements",
+          "Evaluate framing consistency across different prospects"
+        ],
+        "magnitude_assessment": [
+          "Estimate relative magnitudes of potential gains and losses",
+          "Assess outcome importance and centrality to decision-maker",
+          "Evaluate outcome certainty vs. uncertainty",
+          "Determine outcome measurement dimensions (monetary, strategic, reputational)"
+        ]
+      },
+      "step_5_probability_assessment": {
+        "description": "Identify and analyze probability information and uncertainty",
+        "probability_analysis": [
+          "Extract explicit probability statements or estimates",
+          "Infer probability assessments from confidence expressions",
+          "Identify certain vs. uncertain outcome components",
+          "Assess probability ranges and uncertainty levels"
+        ],
+        "weighting_implications": [
+          "Identify small probabilities likely to be overweighted",
+          "Identify moderate probabilities likely to be underweighted",
+          "Assess certainty effects and sure-thing preferences",
+          "Evaluate ambiguity and unmeasurable uncertainty"
+        ]
+      },
+      "step_6_numerical_conversion": {
+        "description": "Convert qualitative assessments to numerical values for mathematical analysis",
+        "conversion_process": [
+          "Apply outcome_scaling mappings to convert linguistic magnitude expressions to numerical values",
+          "Apply probability_estimation mappings to convert uncertainty expressions to probabilities",
+          "Normalize all outcomes relative to identified reference point (set reference = 0)",
+          "Validate converted values for logical consistency and realism"
+        ],
+        "output_format": {
+          "outcomes": "Array of numerical values relative to reference point",
+          "probabilities": "Array of probability values summing to 1.0",
+          "reference_point": "Numerical baseline (typically 0)",
+          "conversion_confidence": "Confidence rating for numerical assignments"
+        }
+      }
+    },
+    "stage_2_analytic_evaluation": {
+      "step_1_value_function_analysis": {
+        "description": "Analyze decision-maker's value function characteristics",
+        "value_analysis": [
+          "Assess loss aversion patterns in outcome evaluation",
+          "Evaluate diminishing sensitivity to gains and losses",
+          "Identify risk aversion in gain domain vs. risk seeking in loss domain",
+          "Analyze outcome evaluation relative to reference points"
+        ]
+      },
+      "step_2_probability_weighting_assessment": {
+        "description": "Evaluate probability weighting and decision weight patterns",
+        "weighting_analysis": [
+          "Assess overweighting of small probabilities",
+          "Evaluate underweighting of moderate probabilities",
+          "Identify certainty effects and sure-thing preferences",
+          "Analyze probability sensitivity and discrimination"
+        ]
+      },
+      "step_3_framing_effect_identification": {
+        "description": "Identify framing effects and their impact on choice patterns",
+        "framing_analysis": [
+          "Compare decisions under gain vs. loss frames",
+          "Identify frame-dependent choice reversals",
+          "Assess consistency of preferences across different framings",
+          "Evaluate strategic use of framing in communication"
+        ]
+      },
+      "step_4_behavioral_prediction": {
+        "description": "Predict choice behavior based on prospect theory principles",
+        "prediction_analysis": [
+          "Predict risk preferences based on gain/loss domain",
+          "Forecast choice patterns under different probability conditions",
+          "Anticipate framing effects on decision outcomes",
+          "Assess endowment effects and status quo bias implications"
+        ]
+      },
+      "step_5_mathematical_computation": {
+        "description": "Execute mathematical algorithms to generate quantitative predictions",
+        "computational_steps": [
+          "Apply value function v(x) to each outcome using parameters \u03b1=0.88, \u03b2=0.88, \u03bb=2.25",
+          "Apply probability weighting function w(p) using parameter \u03b3=0.61 for gains, \u03b3=0.69 for losses",
+          "Calculate prospect value V = \u03a3 w(p_i) * v(x_i) for each decision alternative",
+          "Compare prospect values across alternatives to predict choice (argmax)",
+          "Calculate confidence measures based on value differences and sensitivity analysis"
+        ],
+        "algorithms_required": [
+          "Power function implementation for value function",
+          "Tversky-Kahneman weighting function implementation",
+          "Numerical integration for complex prospects",
+          "Sensitivity analysis for confidence intervals"
+        ],
+        "output_format": {
+          "prospect_values": "Numerical values for each decision alternative",
+          "predicted_choice": "Alternative with highest prospect value",
+          "choice_confidence": "Confidence level based on value differences",
+          "sensitivity_analysis": "How predictions change with parameter variations"
+        }
+      }
+    }
+  },
+  "validation": {
+    "internal_consistency": {
+      "prospect_identification_coherence": "Decision alternatives properly identified with clear outcome structures",
+      "reference_point_determination_validity": "Reference points logically consistent with context and comparisons",
+      "framing_analysis_accuracy": "Outcomes correctly categorized as gains or losses relative to reference points",
+      "probability_assessment_logic": "Probability evaluations consistent with uncertainty expressions and context"
+    },
+    "theoretical_fidelity": {
+      "reference_dependence_application": "Analysis focuses on relative rather than absolute outcome evaluation",
+      "loss_aversion_recognition": "Greater attention to losses than equivalent gains",
+      "probability_weighting_incorporation": "Recognition of systematic deviations from objective probabilities",
+      "framing_sensitivity_emphasis": "Attention to how presentation affects choice preferences"
+    },
+    "empirical_validation": {
+      "prospect_extraction_accuracy": "Valid identification of decision alternatives and outcome structures",
+      "reference_point_inference_validity": "Accurate determination of subjective baselines for outcome evaluation",
+      "outcome_magnitude_assessment": "Realistic evaluation of gain and loss magnitudes relative to reference points",
+      "probability_evaluation_accuracy": "Valid assessment of uncertainty levels and probability information"
+    },
+    "predictive_validation": {
+      "choice_behavior_prediction_accuracy": "Valid prediction of risk preferences and decision patterns",
+      "framing_effect_forecasting": "Accurate prediction of frame-dependent choice reversals",
+      "probability_weighting_prediction": "Valid prediction of systematic probability distortions",
+      "reference_point_shift_anticipation": "Accurate prediction of reference point adaptation and change"
+    }
+  },
+  "mode": "open",
+  "schema_id": "prospect_theory_kahneman_tversky_1979"
+}

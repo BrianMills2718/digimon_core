@@ -93,7 +93,7 @@ def test_phase1_workflow_compliance():
         
         # Create workflow instance
         workflow_config = create_unified_workflow_config(phase=Phase.PHASE1, optimization_level=OptimizationLevel.STANDARD)
-workflow = PipelineOrchestrator(workflow_config)
+        workflow = PipelineOrchestrator(workflow_config)
         
         # Test 1: Check if it has the required methods
         required_methods = ['execute_workflow']

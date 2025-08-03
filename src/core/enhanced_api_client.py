@@ -107,6 +107,11 @@ class EnhancedAPIClient:
         
         self.logger.info(f"EnhancedAPIClient initialized with {len(self.models)} models")
     
+    @property
+    def available_models(self) -> List[str]:
+        """Get list of available model names"""
+        return list(self.models.keys())
+    
     def _load_environment(self, config_path: Optional[str] = None):
         """Load environment configuration"""
         if config_path:
@@ -136,7 +141,7 @@ class EnhancedAPIClient:
             'gpt_4_turbo': 'gpt-4-turbo,true,8192',
             'gpt_4o_mini': 'gpt-4o-mini,true,4096', 
             'claude_sonnet_4': 'claude-3-5-sonnet-20241022,false,8192',
-            'gemini_flash': 'gemini/gemini-1.5-flash,false,8192'
+            'gemini_flash': 'gemini/gemini-2.5-flash-lite,false,8192'
         }
         
         # Load from environment or use defaults
@@ -177,7 +182,7 @@ class EnhancedAPIClient:
         if self.api_keys['anthropic']:
             os.environ['ANTHROPIC_API_KEY'] = self.api_keys['anthropic']
     
-    def make_request(self, service: str = None, request_type: str = None, prompt: str = None, 
+    def make_request(self, service: str = None, request_type: str = "chat_completion", prompt: str = None, 
                      messages: List[Dict] = None, max_tokens: int = None, temperature: float = None,
                      model: str = None, request: APIRequest = None, use_fallback: bool = True, **kwargs) -> APIResponse:
         """Make API request with LiteLLM universal model support

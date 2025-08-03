@@ -1,0 +1,258 @@
+{
+  "theory_id": "self_categorization_theory_turner_1987",
+  "theory_name": "Self-Categorization Theory",
+  "theory_version": "1.0",
+  "meta_schema_version": "11.1",
+  "created_date": "2025-07-26",
+  "theory_metadata": {
+    "primary_authors": [
+      "John C. Turner",
+      "Michael A. Hogg",
+      "Penelope J. Oakes"
+    ],
+    "publication_year": 1987,
+    "source_work": "Rediscovering the Social Group: A Self-Categorization Theory",
+    "theoretical_tradition": "Social psychology, social identity theory, group processes",
+    "original_purpose": "Explain how and when people define themselves in terms of group memberships and how this affects perception, judgment, and behavior"
+  },
+  "telos": {
+    "primary_purpose": "Predict when individuals will categorize themselves as group members rather than unique individuals and explain resulting cognitive and behavioral changes",
+    "secondary_purposes": [
+      "Explain stereotype formation and application processes",
+      "Predict group polarization and conformity phenomena",
+      "Analyze leadership emergence and influence processes",
+      "Understand intergroup differentiation and conflict dynamics"
+    ],
+    "theoretical_scope": "Individual-level self-concept and group identification processes",
+    "domain_applicability": "Group communications, identity statements, collective behavior descriptions, leadership appeals, intergroup contexts"
+  },
+  "classification": {
+    "analytical_tier": "explanatory",
+    "tier_justification": "Explains group behavior through self-categorization processes and predicts when group vs. individual identity will be salient",
+    "paradigm": "cognitive-social",
+    "level_of_analysis": "individual_to_group",
+    "temporal_scope": "situational_dynamic",
+    "complexity": "high",
+    "formalization_level": "moderately_formalized"
+  },
+  "ontology": {
+    "core_entities": {
+      "self_categories": {
+        "definition": "Cognitive representations of the self at different levels of abstraction",
+        "properties": [
+          "abstraction_level",
+          "inclusiveness",
+          "content",
+          "accessibility"
+        ],
+        "levels": [
+          "personal_identity",
+          "social_identity",
+          "human_identity"
+        ],
+        "examples": [
+          "individual self",
+          "American",
+          "Naval officer",
+          "human being"
+        ]
+      },
+      "social_categories": {
+        "definition": "Cognitive classifications of people into groups based on perceived similarities",
+        "properties": [
+          "category_content",
+          "boundaries",
+          "prototypicality",
+          "distinctiveness"
+        ],
+        "examples": [
+          "Americans vs. Soviets",
+          "military vs. civilian",
+          "democratic vs. totalitarian"
+        ]
+      },
+      "comparative_context": {
+        "definition": "Frame of reference that determines which categories become salient",
+        "properties": [
+          "comparison_dimension",
+          "category_accessibility",
+          "fit_criteria"
+        ],
+        "examples": [
+          "US-Soviet context",
+          "military-civilian context",
+          "democratic-authoritarian context"
+        ]
+      },
+      "prototypes": {
+        "definition": "Idealized representations of category members that maximize intragroup similarity and intergroup difference",
+        "properties": [
+          "prototype_content",
+          "accessibility",
+          "extremity",
+          "consensus"
+        ],
+        "examples": [
+          "ideal American",
+          "typical Soviet",
+          "exemplary Naval officer"
+        ]
+      }
+    },
+    "categorization_principles": {
+      "functional_antagonism": "Personal and social identity are functionally antagonistic - activation of one inhibits the other",
+      "meta_contrast_principle": "Category salience determined by ratio of intergroup to intragroup differences",
+      "comparative_fit": "Categories become salient when they best fit the comparative context",
+      "normative_fit": "Categories become salient when content matches expectations",
+      "accessibility": "Recently used or chronically important categories are more likely to become salient"
+    },
+    "salience_determinants": {
+      "comparative_fit": {
+        "definition": "How well category boundaries match actual similarities and differences",
+        "measurement": "Ratio of between-group to within-group differences on relevant dimensions"
+      },
+      "normative_fit": {
+        "definition": "How well category content matches stereotypical expectations",
+        "measurement": "Degree of match between observed and expected category characteristics"
+      },
+      "accessibility": {
+        "definition": "Readiness of categories to be activated in memory",
+        "factors": [
+          "chronic_accessibility",
+          "recent_priming",
+          "situational_cues",
+          "motivational_relevance"
+        ]
+      }
+    },
+    "behavioral_consequences": {
+      "depersonalization": "Perception of self and others as interchangeable group members rather than unique individuals",
+      "stereotype_activation": "Automatic application of group-based expectations and judgments",
+      "group_polarization": "Shift toward more extreme positions consistent with perceived group norms",
+      "conformity_pressure": "Motivation to align attitudes and behaviors with group prototype",
+      "intergroup_differentiation": "Emphasis on differences between groups and similarities within groups"
+    }
+  },
+  "execution": {
+    "stage_1_comprehensive_structuring": {
+      "step_1_applicability_assessment": {
+        "description": "Evaluate text suitability for self-categorization analysis",
+        "criteria": {
+          "group_categorization_present": "Clear use of group categories and social classifications",
+          "identity_salience_indicators": "Evidence of group vs. individual identity activation",
+          "comparative_context_clear": "Identifiable frame of reference for category comparisons",
+          "prototype_content_available": "Descriptions of typical or ideal group members"
+        },
+        "scoring": "0.0-1.0 scale based on presence and clarity of self-categorization elements",
+        "threshold": "0.6 minimum for meaningful self-categorization analysis"
+      },
+      "step_2_category_identification": {
+        "description": "Identify all social categories and self-categories present in the text",
+        "category_extraction": [
+          "Extract explicit group labels and classifications",
+          "Identify implicit social categories from context",
+          "Determine category boundaries and membership criteria",
+          "Map category hierarchies and abstraction levels"
+        ],
+        "self_category_analysis": [
+          "Identify speaker's self-categorization (personal vs. social identity)",
+          "Determine which social identities are activated",
+          "Assess identity salience and prominence"
+        ]
+      },
+      "step_3_comparative_context_analysis": {
+        "description": "Identify the frame of reference that determines category salience",
+        "context_analysis": [
+          "Determine primary comparison dimensions",
+          "Identify salient intergroup comparisons",
+          "Assess which categories are made mutually exclusive",
+          "Evaluate context factors affecting category accessibility"
+        ]
+      },
+      "step_4_prototype_extraction": {
+        "description": "Identify prototypical representations of social categories",
+        "prototype_analysis": [
+          "Extract descriptions of typical or ideal group members",
+          "Identify attributes that define category membership",
+          "Assess prototype extremity and distinctiveness",
+          "Determine consensus around prototype content"
+        ]
+      },
+      "step_5_salience_assessment": {
+        "description": "Evaluate factors determining category salience and accessibility",
+        "salience_analysis": [
+          "Assess comparative fit (intergroup vs. intragroup differences)",
+          "Evaluate normative fit (match with stereotypical expectations)",
+          "Determine accessibility factors (chronic, primed, situational)",
+          "Calculate overall category salience scores"
+        ]
+      }
+    },
+    "stage_2_analytic_evaluation": {
+      "step_1_categorization_process_analysis": {
+        "description": "Analyze how self-categorization processes operate in the text",
+        "process_analysis": [
+          "Identify shifts between personal and social identity",
+          "Assess functional antagonism between identity levels",
+          "Evaluate meta-contrast effects on category salience",
+          "Analyze category accessibility and activation patterns"
+        ]
+      },
+      "step_2_depersonalization_assessment": {
+        "description": "Evaluate extent of depersonalization and group-based perception",
+        "depersonalization_analysis": [
+          "Assess degree of group-based vs. individual-based perception",
+          "Identify stereotype activation and application",
+          "Evaluate interchangeability assumptions about group members",
+          "Measure prototype-based judgment processes"
+        ]
+      },
+      "step_3_group_behavior_prediction": {
+        "description": "Predict group-relevant attitudes and behaviors based on categorization",
+        "prediction_analysis": [
+          "Predict conformity to perceived group norms",
+          "Anticipate group polarization effects",
+          "Forecast intergroup differentiation and bias",
+          "Assess leadership influence potential"
+        ]
+      },
+      "step_4_identity_salience_dynamics": {
+        "description": "Analyze factors that would increase or decrease category salience",
+        "dynamics_analysis": [
+          "Identify conditions favoring personal vs. social identity",
+          "Assess contextual factors affecting category accessibility",
+          "Evaluate motivational factors influencing categorization",
+          "Predict identity salience changes across contexts"
+        ]
+      }
+    }
+  },
+  "validation": {
+    "internal_consistency": {
+      "category_definition_coherence": "Social categories are clearly defined with consistent boundaries",
+      "prototype_content_validity": "Prototype descriptions match category membership criteria",
+      "salience_assessment_logic": "Category salience evaluations follow comparative fit and accessibility principles",
+      "identity_level_distinction": "Clear separation between personal, social, and human identity levels"
+    },
+    "theoretical_fidelity": {
+      "functional_antagonism_application": "Analysis recognizes competition between personal and social identity",
+      "meta_contrast_principle_usage": "Category salience determined by intergroup/intragroup difference ratios",
+      "fit_accessibility_integration": "Both comparative/normative fit and accessibility factors considered",
+      "depersonalization_focus": "Analysis emphasizes group-based rather than individual-based processes"
+    },
+    "empirical_validation": {
+      "category_identification_accuracy": "Valid extraction of social categories and boundaries from text",
+      "prototype_extraction_completeness": "Comprehensive identification of category-defining attributes",
+      "salience_factor_assessment": "Accurate evaluation of comparative fit, normative fit, and accessibility",
+      "behavioral_consequence_prediction": "Valid prediction of group-relevant attitudes and behaviors"
+    },
+    "predictive_validation": {
+      "identity_salience_prediction": "Accurate prediction of when group vs. individual identity will be prominent",
+      "stereotype_activation_forecasting": "Valid prediction of when and which stereotypes will be applied",
+      "group_behavior_prediction": "Accurate prediction of conformity, polarization, and differentiation effects",
+      "contextual_sensitivity_assessment": "Valid prediction of how context changes affect categorization"
+    }
+  },
+  "mode": "open",
+  "schema_id": "self_categorization_theory_turner_1987"
+}

@@ -433,6 +433,75 @@ class APIRateLimiter:
             
             logger.info(f"Removed rate limiting for {service_name}")
     
+    def can_make_call(self, service_name: str) -> bool:
+        """
+        Check if a call can be made without waiting.
+        
+        Args:
+            service_name: Name of the service
+            
+        Returns:
+            True if call can be made immediately
+        """
+        # Initialize service with default config if not configured
+        if service_name not in self.token_buckets:
+            self._initialize_service(service_name, RateLimitConfig())
+        
+        with self._lock:
+            # Check for forced delay from 429 responses
+            if service_name in self.forced_delays:
+                forced_delay_until = self.forced_delays[service_name]
+                current_time = time.time()
+                if current_time < forced_delay_until:
+                    return False
+                else:
+                    # Clean up expired delay
+                    del self.forced_delays[service_name]
+            
+            # Check token availability
+            bucket = self.token_buckets[service_name]
+            bucket.refill()
+            return bucket.tokens >= 1.0
+    
+    def record_call(self, service_name: str) -> None:
+        """
+        Record a call for rate limiting purposes.
+        
+        Args:
+            service_name: Name of the service
+        """
+        # Initialize service with default config if not configured
+        if service_name not in self.token_buckets:
+            self._initialize_service(service_name, RateLimitConfig())
+        
+        with self._lock:
+            bucket = self.token_buckets[service_name]
+            bucket.consume(1.0)
+            self._record_request(service_name)
+    
+    def set_rate_limit(self, service_name: str, requests_per_minute: int) -> None:
+        """
+        Set rate limit for a service.
+        
+        Args:
+            service_name: Name of the service
+            requests_per_minute: Requests per minute limit
+        """
+        config = RateLimitConfig(
+            requests_per_second=requests_per_minute / 60.0,
+            requests_per_minute=requests_per_minute,
+            requests_per_hour=requests_per_minute * 60,
+            burst_capacity=min(10, max(1, int(requests_per_minute / 6)))
+        )
+        
+        if service_name in self.service_configs:
+            # Update existing service
+            self.service_configs[service_name] = config
+            self._initialize_service(service_name, config)
+        else:
+            # Add new service
+            self.add_service(service_name, config)
+
     def get_health_status(self) -> Dict[str, str]:
         """
         Get health status for all services.

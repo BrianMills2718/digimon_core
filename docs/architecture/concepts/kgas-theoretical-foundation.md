@@ -155,7 +155,7 @@ The following diagram illustrates the complete planned architecture showing how 
 ║                                                                                      ║
 ║  🏛️ ONTOLOGICAL GROUNDING: Every concept formally grounded in DOLCE categories      ║
 ║  🔄 SEMANTIC CONSISTENCY: Cross-modal analysis preserves ontological meaning        ║
-║  ✅ AUTOMATED VALIDATION: Real-time DOLCE compliance checking                       ║
+║  AUTOMATED VALIDATION: Real-time DOLCE compliance checking                       ║
 ║  🔗 FORMAL TRACEABILITY: Results traceable to formal ontological foundations       ║
 ║  🎓 RIGOROUS SCIENCE: Maximum theoretical precision for computational social sci    ║
 ║  🌐 INTEROPERABILITY: Compatible with other DOLCE-aligned research systems         ║
@@ -216,33 +216,47 @@ For detailed information about the research contributions, PhD thesis framework,
 
 The Theory Meta-Schema represents a breakthrough in computational social science: the **automated conversion of academic theories into computable, DOLCE-validated schemas**. This system combines human theoretical insight with AI-powered extraction to create a comprehensive, production-ready framework for theoretically informed analysis.
 
-### Dual-Track Theory Development
+### Hybrid Theory Extraction Framework
 
-KGAS employs two complementary approaches for theory schema development:
+KGAS employs a **hybrid approach** combining automated processing with expert validation to ensure both scalability and academic credibility:
 
-#### **Track 1: Automated Theory Extraction** (Production-Ready)
-A fully operational 3-phase system that processes academic papers:
+#### **Phase 1: Automated Theory Extraction Pipeline**
+LLM-based automated system that processes academic papers:
 
-**Phase 1: Comprehensive Vocabulary Extraction**
+**Step 1: Comprehensive Vocabulary Extraction**
 - Extracts ALL theoretical terms from academic papers (not limited subsets)
 - Captures definitions, context, and theory-specific categories
 - Preserves theoretical nuance and discipline-specific terminology
 
-**Phase 2: Enhanced Ontological Classification** 
+**Step 2: Enhanced Ontological Classification** 
 - Classifies terms into entities, relationships, properties, actions, measures, modifiers
 - Infers specific domain/range constraints for relationships
 - Maintains theoretical subcategories and hierarchical structure
 
-**Phase 3: Theory-Adaptive Schema Generation**
+**Step 3: Theory-Adaptive Schema Generation**
 - Selects optimal model type: property_graph, hypergraph, table_matrix, sequence, tree, timeline
 - Generates complete JSON Schema with DOLCE validation hooks
-- Achieves perfect analytical balance across all 5 purposes
+- Provides confidence scores for all extraction decisions
 
-#### **Track 2: Manual Concept Library Development** (MCL Integration)
-Hand-crafted DOLCE-aligned concept definitions:
+#### **Phase 2: Expert Validation Set Development**
+Domain expert validation to ensure academic quality:
 
-- **Master Concept Library**: Standardized vocabulary with DOLCE grounding
-- **Example Theory Schemas**: Detailed implementations like Social Identity Theory
+**Validation Set Creation**: 
+- Domain experts manually review a representative sample of theory extractions (50-100 theories)
+- Establish quality standards and calibrate confidence thresholds
+- Create ground truth for system training and validation
+
+**Continuous Calibration**:
+- Expert feedback from validation improves automated classification accuracy
+- System learns to identify high-confidence vs. low-confidence extractions
+- Maintains academic standards while enabling scalable processing
+
+#### **Phase 3: Integrated Quality Assurance**
+Hybrid system combining automated efficiency with expert validation:
+
+- **Automated Processing**: Most theories processed automatically using learned patterns
+- **Confidence-Based Review**: System flags low-confidence extractions for expert review
+- **Master Concept Library Integration**: Standardized vocabulary with DOLCE grounding
 - **Validation Framework**: Automated DOLCE compliance checking
 
 ### Unified Theory Schema Structure
@@ -283,32 +297,37 @@ Both tracks produce schemas with these components:
 - `process`: Analytical workflows with cross-modal orchestration
 - `telos`: Multi-purpose analytical objectives and success criteria
 
-### Integration Architecture
+### Hybrid Integration Architecture
 
-The two tracks work synergistically:
+The hybrid approach ensures both scalability and quality:
 
 ```
-Academic Papers → Automated Extraction → Raw Schema
+Academic Papers → Automated Extraction → Raw Schema (with confidence scores)
                                           ↓
-MCL Concepts ← Concept Alignment ← Schema Enhancement
+Expert Validation Set ← Confidence Assessment ← Schema Quality Review
+         ↓                                              ↓
+Quality Standards → System Calibration → High-Confidence Automation
+         ↓                                              ↓
+MCL Concepts ← Concept Alignment ← Validated Schema Enhancement
      ↓                               ↓
-DOLCE Validation ← Quality Assurance ← Final Schema
-     ↓
-Production-Ready Theory Schema
+DOLCE Validation ← Quality Assurance ← Production-Ready Theory Schema
 ```
 
-### Implementation Status and Integration
+**Key Benefits**:
+- **Scalable Processing**: Most theories processed automatically after initial validation set establishment
+- **Academic Credibility**: Expert validation ensures theoretical accuracy and academic standards
+- **Continuous Improvement**: System learns from expert feedback to improve automation quality
+- **Quality Control**: Confidence-based flagging ensures low-quality extractions receive expert review
 
-#### **Production Components** ✅
-- **Automated Extraction**: `/lit_review/src/schema_creation/multiphase_processor_improved.py`
+
+#### **Production Components** - **Automated Extraction**: `/lit_review/src/schema_creation/multiphase_processor_improved.py`
 - **Schema Generation**: Complete 3-phase pipeline with OpenAI GPT-4 integration
 - **Testing Framework**: 6 comprehensive test suites with 83% success rate
 - **Performance**: 0.67s average response time, 16.63 req/sec throughput
 - **Quality Assurance**: Perfect 1.000 analytical balance score
 - **MCP Integration**: Full Model Context Protocol implementation with external tool access
 
-#### **Integration Components** ✅
-- **MCL Integration**: `/src/ontology_library/prototype_mcl.yaml` (Complete with FOAF/SIOC/PROV extensions)
+#### **Integration Components** - **MCL Integration**: `/src/ontology_library/prototype_mcl.yaml` (Complete with FOAF/SIOC/PROV extensions)
 - **DOLCE Validation**: `/src/ontology_library/prototype_validation.py` (Complete)
 - **Theory Schemas**: Social Identity Theory example implemented and validated
 - **MCP Server**: `/src/mcp_server.py` with core service tools (T107, T110, T111, T121)
@@ -345,7 +364,7 @@ The MCL is developed through three complementary approaches:
 - **Source**: Hand-crafted concept definitions with precise DOLCE alignment
 - **Process**: Expert curation → DOLCE validation → MCL canonical form
 - **Quality**: Perfect ontological consistency and theoretical precision
-- **Status**: **Prototype Complete** ✅ - Working implementation with validation framework
+- **Status**: **Prototype Complete** - Working implementation with validation framework
 
 **Prototype MCL Achievements**:
 - **16 Core Concepts**: 5 entities, 4 connections, 4 properties, 3 modifiers
@@ -409,13 +428,13 @@ The MCL is developed through three complementary approaches:
 ### Integration Architecture
 
 #### **Implementation Locations**
-- **Production MCL**: `/src/ontology_library/prototype_mcl.yaml` ✅ **Complete**
-- **Validation Framework**: `/src/ontology_library/prototype_validation.py` ✅ **Complete** 
-- **Example Theory Schema**: `/src/ontology_library/example_theory_schemas/social_identity_theory.yaml` ✅ **Complete**
-- **Automated Extraction**: `/lit_review/src/schema_creation/` (3-phase pipeline) ✅ **Production-Ready**
+- **Production MCL**: `/src/ontology_library/prototype_mcl.yaml` **Complete**
+- **Validation Framework**: `/src/ontology_library/prototype_validation.py` **Complete** 
+- **Example Theory Schema**: `/src/ontology_library/example_theory_schemas/social_identity_theory.yaml` **Complete**
+- **Automated Extraction**: `/lit_review/src/schema_creation/` (3-phase pipeline) **Production-Ready**
 - **Integration Bridge**: Cross-system concept mapping (In Development)
 
-#### **Prototype Validation System** ✅ **Working Implementation**
+#### **Prototype Validation System** **Working Implementation**
 - **DOLCEValidator**: Real-time ontological consistency checking
 - **MCLTheoryIntegrationValidator**: Schema-to-MCL concept validation
 - **Automated Testing**: Complete validation demonstration with sample theory

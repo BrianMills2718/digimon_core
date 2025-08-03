@@ -1,3 +1,4 @@
+from src.core.standard_config import get_api_endpoint
 """
 Async API clients for external services.
 """
@@ -32,10 +33,15 @@ class AsyncOpenAIClient:
         if self.session:
             await self.session.close()
     
-    async def chat_completion(self, messages: List[Dict[str, str]], model: str = "gpt-4") -> Dict[str, Any]:
+    async def chat_completion(self, messages: List[Dict[str, str]], model: Optional[str] = None) -> Dict[str, Any]:
         """Create chat completion."""
         if not self.session:
             raise RuntimeError("Client not properly initialized. Use async context manager.")
+        
+        # Get model from config if not specified
+        if model is None:
+            from .standard_config import get_api_model
+            model = get_api_model("openai")
         
         url = f"{self.api_config['base_url']}/chat/completions"
         payload = {
@@ -90,12 +96,17 @@ class AsyncAnthropicClient:
         if self.session:
             await self.session.close()
     
-    async def messages(self, messages: List[Dict[str, str]], model: str = "claude-3-5-sonnet-20241022") -> Dict[str, Any]:
+    async def messages(self, messages: List[Dict[str, str]], model: Optional[str] = None) -> Dict[str, Any]:
         """Create message completion."""
         if not self.session:
             raise RuntimeError("Client not properly initialized. Use async context manager.")
         
-        url = "https://api.anthropic.com/v1/messages"
+        # Get model from config if not specified
+        if model is None:
+            from .standard_config import get_api_model
+            model = get_api_model("anthropic")
+        
+        url = "get_api_endpoint("anthropic")/messages"
         payload = {
             "model": model,
             "max_tokens": 4000,
@@ -125,12 +136,17 @@ class AsyncGoogleClient:
         if self.session:
             await self.session.close()
     
-    async def generate_content(self, prompt: str, model: str = "gemini-pro") -> Dict[str, Any]:
+    async def generate_content(self, prompt: str, model: Optional[str] = None) -> Dict[str, Any]:
         """Generate content using Gemini."""
         if not self.session:
             raise RuntimeError("Client not properly initialized. Use async context manager.")
         
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
+        # Get model from config if not specified
+        if model is None:
+            from .standard_config import get_api_model
+            model = get_api_model("gemini")
+        
+        url = f"get_api_endpoint("google")/models/{model}:generateContent"
         
         payload = {
             "contents": [

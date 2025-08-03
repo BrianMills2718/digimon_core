@@ -1,0 +1,797 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Theory Meta-Schema v12.0",
+  "description": "Value-driven meta-schema focusing on two-layer architecture: theoretical structure extraction and computational analysis, with emphasis on preserving author terminology and logical algorithms",
+  "version": "12.0",
+  "type": "object",
+  "required": [
+    "theory_id",
+    "theory_name",
+    "version",
+    "metadata",
+    "theoretical_structure",
+    "computational_representation",
+    "algorithms",
+    "telos"
+  ],
+  "properties": {
+    "theory_id": {
+      "type": "string",
+      "pattern": "^[a-z_][a-z0-9_]*$",
+      "description": "Unique identifier for the theory"
+    },
+    "theory_name": {
+      "type": "string",
+      "description": "Human-readable name of the theory"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+(\\.\\d+)?$",
+      "description": "Semantic version of this theory schema"
+    },
+    "metadata": {
+      "type": "object",
+      "required": [
+        "authors",
+        "publication_year",
+        "citation",
+        "description"
+      ],
+      "properties": {
+        "authors": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Key theorists and contributors"
+        },
+        "publication_year": {
+          "type": "integer",
+          "minimum": 1900,
+          "maximum": 2030,
+          "description": "Year of seminal publication"
+        },
+        "citation": {
+          "type": "string",
+          "description": "Full bibliographic citation for the source document"
+        },
+        "description": {
+          "type": "string",
+          "description": "Concise summary of the theory"
+        },
+        "theoretical_provenance": {
+          "type": "object",
+          "description": "How this theory relates to other theories",
+          "properties": {
+            "extends": {
+              "type": "string",
+              "description": "Theory this modifies/extends (e.g., TPB extends TRA)"
+            },
+            "replaces": {
+              "type": "string",
+              "description": "Theory this supersedes"
+            },
+            "synthesizes": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Theories this combines"
+            },
+            "contradicts": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Theories this challenges"
+            },
+            "related_theories": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "theory": {
+                    "type": "string"
+                  },
+                  "relationship": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "scope_from_paper": {
+          "type": "object",
+          "description": "Scope and boundaries as stated by authors",
+          "properties": {
+            "phenomena_explained": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "What the authors claim their theory explains"
+            },
+            "boundary_conditions": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "When theory doesn't apply according to authors"
+            },
+            "level_of_analysis": {
+              "type": "string",
+              "enum": [
+                "individual",
+                "dyad",
+                "group",
+                "organization",
+                "society",
+                "multiple"
+              ],
+              "description": "Primary level addressed by theory"
+            }
+          }
+        }
+      }
+    },
+    "theoretical_structure": {
+      "type": "object",
+      "required": [
+        "entities",
+        "relations"
+      ],
+      "description": "Layer 1: Complete theoretical structure for extraction",
+      "properties": {
+        "entities": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "indigenous_name",
+              "description"
+            ],
+            "properties": {
+              "indigenous_name": {
+                "type": "string",
+                "description": "Exact term used by authors"
+              },
+              "standard_name": {
+                "type": "string",
+                "description": "Standardized name for cross-theory comparison (optional)"
+              },
+              "description": {
+                "type": "string",
+                "description": "Definition from the paper"
+              },
+              "properties": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "name",
+                    "measurement"
+                  ],
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "indigenous_name": {
+                      "type": "string"
+                    },
+                    "measurement": {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "enum": [
+                            "numeric",
+                            "categorical",
+                            "ordinal",
+                            "boolean",
+                            "text",
+                            "vector"
+                          ]
+                        },
+                        "scale": {
+                          "type": "string"
+                        },
+                        "range": {
+                          "type": "array"
+                        },
+                        "categories": {
+                          "type": "array"
+                        },
+                        "extraction_method": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "constraints": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Constraints from paper (e.g., 'must be non-empty', 'power > 0')"
+              },
+              "examples_from_paper": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Verbatim examples from source text"
+              }
+            }
+          }
+        },
+        "relations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "indigenous_name",
+              "from_entity",
+              "to_entity"
+            ],
+            "properties": {
+              "indigenous_name": {
+                "type": "string",
+                "description": "Exact term used by authors"
+              },
+              "standard_name": {
+                "type": "string"
+              },
+              "from_entity": {
+                "type": "string"
+              },
+              "to_entity": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              },
+              "properties": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "measurement": {
+                      "type": "object"
+                    }
+                  }
+                }
+              },
+              "constraints": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "symmetric",
+                    "asymmetric",
+                    "transitive",
+                    "reflexive",
+                    "irreflexive",
+                    "one-to-one",
+                    "one-to-many",
+                    "many-to-many"
+                  ]
+                }
+              },
+              "logical_properties": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Logical rules about this relation from paper"
+              }
+            }
+          }
+        },
+        "modifiers": {
+          "type": "array",
+          "description": "Qualifiers that condition entities/relations",
+          "items": {
+            "type": "object",
+            "properties": {
+              "indigenous_name": {
+                "type": "string"
+              },
+              "category": {
+                "type": "string",
+                "enum": [
+                  "temporal",
+                  "modal",
+                  "certainty",
+                  "normative",
+                  "contextual"
+                ]
+              },
+              "applies_to": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "values": {
+                "type": "array"
+              }
+            }
+          }
+        }
+      }
+    },
+    "computational_representation": {
+      "type": "object",
+      "required": [
+        "primary_format",
+        "data_structure"
+      ],
+      "description": "How to store extracted theoretical structure for computation",
+      "properties": {
+        "primary_format": {
+          "type": "string",
+          "enum": [
+            "graph",
+            "table",
+            "matrix",
+            "vector",
+            "tree",
+            "sequence",
+            "hypergraph"
+          ],
+          "description": "Native computational format for this theory"
+        },
+        "data_structure": {
+          "type": "object",
+          "description": "Specification for the chosen format",
+          "properties": {
+            "graph_spec": {
+              "type": "object",
+              "properties": {
+                "directed": {
+                  "type": "boolean"
+                },
+                "weighted": {
+                  "type": "boolean"
+                },
+                "node_types": {
+                  "type": "array"
+                },
+                "edge_types": {
+                  "type": "array"
+                },
+                "allows_self_loops": {
+                  "type": "boolean"
+                },
+                "allows_multi_edges": {
+                  "type": "boolean"
+                }
+              }
+            },
+            "table_spec": {
+              "type": "object",
+              "properties": {
+                "entity_tables": {
+                  "type": "array"
+                },
+                "relation_tables": {
+                  "type": "array"
+                },
+                "event_tables": {
+                  "type": "array"
+                }
+              }
+            },
+            "matrix_spec": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "adjacency",
+                    "correlation",
+                    "distance",
+                    "transition",
+                    "feature"
+                  ]
+                },
+                "dimensions": {
+                  "type": "integer"
+                },
+                "sparse": {
+                  "type": "boolean"
+                }
+              }
+            },
+            "vector_spec": {
+              "type": "object",
+              "properties": {
+                "dimensions": {
+                  "type": "integer"
+                },
+                "basis": {
+                  "type": "array"
+                },
+                "normalized": {
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        },
+        "projections": {
+          "type": "array",
+          "description": "Alternative representations for specific computations",
+          "items": {
+            "type": "object",
+            "properties": {
+              "format": {
+                "type": "string"
+              },
+              "purpose": {
+                "type": "string"
+              },
+              "conversion_method": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "algorithms": {
+      "type": "object",
+      "description": "Calculations and logical procedures from the theory",
+      "properties": {
+        "mathematical": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "name",
+              "formula"
+            ],
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "indigenous_name": {
+                "type": "string"
+              },
+              "formula": {
+                "type": "string"
+              },
+              "latex": {
+                "type": "string"
+              },
+              "parameters": {
+                "type": "object"
+              },
+              "interpretation": {
+                "type": "string"
+              },
+              "computational_complexity": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "logical": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "name",
+              "rules"
+            ],
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "indigenous_name": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              },
+              "rules": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "condition": {
+                      "type": "string"
+                    },
+                    "conclusion": {
+                      "type": "string"
+                    },
+                    "logic_notation": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "implementation_type": {
+                "type": "string",
+                "enum": [
+                  "forward_chaining",
+                  "backward_chaining",
+                  "constraint_satisfaction",
+                  "pattern_matching"
+                ]
+              }
+            }
+          }
+        },
+        "procedural": {
+          "type": "array",
+          "description": "Step-by-step procedures from the theory",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "steps": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "requires_data": {
+                "type": "array"
+              },
+              "produces": {
+                "type": "array"
+              }
+            }
+          }
+        }
+      }
+    },
+    "telos": {
+      "type": "object",
+      "required": [
+        "purpose",
+        "analytical_questions",
+        "success_criteria"
+      ],
+      "description": "What the theory is for and what questions it answers",
+      "properties": {
+        "purpose": {
+          "type": "string",
+          "description": "Primary purpose of the theory"
+        },
+        "analytical_questions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "question_type": {
+                "type": "string",
+                "enum": [
+                  "descriptive",
+                  "explanatory",
+                  "predictive",
+                  "prescriptive",
+                  "evaluative"
+                ]
+              },
+              "example_questions": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "requires_algorithms": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "success_criteria": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "How to know if theory was successfully applied"
+        },
+        "value_propositions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "for_question": {
+                "type": "string"
+              },
+              "provides": {
+                "type": "string"
+              },
+              "example": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "extraction_process": {
+      "type": "object",
+      "description": "How to extract theoretical structure from text",
+      "properties": {
+        "entity_extraction": {
+          "type": "object",
+          "properties": {
+            "method": {
+              "type": "string",
+              "enum": [
+                "llm_guided",
+                "pattern_matching",
+                "ml_model",
+                "hybrid"
+              ]
+            },
+            "prompts": {
+              "type": "array"
+            },
+            "patterns": {
+              "type": "array"
+            },
+            "validation_rules": {
+              "type": "array"
+            }
+          }
+        },
+        "relation_extraction": {
+          "type": "object",
+          "properties": {
+            "method": {
+              "type": "string"
+            },
+            "dependency_patterns": {
+              "type": "array"
+            },
+            "validation_rules": {
+              "type": "array"
+            }
+          }
+        },
+        "measurement_extraction": {
+          "type": "object",
+          "properties": {
+            "numeric_patterns": {
+              "type": "array"
+            },
+            "scale_mappings": {
+              "type": "object"
+            },
+            "uncertainty_handling": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "description": "How to validate extracted theoretical structures",
+      "properties": {
+        "structural_tests": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "test_name": {
+                "type": "string"
+              },
+              "constraint_checked": {
+                "type": "string"
+              },
+              "failure_action": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "logical_consistency": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "rule": {
+                "type": "string"
+              },
+              "check_method": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "empirical_tests": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "claim_from_paper": {
+                "type": "string"
+              },
+              "test_description": {
+                "type": "string"
+              },
+              "expected_result": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "configuration": {
+      "type": "object",
+      "description": "Runtime configuration options",
+      "properties": {
+        "extraction_model": {
+          "type": "string",
+          "default": "gpt-4",
+          "description": "LLM to use for extraction"
+        },
+        "confidence_threshold": {
+          "type": "number",
+          "default": 0.7,
+          "description": "Minimum confidence for extracted elements"
+        },
+        "enable_reasoning": {
+          "type": "boolean",
+          "default": true,
+          "description": "Use logical reasoning engine if available"
+        },
+        "parallel_extraction": {
+          "type": "boolean",
+          "default": false,
+          "description": "Extract entities and relations in parallel"
+        }
+      }
+    },
+    "metadata_tracking": {
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "type": "string"
+        },
+        "created": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "last_modified": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "validated_against_paper": {
+          "type": "boolean"
+        },
+        "mcl_mappings": {
+          "type": "object",
+          "description": "Mappings to Master Concept Library (added post-hoc)"
+        },
+        "dolce_mappings": {
+          "type": "object",
+          "description": "DOLCE alignments for theory composition (added post-hoc)"
+        }
+      }
+    }
+  },
+  "mode": "open",
+  "schema_id": "theory_meta_schema_v12"
+}

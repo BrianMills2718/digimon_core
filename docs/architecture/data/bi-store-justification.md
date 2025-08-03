@@ -126,3 +126,19 @@ class CrossModalSync:
 5. **Vector Search** (Neo4j): Find similar patterns in other datasets
 
 This bi-store approach provides the **best tool for each job** while maintaining **data coherence** and **analytical flexibility** required for sophisticated social science research.
+
+## Future Evolution: PostgreSQL Migration
+
+For large-scale research requirements (50,000+ entities), KGAS includes a planned migration path from SQLite to PostgreSQL while maintaining the bi-store architecture. See **[ADR-030: PostgreSQL Migration Strategy](../adrs/ADR-030-PostgreSQL-Migration-Strategy.md)** for details.
+
+**Migration Benefits:**
+- **Performance**: 6-15x faster statistical analysis at scale
+- **Advanced Analytics**: Native window functions, correlation analysis
+- **Concurrent Access**: Multi-user analytical sessions
+- **BI Integration**: Direct R/Python/Tableau connectivity
+
+**Migration Triggers:**
+- Regular processing of 10,000+ entity documents
+- Performance complaints about query speed (>30 seconds)
+- Need for advanced statistical functions
+- Multi-user concurrent analysis requirements

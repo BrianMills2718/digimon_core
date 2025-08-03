@@ -2,6 +2,8 @@
 # Defines the structure that all tool and adapter contracts must follow
 # This enables programmatic validation of tool compatibility
 
+schema_id: "tool_contract_schema"
+mode: "closed"
 $schema: http://json-schema.org/draft-07/schema#
 title: Tool Compatibility Contract
 description: Defines the input, output, and state requirements/productions for a system tool or adapter.

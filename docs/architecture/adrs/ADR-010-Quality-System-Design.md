@@ -1,14 +1,18 @@
 # ADR-010: Quality System Design
 
-**Status**: Accepted  
+**Status**: Superseded by Comprehensive7 Framework  
 **Date**: 2025-07-23  
+**Updated**: 2025-07-29  
 **Context**: Academic research requires systematic confidence tracking through multi-step processing pipelines while maintaining epistemic humility about extraction quality.
 
-## Decision
+**Note**: This ADR has been superseded by the IC-informed uncertainty framework documented in `kgas_uncertainty_framework_comprehensive7.md`. The degradation-only approach described below has been replaced with mathematically coherent uncertainty propagation.
 
-We will implement a **confidence degradation system** that models uncertainty accumulation through processing pipelines:
+## Decision (Original - Now Superseded)
+
+We originally implemented a **confidence degradation system** that models uncertainty accumulation through processing pipelines:
 
 ```python
+# SUPERSEDED APPROACH - See Comprehensive7 for current approach
 class QualityService:
     def __init__(self):
         self.quality_rules = {
@@ -24,56 +28,75 @@ class QualityService:
         return base_confidence * rule.degradation_factor if rule else base_confidence
 ```
 
-### **Core Principles**
+### **Original Core Principles (Now Updated)**
 
-1. **Epistemic Humility**: Each processing step introduces some uncertainty
-2. **Degradation Modeling**: Confidence can only decrease or remain stable, never increase
-3. **Quality Tiers**: HIGH (≥0.8), MEDIUM (≥0.5), LOW (<0.5) for filtering
-4. **Provenance Integration**: Confidence tracked with complete processing history
+1. ~~**Degradation Modeling**: Confidence can only decrease or remain stable, never increase~~
+   - **Updated**: Use IC-informed uncertainty propagation that can appropriately handle both uncertainty accumulation and reduction
+2. **Epistemic Humility**: Each processing step introduces some uncertainty *(Still Valid)*
+3. **Quality Tiers**: Use IC probability bands instead of arbitrary thresholds
+4. **Provenance Integration**: Confidence tracked with complete processing history *(Still Valid)*
 
-## Rationale
+## Current Approach (Comprehensive7)
 
-### **Why Confidence Degradation?**
+The current IC-informed approach uses:
+
+### **Mathematical Uncertainty Propagation**
+```python
+class UncertaintyPropagation:
+    def propagate_independent_uncertainties(self, stage_confidences):
+        """Use root-sum-squares for independent uncertainties"""
+        # Convert confidences to uncertainties
+        uncertainties = [1 - conf for conf in stage_confidences]
+        
+        # Mathematical propagation: σ_total = √(σ₁² + σ₂² + ... + σₙ²)
+        combined_variance = sum(u**2 for u in uncertainties)
+        combined_uncertainty = math.sqrt(combined_variance)
+        
+        # Convert back to confidence
+        return 1 - combined_uncertainty
+```
+
+### **IC Probability Bands**
+```python
+IC_PROBABILITY_BANDS = {
+    "almost_no_chance": (0.01, 0.05),
+    "very_unlikely": (0.05, 0.20),
+    "unlikely": (0.20, 0.45),
+    "roughly_even_chance": (0.45, 0.55),
+    "likely": (0.55, 0.80),
+    "very_likely": (0.80, 0.95),
+    "almost_certain": (0.95, 0.99)
+}
+```
+
+### **Key Improvements**
+1. **Mathematical Coherence**: Proper uncertainty propagation instead of arbitrary multiplication
+2. **IC Standards**: Use proven Intelligence Community methodologies
+3. **LLM Integration**: Single comprehensive analysis call
+4. **Realistic Ranges**: Based on empirical LLM capabilities
+
+## Rationale (Original - For Historical Context)
+
+### **Why We Initially Chose Confidence Degradation**
 
 **1. Academic Epistemic Standards**: 
 Research requires acknowledging uncertainty accumulation. Each processing step (PDF extraction → NLP → entity linking) introduces potential errors that compound.
 
 **2. Processing Pipeline Reality**:
-- **PDF extraction**: OCR errors, formatting issues (5% confidence loss)
-- **NLP processing**: Language model limitations (10% confidence loss)  
-- **Relationship extraction**: Context interpretation errors (15% confidence loss)
-- **Entity building**: Identity resolution mistakes (10% confidence loss)
+- **PDF extraction**: OCR errors, formatting issues
+- **NLP processing**: Language model limitations
+- **Relationship extraction**: Context interpretation errors
+- **Entity building**: Identity resolution mistakes
 
 **3. Conservative Research Approach**:
-Academic integrity demands conservative confidence estimates. Better to underestimate confidence than overestimate and produce false research conclusions.
+Academic integrity demands conservative confidence estimates.
 
-**4. Filtering and Quality Control**:
-Degraded confidence enables quality-based filtering. Researchers can choose to work only with HIGH confidence extractions (≥0.8) for critical analysis.
+### **Why We Moved Beyond Simple Degradation**
 
-### **Why Not Bayesian Updates/Confidence Increases?**
-
-**Current Decision Rationale**:
-
-**1. Complexity vs. Benefit**: Bayesian updating requires:
-- Prior probability distributions for each operation type
-- Likelihood functions for evidence integration  
-- Posterior calculation frameworks
-- Extensive calibration on academic research data
-
-**Academic research tool complexity tradeoff**: Simple degradation model provides adequate uncertainty tracking without the engineering complexity of full Bayesian inference.
-
-**2. Evidence Integration Challenges**:
-- **Different evidence types**: How do you combine NER confidence, relationship extraction confidence, and external validation?
-- **Correlation issues**: Multiple extractions from same document are not independent evidence
-- **Calibration requirements**: Bayesian updates require well-calibrated probability estimates
-
-**3. Academic Use Case Alignment**:
-Academic researchers primarily need to:
-- Identify high-confidence extractions for analysis
-- Understand uncertainty accumulation through pipelines  
-- Filter low-confidence results from critical research
-
-Simple degradation model serves these needs effectively.
+**1. Mathematical Incorrectness**: Multiplication assumes complete dependence between stages, which isn't accurate
+**2. Overly Pessimistic**: The degradation-only approach was too conservative
+**3. IC Best Practices**: Intelligence Community has decades of experience with uncertainty
+**4. LLM Capabilities**: Modern LLMs can provide nuanced confidence assessments
 
 ## Current Implementation
 
@@ -222,5 +245,14 @@ def expert_confidence_rules(extraction_type, source_quality, context_factors):
 - **ADR-008**: Core Service Architecture (quality service integration)
 - **ADR-009**: Bi-Store Database Strategy (confidence storage in SQLite)
 - **ADR-004**: Normative Confidence Score Ontology (confidence score implementation)
+- **ADR-016**: Bayesian Uncertainty Aggregation (alternative approach - also superseded)
+- **ADR-022**: IC-Informed Uncertainty Framework (recommended - to be created)
 
-**Important Note**: This ADR documents the current confidence degradation approach. The design decision to use degradation vs. Bayesian updates remains open for future reconsideration based on academic research requirements and complexity/benefit analysis.
+## Migration Path
+
+1. **Update QualityService** to use uncertainty propagation instead of multiplication
+2. **Integrate IC standards** for confidence expression
+3. **Implement single LLM analysis** for comprehensive uncertainty assessment
+4. **Update quality tiers** to use IC probability bands
+
+See `adrs/ADR-029/kgas_uncertainty_framework_comprehensive7.md` for complete implementation details.

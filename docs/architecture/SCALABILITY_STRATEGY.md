@@ -10,6 +10,31 @@ This document outlines the scalability strategy for KGAS, addressing how the sys
 
 ## Current Scale Targets
 
+> **📍 ARCHITECTURAL TARGET**: This document defines the target scalability architecture. For current implementation status and bottlenecks, see [docs/roadmap/ROADMAP_OVERVIEW.md](../roadmap/ROADMAP_OVERVIEW.md).
+
+## Known Scalability Anti-Patterns
+
+### Current Implementation Limitations
+The following patterns have been identified as potential scalability bottlenecks that will require addressing as the system scales:
+
+#### **1. Synchronous Tool Registry**
+- **Current State**: Single synchronous registry for all tool discovery and instantiation
+- **Bottleneck**: Will become single point of contention under concurrent load
+- **Impact**: Tool access serialization limits concurrent processing capability
+- **Resolution Path**: Migrate to async registry with distributed caching (see roadmap post-stage extensions)
+
+#### **2. Memory Manager Per Document**  
+- **Current State**: Individual memory manager instances created for each document
+- **Bottleneck**: Unnecessary object allocation overhead for large document collections
+- **Impact**: Memory fragmentation and GC pressure under high document throughput
+- **Resolution Path**: Implement pooled memory managers with object reuse patterns
+
+#### **3. Singleton Service Manager**
+- **Current State**: Global singleton pattern for service management
+- **Bottleneck**: Breaks distributed deployment patterns and creates global state dependencies
+- **Impact**: Prevents horizontal scaling and creates service coupling
+- **Resolution Path**: Migrate to dependency injection container with request-scoped instances
+
 ### Phase-Based Capacity Planning
 
 | Phase | Documents | Entities | Relationships | Embeddings | Timeline |

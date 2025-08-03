@@ -497,22 +497,22 @@ This framework provides clear value progression while avoiding contentious causa
 
 ### Build vs Buy Decisions
 
-**MCP for Agent Layer**: ✅ Buy (use Claude via MCP)
+**MCP for Agent Layer**: Buy (use Claude via MCP)
 - Avoids building custom orchestration
 - Leverages state-of-the-art LLM
 - Standard protocol with tool versioning
 
-**Formal Ontologies**: ❌ Don't Buy (build lightweight)
+**Formal Ontologies**: Don't Buy (build lightweight)
 - Existing tools (OWL/Protégé) too heavyweight
 - Social science constraints simpler than medical/legal
 - Python implementation more maintainable
 
-**Cross-Modal Conversion**: ✅ Build (custom implementation)
+**Cross-Modal Conversion**: Build (custom implementation)
 - No existing tools handle provenance preservation
 - Need domain-specific enrichment logic
 - Core differentiator for system
 
-**Theory Schema Extraction**: ✅ Already Built (automated)
+**Theory Schema Extraction**: Already Built (automated)
 - Automated extraction from academic papers implemented
 - Located in `/home/brian/projects/Digimons/lit_review`
 - Multi-phase extraction preserves theoretical nuance
@@ -823,19 +823,19 @@ The system's value lies not in perfect theory implementation but in **systematic
 
 ### Remaining Considerations (All Addressed)
 
-1. **LLM Consistency** - ✅ SOLVED through entity resolution post-processing
+1. **LLM Consistency** - SOLVED through entity resolution post-processing
    ```python
    # Standard knowledge graph approach
    clusters = semantic_clustering(["Bill Gates", "Mr. Gates", "Former Microsoft CEO"])
    canonical_entity = merge_to_canonical(clusters)  # → "Bill Gates"
    ```
 
-2. **Theory Operationalization Disagreements** - ✅ FEATURE not bug
+2. **Theory Operationalization Disagreements** - FEATURE not bug
    - Multiple operationalizations can be tested and compared
    - Best performing operationalization emerges empirically
    - Advances theory by making implicit assumptions explicit
 
-3. **Validation Approaches** - ✅ MULTIPLE solutions available
+3. **Validation Approaches** - MULTIPLE solutions available
    - Predictive validation (which operationalization predicts best)
    - Statistical validation (relational DB enables rigorous testing)
    - Qualitative validation (LLMs with research capabilities)

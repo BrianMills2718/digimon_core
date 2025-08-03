@@ -1,0 +1,347 @@
+{
+  "theory_id": "institutional_theory_march_olsen_1989",
+  "theory_name": "Institutional Theory",
+  "theory_version": "1.0",
+  "meta_schema_version": "11.1",
+  "created_date": "2025-07-26",
+  "theory_metadata": {
+    "primary_authors": [
+      "James G. March",
+      "Johan P. Olsen",
+      "Paul DiMaggio",
+      "Walter Powell"
+    ],
+    "publication_year": 1989,
+    "source_work": "Rediscovering Institutions (March & Olsen); The New Institutionalism in Organizational Analysis (DiMaggio & Powell)",
+    "theoretical_tradition": "Political science, organizational theory, sociology",
+    "original_purpose": "Explain how institutions shape behavior through rules, norms, and taken-for-granted practices rather than just individual preferences"
+  },
+  "telos": {
+    "primary_purpose": "Explain behavior and outcomes through institutional constraints, norms, and logics that shape what actors consider appropriate and possible",
+    "secondary_purposes": [
+      "Analyze institutional persistence and change processes",
+      "Explain isomorphism and convergence in organizational forms",
+      "Understand legitimacy and appropriateness in decision-making",
+      "Model path dependence and institutional lock-in effects"
+    ],
+    "theoretical_scope": "Institutional influence on individual and organizational behavior",
+    "domain_applicability": "Organizational statements, policy documents, institutional communications, procedural discussions, legitimacy claims"
+  },
+  "classification": {
+    "analytical_tier": "explanatory",
+    "tier_justification": "Explains behavior through institutional logics and predicts outcomes based on institutional constraints and isomorphic pressures",
+    "paradigm": "institutional-sociological",
+    "level_of_analysis": "organizational",
+    "temporal_scope": "historical_developmental",
+    "complexity": "high",
+    "formalization_level": "moderately_formalized"
+  },
+  "ontology": {
+    "core_entities": {
+      "institutions": {
+        "definition": "Stable, valued, recurring patterns of behavior including rules, norms, and taken-for-granted practices",
+        "properties": [
+          "institution_type",
+          "formalization_level",
+          "scope",
+          "legitimacy"
+        ],
+        "types": [
+          "regulative",
+          "normative",
+          "cultural_cognitive"
+        ],
+        "examples": [
+          "presidency",
+          "military",
+          "democratic governance",
+          "alliance systems",
+          "international law"
+        ]
+      },
+      "institutional_logics": {
+        "definition": "Organizing principles that provide meaning systems and behavioral guidelines for institutional action",
+        "properties": [
+          "logic_type",
+          "coherence",
+          "dominance",
+          "compatibility"
+        ],
+        "examples": [
+          "bureaucratic logic",
+          "market logic",
+          "professional logic",
+          "democratic logic",
+          "security logic"
+        ]
+      },
+      "actors": {
+        "definition": "Individual and organizational entities embedded within and constrained by institutional contexts",
+        "properties": [
+          "actor_type",
+          "institutional_position",
+          "agency_level",
+          "legitimacy_needs"
+        ],
+        "examples": [
+          "presidents",
+          "bureaucrats",
+          "military officers",
+          "organizations",
+          "nation-states"
+        ]
+      },
+      "institutional_environments": {
+        "definition": "Broader contexts that create pressures for institutional conformity and legitimacy",
+        "properties": [
+          "environment_type",
+          "complexity",
+          "uncertainty",
+          "resource_dependence"
+        ],
+        "examples": [
+          "political system",
+          "international system",
+          "organizational field",
+          "policy domain"
+        ]
+      }
+    },
+    "institutional_pillars": {
+      "regulative_pillar": {
+        "definition": "Formal rules, laws, and sanctions that constrain and regularize behavior",
+        "mechanisms": [
+          "rules",
+          "laws",
+          "procedures",
+          "sanctions"
+        ],
+        "basis_of_compliance": "expedience and coercion",
+        "indicators": [
+          "rules referenced",
+          "legal compliance",
+          "procedural adherence"
+        ]
+      },
+      "normative_pillar": {
+        "definition": "Values, norms, and role expectations that create social obligations",
+        "mechanisms": [
+          "values",
+          "norms",
+          "roles",
+          "professional standards"
+        ],
+        "basis_of_compliance": "moral and social obligation",
+        "indicators": [
+          "appropriateness claims",
+          "role references",
+          "value statements"
+        ]
+      },
+      "cultural_cognitive_pillar": {
+        "definition": "Shared beliefs, mental models, and taken-for-granted assumptions",
+        "mechanisms": [
+          "beliefs",
+          "mental_models",
+          "categories",
+          "scripts"
+        ],
+        "basis_of_compliance": "taken-for-granted assumptions",
+        "indicators": [
+          "assumptions",
+          "category usage",
+          "routine practices"
+        ]
+      }
+    },
+    "institutional_processes": {
+      "institutionalization": {
+        "definition": "Process by which practices become taken-for-granted and legitimate",
+        "stages": [
+          "innovation",
+          "objectification",
+          "sedimentation"
+        ],
+        "mechanisms": [
+          "habituation",
+          "objectification",
+          "legitimation"
+        ]
+      },
+      "isomorphism": {
+        "definition": "Process by which organizations become similar in form and practice",
+        "types": [
+          "coercive",
+          "mimetic",
+          "normative"
+        ],
+        "drivers": [
+          "regulatory pressure",
+          "uncertainty",
+          "professionalization"
+        ]
+      },
+      "institutional_change": {
+        "definition": "Process by which institutions are modified or replaced",
+        "types": [
+          "incremental",
+          "discontinuous",
+          "conversion",
+          "layering"
+        ],
+        "sources": [
+          "exogenous shocks",
+          "contradictions",
+          "agency",
+          "power shifts"
+        ]
+      }
+    },
+    "behavioral_logics": {
+      "logic_of_appropriateness": {
+        "definition": "Behavior driven by institutional rules about what is appropriate in given situations",
+        "process": "situation_recognition \u2192 identity_definition \u2192 rule_matching \u2192 action",
+        "contrast": "With logic of consequentiality (rational calculation)"
+      },
+      "logic_of_consequentiality": {
+        "definition": "Behavior driven by anticipated consequences and utility maximization",
+        "process": "preference_identification \u2192 alternative_evaluation \u2192 consequence_assessment \u2192 choice",
+        "institutional_modification": "Preferences and alternatives shaped by institutional context"
+      }
+    }
+  },
+  "execution": {
+    "stage_1_comprehensive_structuring": {
+      "step_1_applicability_assessment": {
+        "description": "Evaluate text suitability for institutional analysis",
+        "criteria": {
+          "institutional_context_present": "Clear organizational or institutional setting with established practices",
+          "legitimacy_concerns_evident": "References to appropriateness, legitimacy, or institutional norms",
+          "rule_norm_references": "Explicit or implicit references to institutional rules, norms, or procedures",
+          "institutional_logic_identifiable": "Evidence of institutional reasoning and taken-for-granted assumptions"
+        },
+        "scoring": "0.0-1.0 scale based on presence and clarity of institutional elements",
+        "threshold": "0.6 minimum for meaningful institutional analysis"
+      },
+      "step_2_institution_identification": {
+        "description": "Identify relevant institutions and institutional contexts",
+        "institution_mapping": [
+          "Extract explicit institutional references and contexts",
+          "Identify implicit institutional assumptions and frameworks",
+          "Categorize institutions by type and scope",
+          "Assess institutional relationships and hierarchies"
+        ],
+        "institutional_characteristics": [
+          "Determine formalization level (formal rules vs. informal norms)",
+          "Assess institutional scope (narrow practices vs. broad logics)",
+          "Evaluate institutional legitimacy and taken-for-granted status",
+          "Identify institutional boundaries and membership criteria"
+        ]
+      },
+      "step_3_institutional_logic_analysis": {
+        "description": "Identify dominant and competing institutional logics",
+        "logic_extraction": [
+          "Identify organizing principles and meaning systems",
+          "Extract assumptions about appropriate behavior and goals",
+          "Determine decision-making criteria and evaluation standards",
+          "Assess logic coherence and internal consistency"
+        ],
+        "logic_competition": [
+          "Identify competing or conflicting institutional logics",
+          "Assess relative dominance and influence of different logics",
+          "Evaluate logic compatibility and tension sources",
+          "Analyze logic hybridization and blending patterns"
+        ]
+      },
+      "step_4_institutional_pillar_analysis": {
+        "description": "Analyze regulative, normative, and cultural-cognitive institutional elements",
+        "pillar_identification": [
+          "Regulative: Identify rules, procedures, sanctions, legal requirements",
+          "Normative: Extract values, norms, role expectations, professional standards",
+          "Cultural-Cognitive: Identify assumptions, categories, mental models, scripts"
+        ],
+        "pillar_assessment": [
+          "Evaluate relative strength and prominence of each pillar",
+          "Assess pillar alignment and mutual reinforcement",
+          "Identify pillar contradictions and tensions",
+          "Determine pillar stability and change potential"
+        ]
+      },
+      "step_5_behavioral_logic_identification": {
+        "description": "Identify whether behavior follows logic of appropriateness or consequentiality",
+        "logic_analysis": [
+          "Logic of Appropriateness: Identify rule-following and role-appropriate behavior",
+          "Logic of Consequentiality: Identify utility-maximizing and strategic behavior",
+          "Mixed Logics: Identify situations combining both approaches",
+          "Logic Switching: Identify conditions triggering different behavioral logics"
+        ]
+      }
+    },
+    "stage_2_analytic_evaluation": {
+      "step_1_institutional_constraint_analysis": {
+        "description": "Analyze how institutions constrain and enable actor behavior",
+        "constraint_analysis": [
+          "Identify behavioral limitations imposed by institutional rules and norms",
+          "Assess opportunity structures created by institutional arrangements",
+          "Evaluate actor agency within institutional constraints",
+          "Analyze institutional empowerment and resource provision"
+        ]
+      },
+      "step_2_legitimacy_and_appropriateness_assessment": {
+        "description": "Evaluate how institutional legitimacy and appropriateness shape behavior",
+        "legitimacy_analysis": [
+          "Identify legitimacy claims and appropriateness assertions",
+          "Assess institutional support for different behaviors and decisions",
+          "Evaluate reputation and credibility considerations",
+          "Analyze audience expectations and institutional accountability"
+        ]
+      },
+      "step_3_institutional_change_analysis": {
+        "description": "Analyze institutional persistence and change dynamics",
+        "change_analysis": [
+          "Identify sources of institutional stability and inertia",
+          "Assess pressures for institutional change and adaptation",
+          "Evaluate change mechanisms (incremental, radical, conversion, layering)",
+          "Predict institutional evolution trajectories and outcomes"
+        ]
+      },
+      "step_4_isomorphism_and_diffusion_assessment": {
+        "description": "Analyze institutional convergence and practice diffusion",
+        "isomorphism_analysis": [
+          "Identify coercive isomorphism (regulatory pressure)",
+          "Assess mimetic isomorphism (uncertainty-driven copying)",
+          "Evaluate normative isomorphism (professional standards)",
+          "Analyze diffusion mechanisms and adoption patterns"
+        ]
+      }
+    }
+  },
+  "validation": {
+    "internal_consistency": {
+      "institution_identification_coherence": "Institutions properly identified with clear boundaries and characteristics",
+      "logic_analysis_thoroughness": "Comprehensive identification of institutional logics and their implications",
+      "pillar_assessment_completeness": "Systematic analysis of regulative, normative, and cultural-cognitive elements",
+      "behavioral_logic_determination": "Clear identification of appropriateness vs. consequentiality patterns"
+    },
+    "theoretical_fidelity": {
+      "march_olsen_framework_compliance": "Adherence to institutional theory's core concepts and mechanisms",
+      "logic_of_appropriateness_emphasis": "Focus on rule-following and institutionally appropriate behavior",
+      "institutional_embeddedness_recognition": "Acknowledgment of actor embeddedness in institutional contexts",
+      "historical_path_dependence_consideration": "Attention to historical development and path-dependent processes"
+    },
+    "empirical_validation": {
+      "institutional_element_identification_accuracy": "Valid extraction of rules, norms, and taken-for-granted practices",
+      "logic_assessment_validity": "Accurate identification of organizing principles and meaning systems",
+      "constraint_analysis_realism": "Realistic evaluation of institutional limitations and opportunities",
+      "change_dynamic_characterization": "Valid description of institutional persistence and change processes"
+    },
+    "predictive_validation": {
+      "behavior_prediction_accuracy": "Valid prediction of institutionally constrained and enabled behaviors",
+      "legitimacy_outcome_forecasting": "Accurate prediction of legitimacy consequences for different actions",
+      "institutional_evolution_prediction": "Valid prediction of institutional change and stability patterns",
+      "isomorphism_anticipation": "Accurate prediction of convergence and diffusion outcomes"
+    }
+  },
+  "mode": "open",
+  "schema_id": "institutional_theory_march_olsen_1989"
+}

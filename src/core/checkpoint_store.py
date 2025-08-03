@@ -14,7 +14,10 @@ logger = logging.getLogger(__name__)
 class PersistentCheckpointStore:
     """File-based persistent storage for workflow checkpoints"""
     
-    def __init__(self, storage_path: str = "./data/checkpoints"):
+    def __init__(self, storage_path: str = None):
+        if storage_path is None:
+            from .standard_config import get_file_path
+            storage_path = f"{get_file_path('data_dir')}/checkpoints"
         self.storage_path = Path(storage_path)
         self.storage_path.mkdir(parents=True, exist_ok=True)
         self._lock = asyncio.Lock()

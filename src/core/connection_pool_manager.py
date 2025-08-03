@@ -1,3 +1,4 @@
+from src.core.standard_config import get_database_uri
 """
 Connection Pool Manager for Neo4j and SQLite.
 
@@ -6,6 +7,7 @@ and graceful resource management.
 """
 
 import asyncio
+import anyio
 import time
 import uuid
 from typing import Dict, List, Optional, Any, Callable
@@ -100,15 +102,17 @@ class ConnectionPoolManager:
         logger.info(f"ConnectionPoolManager initialized: min={min_size}, max={max_size}")
         
         # Start pool initialization
-        asyncio.create_task(self._initialize_pool())
+        self._initialization_task = asyncio.create_task(self._initialize_pool())
     
     async def _initialize_pool(self) -> None:
         """Initialize the connection pool with minimum connections."""
         tasks = []
-        for _ in range(self.min_size):
-            tasks.append(self._create_connection())
+        connections = []
         
-        connections = await asyncio.gather(*tasks, return_exceptions=True)
+        # Use AnyIO structured concurrency for connection creation
+        async with anyio.create_task_group() as tg:
+            for _ in range(self.min_size):
+                tg.start_soon(self._create_and_collect_connection, connections)
         
         async with self._lock:
             for conn in connections:
@@ -122,6 +126,15 @@ class ConnectionPoolManager:
         
         logger.info(f"Pool initialized with {len(self._pool)} connections")
     
+    async def _create_and_collect_connection(self, connections: List) -> None:
+        """Create a connection and add it to the collection"""
+        try:
+            conn = await self._create_connection()
+            if conn:
+                connections.append(conn)
+        except Exception as e:
+            logger.error(f"Failed to create connection: {e}")
+    
     async def _create_connection(self) -> PooledConnection:
         """Create a new connection."""
         conn_id = str(uuid.uuid4())[:8]
@@ -129,7 +142,7 @@ class ConnectionPoolManager:
         try:
             if self.connection_type == "neo4j":
                 driver = AsyncGraphDatabase.driver(
-                    self.connection_params.get('uri', 'bolt://localhost:7687'),
+                    self.connection_params.get('uri', get_database_uri()),
                     auth=self.connection_params.get('auth', ('neo4j', 'password'))
                 )
                 connection = driver.session()
@@ -304,10 +317,13 @@ class ConnectionPoolManager:
             current_count = len(self._pool)
             if current_count < self.min_size:
                 tasks = []
-                for _ in range(self.min_size - current_count):
-                    tasks.append(self._create_connection())
+                new_connections = []
+                needed_connections = self.min_size - current_count
                 
-                new_connections = await asyncio.gather(*tasks, return_exceptions=True)
+                # Use AnyIO structured concurrency for connection creation
+                async with anyio.create_task_group() as tg:
+                    for _ in range(needed_connections):
+                        tg.start_soon(self._create_and_collect_connection, new_connections)
                 
                 for conn in new_connections:
                     if isinstance(conn, PooledConnection):
@@ -367,17 +383,37 @@ class ConnectionPoolManager:
     
     async def shutdown(self) -> None:
         """Gracefully shutdown the connection pool."""
+        if self._closed:
+            return  # Already shutdown
+            
         logger.info("Shutting down connection pool")
         self._closed = True
         
-        # Cancel background tasks
-        if self._health_check_task:
-            self._health_check_task.cancel()
-        if self._maintenance_task:
-            self._maintenance_task.cancel()
+        # Cancel initialization task first
+        if hasattr(self, '_initialization_task') and not self._initialization_task.done():
+            self._initialization_task.cancel()
+            try:
+                await asyncio.wait_for(self._initialization_task, timeout=1.0)
+            except (asyncio.TimeoutError, asyncio.CancelledError):
+                pass
         
-        # Wait for all connections to be returned
-        timeout = 30
+        # Cancel background tasks
+        if self._health_check_task and not self._health_check_task.done():
+            self._health_check_task.cancel()
+            try:
+                await asyncio.wait_for(self._health_check_task, timeout=1.0)
+            except (asyncio.TimeoutError, asyncio.CancelledError):
+                pass
+                
+        if self._maintenance_task and not self._maintenance_task.done():
+            self._maintenance_task.cancel()
+            try:
+                await asyncio.wait_for(self._maintenance_task, timeout=1.0)
+            except (asyncio.TimeoutError, asyncio.CancelledError):
+                pass
+        
+        # Wait for all connections to be returned (shorter timeout for tests)
+        timeout = 5  # Reduced from 30 for faster test cleanup
         start = time.time()
         
         while time.time() - start < timeout:
@@ -388,7 +424,7 @@ class ConnectionPoolManager:
         
         # Destroy all connections
         async with self._lock:
-            for conn in self._pool:
+            for conn in self._pool[:]:  # Create copy to avoid modification during iteration
                 await self._destroy_connection(conn)
             self._pool.clear()
         
@@ -488,3 +524,25 @@ class ConnectionPoolManager:
     async def trigger_recovery(self) -> None:
         """Trigger connection recovery (for testing)."""
         await self.health_check_all()
+
+
+# Compatibility wrapper class
+class ConnectionWrapper:
+    """Wrapper for database connections."""
+    
+    def __init__(self, connection, connection_type="neo4j"):
+        self.connection = connection
+        self.connection_type = connection_type
+        self.created_at = datetime.now()
+        self.last_used = datetime.now()
+        
+    def close(self):
+        """Close the wrapped connection."""
+        try:
+            if hasattr(self.connection, 'close'):
+                return self.connection.close()
+        except Exception:
+            pass
+
+# Backward compatibility alias
+ConnectionPool = ConnectionPoolManager

@@ -1,0 +1,64 @@
+# KGAS Production Configuration
+# Settings specific to production environment
+# Overrides base.yaml settings
+
+database:
+  neo4j:
+    password: "${NEO4J_PASSWORD}"  # Use environment variable
+    max_connections: 100
+    connection_timeout: 60
+    read_timeout: 600
+
+# Production LLM settings with enhanced limits
+llm:
+  openai:
+    api_key: "${OPENAI_API_KEY}"
+    model: "gpt-4"
+    max_tokens: 4000
+    rate_limit_per_minute: 100
+  
+  anthropic:
+    api_key: "${ANTHROPIC_API_KEY}"
+    model: "claude-3-sonnet-20240229"
+    max_tokens: 4000
+    rate_limit_per_minute: 100
+  
+  google:
+    api_key: "${GOOGLE_API_KEY}"
+    model: "gemini-pro"
+    max_tokens: 4000
+    rate_limit_per_minute: 100
+
+security:
+  encrypt_credentials: true
+  pii_encryption: true
+  audit_logging: true
+  credential_key_file: "/secure/kgas/credentials.key"
+
+logging:
+  level: "INFO"
+  debug: false
+  console_output: false
+  file: "/var/log/kgas/application.log"
+  max_file_size: "50MB"
+  backup_count: 10
+
+error_handling:
+  circuit_breaker_enabled: true
+  circuit_breaker_threshold: 10  # Higher threshold for production
+  circuit_breaker_timeout: 300   # 5 minutes
+  max_retries: 5
+  health_check_interval: 30
+
+# Production schema settings
+schema:
+  cross_paradigm_validation: true
+  auto_transform: true
+  validation_timeout: 60
+
+# Monitoring and metrics
+monitoring:
+  enabled: true
+  metrics_port: 9090
+  health_check_port: 8080
+  prometheus_enabled: true

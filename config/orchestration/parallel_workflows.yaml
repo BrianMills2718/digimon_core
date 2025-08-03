@@ -1,0 +1,325 @@
+# Parallel Workflow Configurations for KGAS Agent Orchestration
+#
+# Defines workflow patterns optimized for parallel execution with
+# reasoning-enhanced agents, resource management, and coordination.
+
+parallel:
+  # Global parallel execution settings
+  execution_mode: "adaptive"  # parallel, batch, pipeline, adaptive
+  max_parallel_tasks: 5
+  batch_size: 3
+  enable_resource_management: true
+  enable_adaptive_parallelism: true
+  max_worker_threads: 4
+  
+  # Resource limits
+  resources:
+    max_concurrent_agents: 5
+    max_memory_mb: 2048
+    max_reasoning_threads: 3
+
+# Workflow definitions optimized for parallelism
+workflows:
+  
+  # Parallel document analysis workflow
+  parallel_document_analysis:
+    description: "Analyze multiple documents concurrently with coordinated insights"
+    parallel_optimized: true
+    steps:
+      # Stage 1: Parallel document loading
+      - agent: "document"
+        task_type: "load_documents"
+        parameters:
+          batch_mode: true
+          max_batch_size: 10
+        can_parallelize: true
+        priority: "HIGH"
+        
+      # Stage 2: Parallel chunking (depends on stage 1)
+      - agent: "document"
+        task_type: "text_chunking"
+        parameters:
+          adaptive_chunking: true
+          parallel_chunks: true
+        depends_on: [1]
+        can_parallelize: true
+        priority: "MEDIUM"
+        
+      # Stage 3: Parallel entity extraction
+      - agent: "analysis"
+        task_type: "entity_extraction"
+        parameters:
+          use_reasoning: true
+          confidence_optimization: true
+        depends_on: [2]
+        can_parallelize: true
+        priority: "HIGH"
+        resource_requirements:
+          reasoning_threads: 1
+          
+      # Stage 4: Parallel relationship extraction
+      - agent: "analysis"
+        task_type: "relationship_extraction"
+        parameters:
+          use_reasoning: true
+          cross_document_relationships: true
+        depends_on: [3]
+        can_parallelize: true
+        priority: "MEDIUM"
+        resource_requirements:
+          reasoning_threads: 1
+          
+      # Stage 5: Graph building (synchronization point)
+      - agent: "graph"
+        task_type: "graph_building"
+        parameters:
+          merge_parallel_results: true
+          deduplicate_entities: true
+        depends_on: [3, 4]
+        can_parallelize: false  # Synchronization point
+        priority: "HIGH"
+        resource_requirements:
+          memory_mb: 1024
+          
+      # Stage 6: Parallel insight generation
+      - agent: "insight"
+        task_type: "insight_generation"
+        parameters:
+          parallel_queries: true
+          use_reasoning: true
+        depends_on: [5]
+        can_parallelize: true
+        priority: "MEDIUM"
+        resource_requirements:
+          reasoning_threads: 2
+
+  # Pipeline workflow for streaming data
+  pipeline_document_stream:
+    description: "Process document stream with pipeline parallelism"
+    parallel_optimized: true
+    pipeline_stages: 4
+    steps:
+      # Pipeline Stage 1: Continuous loading
+      - agent: "document"
+        task_type: "load_documents"
+        parameters:
+          streaming_mode: true
+          buffer_size: 5
+        pipeline_stage: 1
+        can_parallelize: true
+        
+      # Pipeline Stage 2: Chunking pipeline
+      - agent: "document"
+        task_type: "text_chunking"
+        parameters:
+          streaming_chunks: true
+          overlap_handling: true
+        pipeline_stage: 2
+        depends_on: [1]
+        can_parallelize: true
+        
+      # Pipeline Stage 3: Analysis pipeline
+      - agent: "analysis"
+        task_type: "analysis"
+        parameters:
+          streaming_analysis: true
+          incremental_learning: true
+        pipeline_stage: 3
+        depends_on: [2]
+        can_parallelize: true
+        
+      # Pipeline Stage 4: Incremental graph updates
+      - agent: "graph"
+        task_type: "graph_building"
+        parameters:
+          incremental_mode: true
+          batch_updates: true
+        pipeline_stage: 4
+        depends_on: [3]
+        can_parallelize: false
+
+  # Adaptive reasoning workflow
+  adaptive_reasoning_workflow:
+    description: "Adaptive parallel execution with dynamic reasoning allocation"
+    parallel_optimized: true
+    adaptive_features:
+      - dynamic_resource_allocation
+      - reasoning_thread_pooling
+      - priority_based_scheduling
+    steps:
+      # Parallel document processing with adaptive resources
+      - agent: "document"
+        task_type: "document_processing"
+        parameters:
+          adaptive_parameters: true
+          reasoning_guided: true
+        can_parallelize: true
+        priority: "MEDIUM"
+        priority_boost: 0.2  # Boost for important documents
+        resource_requirements:
+          agents: 1
+          memory_mb: 256
+          reasoning_threads: 1
+          
+      # Parallel analysis with resource scaling
+      - agent: "analysis"
+        task_type: "analysis"
+        parameters:
+          adaptive_confidence: true
+          resource_aware: true
+        depends_on: [1]
+        can_parallelize: true
+        priority: "HIGH"
+        resource_requirements:
+          agents: 1
+          memory_mb: 512
+          reasoning_threads: 2
+          scalable: true  # Can reduce requirements if needed
+          
+      # Graph construction with memory optimization
+      - agent: "graph"
+        task_type: "graph_building"
+        parameters:
+          memory_efficient: true
+          batch_processing: true
+        depends_on: [2]
+        can_parallelize: false
+        priority: "CRITICAL"
+        resource_requirements:
+          agents: 1
+          memory_mb: 1024
+          reasoning_threads: 0
+          exclusive: true  # Needs exclusive resources
+
+  # Multi-document comparison workflow
+  multi_document_comparison:
+    description: "Compare multiple documents in parallel with cross-referencing"
+    parallel_optimized: true
+    coordination_required: true
+    steps:
+      # Parallel document loading
+      - agent: "document"
+        task_type: "load_documents"
+        parameters:
+          document_set: "comparison"
+        can_parallelize: true
+        broadcast_results: true  # Share with all subsequent tasks
+        
+      # Parallel individual analysis
+      - agent: "analysis"
+        task_type: "entity_extraction"
+        parameters:
+          document_specific: true
+        depends_on: [1]
+        can_parallelize: true
+        coordination:
+          checkpoint: "individual_analysis_complete"
+          
+      # Barrier synchronization for cross-reference
+      - agent: "analysis"
+        task_type: "cross_reference_analysis"
+        parameters:
+          compare_all_documents: true
+        depends_on: [2]
+        can_parallelize: false
+        coordination:
+          barrier: "all_documents_analyzed"
+          barrier_parties: "${document_count}"
+          
+      # Parallel similarity computation
+      - agent: "graph"
+        task_type: "similarity_analysis"
+        parameters:
+          pairwise_comparison: true
+        depends_on: [3]
+        can_parallelize: true
+        partition_strategy: "pairwise"  # Distribute pairs across agents
+        
+      # Final aggregation
+      - agent: "insight"
+        task_type: "comparison_insights"
+        parameters:
+          aggregate_similarities: true
+        depends_on: [4]
+        can_parallelize: false
+        final_stage: true
+
+# Coordination patterns for parallel workflows
+coordination_patterns:
+  
+  # Scatter-gather pattern
+  scatter_gather:
+    description: "Distribute work and gather results"
+    scatter_phase:
+      parallelism: "max"
+      distribution: "round_robin"
+    gather_phase:
+      synchronization: "barrier"
+      aggregation: "merge"
+      
+  # Map-reduce pattern
+  map_reduce:
+    description: "Map operations in parallel, reduce results"
+    map_phase:
+      parallelism: "adaptive"
+      partitioning: "hash"
+    reduce_phase:
+      parallelism: "tree"
+      levels: 2
+      
+  # Pipeline pattern
+  pipeline:
+    description: "Stream processing pipeline"
+    stages: 4
+    buffer_size: 10
+    backpressure: true
+    
+  # Fork-join pattern
+  fork_join:
+    description: "Fork into parallel tasks, join results"
+    fork_strategy: "task_based"
+    join_strategy: "wait_all"
+    timeout: 300
+
+# Resource allocation strategies
+resource_strategies:
+  
+  conservative:
+    description: "Conservative resource allocation"
+    oversubscription_ratio: 1.0
+    memory_safety_margin: 0.2
+    reasoning_thread_limit: 2
+    
+  balanced:
+    description: "Balanced resource allocation"
+    oversubscription_ratio: 1.5
+    memory_safety_margin: 0.1
+    reasoning_thread_limit: 3
+    
+  aggressive:
+    description: "Aggressive resource allocation"
+    oversubscription_ratio: 2.0
+    memory_safety_margin: 0.05
+    reasoning_thread_limit: 4
+
+# Performance optimization hints
+optimization_hints:
+  
+  # Batch size optimization
+  batch_optimization:
+    small_dataset: 3
+    medium_dataset: 5
+    large_dataset: 10
+    
+  # Parallelism level hints
+  parallelism_hints:
+    cpu_bound_tasks: "${cpu_count}"
+    io_bound_tasks: "${cpu_count * 2}"
+    mixed_workload: "${cpu_count * 1.5}"
+    
+  # Memory allocation hints
+  memory_hints:
+    document_processing_base: 256
+    analysis_base: 512
+    graph_operations_base: 1024
+    overhead_factor: 1.2

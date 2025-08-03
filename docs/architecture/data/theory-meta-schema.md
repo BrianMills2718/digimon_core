@@ -4,7 +4,7 @@ status: living
 
 # Theory Meta-Schema: Operationalizing Social Science Theories in KGAS
 
-![Meta-Schema v9.1 (JSON Schema draft-07)](https://img.shields.io/badge/Meta--Schema-v9.1-blue)
+![Meta-Schema v13 (JSON Schema draft-07)](https://img.shields.io/badge/Meta--Schema-v13-blue)
 
 ## Overview
 
@@ -22,7 +22,7 @@ Each Theory Meta-Schema instance is a structured document with the following com
 - `domain_of_application`: Social contexts (e.g., “group dynamics”)
 - `description`: Concise summary
 
-**New in v9.1**  
+**New in v13**  
 • `mcl_id` – cross-link to Master Concept Library  
 • `dolce_parent` – IRI of the DOLCE superclass for every entity  
 • `ontology_alignment_strategy` – strategy for aligning with DOLCE ontology
@@ -46,7 +46,7 @@ Each Theory Meta-Schema instance is a structured document with the following com
 
 ## Implementation
 
-- **Schema Location:** `/_schemas/theory_meta_schema_v10.json`
+- **Schema Location:** `/_schemas/theory_meta_schema_v13.json`
 - **Validation:** Pydantic models with runtime verification
 - **Integration:** CI/CD enforced contract compliance
 - **Codegen**: dataclasses auto-generated into /src/contracts/generated/
@@ -57,9 +57,9 @@ See `docs/architecture/THEORETICAL_FRAMEWORK.md` for a worked example using Soci
 
 ## Changelog
 
-### v9.0 → v9.1
+### v12 → v13
 - Added `ontology_alignment_strategy` field for DOLCE alignment
 - Enhanced codegen support with auto-generated dataclasses
-- Updated schema location to v9.1
+- Updated schema location to v13
 - Improved validation and integration documentation
 <br><sup>See `docs/roadmap/ROADMAP_OVERVIEW.md` for master plan.</sup>

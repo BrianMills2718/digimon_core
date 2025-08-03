@@ -1,28 +1,89 @@
 tool_id: "T15A_TEXT_CHUNKER"
+name: "Text Chunker"
 description: "Splits large text documents into manageable chunks for processing"
-category: "Processing"
+version: "1.0.0"
+category: "document_processing"
 
-input_contract:
-  required_data_types:
-    - type: "Document"
-      attributes: ["text", "metadata"]
-  required_state:
-    document_loaded: true
+input_schema:
+  type: object
+  properties:
+    document_ref:
+      type: string
+      description: "Reference to source document"
+    text:
+      type: string
+      minLength: 1
+      description: "Text to chunk"
+    confidence:
+      type: number
+      minimum: 0
+      maximum: 1
+      default: 0.8
+      description: "Confidence score from document"
+    chunk_size:
+      type: integer
+      minimum: 100
+      maximum: 5000
+      default: 500
+      description: "Target size of each chunk in characters"
+    overlap:
+      type: integer
+      minimum: 0
+      maximum: 500
+      default: 50
+      description: "Number of characters to overlap between chunks"
+  required: ["document_ref", "text"]
 
-output_contract:
-  produced_data_types:
-    - type: "Chunk"
-      attributes: ["text", "chunk_id", "source_document", "position"]
-  produced_state:
-    text_chunked: true
+output_schema:
+  type: object
+  properties:
+    chunks:
+      type: array
+      items:
+        type: object
+        properties:
+          chunk_id:
+            type: string
+          chunk_ref:
+            type: string
+          text:
+            type: string
+          start_pos:
+            type: integer
+          end_pos:
+            type: integer
+          confidence:
+            type: number
+          source_document:
+            type: string
+        required: ["chunk_id", "chunk_ref", "text", "start_pos", "end_pos"]
+    total_chunks:
+      type: integer
+      minimum: 0
+    processing_stats:
+      type: object
+      properties:
+        original_length:
+          type: integer
+        chunks_created:
+          type: integer
+        average_chunk_size:
+          type: number
+        overlap_used:
+          type: integer
+  required: ["chunks", "total_chunks"]
 
-error_codes:
-  - code: "CHUNKING_ERROR"
-    description: "Failed to split text into chunks due to processing error"
-    severity: "error"
-  - code: "EMPTY_TEXT_ERROR"
-    description: "Input text is empty or contains no valid content to chunk"
-    severity: "error"
-  - code: "INVALID_CHUNK_SIZE"
-    description: "Specified chunk size parameters are invalid"
-    severity: "error"
+depends_on: ["T01_PDF_LOADER"]
+
+dependencies: []
+
+performance_requirements:
+  max_execution_time: 10.0
+  max_memory_mb: 100
+  min_accuracy: 1.0
+
+error_conditions:
+  - "CHUNKING_ERROR"
+  - "EMPTY_TEXT_ERROR"
+  - "INVALID_CHUNK_SIZE"
+  - "INVALID_INPUT"

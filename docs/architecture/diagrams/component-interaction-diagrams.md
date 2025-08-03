@@ -466,7 +466,6 @@ graph LR
     INTERFACE -.-> Research
 ```
 
-## Implementation Status
 
 This document describes **visual representations of the target architecture** - intended component interactions and data flows. For current implementation status of these interactions, see:
 

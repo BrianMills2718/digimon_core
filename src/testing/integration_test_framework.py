@@ -9,7 +9,7 @@ import time
 import json
 import tempfile
 import shutil
-from typing import Dict, List, Any, Optional, Tuple
+from typing import Dict, List, Any, Optional, Tuple, cast
 from pathlib import Path
 from dataclasses import dataclass, asdict
 from datetime import datetime
@@ -39,7 +39,7 @@ class IntegrationTestSuite:
     suite_name: str
     start_time: datetime
     end_time: Optional[datetime] = None
-    tests: List[IntegrationTestResult] = None
+    tests: Optional[List[IntegrationTestResult]] = None
     
     def __post_init__(self):
         if self.tests is None:
@@ -53,10 +53,11 @@ class IntegrationTestSuite:
     
     @property
     def summary(self) -> Dict[str, int]:
-        passed = sum(1 for t in self.tests if t.status == "pass")
-        failed = sum(1 for t in self.tests if t.status == "fail")
-        skipped = sum(1 for t in self.tests if t.status == "skip")
-        return {"total": len(self.tests), "passed": passed, "failed": failed, "skipped": skipped}
+        tests = self.tests or []
+        passed = sum(1 for t in tests if t.status == "pass")
+        failed = sum(1 for t in tests if t.status == "fail")
+        skipped = sum(1 for t in tests if t.status == "skip")
+        return {"total": len(tests), "passed": passed, "failed": failed, "skipped": skipped}
 
 
 class IntegrationTester:
@@ -64,8 +65,8 @@ class IntegrationTester:
     
     def __init__(self, test_data_dir: str = "examples/pdfs"):
         self.test_data_dir = Path(test_data_dir)
-        self.temp_dir = None
-        self.results = []
+        self.temp_dir: Optional[Path] = None
+        self.results: List[IntegrationTestResult] = []
         
     def setup(self):
         """Setup test environment"""
@@ -113,7 +114,8 @@ class IntegrationTester:
             
             try:
                 category_results = test_func()
-                suite.tests.extend(category_results)
+                if suite.tests is not None:
+                    suite.tests.extend(category_results)
                 
                 # Summary for this category
                 passed = sum(1 for r in category_results if r.status == "pass")
@@ -129,7 +131,8 @@ class IntegrationTester:
                     details={},
                     error_message=str(e)
                 )
-                suite.tests.append(error_result)
+                if suite.tests is not None:
+                    suite.tests.append(error_result)
                 print(f"   ❌ Category failed: {e}")
         
         suite.end_time = datetime.now()
@@ -238,7 +241,10 @@ class IntegrationTester:
                 
                 # Test validation returns list
                 phase = phase_registry.get_phase(phase_name)
-                validation_result = phase.validate_input(test_request)
+                if phase is not None:
+                    validation_result = phase.validate_input(test_request)
+                else:
+                    validation_result = []
                 
                 if not isinstance(validation_result, list):
                     results.append(IntegrationTestResult(
@@ -366,6 +372,7 @@ class IntegrationTester:
         ]
         
         for test_name, test_params in error_tests:
+            test_params = cast(Dict[str, Any], test_params)
             start_time = time.time()
             
             try:
@@ -405,7 +412,10 @@ class IntegrationTester:
                     )
                     
                     phase = phase_registry.get_phase("Phase 1: Basic")
-                    errors = phase.validate_input(request)
+                    if phase is not None:
+                        errors = phase.validate_input(request)
+                    else:
+                        errors = ["Phase not found"]
                     
                     if errors:
                         results.append(IntegrationTestResult(
@@ -493,7 +503,10 @@ class IntegrationTester:
             
             for phase_name in phases:
                 phase = phase_registry.get_phase(phase_name)
-                capabilities = phase.get_capabilities()
+                if phase is not None:
+                    capabilities = phase.get_capabilities()
+                else:
+                    capabilities = {}
                 
                 required_services = capabilities.get("required_services", [])
                 
@@ -553,8 +566,9 @@ class IntegrationTester:
         report.append("")
         
         # Group by test type
-        by_type = {}
-        for test in suite.tests:
+        by_type: Dict[str, List[IntegrationTestResult]] = {}
+        tests = suite.tests or []
+        for test in tests:
             test_type = test.test_type
             if test_type not in by_type:
                 by_type[test_type] = []

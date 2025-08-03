@@ -34,7 +34,10 @@ class EnhancedVerticalSliceWorkflow:
     containing duplicate tool execution logic, while supporting Phase 2 enhancements.
     """
     
-    def __init__(self, workflow_storage_dir: str = "./data/workflows"):
+    def __init__(self, workflow_storage_dir: str = None):
+        if workflow_storage_dir is None:
+            from ...core.standard_config import get_file_path
+            workflow_storage_dir = f"{get_file_path('data_dir')}/workflows"
         """Initialize enhanced workflow with PipelineOrchestrator
         
         Args:

@@ -16,15 +16,19 @@ llm:
     - model: 'gemini-2.5-flash'
       provider: 'google'
       max_retries: 3
+    - model: 'gemini-2.5-flash-lite'
+      provider: 'google'
+      max_retries: 2
     - model: 'gpt-4-turbo'
       provider: 'openai'
+      max_retries: 2
 
 # Structured Output Migration Feature Flags
 structured_output:
   enabled_components:
     llm_reasoning: true          # Enable for LLM reasoning engine
-    entity_extraction: false     # Enable for entity extraction tools  
-    mcp_adapter: false          # Enable for MCP adapter
+    entity_extraction: true      # Enable for entity extraction tools  
+    mcp_adapter: true           # Enable for MCP adapter
     llm_integration: false      # Enable for LLM integration component
   
   # Global settings for structured output

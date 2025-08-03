@@ -24,7 +24,7 @@ class T15ATextChunkerUnified(BaseTool):
     def __init__(self, service_manager: ServiceManager):
         """Initialize with service manager"""
         super().__init__(service_manager)
-        self.tool_id = "T15A"
+        self.tool_id = "T15A_TEXT_CHUNKER"
         self.identity_service = service_manager.identity_service
         self.provenance_service = service_manager.provenance_service
         self.quality_service = service_manager.quality_service
@@ -162,7 +162,7 @@ class T15ATextChunkerUnified(BaseTool):
             operation_id = self.provenance_service.start_operation(
                 tool_id=self.tool_id,
                 operation_type="chunk_text",
-                used={"document": document_ref},
+                inputs=[document_ref],
                 parameters={
                     "chunk_size": chunk_size,
                     "overlap_size": overlap_size,
@@ -194,9 +194,9 @@ class T15ATextChunkerUnified(BaseTool):
                 
                 # Propagate confidence from document
                 propagated_confidence = self.quality_service.propagate_confidence(
-                    input_refs=[document_ref],
-                    operation_type="text_chunking",
-                    boost_factor=0.98  # Small degradation for chunking
+                    source_confidence=document_confidence,
+                    operation_type="chunk_text",
+                    degradation_factor=0.98  # Small degradation for chunking
                 )
                 
                 # Assess chunk quality

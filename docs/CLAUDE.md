@@ -1,6 +1,6 @@
 # KGAS Documentation Guide
 
-**For current project status and implementation progress, see [ROADMAP_OVERVIEW.md](../ROADMAP_OVERVIEW.md)**
+**For current project status and implementation progress, see [ROADMAP_OVERVIEW.md](./roadmap/ROADMAP_OVERVIEW.md)**
 
 ## 📁 Documentation Structure
 
@@ -20,9 +20,9 @@
 
 ## 🔄 Quick Reference
 
-**Check status**: `../ROADMAP_OVERVIEW.md`
-**Plan work**: `roadmap/phases/` or `roadmap/initiatives/`  
-**Review architecture**: `architecture/` (target state only)
+**Check status**: `./roadmap/ROADMAP_OVERVIEW.md`
+**Plan work**: `./roadmap/phases/` or `./roadmap/initiatives/`  
+**Review architecture**: `./architecture/` (target state only)
 
 ## ⚠️ Key Rules
 
@@ -40,7 +40,7 @@
 
 For the most up-to-date information on project status, current development phase, and future plans, please see the master roadmap.
 
-- **[View Master Roadmap & Status →](../ROADMAP_OVERVIEW.md)**
+- **[View Master Roadmap & Status →](./roadmap/ROADMAP_OVERVIEW.md)**
 
 ## 📚 Documentation Sections
 
@@ -55,13 +55,13 @@ For the most up-to-date information on project status, current development phase
 - [Systems](./architecture/systems/) - Detailed design of major system components.
 - [ADRs](./architecture/adrs/) - Architecture Decision Records.
 
-### 📈 Planning
-- **[Roadmap Overview](../ROADMAP_OVERVIEW.md)** - The master roadmap and current status dashboard.
-- [Planning Home](./planning/) - Project planning, strategy, and initiatives.
-- [Implementation Phases](./planning/phases/) - Detailed implementation plans for each development phase.
-- [Strategy](./planning/strategy/) - High-level strategic and vision documents.
-- [Initiatives](./planning/initiatives/) - Plans for specific workstreams (e.g., identity, performance).
-- [Analysis](./planning/analysis/) - Initial codebase analysis and discovery.
+### 📈 Planning & Roadmap
+- **[Roadmap Overview](./roadmap/ROADMAP_OVERVIEW.md)** - The master roadmap and current status dashboard.
+- [Roadmap Home](./roadmap/) - Current progress tracking and phase management.
+- [Implementation Phases](./roadmap/phases/) - Detailed implementation plans for each development phase.
+- [Initiatives](./roadmap/initiatives/) - Plans for specific workstreams (e.g., identity, performance, tooling).
+- [Analysis](./roadmap/analysis/) - Codebase analysis and performance benchmarks.
+- [Planning Home](./planning/) - Strategic planning documents and future vision.
 - [Reports](./planning/reports/) - Project status reports and summaries.
 
 ### ⚙️ Development
@@ -80,4 +80,22 @@ For the most up-to-date information on project status, current development phase
 - [API Reference](./api/) - API documentation and standards.
 
 ### 📦 Archive
-- [Archive](./archive/) - Historical and legacy documentation.
+- [Archive](../archived/) - Historical and legacy documentation (located at repository root).
+
+
+Before updating any "stale" documentation:
+
+  1. Cross-reference with Roadmap:
+    - Check if the "stale" content matches roadmap status
+    - Verify completion dates in evidence files
+  2. Check Git History:
+  git log --follow docs/path/to/file.md
+    - Understand why it hasn't been updated
+    - See who last modified it
+  3. Validate Against Code:
+    - For technical docs, verify against actual implementation
+    - Run any referenced commands to ensure they work
+  4. Create Update PR:
+    - Document what you're changing and why
+    - Link to evidence supporting the updates
+    - Request review from someone familiar with that area

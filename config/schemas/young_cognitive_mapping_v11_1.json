@@ -1,0 +1,307 @@
+{
+  "theory_id": "young_cognitive_mapping_1996",
+  "theory_name": "Cognitive Mapping with Semantic Networks (WorldView)",
+  "version": "1.0",
+  "authors": [
+    "Michael D. Young"
+  ],
+  "publication_year": 1996,
+  "description": "Enhanced cognitive mapping using semantic-network formalism to eliminate adjacency-matrix limitations and provide structural/comparative measures",
+  "classification": {
+    "domain": {
+      "level": "Micro",
+      "component": "Who",
+      "metatheory": "Agentic"
+    },
+    "complexity_tier": "heuristic"
+  },
+  "theoretical_scope": {
+    "authors_stated_domain": [
+      "Cognitive mapping of political leaders and decision-makers",
+      "Belief system analysis through semantic networks",
+      "Comparative analysis of worldviews across time and actors",
+      "Foreign policy cognition and belief structures"
+    ],
+    "exclusion_contexts": [
+      "Non-cognitive decision processes",
+      "Purely behavioral analysis without belief content",
+      "Group-level cognition without individual mapping"
+    ],
+    "authors_stated_limitations": [
+      "Requires textual data expressing beliefs and relationships",
+      "Dependent on concept extraction and relationship identification",
+      "Limited by availability of comparable texts for transformation analysis"
+    ],
+    "boundary_conditions": [
+      "Text must contain explicit concept relationships",
+      "Concepts must be identifiable and discretizable",
+      "Relationships must be expressible in semantic network form"
+    ]
+  },
+  "empirical_foundation": {
+    "authors_empirical_claims": [
+      {
+        "claim": "WorldView eliminates adjacency-matrix limitations through relationship elevation to nodes",
+        "evidence_type": "methodological",
+        "specific_statistic": "Enables differentiation of relationship kinds, truth-values, and modifiers",
+        "source_in_paper": "Abstract and Introduction",
+        "study_context": "Comparison with traditional cognitive mapping approaches"
+      },
+      {
+        "claim": "Structural measures (dependency, connectedness) provide meaningful cognitive map analysis",
+        "evidence_type": "methodological",
+        "specific_statistic": "D_G = (\u03a3 bridges_G / \u03a3 relationships_G) / \u03a3 structures_G",
+        "source_in_paper": "Structural Measures section",
+        "study_context": "WorldView system capabilities"
+      }
+    ]
+  },
+  "ontology": {
+    "entities": [
+      {
+        "name": "concept_node",
+        "description": "Unique term appearing in text that becomes a node in the semantic network",
+        "properties": [
+          {
+            "name": "concept_label",
+            "type": "string",
+            "description": "The exact term as it appears in text",
+            "operationalization": {
+              "measurement_approach": "Extract unique terms that represent distinct concepts",
+              "boundary_rules": [
+                "Must be substantive concepts, not function words",
+                "Synonymous terms can be collapsed using synonym facility",
+                "Must appear in meaningful relationships with other concepts"
+              ],
+              "validation_examples": [
+                "Soviet Union, American people, foreign policy, peace"
+              ]
+            }
+          },
+          {
+            "name": "salience_count",
+            "type": "integer",
+            "description": "Number of times concept appears in relationships",
+            "operationalization": {
+              "measurement_approach": "Count concept appearances across all relationships in the map",
+              "boundary_rules": [
+                "Must be positive integer",
+                "Reflects concept importance"
+              ],
+              "validation_examples": [
+                "peace: 5, Soviet Union: 12, cooperation: 3"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "name": "relationship_node",
+        "description": "Node that links concepts and carries semantic information",
+        "properties": [
+          {
+            "name": "relationship_type",
+            "type": "categorical",
+            "description": "Category of relationship from Young's taxonomy",
+            "operationalization": {
+              "measurement_approach": "Classify relationships using Young's 11 categories",
+              "boundary_rules": [
+                "Must fit one of: =, >, +, -, attribute, is-a, if-then, possess, strategy, know, warrant-for, location"
+              ],
+              "validation_examples": [
+                "positive-cause: cooperation + peace",
+                "attribute: Soviet Union attribute industrial-giant"
+              ]
+            }
+          },
+          {
+            "name": "truth_value",
+            "type": "categorical",
+            "description": "Truth status of the relationship",
+            "operationalization": {
+              "measurement_approach": "Assign truth value based on textual indicators",
+              "boundary_rules": [
+                "Must be one of: true, false, partial, possible, impossible"
+              ],
+              "validation_examples": [
+                "true: explicit statements of fact",
+                "possible: conditional or hypothetical statements"
+              ]
+            }
+          },
+          {
+            "name": "temporal_modifier",
+            "type": "categorical",
+            "description": "Temporal context of the relationship",
+            "operationalization": {
+              "measurement_approach": "Identify temporal markers in text",
+              "boundary_rules": [
+                "Must be one of: past, present, future, goal, hypothetical, normative"
+              ],
+              "validation_examples": [
+                "past: 'we have learned'",
+                "future: 'we will negotiate'"
+              ]
+            }
+          },
+          {
+            "name": "salience",
+            "type": "integer",
+            "description": "Count of how often this unique relationship occurs",
+            "operationalization": {
+              "measurement_approach": "Count identical relationship instances across text",
+              "boundary_rules": [
+                "Positive integer reflecting relationship importance"
+              ],
+              "validation_examples": [
+                "US + cooperation = 3 occurrences"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "name": "conjunction_node",
+        "description": "Node representing logical connectors for compound concepts",
+        "properties": [
+          {
+            "name": "conjunction_type",
+            "type": "categorical",
+            "description": "Type of logical connection",
+            "operationalization": {
+              "measurement_approach": "Identify 'and' or 'or' relationships",
+              "boundary_rules": [
+                "Must be either 'and' or 'or'"
+              ],
+              "validation_examples": [
+                "peace and security",
+                "cooperation or competition"
+              ]
+            }
+          }
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "name": "concept_relationship_link",
+        "source_role": "source_concept",
+        "target_role": "target_concept",
+        "description": "Connection between concepts mediated by relationship node",
+        "properties": [
+          {
+            "name": "relationship_direction",
+            "type": "categorical",
+            "description": "Directional nature of the relationship"
+          }
+        ]
+      },
+      {
+        "name": "relationship_concept_link",
+        "source_role": "relationship_node",
+        "target_role": "concept_node",
+        "description": "Link from relationship to concepts it connects",
+        "properties": [
+          {
+            "name": "role_in_relationship",
+            "type": "categorical",
+            "description": "Whether concept is subject, object, or modifier in relationship"
+          }
+        ]
+      }
+    ]
+  },
+  "execution": {
+    "process_type": "two_stage_analysis",
+    "stage_1_structuring": {
+      "step_id": "comprehensive_theory_structuring",
+      "description": "Extract ALL theory-relevant content without evaluation filtering to prevent premature pattern elimination",
+      "method": "comprehensive_llm_extraction",
+      "constraint": "no_evaluation_filtering",
+      "required_outputs": [
+        "theory_applicability_score",
+        "applicability_reasoning",
+        "comprehensive_structured_content"
+      ],
+      "llm_prompts": {
+        "structuring_prompt": "Apply Young's Cognitive Mapping methodology comprehensively to extract ALL belief structure content:\n\n1. CONCEPT IDENTIFICATION: Extract all unique substantive terms that represent distinct concepts, ideas, entities, or objects mentioned in the text. Include: political actors, policies, values, outcomes, processes, locations, abstract concepts.\n\n2. RELATIONSHIP EXTRACTION: For every pair of concepts that are connected in the text, identify the relationship using Young's categories:\n   - '=' (equal)\n   - '>' (greater-than/preference)\n   - '+' (positive-cause)\n   - '-' (negative-cause) \n   - 'attribute' (property relationship)\n   - 'is-a' (class inclusion)\n   - 'if-then' (conditional)\n   - 'possess' (ownership)\n   - 'strategy' (means-ends)\n   - 'know' (knowledge)\n   - 'warrant-for' (justification)\n   - 'location' (spatial)\n\n3. RELATIONSHIP PROPERTIES: For each relationship, extract:\n   - Truth value: true, false, partial, possible, impossible\n   - Temporal modifier: past, present, future, goal, hypothetical, normative\n   - Salience count: how often this relationship appears\n\n4. ACTION IDENTIFICATION: Extract all action verbs and categorize using Young's action categories (accept, feel, purchase, allow, etc.)\n\n5. CONJUNCTIONS: Identify 'and'/'or' relationships between compound concepts\n\n6. CONCEPT SALIENCE: Count how often each concept appears in relationships\n\nDo NOT filter based on perceived importance - extract ALL cognitive mapping elements the methodology would capture.",
+        "applicability_prompt": "Assess Young's Cognitive Mapping applicability to this text (score 0-1):\n\nAPPLICABILITY = Concept Density \u00d7 Relationship Centrality \u00d7 Belief Structure Relevance\n\n\u2022 CONCEPT DENSITY: How much of the text contains distinct, identifiable concepts that can be nodes? (substantive terms, not just function words)\n\u2022 RELATIONSHIP CENTRALITY: How much of the text expresses relationships between concepts that can be categorized using Young's relationship types?\n\u2022 BELIEF STRUCTURE RELEVANCE: How well does the text express the author's cognitive beliefs and worldview rather than just descriptive information?\n\nYoung's method works best with texts that express belief systems, causal relationships, and conceptual structures. Score based on actual presence of these elements.",
+        "validation_prompt": "Verify that the cognitive mapping extraction is comprehensive within Young's methodological bounds and that the applicability score accurately reflects the density of belief-structure and concept-relationship content in the text."
+      }
+    },
+    "stage_2_evaluation": {
+      "step_id": "analytic_evaluation",
+      "description": "Apply analytic questions to comprehensive structured data to extract theoretical insights",
+      "method": "structured_data_analysis",
+      "inputs": [
+        "comprehensive_structured_content",
+        "theory_applicability_score"
+      ],
+      "configurable_components": {
+        "include_justifications": false,
+        "include_alternative_interpretations": false,
+        "include_confidence_scores": false
+      },
+      "llm_prompts": {
+        "evaluation_prompt": "Using the comprehensive cognitive mapping structure from Stage 1, analyze the belief system and worldview revealed in this text:\n\n1. COGNITIVE STRUCTURE ANALYSIS: What does the concept-relationship network reveal about the author's worldview? Which concepts are most central (high salience)? What are the dominant relationship types?\n\n2. BELIEF SYSTEM CHARACTERIZATION: Based on the relationships and their properties (truth values, temporal modifiers), how does the author understand causation, agency, and temporal dynamics in this domain?\n\n3. STRUCTURAL MEASURES: Calculate or estimate Young's measures where possible:\n   - Dependency (D_G): Degree of hierarchical organization\n   - Connectedness (C_G): Degree of concept interrelation\n   - Size: Number of distinct concepts\n   - Uniformity of salience: Distribution of concept importance\n\n4. WORLDVIEW INSIGHTS: What does Young's methodology reveal about the cognitive map that wouldn't be apparent from surface reading? Focus on relationship patterns, concept clusters, and structural characteristics.\n\nAnswer based on the semantic network structure, not just obvious content themes.",
+        "integration_prompt": "Integrate findings across all cognitive mapping components (concepts, relationships, structural measures) to provide a coherent account of the worldview and belief system structure revealed through Young's methodology."
+      }
+    },
+    "applicability_threshold": 0.4
+  },
+  "telos": {
+    "purpose": "Map cognitive/belief structures through semantic network analysis to reveal worldview organization and comparative cognitive patterns",
+    "output_format": "Semantic network with structural measures and worldview characterization",
+    "success_criteria": [
+      "Comprehensive concept-relationship network extracted",
+      "Relationship types properly categorized using Young's taxonomy",
+      "Structural measures calculated or estimated",
+      "Worldview insights that reveal cognitive organization patterns",
+      "Analysis suitable for comparative cognitive mapping studies"
+    ],
+    "analysis_tiers": [
+      "descriptive",
+      "explanatory",
+      "predictive"
+    ]
+  },
+  "validation": {
+    "theory_tests": [
+      {
+        "test_name": "Rich concept-relationship text",
+        "input_scenario": "Text with many explicit concept relationships and causal statements",
+        "expected_theory_application": "High applicability, dense semantic network, clear structural patterns",
+        "validation_criteria": "Should extract numerous concept-relationship pairs with appropriate categorization"
+      },
+      {
+        "test_name": "Descriptive text with few relationships",
+        "input_scenario": "Text that describes events but doesn't express belief relationships",
+        "expected_theory_application": "Lower applicability, sparse network, limited structural insights",
+        "validation_criteria": "Should recognize limitations while extracting available cognitive content"
+      }
+    ],
+    "boundary_cases": [
+      {
+        "case_description": "Pure data or statistics without conceptual relationships",
+        "theory_applicability": "Low - Young's method requires concept-relationship content",
+        "expected_behavior": "Low applicability score, minimal extractable semantic network"
+      },
+      {
+        "case_description": "Highly technical text with implicit rather than explicit relationships",
+        "theory_applicability": "Moderate - May require inference to identify relationships",
+        "expected_behavior": "Should attempt extraction but note limitations in relationship identification"
+      }
+    ]
+  },
+  "metadata": {
+    "created": "2025-07-26T00:00:00Z",
+    "contributors": [
+      "Young 1996 Implementation Test"
+    ],
+    "validation_status": "Meta-schema v11.1 compliance test",
+    "implementation_status": "Complete methodology implementation",
+    "source_paper_verified": true
+  },
+  "mode": "open",
+  "schema_id": "young_cognitive_mapping_1996"
+}

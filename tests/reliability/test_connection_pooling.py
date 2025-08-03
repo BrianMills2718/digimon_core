@@ -12,6 +12,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 from typing import List
 
 from src.core.connection_pool_manager import ConnectionPoolManager
+from tests.conftest import track_pool
 
 
 class TestConnectionPooling:
@@ -20,7 +21,10 @@ class TestConnectionPooling:
     @pytest.mark.asyncio
     async def test_pool_limits(self):
         """Test that pool respects size limits."""
-        pool = ConnectionPoolManager(min_size=2, max_size=5)
+        pool = track_pool(ConnectionPoolManager(min_size=2, max_size=5))
+        
+        # Wait for pool initialization
+        await asyncio.sleep(0.2)
         
         # Acquire connections up to max
         connections = []
@@ -43,7 +47,8 @@ class TestConnectionPooling:
     @pytest.mark.asyncio
     async def test_connection_health_checks(self):
         """Test automatic health checking of connections."""
-        pool = ConnectionPoolManager(min_size=3, max_size=5)
+        pool = track_pool(ConnectionPoolManager(min_size=3, max_size=5))
+        await asyncio.sleep(0.2)  # Wait for initialization
         
         # Get some connections
         conns = []
@@ -70,7 +75,8 @@ class TestConnectionPooling:
     @pytest.mark.asyncio
     async def test_automatic_recovery(self):
         """Test automatic recovery from connection failures."""
-        pool = ConnectionPoolManager(min_size=2, max_size=5)
+        pool = track_pool(ConnectionPoolManager(min_size=2, max_size=5))
+        await asyncio.sleep(0.2)  # Wait for initialization
         
         # Simulate all connections failing
         await pool._simulate_all_connections_failed()
@@ -89,7 +95,8 @@ class TestConnectionPooling:
     @pytest.mark.asyncio
     async def test_concurrent_access(self):
         """Test pool handles concurrent access correctly."""
-        pool = ConnectionPoolManager(min_size=2, max_size=10)
+        pool = track_pool(ConnectionPoolManager(min_size=2, max_size=10))
+        await asyncio.sleep(0.2)  # Wait for initialization
         
         # Track acquisition times
         acquisition_times = []
@@ -124,7 +131,8 @@ class TestConnectionPooling:
     @pytest.mark.asyncio
     async def test_connection_lifecycle(self):
         """Test full connection lifecycle management."""
-        pool = ConnectionPoolManager(min_size=1, max_size=3)
+        pool = track_pool(ConnectionPoolManager(min_size=1, max_size=3))
+        await asyncio.sleep(0.2)  # Wait for initialization
         
         # Track connection events
         events = []
@@ -152,7 +160,8 @@ class TestConnectionPooling:
     @pytest.mark.asyncio
     async def test_pool_resize(self):
         """Test dynamic pool resizing."""
-        pool = ConnectionPoolManager(min_size=2, max_size=10)
+        pool = track_pool(ConnectionPoolManager(min_size=2, max_size=10))
+        await asyncio.sleep(0.2)  # Wait for initialization
         
         initial_stats = pool.get_stats()
         assert initial_stats['min_size'] == 2
@@ -178,7 +187,8 @@ class TestConnectionPooling:
     @pytest.mark.asyncio
     async def test_graceful_shutdown(self):
         """Test graceful pool shutdown."""
-        pool = ConnectionPoolManager(min_size=3, max_size=5)
+        pool = track_pool(ConnectionPoolManager(min_size=3, max_size=5))
+        await asyncio.sleep(0.2)  # Wait for initialization
         
         # Acquire some connections
         conns = []
@@ -207,7 +217,8 @@ class TestConnectionPooling:
     @pytest.mark.asyncio
     async def test_connection_timeout(self):
         """Test connection acquisition timeout."""
-        pool = ConnectionPoolManager(min_size=1, max_size=1)
+        pool = track_pool(ConnectionPoolManager(min_size=1, max_size=1))
+        await asyncio.sleep(0.2)  # Wait for initialization
         
         # Acquire the only connection
         conn1 = await pool.acquire_connection()
@@ -226,7 +237,8 @@ class TestConnectionPooling:
     @pytest.mark.asyncio
     async def test_statistics_tracking(self):
         """Test pool statistics tracking."""
-        pool = ConnectionPoolManager(min_size=2, max_size=5)
+        pool = track_pool(ConnectionPoolManager(min_size=2, max_size=5))
+        await asyncio.sleep(0.2)  # Wait for initialization
         
         # Reset statistics
         pool.reset_statistics()

@@ -611,3 +611,21 @@ class CrossModalEntityLinker:
         logger.info(f"Cross-modal linking results prepared for storage - {len(linked_entities)} clusters")
 
 
+# Mock service for testing compatibility
+class MockEmbeddingService:
+    """Mock embedding service for testing purposes"""
+    
+    def __init__(self):
+        self.dimension = 384
+        
+    async def embed_text(self, text: str) -> List[float]:
+        """Generate mock embedding for text"""
+        # Simple hash-based mock embedding for consistency
+        hash_val = hash(text)
+        return [(hash_val >> i) % 100 / 100.0 for i in range(self.dimension)]
+    
+    async def embed_batch(self, texts: List[str]) -> List[List[float]]:
+        """Generate mock embeddings for batch of texts"""
+        return [await self.embed_text(text) for text in texts]
+
+

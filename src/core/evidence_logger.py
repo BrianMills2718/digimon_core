@@ -2,6 +2,7 @@ import hashlib
 import json
 import logging
 import os
+import sys
 import time
 import re
 import uuid
@@ -54,7 +55,7 @@ class EvidenceLogger:
         timestamp = datetime.now().isoformat()
         
         # CRITICAL: Ensure all required fields are present
-        verification_data = {
+        verification_data: Dict[str, Any] = {
             "timestamp": timestamp,
             "operation": operation,
             "details": details,
@@ -90,7 +91,7 @@ class EvidenceLogger:
                 "authenticity_score": 0.0
             }
         
-        verification_results = {
+        verification_results: Dict[str, Any] = {
             "status": "completed",
             "timestamp": datetime.now().isoformat(),
             "total_entries": 0,
@@ -291,7 +292,7 @@ class EvidenceLogger:
 
     def _verify_single_entry(self, entry: Dict[str, Any]) -> Dict[str, Any]:
         """Verify individual evidence entry"""
-        verification = {
+        verification: Dict[str, Any] = {
             "valid": True,
             "issues": []
         }
@@ -348,7 +349,7 @@ class EvidenceLogger:
     
     def _verify_single_entry_comprehensive(self, entry: Dict[str, Any]) -> Dict[str, Any]:
         """Comprehensive verification of individual evidence entry"""
-        verification = {
+        verification: Dict[str, Any] = {
             "valid": True,
             "issues": [],
             "has_operation": False,
@@ -507,7 +508,7 @@ class EvidenceLogger:
             entries = self._parse_evidence_entries(content)
             
             # Analyze entry types
-            operation_counts = {}
+            operation_counts: Dict[str, int] = {}
             for entry in entries:
                 operation = entry.get("operation", "unknown")
                 operation_counts[operation] = operation_counts.get(operation, 0) + 1
@@ -547,7 +548,7 @@ class EvidenceLogger:
         summary = self.get_evidence_summary()
         
         # Combine results for final authenticity assessment
-        authenticity_result = {
+        authenticity_result: Dict[str, Any] = {
             "verification_result": verification,
             "evidence_summary": summary,
             "overall_authenticity": "unknown",
@@ -607,7 +608,7 @@ class EvidenceLogger:
                 "cpu_usage": psutil.cpu_percent(),
                 "memory_usage": psutil.virtual_memory().percent,
                 "disk_usage": psutil.disk_usage('/').percent,
-                "python_version": os.sys.version,
+                "python_version": sys.version,
                 "timestamp": time.time()
             }
         except ImportError:
@@ -615,13 +616,13 @@ class EvidenceLogger:
                 "cpu_usage": "unknown",
                 "memory_usage": "unknown", 
                 "disk_usage": "unknown",
-                "python_version": os.sys.version,
+                "python_version": sys.version,
                 "timestamp": time.time()
             }
 
     def _perform_advanced_integrity_checks(self, entries: List[Dict[str, Any]]) -> Dict[str, Any]:
         """Perform advanced integrity checks on evidence entries"""
-        advanced_checks = {
+        advanced_checks: Dict[str, Any] = {
             "chronological_order": True,
             "hash_uniqueness": True,
             "operation_patterns": {},

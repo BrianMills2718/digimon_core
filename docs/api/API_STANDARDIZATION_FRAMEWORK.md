@@ -48,6 +48,13 @@ step_number: int          # Current step in workflow (NOT current_step)
 phase_id: str            # Phase identifier (phase1, phase2, etc.)
 workflow_id: str         # Unique workflow instance ID
 
+# Structured LLM Operations
+prompt: str              # Input prompt for LLM
+schema: Type[BaseModel]  # Pydantic schema for validation
+temperature: float       # Generation temperature (default: 0.05)
+max_tokens: int         # Maximum tokens (default: 32000)
+model: Optional[str]    # Model type (smart, fast, code, reasoning)
+
 # Entity processing
 entity_id: str           # Unique entity identifier  
 entity_type: str         # Entity classification
@@ -110,8 +117,9 @@ class StandardResponse:
 ```python
 # Example: Phase Interface Contract
 from abc import ABC, abstractmethod
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Optional, Type
 from dataclasses import dataclass
+from pydantic import BaseModel
 
 @dataclass
 class PhaseInput:
@@ -137,6 +145,25 @@ class PhaseInterface(ABC):
     @abstractmethod
     def validate_input(self, input_data: PhaseInput) -> bool:
         """Validate input data format"""
+        pass
+
+# Structured LLM Interface Contract
+class StructuredLLMInterface(ABC):
+    @abstractmethod
+    def structured_completion(
+        self, 
+        prompt: str, 
+        schema: Type[BaseModel],
+        model: Optional[str] = None,
+        temperature: float = 0.05,
+        max_tokens: int = 32000
+    ) -> BaseModel:
+        """Generate structured output with schema validation"""
+        pass
+    
+    @abstractmethod
+    def get_stats(self) -> Dict[str, Any]:
+        """Get performance statistics"""
         pass
 ```
 

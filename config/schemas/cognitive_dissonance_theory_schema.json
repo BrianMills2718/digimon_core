@@ -1,0 +1,265 @@
+{
+  "theory_id": "cognitive_dissonance_festinger_1957",
+  "theory_name": "Cognitive Dissonance Theory",
+  "theory_version": "1.0",
+  "meta_schema_version": "11.1",
+  "created_date": "2025-07-26",
+  "theory_metadata": {
+    "primary_authors": [
+      "Leon Festinger"
+    ],
+    "publication_year": 1957,
+    "source_work": "A Theory of Cognitive Dissonance",
+    "theoretical_tradition": "Social psychology, cognitive consistency, attitude change",
+    "original_purpose": "Explain psychological discomfort arising from inconsistent cognitions and predict resulting attitude or behavior change"
+  },
+  "telos": {
+    "primary_purpose": "Predict attitude and behavior change by identifying cognitive inconsistencies and dissonance reduction mechanisms",
+    "secondary_purposes": [
+      "Explain post-decision rationalization processes",
+      "Predict resistance to persuasion and attitude change",
+      "Analyze selective exposure and information processing biases",
+      "Understand commitment and effort justification effects"
+    ],
+    "theoretical_scope": "Individual-level cognitive consistency and attitude change processes",
+    "domain_applicability": "Belief statements, attitude expressions, decision justifications, opinion changes, commitment statements"
+  },
+  "classification": {
+    "analytical_tier": "predictive",
+    "tier_justification": "Predicts specific attitude changes and behaviors based on dissonance arousal and reduction needs",
+    "paradigm": "cognitive-consistency",
+    "level_of_analysis": "individual",
+    "temporal_scope": "process_oriented",
+    "complexity": "medium",
+    "formalization_level": "moderately_formalized"
+  },
+  "ontology": {
+    "core_entities": {
+      "cognitions": {
+        "definition": "Mental elements including beliefs, attitudes, values, behaviors, and knowledge",
+        "properties": [
+          "cognition_type",
+          "importance",
+          "resistance_to_change",
+          "centrality"
+        ],
+        "types": [
+          "beliefs",
+          "attitudes",
+          "behaviors",
+          "values",
+          "knowledge_elements"
+        ],
+        "examples": [
+          "beliefs about Soviet intentions",
+          "attitudes toward cooperation",
+          "commitment to military strength"
+        ]
+      },
+      "cognitive_relationships": {
+        "definition": "Logical connections between cognitions that can be consonant, dissonant, or irrelevant",
+        "properties": [
+          "relationship_type",
+          "strength",
+          "direction",
+          "importance"
+        ],
+        "types": [
+          "consonant",
+          "dissonant",
+          "irrelevant"
+        ],
+        "examples": [
+          "supporting cooperation while maintaining military strength",
+          "wanting peace but preparing for war"
+        ]
+      },
+      "dissonance": {
+        "definition": "Psychological discomfort arising from inconsistent cognitions",
+        "properties": [
+          "magnitude",
+          "source",
+          "tolerance_threshold",
+          "reduction_urgency"
+        ],
+        "sources": [
+          "logical_inconsistency",
+          "cultural_inconsistency",
+          "opinion_generalization",
+          "past_experience"
+        ]
+      },
+      "reduction_mechanisms": {
+        "definition": "Strategies used to reduce cognitive dissonance",
+        "properties": [
+          "mechanism_type",
+          "effectiveness",
+          "cost",
+          "availability"
+        ],
+        "types": [
+          "change_cognition",
+          "add_consonant_cognitions",
+          "reduce_importance",
+          "compartmentalization"
+        ]
+      }
+    },
+    "dissonance_principles": {
+      "dissonance_arousal": "Inconsistent cognitions create psychological discomfort proportional to importance and inconsistency magnitude",
+      "reduction_motivation": "Individuals are motivated to reduce dissonance through various mechanisms",
+      "resistance_hierarchy": "More important and central cognitions are more resistant to change",
+      "selective_exposure": "People seek information consistent with existing beliefs and avoid inconsistent information",
+      "effort_justification": "Greater effort or sacrifice increases commitment and reduces dissonance"
+    },
+    "magnitude_factors": {
+      "importance": "More important cognitions create greater dissonance when inconsistent",
+      "number_of_dissonant_relations": "More inconsistent cognitions increase total dissonance",
+      "number_of_consonant_relations": "More consistent cognitions reduce total dissonance",
+      "overlap": "Greater cognitive overlap increases dissonance potential"
+    },
+    "reduction_strategies": {
+      "change_behavioral_cognition": "Modify behavior to align with attitudes",
+      "change_attitudinal_cognition": "Modify attitudes to align with behavior",
+      "add_consonant_cognitions": "Introduce new supporting beliefs or information",
+      "reduce_cognition_importance": "Minimize significance of inconsistent elements",
+      "compartmentalization": "Separate inconsistent cognitions into different contexts",
+      "selective_exposure": "Seek confirming information and avoid disconfirming information"
+    }
+  },
+  "execution": {
+    "stage_1_comprehensive_structuring": {
+      "step_1_applicability_assessment": {
+        "description": "Evaluate text suitability for cognitive dissonance analysis",
+        "criteria": {
+          "cognitive_inconsistency_present": "Clear inconsistencies between beliefs, attitudes, or behaviors",
+          "dissonance_indicators": "Evidence of psychological tension or justification attempts",
+          "attitude_behavior_connections": "Links between stated beliefs and described actions",
+          "rationalization_attempts": "Efforts to justify or explain potentially inconsistent positions"
+        },
+        "scoring": "0.0-1.0 scale based on presence and clarity of dissonance elements",
+        "threshold": "0.5 minimum for meaningful dissonance analysis"
+      },
+      "step_2_cognition_identification": {
+        "description": "Identify all relevant cognitions (beliefs, attitudes, behaviors, values)",
+        "cognition_extraction": [
+          "Extract explicit beliefs and attitude statements",
+          "Identify behavioral commitments and actions",
+          "Determine core values and principles",
+          "Map knowledge claims and factual assertions"
+        ],
+        "cognition_categorization": [
+          "Categorize by type (belief, attitude, behavior, value, knowledge)",
+          "Assess importance and centrality to speaker",
+          "Evaluate resistance to change potential",
+          "Determine interconnections between cognitions"
+        ]
+      },
+      "step_3_relationship_analysis": {
+        "description": "Analyze logical relationships between identified cognitions",
+        "relationship_assessment": [
+          "Identify consonant relationships (mutually supporting cognitions)",
+          "Locate dissonant relationships (logically inconsistent cognitions)",
+          "Classify irrelevant relationships (unconnected cognitions)",
+          "Assess relationship strength and importance"
+        ],
+        "consistency_evaluation": [
+          "Apply logical consistency tests",
+          "Consider cultural and normative consistency",
+          "Evaluate practical consistency between attitudes and behaviors",
+          "Assess temporal consistency across time periods"
+        ]
+      },
+      "step_4_dissonance_calculation": {
+        "description": "Calculate magnitude of cognitive dissonance based on inconsistencies",
+        "dissonance_assessment": [
+          "Count number of dissonant relationships",
+          "Weight by importance of involved cognitions",
+          "Assess strength of inconsistencies",
+          "Calculate total dissonance magnitude"
+        ],
+        "magnitude_factors": [
+          "Importance of dissonant cognitions",
+          "Number of dissonant vs. consonant relationships",
+          "Degree of overlap between inconsistent elements",
+          "Personal relevance and ego-involvement"
+        ]
+      },
+      "step_5_reduction_mechanism_identification": {
+        "description": "Identify dissonance reduction strategies present or likely to be used",
+        "mechanism_analysis": [
+          "Identify actual reduction attempts in text",
+          "Predict likely reduction strategies based on cognition characteristics",
+          "Assess availability and cost of different reduction mechanisms",
+          "Evaluate effectiveness of observed reduction attempts"
+        ]
+      }
+    },
+    "stage_2_analytic_evaluation": {
+      "step_1_dissonance_pattern_analysis": {
+        "description": "Analyze overall patterns of cognitive consistency and inconsistency",
+        "pattern_analysis": [
+          "Identify systematic sources of dissonance",
+          "Assess magnitude and distribution of inconsistencies",
+          "Evaluate tolerance levels and threshold effects",
+          "Map interconnected dissonance networks"
+        ]
+      },
+      "step_2_reduction_strategy_assessment": {
+        "description": "Evaluate dissonance reduction mechanisms and their effectiveness",
+        "strategy_analysis": [
+          "Identify which reduction mechanisms are being used",
+          "Assess effectiveness of observed reduction attempts",
+          "Predict likely future reduction strategies",
+          "Evaluate costs and benefits of different approaches"
+        ]
+      },
+      "step_3_attitude_change_prediction": {
+        "description": "Predict likely attitude and behavior changes based on dissonance",
+        "change_prediction": [
+          "Identify cognitions most likely to change",
+          "Predict direction and magnitude of attitude change",
+          "Forecast behavioral adjustments to reduce dissonance",
+          "Assess stability of predicted changes"
+        ]
+      },
+      "step_4_information_processing_implications": {
+        "description": "Analyze selective exposure and information processing biases",
+        "processing_analysis": [
+          "Predict selective exposure to information",
+          "Identify likely confirmation bias patterns",
+          "Assess resistance to disconfirming information",
+          "Evaluate motivated reasoning tendencies"
+        ]
+      }
+    }
+  },
+  "validation": {
+    "internal_consistency": {
+      "cognition_identification_coherence": "All relevant cognitions properly identified and categorized",
+      "relationship_assessment_validity": "Accurate evaluation of consonant, dissonant, and irrelevant relationships",
+      "dissonance_calculation_accuracy": "Mathematically sound assessment of dissonance magnitude",
+      "reduction_mechanism_logic": "Logical connection between dissonance sources and reduction strategies"
+    },
+    "theoretical_fidelity": {
+      "festinger_principle_compliance": "Strict adherence to original dissonance theory principles",
+      "consistency_motivation_emphasis": "Focus on psychological need for cognitive consistency",
+      "reduction_hierarchy_application": "Proper consideration of cognition resistance and change likelihood",
+      "selective_processing_recognition": "Acknowledgment of biased information processing effects"
+    },
+    "empirical_validation": {
+      "cognition_extraction_accuracy": "Valid identification of beliefs, attitudes, behaviors, and values",
+      "inconsistency_identification_completeness": "Comprehensive detection of cognitive inconsistencies",
+      "dissonance_magnitude_assessment": "Accurate evaluation of psychological discomfort levels",
+      "reduction_prediction_validity": "Valid prediction of dissonance reduction mechanisms"
+    },
+    "predictive_validation": {
+      "attitude_change_prediction_accuracy": "Accurate prediction of attitude modification direction and magnitude",
+      "behavior_change_forecasting": "Valid prediction of behavioral adjustments to reduce dissonance",
+      "information_seeking_prediction": "Accurate prediction of selective exposure and confirmation bias",
+      "commitment_escalation_forecasting": "Valid prediction of increased commitment following dissonance"
+    }
+  },
+  "mode": "open",
+  "schema_id": "cognitive_dissonance_festinger_1957"
+}

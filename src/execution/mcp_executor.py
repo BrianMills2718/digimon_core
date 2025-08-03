@@ -127,7 +127,7 @@ class MCPExecutor:
                 results[step.tool_id] = {
                     'status': 'error',
                     'error': str(e),
-                    'result': None,
+                    'data': None,
                     'metadata': {'execution_time': 0.0}
                 }
                 
@@ -167,11 +167,23 @@ class MCPExecutor:
                         
                         # Update input_data based on tool type
                         if step.tool_id == "T15A_TEXT_CHUNKER" and dependency == "T01_PDF_LOADER":
-                            # Text chunker needs document text
-                            resolved_args["input_data"]["text"] = result_data.get("text", "")
+                            # Text chunker needs document text and document_ref - T01_PDF_LOADER returns nested structure
+                            document_data = result_data.get("document", {})
+                            resolved_args["input_data"]["text"] = document_data.get("text", "")
+                            resolved_args["input_data"]["document_ref"] = document_data.get("document_ref", "")
                         elif step.tool_id == "T23A_SPACY_NER" and dependency == "T15A_TEXT_CHUNKER":
-                            # NER needs chunks
-                            resolved_args["input_data"]["chunks"] = result_data.get("chunks", [])
+                            # NER needs aggregated text from chunks
+                            chunks = result_data.get("chunks", [])
+                            if chunks:
+                                # Aggregate all chunk text
+                                all_text = " ".join(chunk.get("text", "") for chunk in chunks)
+                                # Use first chunk ref as reference
+                                chunk_ref = chunks[0].get("chunk_ref", "unknown")
+                                resolved_args["input_data"]["text"] = all_text
+                                resolved_args["input_data"]["chunk_ref"] = chunk_ref
+                            else:
+                                resolved_args["input_data"]["text"] = ""
+                                resolved_args["input_data"]["chunk_ref"] = "unknown"
                         elif step.tool_id == "T27_RELATIONSHIP_EXTRACTOR":
                             # Relationship extractor needs text and entities
                             if dependency == "T15A_TEXT_CHUNKER":
@@ -219,7 +231,7 @@ class MCPExecutor:
                     
                     return {
                         'status': 'success',
-                        'result': result_data.get('result', {}),
+                        'data': result_data.get('data', result_data),  # Use result_data directly if no 'data' key
                         'error': None,
                         'metadata': {
                             'execution_time': execution_time,
@@ -230,7 +242,7 @@ class MCPExecutor:
                     # If parsing fails, treat as text result
                     return {
                         'status': 'success',
-                        'result': {'output': content_text},
+                        'data': {'output': content_text},
                         'error': None,
                         'metadata': {'execution_time': execution_time}
                     }
@@ -242,7 +254,7 @@ class MCPExecutor:
             return {
                 'status': 'error',
                 'error': str(e),
-                'result': None,
+                'data': None,
                 'metadata': {'execution_time': execution_time}
             }
     
@@ -272,7 +284,7 @@ class MCPExecutor:
                 parallel_results[tool_id] = {
                     'status': 'error',
                     'error': str(result),
-                    'result': None,
+                    'data': None,
                     'metadata': {'execution_time': 0.0}
                 }
             else:

@@ -1,14 +1,14 @@
 # Automated Theory Extraction System Integration
 
-**Status**: Production-Ready System Integrated with KGAS Architecture  
+**Status**: Validated System Integrated with KGAS Architecture  
 **Date**: 2025-07-21  
-**Purpose**: Document the integration of the production-ready automated theory extraction system with KGAS
+**Purpose**: Document the integration of the validated automated theory extraction system with KGAS
 
 ---
 
 ## System Overview
 
-The **Automated Theory Extraction System** represents a major component integration that transforms KGAS from a prototype research system to a comprehensive computational social science platform. This system provides production-ready capabilities for automatically converting academic papers into computable, DOLCE-validated theory schemas.
+The **Automated Theory Extraction System** represents a major component integration that transforms KGAS from a prototype research system to a comprehensive computational social science platform. This system provides validated capabilities for automatically converting academic papers into computable, DOLCE-validated theory schemas.
 
 ### Integration Architecture
 
@@ -36,7 +36,7 @@ The **Automated Theory Extraction System** represents a major component integrat
 │    • Generate complete JSON Schema with validation hooks                      │
 │    • Achieve perfect analytical balance (1.000 score)                        │
 │         ↓                                                                       │
-│  📋 Production-Ready Theory Schema                                              │
+│  📋 Validated Theory Schema                                                   │
 └─────────────────────────────────────────────────────────────────────────────────┘
                               ↓
 ┌─ INTEGRATION BRIDGE ────────────────────────────────────────────────────────────┐
@@ -44,7 +44,7 @@ The **Automated Theory Extraction System** represents a major component integrat
 │  🔄 Concept Normalization                                                      │
 │    Indigenous Terms → MCL Canonical Concepts → DOLCE Validation               │
 │                                                                                 │
-│  ✅ Quality Assurance                                                          │
+│  Quality Assurance                                                          │
 │    Schema Validation → DOLCE Compliance → MCL Integration                     │
 │                                                                                 │
 │  🎯 Theory Enhancement                                                          │
@@ -65,9 +65,104 @@ The **Automated Theory Extraction System** represents a major component integrat
 
 ---
 
+## V13 Schema: Unified Theory Integration Resolution
+
+### **Theory Integration Architecture Resolved**
+
+**V13 Meta-Schema** provides **unified theory integration** supporting all three core functions:
+
+#### **1. Theory Selection for Analytical Questions** ```json
+"telos": {
+  "analytical_questions": [{
+    "question_type": "explanatory",
+    "example_questions": ["What causes group conflict?"],
+    "requires_algorithms": ["social_identity_calculation"]
+  }],
+  "value_propositions": [{
+    "for_question": "Why do groups develop bias?",
+    "provides": "In-group favoritism explanation"
+  }]
+}
+```
+**LLM Process**: Human query → Match `telos.analytical_questions` → Select relevant theories
+
+#### **2. Executable Component Generation** ```json
+"algorithms": {
+  "mathematical": [{
+    "name": "in_group_bias_strength",
+    "formula": "bias = (in_group_rating - out_group_rating) / max_rating",
+    "computational_complexity": "O(1)"
+  }],
+  "logical": [{
+    "name": "identity_threat_detection", 
+    "rules": [{"condition": "criticism_of_group", "conclusion": "identity_threat_high"}]
+  }],
+  "procedural": [{
+    "name": "bias_reduction_steps",
+    "steps": ["1. Identify common goals", "2. Create intergroup contact"]
+  }]
+}
+```
+**Code Generation**: Mathematical → Python functions, Logical → Rules engines, Procedural → Workflow steps
+
+#### **3. Ontology Provider for Entity Extraction** ```json
+"theoretical_structure": {
+  "entities": [{
+    "indigenous_name": "in-group", 
+    "description": "Social group member identifies with",
+    "properties": [{
+      "name": "identification_strength",
+      "measurement": {"type": "numeric", "range": [0, 1]}
+    }]
+  }],
+  "relations": [{
+    "indigenous_name": "competes_with",
+    "from_entity": "in-group", "to_entity": "out-group",
+    "constraints": ["asymmetric", "many-to-many"]
+  }]
+}
+```
+**Entity Extraction**: LLM uses `theoretical_structure` to identify theory-specific entities and relationships in discourse
+
+#### **4. Cross-Modal Analysis Mode Selection** ```json
+"computational_representation": {
+  "primary_format": "graph",  // LLM-selected during extraction
+  "data_structure": {
+    "graph_spec": {
+      "directed": true,
+      "node_types": ["SocialGroup", "Individual"],
+      "edge_types": ["identifies_with", "competes_with"]
+    }
+  },
+  "projections": [{
+    "format": "table",
+    "purpose": "statistical_analysis",
+    "conversion_method": "nodes_to_rows_with_centrality"
+  }]
+}
+```
+**Mode Selection**: LLM reads paper → Determines optimal `primary_format` → Guides cross-modal analysis
+
+### **Integration Workflow Resolution**
+
+**Unified V13-Based Process**:
+1. **Human Question** → `telos.analytical_questions` matching → **Theory Selection**
+2. **Selected Theory** → `algorithms` section → **Executable Component Generation** 
+3. **Theory Structure** → `theoretical_structure` → **Ontology-Guided Entity Extraction**
+4. **Theory Format** → `computational_representation.primary_format` → **Cross-Modal Mode Selection**
+5. **Analysis Results** → Full provenance back to theory schema and source discourse
+
+**Architecture Benefits**:
+- **Single Schema Source**: V13 supports all integration functions through unified structure
+- **LLM-Driven Intelligence**: Human queries drive dynamic theory selection and mode optimization  
+- **World Analysis Aligned**: All functions serve primary goal of world phenomena analysis through discourse
+- **No Integration Conflicts**: Theory selection, executable generation, and ontology provision work together seamlessly
+
+---
+
 ## Production System Specifications
 
-### **Performance Metrics** ✅ **CERTIFIED**
+### **Performance Metrics** **CERTIFIED**
 
 #### **Response Time Excellence**
 - **Average Response Time**: 0.67 seconds  
@@ -91,13 +186,7 @@ The **Automated Theory Extraction System** represents a major component integrat
 
 The system achieves unprecedented **perfect balance** across all analytical purposes:
 
-- **Descriptive Purpose**: Classification, taxonomy, structural analysis ✅
-- **Explanatory Purpose**: Mechanism identification, process modeling ✅  
-- **Predictive Purpose**: Forecasting, trend analysis, scenario generation ✅
-- **Causal Purpose**: Causal inference without over-emphasis ✅
-- **Intervention Purpose**: Action planning, implementation design ✅
-
-**Balance Coefficient**: 1.000 (Perfect)  
+- **Descriptive Purpose**: Classification, taxonomy, structural analysis - **Explanatory Purpose**: Mechanism identification, process modeling - **Predictive Purpose**: Forecasting, trend analysis, scenario generation - **Causal Purpose**: Causal inference without over-emphasis - **Intervention Purpose**: Action planning, implementation design **Balance Coefficient**: 1.000 (Perfect)  
 **Purpose Variance**: <0.02 across all categories  
 **Anti-Bias Validation**: Zero causal over-emphasis confirmed
 
@@ -125,7 +214,7 @@ The system achieves unprecedented **perfect balance** across all analytical purp
 
 ### **Implementation Components**
 
-#### **Production-Ready Extraction** (`/lit_review/`)
+#### **Validated Extraction** (`/lit_review/`)
 - **Main Processor**: `src/schema_creation/multiphase_processor_improved.py`
 - **Model Support**: Property graphs, hypergraphs, tables, sequences, trees, timelines
 - **Testing Framework**: 6 comprehensive test suites with performance validation
@@ -133,7 +222,7 @@ The system achieves unprecedented **perfect balance** across all analytical purp
 
 #### **KGAS Integration Points** (`/src/ontology_library/`)
 
-**Master Concept Library Prototype** ✅ **Complete**:
+**Master Concept Library Prototype** **Complete**:
 - **`prototype_mcl.yaml`**: 16 DOLCE-aligned concepts (5 entities, 4 connections, 4 properties, 3 modifiers)
 - **`prototype_validation.py`**: Working validation framework with real-time DOLCE compliance checking
 - **`example_theory_schemas/social_identity_theory.yaml`**: Complete theory schema demonstrating MCL integration
@@ -157,7 +246,7 @@ The system achieves unprecedented **perfect balance** across all analytical purp
 #### **Theory Extraction API**
 ```python
 class TheoryExtractionService:
-    """Production-ready theory extraction with KGAS integration."""
+    """Validated theory extraction with KGAS integration."""
     
     async def extract_theory_schema(self, paper_content: str) -> TheorySchema:
         """3-phase extraction with MCL integration."""
@@ -233,8 +322,7 @@ class IntegratedAnalysisOrchestrator:
 
 ## Current Status and Roadmap
 
-### **Production Ready** ✅
-- **Extraction Pipeline**: Complete 3-phase system with comprehensive testing
+### **Production Ready** - **Extraction Pipeline**: Complete 3-phase system with comprehensive testing
 - **Performance Validated**: Exceeds all production performance requirements
 - **Quality Certified**: Perfect analytical balance and DOLCE integration
 - **Integration Points**: Clear architectural bridges to KGAS components
@@ -255,7 +343,7 @@ class IntegratedAnalysisOrchestrator:
 
 ## Conclusion
 
-The integration of the production-ready automated theory extraction system represents a transformative advancement for KGAS, evolving it from a prototype research tool to a comprehensive computational social science platform. This integration provides:
+The integration of the validated automated theory extraction system represents a transformative advancement for KGAS, evolving it from a prototype research tool to a comprehensive computational social science platform. This integration provides:
 
 1. **Production-Grade Capabilities**: Proven performance and reliability
 2. **Perfect Analytical Balance**: Unprecedented equal treatment across all purposes

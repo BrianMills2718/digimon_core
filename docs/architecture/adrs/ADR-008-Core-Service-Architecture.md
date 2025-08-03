@@ -2,6 +2,7 @@
 
 **Status**: Accepted  
 **Date**: 2025-07-23  
+**Related**: [ADR-009](ADR-009-Bi-Store-Database-Strategy.md) (Database storage for services)  
 **Context**: System requires coordinated services for identity management, provenance tracking, quality assessment, and workflow state management.
 
 ## Decision

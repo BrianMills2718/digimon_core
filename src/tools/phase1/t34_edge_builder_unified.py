@@ -1,3 +1,4 @@
+from src.core.standard_config import get_database_uri
 """
 T34 Edge Builder Unified Tool
 
@@ -7,6 +8,7 @@ Implements unified BaseTool interface with comprehensive edge building capabilit
 
 import uuid
 import logging
+import os
 from datetime import datetime
 from typing import Dict, Any, List, Optional
 
@@ -35,7 +37,7 @@ class T34EdgeBuilderUnified(BaseTool):
     
     def __init__(self, service_manager: ServiceManager):
         super().__init__(service_manager)
-        self.tool_id = "T34"
+        self.tool_id = "T34_EDGE_BUILDER"
         self.name = "Edge Builder"
         self.category = "graph_construction"
         self.service_manager = service_manager
@@ -62,10 +64,16 @@ class T34EdgeBuilderUnified(BaseTool):
             return
         
         try:
-            # Use default Neo4j settings - in production these would come from config
-            neo4j_uri = "bolt://localhost:7687"
-            neo4j_user = "neo4j"
-            neo4j_password = "password"
+            # Load environment variables 
+            from dotenv import load_dotenv
+            from pathlib import Path
+            env_path = Path(__file__).parent.parent.parent.parent / '.env'
+            load_dotenv(env_path)
+            
+            # Get Neo4j settings from environment
+            neo4j_uri = get_database_uri()
+            neo4j_user = os.getenv('NEO4J_USER', 'neo4j')
+            neo4j_password = os.getenv('NEO4J_PASSWORD', '')
             
             self.driver = GraphDatabase.driver(
                 neo4j_uri, 
@@ -717,3 +725,23 @@ class T34EdgeBuilderUnified(BaseTool):
             "dependencies": ["neo4j"],
             "storage_backend": "neo4j"
         }
+
+    def build_edges(self, relationships: List[Dict[str, Any]], source_refs: List[str]) -> Dict[str, Any]:
+        """MCP-compatible method for building edges from relationships"""
+        from src.tools.base_tool import ToolRequest
+        
+        request = ToolRequest(
+            tool_id=self.tool_id,
+            operation="build_edges",
+            input_data={
+                "relationships": relationships,
+                "source_refs": source_refs
+            },
+            parameters={}
+        )
+        
+        result = self.execute(request)
+        if result.status == "success":
+            return result.data
+        else:
+            return {"error": result.error_message, "error_code": result.error_code}

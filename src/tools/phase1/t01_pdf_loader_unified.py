@@ -25,7 +25,7 @@ class T01PDFLoaderUnified(BaseTool):
     def __init__(self, service_manager: ServiceManager):
         """Initialize with service manager"""
         super().__init__(service_manager)
-        self.tool_id = "T01"
+        self.tool_id = "T01_PDF_LOADER"
         self.identity_service = service_manager.identity_service
         self.provenance_service = service_manager.provenance_service
         self.quality_service = service_manager.quality_service
@@ -123,7 +123,7 @@ class T01PDFLoaderUnified(BaseTool):
             operation_id = self.provenance_service.start_operation(
                 tool_id=self.tool_id,
                 operation_type="load_document",
-                used={},
+                inputs=[],
                 parameters={
                     "file_path": str(file_path),
                     "workflow_id": workflow_id

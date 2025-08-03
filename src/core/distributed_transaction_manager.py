@@ -20,6 +20,11 @@ import aiosqlite
 logger = logging.getLogger(__name__)
 
 
+class TransactionError(Exception):
+    """Base class for transaction-related errors."""
+    pass
+
+
 class TransactionStatus(Enum):
     """Transaction status enum."""
     ACTIVE = "active"
@@ -31,6 +36,17 @@ class TransactionStatus(Enum):
     ROLLED_BACK = "rolled_back"
     FAILED = "failed"
     PARTIAL_FAILURE = "partial_failure"
+
+
+@dataclass 
+class TransactionOperation:
+    """Represents a single operation within a transaction."""
+    operation_type: str  # "query", "create", "update", "delete"
+    target_database: str  # "neo4j" or "sqlite"
+    query: str
+    parameters: Dict[str, Any] = field(default_factory=dict)
+    rollback_query: Optional[str] = None
+    rollback_parameters: Dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass

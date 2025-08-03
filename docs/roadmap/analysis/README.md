@@ -1,38 +1,40 @@
-# KGAS Codebase Analysis
+# Analysis Directory
 
-Systematic analysis findings from initial codebase review and ongoing investigations.
+This directory contains architectural analysis and system analysis documents.
 
-## 📁 Analysis Categories
+## Directory Structure
 
-### 🏗️ Codebase Structure (`/codebase/`)
-- **[Abstractions](./codebase/abstractions.md)** - Architecture patterns and redundancy analysis
-- **[Dependencies](./codebase/dependencies.md)** - External dependencies and integration health
-- **[Input Validation](./codebase/input-validation.md)** - Security and contract validation coverage
+### Architecture Analysis (`/architecture/`)
+High-level architectural analysis documents:
+- `ARCHITECTURAL_BOTTLENECKS_ANALYSIS.md`
+- `ARCHITECTURAL_STABILITY_REVIEW.md`
 
-### ⚡ Performance (`/performance/`)
-- **[Concurrency Analysis](./performance/concurrency-anyio-vs-asyncio.md)** - AnyIO vs AsyncIO performance comparison
+### KGAS-Specific Analysis (`/kgas-specific/`)
+Detailed KGAS system analysis documents:
+- `KGAS_01_Core_Architecture_and_Vision.md`
+- `KGAS_02_Theoretical_Framework_and_Data.md`
+- `KGAS_03_Analysis_and_Integration_Architecture.md`
+- `KGAS_04_Architecture_Decisions_and_Extensions.md`
+- `KGAS_ADR_Index.md`
+- `KGAS_All_Architecture_Decision_Records.md`
+- `KGAS_Architecture_Index.md`
+- `KGAS_COMPREHENSIVE_ARCHITECTURE.md`
+- `kgas_reproducibility_comparison.md`
+- `kgas_with_claude_code.md`
 
-### 🛠️ Operations (`/operations/`)
-- **[Environment Setup](./operations/env-setup.md)** - Configuration and environment documentation
-- **[Monitoring & Observability](./operations/monitoring-observability.md)** - Logging, metrics, and health monitoring
+## Purpose
 
-### 📋 Completed (`/completed/`)
-- Historical analysis files and completed investigations
+These files provide:
+- **System-wide analysis** of architectural patterns and bottlenecks
+- **Comprehensive documentation** of KGAS architecture decisions
+- **Index documents** for navigating complex architectural information
 
-## 🔄 Analysis Status
+## Relationship to Other Documentation
 
-| Category | Status | Key Findings | Actions Taken |
-|----------|--------|--------------|---------------|
-| **Abstractions** | ✅ Complete | Config redundancy, tool adapter consolidation needed | Phase 1 addressed |
-| **Dependencies** | ✅ Complete | Core deps solid, health checks needed | Implemented in Phase 5 |
-| **Input Validation** | ✅ Complete | Strong foundation, API response gaps | Addressed in unified tools |
-| **Concurrency** | 📋 Active | 40-70% perf gains possible with AnyIO | Planned for Phase 7 |
-| **Monitoring** | ✅ Complete | Good foundation, needs metrics/dashboards | Ongoing |
-| **Environment** | ✅ Complete | Config consolidation completed | Phase 1 addressed |
+- **Target Architecture**: [docs/architecture/ARCHITECTURE_OVERVIEW.md](../docs/architecture/ARCHITECTURE_OVERVIEW.md)
+- **Implementation Status**: [docs/roadmap/ROADMAP_OVERVIEW.md](../docs/roadmap/ROADMAP_OVERVIEW.md)
+- **Evidence**: [../evidence/README.md](../evidence/README.md)
 
-## 📊 Key Impact Summary
+---
 
-- **Configuration Systems**: 3 → 1 (consolidated)
-- **Performance Opportunity**: 40-70% gains with AnyIO migration
-- **Validation Coverage**: Strong foundation, enhanced in unified tools
-- **Monitoring Foundation**: Excellent logging, metrics expansion planned 
+*These analysis documents were consolidated from repository root for better organization.*

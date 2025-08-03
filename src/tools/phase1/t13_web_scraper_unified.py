@@ -21,7 +21,7 @@ class T13WebScraperUnified(BaseTool):
     
     def __init__(self, service_manager):
         super().__init__(service_manager)
-        self.tool_id = "T13"
+        self.tool_id = "T13_WEB_SCRAPER"
         self.name = "Web Scraper"
         self.category = "document_processing"
         self.service_manager = service_manager  # Add explicit reference

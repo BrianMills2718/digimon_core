@@ -27,7 +27,7 @@ class T10ExcelLoaderUnified(BaseTool):
     def __init__(self, service_manager: ServiceManager):
         """Initialize with service manager"""
         super().__init__(service_manager)
-        self.tool_id = "T10"
+        self.tool_id = "T10_EXCEL_LOADER"
         self.identity_service = service_manager.identity_service
         self.provenance_service = service_manager.provenance_service
         self.quality_service = service_manager.quality_service

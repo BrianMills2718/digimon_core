@@ -1,103 +1,218 @@
-"""LLM Integration Component (<300 lines)
+"""LLM Integration Component - Standardized on EnhancedAPIClient
 
-Handles integration with Large Language Models (OpenAI and Gemini) for entity extraction.
-Provides mock APIs for testing and fallback mechanisms.
+Handles integration with Large Language Models using the proven EnhancedAPIClient.
+Provides automatic fallbacks, rate limiting, and production-ready features.
 """
 
 import json
 import logging
+import asyncio
 from typing import Dict, Any, List, Optional
 from datetime import datetime
+
+try:
+    from ...core.enhanced_api_client import EnhancedAPIClient
+    from ...core.api_auth_manager import APIAuthManager
+    from ...core.standard_config import get_model
+except ImportError:
+    from src.core.enhanced_api_client import EnhancedAPIClient
+    from src.core.api_auth_manager import APIAuthManager
+    from src.core.standard_config import get_model
 
 logger = logging.getLogger(__name__)
 
 
 class LLMExtractionClient:
-    """Client for LLM-based entity extraction."""
+    """Client for LLM-based entity extraction using EnhancedAPIClient."""
     
-    def __init__(self, api_client=None, auth_manager=None):
-        """Initialize LLM extraction client."""
-        self.api_client = api_client
-        self.auth_manager = auth_manager
+    def __init__(self, api_client: Optional[EnhancedAPIClient] = None, auth_manager: Optional[APIAuthManager] = None):
+        """Initialize LLM extraction client with EnhancedAPIClient."""
+        if api_client is None:
+            # Create client with auth manager
+            if auth_manager is None:
+                auth_manager = APIAuthManager()
+            self.api_client = EnhancedAPIClient(auth_manager)
+        else:
+            self.api_client = api_client
         
         # Check API availability
-        self.openai_available = False
-        self.google_available = False
+        self.openai_available = self.api_client.auth_manager.is_service_available("openai")
+        self.google_available = self.api_client.auth_manager.is_service_available("google")
         
-        if auth_manager:
-            self.openai_available = auth_manager.is_service_available("openai")
-            self.google_available = auth_manager.is_service_available("google")
-        
-        logger.info(f"LLM services available - OpenAI: {self.openai_available}, Google: {self.google_available}")
+        logger.info("LLM extraction client initialized with EnhancedAPIClient")
     
-    def extract_entities_openai(self, text: str, ontology: 'DomainOntology') -> Dict[str, Any]:
-        """Extract entities using OpenAI GPT."""
-        if not self.openai_available or not self.api_client:
-            logger.warning("OpenAI not available, using fallback")
-            return self._fallback_extraction(text, ontology)
-        
+    def _get_default_model(self) -> str:
+        """Get default model from standard config"""
+        return get_model("llm_extraction")
+    
+    async def extract_entities(self, text: str, ontology: 'DomainOntology', model: Optional[str] = None) -> Dict[str, Any]:
+        """Extract entities using structured output with automatic fallbacks."""
         try:
-            # Prepare extraction prompt
-            prompt = self._build_openai_prompt(text, ontology)
+            # Check if structured output is enabled for entity extraction
+            try:
+                from ...core.feature_flags import is_structured_output_enabled
+                use_structured = is_structured_output_enabled("entity_extraction")
+            except ImportError:
+                logger.warning("Feature flags not available, using legacy extraction")
+                use_structured = False
             
-            # Make API request
-            response = self._make_openai_request(prompt)
+            if use_structured:
+                logger.info("Using structured output for entity extraction")
+                return await self._extract_entities_structured(text, ontology, model)
+            else:
+                logger.info("Using legacy extraction method")
+                return await self._extract_entities_legacy(text, ontology, model)
+                
+        except Exception as e:
+            logger.error(f"LLM extraction error: {e}")
+            return self._fallback_extraction(text, ontology)
+    
+    async def _extract_entities_structured(self, text: str, ontology: 'DomainOntology', model: Optional[str] = None) -> Dict[str, Any]:
+        """Extract entities using structured output with Pydantic validation."""
+        try:
+            from ...core.structured_llm_service import get_structured_llm_service
+            from ...orchestration.reasoning_schema import LLMExtractionResponse
             
-            # Parse and validate response
-            extraction_result = self._parse_openai_response(response, ontology)
+            # Get structured LLM service
+            structured_llm = get_structured_llm_service()
             
-            logger.info(f"OpenAI extraction completed: {len(extraction_result.get('entities', []))} entities")
+            # Build extraction prompt optimized for structured output
+            prompt = self._build_structured_extraction_prompt(text, ontology)
+            
+            # Use structured output for entity extraction
+            validated_response = structured_llm.structured_completion(
+                prompt=prompt,
+                schema=LLMExtractionResponse,
+                model=model or "smart",  # Use Universal LLM Kit model names
+                temperature=0.1,  # Low temperature for consistent extraction
+                max_tokens=16000  # Sufficient for entity extraction
+            )
+            
+            # Convert Pydantic response to legacy format for compatibility
+            extraction_result = self._convert_structured_to_legacy_format(validated_response, ontology)
+            
+            # Add metadata
+            extraction_result["llm_metadata"] = {
+                "model_used": "structured_output",
+                "extraction_method": "pydantic_validation",
+                "task_type": "extraction",
+                "ontology_domain": ontology.domain_name if ontology else "unknown"
+            }
+            
+            logger.info(f"Structured extraction completed: {len(extraction_result.get('entities', []))} entities")
             return extraction_result
             
         except Exception as e:
-            logger.error(f"OpenAI extraction failed: {e}")
+            logger.error(f"Structured extraction failed: {e}")
+            # Fail fast as per coding philosophy - no fallback to manual parsing
+            raise Exception(f"Structured entity extraction failed: {e}")
+    
+    async def _extract_entities_legacy(self, text: str, ontology: 'DomainOntology', model: Optional[str] = None) -> Dict[str, Any]:
+        """Legacy entity extraction method (will be deprecated after migration)."""
+        # Build extraction prompt optimized for entity extraction
+        prompt = self._build_extraction_prompt(text, ontology)
+        
+        # Use EnhancedAPIClient for LLM request
+        response = self.api_client.make_request(
+            prompt=prompt,
+            model=model or self._get_default_model(),  # Use config model if none specified
+            temperature=0.1,  # Low temperature for consistent extraction
+            max_tokens=2048,
+            request_type="chat_completion",
+            use_fallback=True  # Enable automatic fallbacks
+        )
+        
+        if response.success:
+            # Parse and validate response
+            extraction_result = self._parse_llm_response(response.response_data, ontology)
+            
+            # Add metadata from EnhancedAPIClient
+            extraction_result["llm_metadata"] = {
+                "model_used": response.service_used,
+                "execution_time": response.processing_time,
+                "fallback_used": response.fallback_used,
+                "task_type": "extraction"
+            }
+            
+            logger.info(f"LLM extraction completed: {len(extraction_result.get('entities', []))} entities using {response.service_used}")
+            return extraction_result
+        else:
+            logger.error(f"LLM extraction failed: {response.error_message}")
             return self._fallback_extraction(text, ontology)
+    
+    # Backward compatibility methods - delegate to unified method
+    def extract_entities_openai(self, text: str, ontology: 'DomainOntology') -> Dict[str, Any]:
+        """Legacy method for OpenAI extraction - delegates to unified method."""
+        logger.warning("extract_entities_openai is deprecated. Use extract_entities() instead.")
+        return asyncio.run(self.extract_entities(text, ontology, model=self._get_default_model()))
     
     def extract_entities_gemini(self, text: str, ontology: 'DomainOntology') -> Dict[str, Any]:
-        """Extract entities using Google Gemini."""
-        if not self.google_available or not self.api_client:
-            logger.warning("Gemini not available, using fallback")
-            return self._fallback_extraction(text, ontology)
-        
-        try:
-            # Prepare extraction prompt
-            prompt = self._build_gemini_prompt(text, ontology)
-            
-            # Make API request
-            response = self._make_gemini_request(prompt)
-            
-            # Parse and validate response
-            extraction_result = self._parse_gemini_response(response, ontology)
-            
-            logger.info(f"Gemini extraction completed: {len(extraction_result.get('entities', []))} entities")
-            return extraction_result
-            
-        except Exception as e:
-            logger.error(f"Gemini extraction failed: {e}")
-            return self._fallback_extraction(text, ontology)
+        """Legacy method for Gemini extraction - delegates to unified method."""
+        logger.warning("extract_entities_gemini is deprecated. Use extract_entities() instead.")
+        return asyncio.run(self.extract_entities(text, ontology, model=self._get_default_model()))
     
-    def _build_openai_prompt(self, text: str, ontology: 'DomainOntology') -> str:
-        """Build structured prompt for OpenAI."""
+    def _make_openai_request(self, prompt: str, **kwargs) -> Dict[str, Any]:
+        """Internal method for OpenAI requests - uses EnhancedAPIClient."""
+        response = self.api_client.make_request(
+            prompt=prompt,
+            model=self._get_default_model(),
+            request_type="chat_completion",
+            use_fallback=False,
+            **kwargs
+        )
+        return {
+            "success": response.success,
+            "content": response.response_data,
+            "model": response.service_used,
+            "error": response.error_message
+        }
+    
+    def _make_gemini_request(self, prompt: str, **kwargs) -> Dict[str, Any]:
+        """Internal method for Gemini requests - uses EnhancedAPIClient."""
+        response = self.api_client.make_request(
+            prompt=prompt,
+            model=self._get_default_model(),
+            request_type="chat_completion",
+            use_fallback=False,
+            **kwargs
+        )
+        return {
+            "success": response.success,
+            "content": response.response_data,
+            "model": response.service_used,
+            "error": response.error_message
+        }
+    
+    def _build_extraction_prompt(self, text: str, ontology: 'DomainOntology') -> str:
+        """Build unified extraction prompt optimized for any LLM provider."""
         entity_types = [et.name for et in ontology.entity_types]
         relationship_types = [rt.name for rt in ontology.relationship_types]
         
-        prompt = f"""
-Extract entities and relationships from the following text using the provided ontology.
+        prompt = f"""Extract entities and relationships from the following text using the provided ontology.
 
-Domain: {ontology.domain_name}
-Description: {ontology.domain_description}
+DOMAIN: {ontology.domain_name}
+DESCRIPTION: {ontology.domain_description}
 
-Entity Types: {', '.join(entity_types)}
-Relationship Types: {', '.join(relationship_types)}
+ENTITY TYPES TO EXTRACT:
+{chr(10).join(f"- {et}" for et in entity_types)}
 
-Text to analyze:
+RELATIONSHIP TYPES TO EXTRACT:
+{chr(10).join(f"- {rt}" for rt in relationship_types)}
+
+TEXT TO ANALYZE:
 {text}
 
-Return the result as JSON with the following structure:
+INSTRUCTIONS:
+1. Extract only entities that clearly belong to the specified types
+2. Extract relationships that clearly match the specified types
+3. Provide confidence scores (0.0-1.0) for each extraction
+4. Use exact text spans from the original text
+
+Return the result as valid JSON with this exact structure:
 {{
     "entities": [
         {{
-            "text": "entity mention",
+            "text": "exact text span from original",
             "type": "ENTITY_TYPE",
             "confidence": 0.0-1.0,
             "context": "surrounding context"
@@ -118,210 +233,199 @@ Focus on entities that clearly belong to the specified types and relationships t
 """
         return prompt
     
-    def _build_gemini_prompt(self, text: str, ontology: 'DomainOntology') -> str:
-        """Build structured prompt for Gemini."""
-        # Similar to OpenAI but with Gemini-specific formatting
-        entity_examples = []
-        for et in ontology.entity_types[:3]:  # Limit examples
-            entity_examples.extend(et.examples[:2])
+    def _build_structured_extraction_prompt(self, text: str, ontology: 'DomainOntology') -> str:
+        """Build extraction prompt optimized for structured output with Pydantic validation."""
+        entity_types = [et.name for et in ontology.entity_types]
+        relationship_types = [rt.name for rt in ontology.relationship_types]
         
-        relationship_examples = []
-        for rt in ontology.relationship_types[:3]:
-            relationship_examples.extend(rt.examples[:2])
-        
-        prompt = f"""
-Analyze the following text and extract entities and relationships based on the ontology.
+        prompt = f"""Extract entities and relationships from the following text using the provided ontology.
 
-Domain: {ontology.domain_name}
+DOMAIN: {ontology.domain_name}
+DESCRIPTION: {ontology.domain_description}
 
-Entity Types with Examples:
-"""
-        
-        for et in ontology.entity_types:
-            prompt += f"- {et.name}: {et.description} (e.g., {', '.join(et.examples[:2])})\n"
-        
-        prompt += f"\nRelationship Types with Examples:\n"
-        for rt in ontology.relationship_types:
-            prompt += f"- {rt.name}: {rt.description} (e.g., {', '.join(rt.examples[:1])})\n"
-        
-        prompt += f"""
-Text: {text}
+ENTITY TYPES TO EXTRACT:
+{chr(10).join(f"- {et}" for et in entity_types)}
 
-Extract entities and relationships in JSON format:
-{{
-    "entities": [
-        {{"text": "entity", "type": "TYPE", "confidence": 0.9, "context": "context"}}
-    ],
-    "relationships": [
-        {{"source": "entity1", "target": "entity2", "relation": "TYPE", "confidence": 0.8}}
-    ]
-}}
+RELATIONSHIP TYPES TO EXTRACT:
+{chr(10).join(f"- {rt}" for rt in relationship_types)}
+
+TEXT TO ANALYZE:
+{text}
+
+INSTRUCTIONS:
+1. Extract only entities that clearly belong to the specified types
+2. Extract relationships that clearly match the specified types
+3. Provide confidence scores (0.0-1.0) for each extraction
+4. Use exact text spans from the original text
+5. Include character positions when possible
+6. Provide surrounding context for each entity/relationship
+
+Focus on entities that clearly belong to the specified types and relationships that are explicitly stated or strongly implied.
+Respond with structured JSON that will be validated against a Pydantic schema.
 """
         return prompt
     
-    def _make_openai_request(self, prompt: str) -> str:
-        """Make request to OpenAI API using LiteLLM universal client."""
-        if not self.api_client:
-            raise Exception("API client not available")
-        
+    def _convert_structured_to_legacy_format(self, structured_response: 'LLMExtractionResponse', ontology: 'DomainOntology') -> Dict[str, Any]:
+        """Convert structured Pydantic response to legacy format for compatibility."""
         try:
-            # Use new LiteLLM-based API client interface
-            response = self.api_client.make_request(
-                service="openai",
-                request_type="chat_completion", 
-                prompt=prompt,
-                max_tokens=2000,
-                temperature=0.1,
-                model="gpt_4o_mini"  # Use configured default model
-            )
+            # Convert entities to legacy format
+            processed_entities = []
+            for entity in structured_response.entities:
+                processed_entities.append({
+                    'text': entity.text,
+                    'type': entity.type,
+                    'confidence': entity.confidence,
+                    'context': entity.context,
+                    'start_pos': entity.start_pos,
+                    'end_pos': entity.end_pos,
+                    'extraction_method': 'structured_llm',
+                    'timestamp': datetime.now().isoformat()
+                })
             
-            if response.success:
-                return response.response_data  # Updated field name
+            # Convert relationships to legacy format
+            processed_relationships = []
+            for relationship in structured_response.relationships:
+                processed_relationships.append({
+                    'source': relationship.source,
+                    'target': relationship.target,
+                    'relation': relationship.relation,
+                    'confidence': relationship.confidence,
+                    'context': relationship.context,
+                    'extraction_method': 'structured_llm',
+                    'timestamp': datetime.now().isoformat()
+                })
+            
+            return {
+                'entities': processed_entities,
+                'relationships': processed_relationships,
+                'extraction_stats': {
+                    'entities_extracted': len(processed_entities),
+                    'relationships_extracted': len(processed_relationships),
+                    'extraction_timestamp': datetime.now().isoformat(),
+                    'extraction_confidence': structured_response.extraction_confidence,
+                    'ontology_domain': structured_response.ontology_domain
+                }
+            }
+            
+        except Exception as e:
+            logger.error(f"Error converting structured response to legacy format: {e}")
+            raise Exception(f"Failed to convert structured response: {e}")
+    
+    def _parse_llm_response(self, response_content: str, ontology: 'DomainOntology') -> Dict[str, Any]:
+        """Parse LLM response into structured extraction result."""
+        try:
+            # Try to parse as JSON first
+            if response_content.strip().startswith('{'):
+                extraction_data = json.loads(response_content)
             else:
-                raise Exception(f"OpenAI request failed: {response.error}")
-                
+                # Handle cases where LLM returns text before JSON
+                json_start = response_content.find('{')
+                json_end = response_content.rfind('}') + 1
+                if json_start >= 0 and json_end > json_start:
+                    json_text = response_content[json_start:json_end]
+                    extraction_data = json.loads(json_text)
+                else:
+                    raise ValueError("No valid JSON found in response")
+            
+            # Validate and process entities
+            processed_entities = []
+            for entity in extraction_data.get('entities', []):
+                if self._validate_entity(entity, ontology):
+                    processed_entities.append({
+                        'text': entity.get('text', ''),
+                        'type': entity.get('type', ''),
+                        'confidence': float(entity.get('confidence', 0.0)),
+                        'context': entity.get('context', ''),
+                        'extraction_method': 'llm',
+                        'timestamp': datetime.now().isoformat()
+                    })
+            
+            # Validate and process relationships
+            processed_relationships = []
+            for relationship in extraction_data.get('relationships', []):
+                if self._validate_relationship(relationship, ontology):
+                    processed_relationships.append({
+                        'source': relationship.get('source', ''),
+                        'target': relationship.get('target', ''),
+                        'relation': relationship.get('relation', ''),
+                        'confidence': float(relationship.get('confidence', 0.0)),
+                        'context': relationship.get('context', ''),
+                        'extraction_method': 'llm',
+                        'timestamp': datetime.now().isoformat()
+                    })
+            
+            return {
+                'entities': processed_entities,
+                'relationships': processed_relationships,
+                'extraction_stats': {
+                    'entities_extracted': len(processed_entities),
+                    'relationships_extracted': len(processed_relationships),
+                    'extraction_timestamp': datetime.now().isoformat()
+                }
+            }
+            
+        except (json.JSONDecodeError, ValueError) as e:
+            logger.error(f"Failed to parse LLM response as JSON: {e}")
+            logger.debug(f"Response content: {response_content[:500]}...")
+            return self._fallback_extraction("", ontology)
         except Exception as e:
-            logger.error(f"OpenAI API request failed: {e}")
-            raise
+            logger.error(f"Error processing LLM response: {e}")
+            return self._fallback_extraction("", ontology)
     
-    def _make_gemini_request(self, prompt: str) -> str:
-        """Make request to Gemini API using LiteLLM universal client."""
-        if not self.api_client:
-            raise Exception("API client not available")
-        
+    def _validate_entity(self, entity: Dict[str, Any], ontology: 'DomainOntology') -> bool:
+        """Validate extracted entity against ontology."""
         try:
-            # Use new LiteLLM-based API client interface
-            response = self.api_client.make_request(
-                service="gemini",
-                request_type="chat_completion",
-                prompt=prompt,
-                max_tokens=2000,
-                temperature=0.1,
-                model="gemini_flash"  # Use configured default model
-            )
+            # Check required fields
+            if not entity.get('text') or not entity.get('type'):
+                return False
             
-            if response.success:
-                return response.response_data  # Updated field name
-            else:
-                raise Exception(f"Gemini request failed: {response.error}")
-                
+            # Check confidence score
+            confidence = entity.get('confidence', 0.0)
+            if not isinstance(confidence, (int, float)) or confidence < 0.0 or confidence > 1.0:
+                return False
+            
+            # Check if entity type exists in ontology
+            valid_types = {et.name for et in ontology.entity_types}
+            if entity.get('type') not in valid_types:
+                return False
+            
+            # Check if text is not empty
+            if not entity.get('text', '').strip():
+                return False
+            
+            return True
+            
         except Exception as e:
-            logger.error(f"Gemini API request failed: {e}")
-            raise
+            logger.error(f"Entity validation error: {e}")
+            return False
     
-    def _parse_openai_response(self, response: str, ontology: 'DomainOntology') -> Dict[str, Any]:
-        """Parse and validate OpenAI response."""
+    def _validate_relationship(self, relationship: Dict[str, Any], ontology: 'DomainOntology') -> bool:
+        """Validate extracted relationship against ontology."""
         try:
-            # Extract JSON from response
-            json_str = self._extract_json_from_response(response)
-            result = json.loads(json_str)
+            # Check required fields
+            required_fields = ['source', 'target', 'relation']
+            if not all(relationship.get(field) for field in required_fields):
+                return False
             
-            # Validate and clean result
-            return self._validate_extraction_result(result, ontology)
+            # Check confidence score
+            confidence = relationship.get('confidence', 0.0)
+            if not isinstance(confidence, (int, float)) or confidence < 0.0 or confidence > 1.0:
+                return False
+            
+            # Check if relationship type exists in ontology
+            valid_relations = {rt.name for rt in ontology.relationship_types}
+            if relationship.get('relation') not in valid_relations:
+                return False
+            
+            # Check if source and target are not empty
+            if not relationship.get('source', '').strip() or not relationship.get('target', '').strip():
+                return False
+            
+            return True
             
         except Exception as e:
-            logger.error(f"Failed to parse OpenAI response: {e}")
-            return {"entities": [], "relationships": []}
-    
-    def _parse_gemini_response(self, response: str, ontology: 'DomainOntology') -> Dict[str, Any]:
-        """Parse and validate Gemini response."""
-        try:
-            # Extract JSON from response
-            json_str = self._extract_json_from_response(response)
-            result = json.loads(json_str)
-            
-            # Validate and clean result
-            return self._validate_extraction_result(result, ontology)
-            
-        except Exception as e:
-            logger.error(f"Failed to parse Gemini response: {e}")
-            return {"entities": [], "relationships": []}
-    
-    def _extract_json_from_response(self, response: str) -> str:
-        """Extract JSON content from LLM response."""
-        # Find JSON block in response
-        start_markers = ['{', '```json', '```']
-        end_markers = ['}', '```']
-        
-        # Find start of JSON
-        start_idx = -1
-        for marker in start_markers:
-            idx = response.find(marker)
-            if idx != -1:
-                start_idx = idx if marker == '{' else response.find('{', idx)
-                break
-        
-        if start_idx == -1:
-            raise ValueError("No JSON found in response")
-        
-        # Find end of JSON by matching braces
-        brace_count = 0
-        end_idx = start_idx
-        
-        for i, char in enumerate(response[start_idx:], start_idx):
-            if char == '{':
-                brace_count += 1
-            elif char == '}':
-                brace_count -= 1
-                if brace_count == 0:
-                    end_idx = i + 1
-                    break
-        
-        return response[start_idx:end_idx]
-    
-    def _validate_extraction_result(self, result: Dict[str, Any], 
-                                  ontology: 'DomainOntology') -> Dict[str, Any]:
-        """Validate and clean extraction result."""
-        valid_entity_types = {et.name for et in ontology.entity_types}
-        valid_relationship_types = {rt.name for rt in ontology.relationship_types}
-        
-        # Validate entities
-        valid_entities = []
-        for entity in result.get('entities', []):
-            if (isinstance(entity, dict) and 
-                'text' in entity and 
-                'type' in entity and
-                entity['type'] in valid_entity_types):
-                
-                # Ensure required fields
-                entity.setdefault('confidence', 0.8)
-                entity.setdefault('context', '')
-                
-                # Validate confidence
-                if not isinstance(entity['confidence'], (int, float)):
-                    entity['confidence'] = 0.8
-                entity['confidence'] = max(0.0, min(1.0, float(entity['confidence'])))
-                
-                valid_entities.append(entity)
-        
-        # Validate relationships
-        valid_relationships = []
-        entity_texts = {e['text'] for e in valid_entities}
-        
-        for rel in result.get('relationships', []):
-            if (isinstance(rel, dict) and
-                'source' in rel and
-                'target' in rel and
-                'relation' in rel and
-                rel['relation'] in valid_relationship_types and
-                rel['source'] in entity_texts and
-                rel['target'] in entity_texts):
-                
-                # Ensure required fields
-                rel.setdefault('confidence', 0.7)
-                rel.setdefault('context', '')
-                
-                # Validate confidence
-                if not isinstance(rel['confidence'], (int, float)):
-                    rel['confidence'] = 0.7
-                rel['confidence'] = max(0.0, min(1.0, float(rel['confidence'])))
-                
-                valid_relationships.append(rel)
-        
-        return {
-            'entities': valid_entities,
-            'relationships': valid_relationships
-        }
+            logger.error(f"Relationship validation error: {e}")
+            return False
     
     def _fallback_extraction(self, text: str, ontology: 'DomainOntology') -> Dict[str, Any]:
         """Fallback extraction when LLMs are not available."""
@@ -398,53 +502,3 @@ Extract entities and relationships in JSON format:
             'relationships': relationships  # No relationship extraction in fallback
         }
 
-
-class MockAPIProvider:
-    """Provides mock LLM responses for testing."""
-    
-    def __init__(self):
-        self.call_count = 0
-        
-    def mock_extract(self, text: str, ontology: 'DomainOntology') -> Dict[str, Any]:
-        """Generate mock extraction results."""
-        self.call_count += 1
-        
-        # Generate mock entities based on ontology types
-        mock_entities = []
-        mock_relationships = []
-        
-        # Simple text analysis for mock data
-        words = text.lower().split()
-        
-        # Mock entity generation
-        for i, entity_type in enumerate(ontology.entity_types[:3]):  # Limit to 3 types
-            if i < len(entity_type.examples):
-                mock_entities.append({
-                    'text': entity_type.examples[i],
-                    'type': entity_type.name,
-                    'confidence': 0.8 + (i * 0.05),
-                    'context': f"Mock context for {entity_type.examples[i]}"
-                })
-        
-        # Mock relationship generation
-        if len(mock_entities) >= 2 and ontology.relationship_types:
-            rel_type = ontology.relationship_types[0]
-            mock_relationships.append({
-                'source': mock_entities[0]['text'],
-                'target': mock_entities[1]['text'],
-                'relation': rel_type.name,
-                'confidence': 0.75,
-                'context': f"Mock relationship between entities"
-            })
-        
-        logger.info(f"Mock extraction #{self.call_count}: {len(mock_entities)} entities, {len(mock_relationships)} relationships")
-        
-        return {
-            'entities': mock_entities,
-            'relationships': mock_relationships,
-            'metadata': {
-                'extraction_method': 'mock',
-                'call_count': self.call_count,
-                'timestamp': datetime.now().isoformat()
-            }
-        }

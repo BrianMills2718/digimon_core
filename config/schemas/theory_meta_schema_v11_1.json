@@ -1,0 +1,588 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Theory Meta-Schema v11.1",
+  "description": "Refined framework enforcing two-stage analysis with practical usability improvements",
+  "version": "11.1",
+  "type": "object",
+  "required": [
+    "theory_id",
+    "theory_name",
+    "version",
+    "classification",
+    "ontology",
+    "execution",
+    "telos"
+  ],
+  "properties": {
+    "theory_id": {
+      "type": "string",
+      "pattern": "^[a-z_][a-z0-9_]*$",
+      "description": "Unique identifier for the theory"
+    },
+    "theory_name": {
+      "type": "string",
+      "description": "Human-readable name of the theory"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+(\\.\\d+)?$",
+      "description": "Semantic version of this theory schema"
+    },
+    "authors": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Key theorists and contributors"
+    },
+    "publication_year": {
+      "type": "integer",
+      "minimum": 1900,
+      "maximum": 2030,
+      "description": "Year of seminal publication"
+    },
+    "description": {
+      "type": "string",
+      "description": "Concise summary of the theory"
+    },
+    "classification": {
+      "type": "object",
+      "required": [
+        "domain"
+      ],
+      "properties": {
+        "domain": {
+          "type": "object",
+          "required": [
+            "level",
+            "component",
+            "metatheory"
+          ],
+          "properties": {
+            "level": {
+              "type": "string",
+              "enum": [
+                "Micro",
+                "Meso",
+                "Macro"
+              ],
+              "description": "Level of analysis"
+            },
+            "component": {
+              "type": "string",
+              "enum": [
+                "Who",
+                "Whom",
+                "What",
+                "Channel",
+                "Effect"
+              ],
+              "description": "Component of influence"
+            },
+            "metatheory": {
+              "type": "string",
+              "enum": [
+                "Agentic",
+                "Structural",
+                "Interdependent"
+              ],
+              "description": "Causal metatheory"
+            }
+          }
+        },
+        "complexity_tier": {
+          "type": "string",
+          "enum": [
+            "direct",
+            "heuristic",
+            "simplified"
+          ],
+          "description": "Operationalization complexity level"
+        }
+      }
+    },
+    "theoretical_scope": {
+      "type": "object",
+      "required": [
+        "authors_stated_domain"
+      ],
+      "description": "Theory's domain and boundaries from original paper",
+      "properties": {
+        "authors_stated_domain": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Contexts/phenomena authors explicitly say their theory explains"
+        },
+        "exclusion_contexts": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Contexts where theory should not be applied"
+        },
+        "authors_stated_limitations": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Limitations authors acknowledge in original paper"
+        },
+        "boundary_conditions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Conditions under which theory predictions may not hold"
+        }
+      }
+    },
+    "empirical_foundation": {
+      "type": "object",
+      "description": "Empirical evidence from original paper only",
+      "properties": {
+        "authors_empirical_claims": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "claim",
+              "evidence_type",
+              "source_in_paper"
+            ],
+            "properties": {
+              "claim": {
+                "type": "string",
+                "description": "Specific empirical claim made by authors"
+              },
+              "evidence_type": {
+                "type": "string",
+                "enum": [
+                  "experimental",
+                  "correlational",
+                  "observational",
+                  "theoretical",
+                  "meta_analytic"
+                ],
+                "description": "Type of evidence authors provide"
+              },
+              "specific_statistic": {
+                "type": "string",
+                "description": "Exact statistic if provided (e.g., 'r = 0.45', 'p < 0.01')"
+              },
+              "source_in_paper": {
+                "type": "string",
+                "description": "Page number, section, or table reference"
+              },
+              "study_context": {
+                "type": "string",
+                "description": "Context of study that produced this evidence"
+              }
+            }
+          }
+        }
+      }
+    },
+    "ontology": {
+      "type": "object",
+      "required": [
+        "entities",
+        "relationships"
+      ],
+      "description": "Theory's conceptual structure",
+      "properties": {
+        "entities": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "name",
+              "description"
+            ],
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              },
+              "mcl_id": {
+                "type": "string",
+                "description": "Master Concept Library ID (optional until MCL ready)"
+              },
+              "properties": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "name",
+                    "type"
+                  ],
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "type": {
+                      "type": "string"
+                    },
+                    "description": {
+                      "type": "string"
+                    },
+                    "constraints": {
+                      "type": "object"
+                    },
+                    "operationalization": {
+                      "type": "object",
+                      "properties": {
+                        "measurement_approach": {
+                          "type": "string"
+                        },
+                        "boundary_rules": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "validation_examples": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "relationships": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "name",
+              "source_role",
+              "target_role"
+            ],
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              },
+              "source_role": {
+                "type": "string"
+              },
+              "target_role": {
+                "type": "string"
+              },
+              "properties": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "name",
+                    "type"
+                  ],
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "type": {
+                      "type": "string"
+                    },
+                    "description": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "execution": {
+      "type": "object",
+      "required": [
+        "process_type",
+        "stage_1_structuring",
+        "stage_2_evaluation"
+      ],
+      "description": "Two-stage analysis execution framework",
+      "properties": {
+        "process_type": {
+          "type": "string",
+          "const": "two_stage_analysis",
+          "description": "Enforces two-stage approach validated through Carter analysis"
+        },
+        "stage_1_structuring": {
+          "type": "object",
+          "required": [
+            "step_id",
+            "description",
+            "method",
+            "required_outputs",
+            "llm_prompts"
+          ],
+          "description": "Comprehensive theory structuring without evaluation filtering",
+          "properties": {
+            "step_id": {
+              "type": "string",
+              "const": "comprehensive_theory_structuring"
+            },
+            "description": {
+              "type": "string",
+              "const": "Extract ALL theory-relevant content without evaluation filtering to prevent premature pattern elimination"
+            },
+            "method": {
+              "type": "string",
+              "const": "comprehensive_llm_extraction"
+            },
+            "constraint": {
+              "type": "string",
+              "const": "no_evaluation_filtering",
+              "description": "Stage 1 must not filter based on applicability judgments"
+            },
+            "required_outputs": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "minItems": 3,
+              "contains": {
+                "enum": [
+                  "theory_applicability_score",
+                  "applicability_reasoning",
+                  "comprehensive_structured_content"
+                ]
+              },
+              "description": "Must include applicability assessment and complete structured data"
+            },
+            "llm_prompts": {
+              "type": "object",
+              "required": [
+                "structuring_prompt",
+                "applicability_prompt"
+              ],
+              "properties": {
+                "structuring_prompt": {
+                  "type": "string",
+                  "description": "Prompt for comprehensive theory-based extraction without evaluation filtering",
+                  "minLength": 50
+                },
+                "applicability_prompt": {
+                  "type": "string",
+                  "description": "Universal applicability assessment: density, centrality, theoretical relevance",
+                  "minLength": 50
+                },
+                "validation_prompt": {
+                  "type": "string",
+                  "description": "Verify comprehensiveness and applicability accuracy"
+                }
+              }
+            }
+          }
+        },
+        "stage_2_evaluation": {
+          "type": "object",
+          "required": [
+            "step_id",
+            "description",
+            "method",
+            "inputs",
+            "llm_prompts"
+          ],
+          "description": "Apply analytic questions to structured data from Stage 1",
+          "properties": {
+            "step_id": {
+              "type": "string",
+              "const": "analytic_evaluation"
+            },
+            "description": {
+              "type": "string",
+              "const": "Apply analytic questions to comprehensive structured data to extract theoretical insights"
+            },
+            "method": {
+              "type": "string",
+              "const": "structured_data_analysis"
+            },
+            "inputs": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "contains": {
+                "enum": [
+                  "comprehensive_structured_content",
+                  "theory_applicability_score"
+                ]
+              },
+              "description": "Uses Stage 1 outputs as inputs"
+            },
+            "configurable_components": {
+              "type": "object",
+              "description": "Optional rigor components based on research needs",
+              "properties": {
+                "include_justifications": {
+                  "type": "boolean",
+                  "default": false,
+                  "description": "Include detailed justifications for interpretations"
+                },
+                "include_alternative_interpretations": {
+                  "type": "boolean",
+                  "default": false,
+                  "description": "Include theory-compatible alternative interpretations"
+                },
+                "include_confidence_scores": {
+                  "type": "boolean",
+                  "default": false,
+                  "description": "Include confidence assessments for findings"
+                }
+              }
+            },
+            "llm_prompts": {
+              "type": "object",
+              "required": [
+                "evaluation_prompt"
+              ],
+              "properties": {
+                "evaluation_prompt": {
+                  "type": "string",
+                  "description": "Prompt to extract insights from structured data for research question",
+                  "minLength": 50
+                },
+                "integration_prompt": {
+                  "type": "string",
+                  "description": "Prompt to integrate findings across theoretical aspects"
+                }
+              }
+            }
+          }
+        },
+        "applicability_threshold": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0.3,
+          "description": "Minimum applicability score for meaningful analysis"
+        }
+      }
+    },
+    "telos": {
+      "type": "object",
+      "required": [
+        "purpose",
+        "output_format",
+        "success_criteria"
+      ],
+      "properties": {
+        "purpose": {
+          "type": "string"
+        },
+        "output_format": {
+          "type": "string"
+        },
+        "success_criteria": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "analysis_tiers": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "descriptive",
+              "explanatory",
+              "predictive",
+              "interventionary"
+            ]
+          }
+        }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "description": "Theory validation and testing framework",
+      "properties": {
+        "theory_tests": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "test_name": {
+                "type": "string"
+              },
+              "input_scenario": {
+                "type": "string"
+              },
+              "expected_theory_application": {
+                "type": "string"
+              },
+              "validation_criteria": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "boundary_cases": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "case_description": {
+                "type": "string"
+              },
+              "theory_applicability": {
+                "type": "string"
+              },
+              "expected_behavior": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "created": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "modified": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "contributors": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "validation_status": {
+          "type": "string"
+        },
+        "implementation_status": {
+          "type": "string"
+        },
+        "test_coverage": {
+          "type": "number"
+        },
+        "source_paper_verified": {
+          "type": "boolean",
+          "description": "Whether empirical claims verified against original paper"
+        }
+      }
+    }
+  },
+  "mode": "open",
+  "schema_id": "theory_meta_schema_v11_1"
+}

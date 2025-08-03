@@ -1,23 +1,39 @@
 """
 Phase 3: Multi-Document GraphRAG Tools
-Basic implementation with 100% reliability focus.
+Now decomposed into focused, maintainable modules under 500 lines each.
 """
 
-# Import basic workflow (working)
-from .basic_multi_document_workflow import BasicMultiDocumentWorkflow
+# Import decomposed components
+from .data_models import FusionResult, ConsistencyMetrics, EntityCluster
+from .fusion_coordinator import MultiDocumentFusionCoordinator  
+from .document_ingestion import BasicMultiDocumentWorkflow
+from .t301_multi_document_fusion import MultiDocumentFusion, T301MultiDocumentFusionTool
 
-# TODO: Import advanced t301 tools when relative import issues are resolved
-# from .t301_multi_document_fusion import (
-#     MultiDocumentFusion,
-#     FusionResult,
-#     ConsistencyMetrics,
-#     EntityCluster
-# )
+# Import algorithm components
+from .fusion_algorithms import (
+    EntitySimilarityCalculator,
+    EntityClusterFinder,
+    ConflictResolver,
+    RelationshipMerger,
+    ConsistencyChecker
+)
 
 __all__ = [
+    # Main API classes
+    'MultiDocumentFusion',
+    'T301MultiDocumentFusionTool',
+    'MultiDocumentFusionCoordinator',
     'BasicMultiDocumentWorkflow',
-    # 'MultiDocumentFusion',
-    # 'FusionResult', 
-    # 'ConsistencyMetrics',
-    # 'EntityCluster'
+    
+    # Data models
+    'FusionResult',
+    'ConsistencyMetrics', 
+    'EntityCluster',
+    
+    # Algorithm components
+    'EntitySimilarityCalculator',
+    'EntityClusterFinder',
+    'ConflictResolver',
+    'RelationshipMerger',
+    'ConsistencyChecker'
 ]

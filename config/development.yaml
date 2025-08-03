@@ -1,0 +1,35 @@
+# KGAS Development Configuration
+# Settings specific to development environment
+# Overrides base.yaml settings
+
+database:
+  neo4j:
+    password: "development"
+    max_connections: 10  # Lower for development
+
+security:
+  encrypt_credentials: false  # Simpler for development
+  audit_logging: false
+
+logging:
+  level: "DEBUG"
+  debug: true
+  console_output: true
+
+error_handling:
+  circuit_breaker_enabled: false  # Disable for easier debugging
+  max_retries: 1  # Fail fast in development
+
+# Development-specific LLM settings
+llm:
+  openai:
+    model: "gpt-3.5-turbo"  # Cheaper model for development
+    max_tokens: 2000
+  anthropic:
+    model: "claude-3-haiku-20240307"  # Faster model for development
+    max_tokens: 2000
+
+# Schema settings for development
+schema:
+  cross_paradigm_validation: false  # Skip expensive validation
+  validation_timeout: 10  # Shorter timeout

@@ -172,7 +172,7 @@ Error handling must specifically support academic research workflows:
 
 ## Implementation
 
-- **Schema Location:** `/_schemas/theory_meta_schema_v10.json`
+- **Schema Location:** `/_schemas/theory_meta_schema_v13.json`
 - **Validation:** Pydantic-based runtime checks
 - **Testing:** Dedicated contract tests in CI/CD
 

@@ -68,6 +68,8 @@ Research Question → Optimal Mode Selection → Cross-Modal Processing → Sour
 - Complete identity consistency across representations
 - Full bidirectional transformation capability
 
+**For detailed implementation specifications, see [ADR-015: Cross-Modal Orchestration Implementation](ADR-015-Cross-Modal-Orchestration.md)**
+
 ## Validation Evidence
 
 This architectural decision has been validated through comprehensive implementation and testing:

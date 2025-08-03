@@ -1,203 +1,232 @@
-# KGAS Development Instructions - Real Issues Resolution
+# KGAS Development Instructions - Tool Contract Integration Phase
 
 ## Current Priority Tasks (2025-08-03)
 
-### 🚨 Critical Issues in Production Code (Immediate Fix Required)
+### 🎯 **PHASE: Tool Contract Integration & Registry Completion**
 
-#### 1. Enhanced Batch Scheduler - Simulation Processing
-**File**: `src/processing/enhanced_batch_scheduler.py`  
-**Issue**: Lines 373-378 use `asyncio.sleep()` for document processing simulation instead of real tools  
-**Problem**: Production batch scheduler doesn't actually process documents - it just sleeps and returns fake results
+The previous phase successfully eliminated production readiness violations (fake processing, mock APIs, placeholder implementations). Evidence in `evidence/current/Evidence_Phase_Production_Readiness_Fixes.md` shows critical simulation patterns were replaced with real implementations.
 
-**Current Violation**:
-```python
-# CRITICAL VIOLATION at line 373:
-await asyncio.sleep(job.estimated_processing_time / 10)  # Simulated for testing
+**Current Phase Goal**: Complete tool contract integration and registry system to enable agent orchestration and systematic tool validation.
 
-# Simulate random failures for testing retry logic  
-import random
-if random.random() < 0.1 and job.retry_count == 0:  # 10% failure rate
-    raise Exception("Simulated processing failure")
+## Coding Philosophy
+
+### **NO LAZY IMPLEMENTATIONS**
+- **NO mocking/stubs/fallbacks/pseudo-code/simplified implementations** in production code
+- **NO placeholder returns** - either implement real functionality or raise NotImplementedError
+- **NO fake success responses** - fail fast with honest error messages
+
+### **FAIL-FAST PRINCIPLES**
+- **Surface errors immediately** - don't hide them behind fallbacks
+- **Honest error messages** with actionable troubleshooting information
+- **Real processing only** - eliminate all simulation patterns
+
+### **EVIDENCE-BASED DEVELOPMENT**
+- **All claims require raw evidence** in structured evidence files under `evidence/current/`
+- **Raw execution logs required** for all functionality claims
+- **No success declarations without demonstrable proof** 
+- **Archive completed phases** to `evidence/completed/` to avoid chronological confusion
+
+### **VALIDATION + SELF-HEALING**
+- **Every validator must have coupled self-healing capability**
+- **Contract validation must auto-register missing tools**
+- **System must detect and repair interface mismatches**
+
+## Codebase Structure
+
+### **Key Entry Points**
+- **Tool Registry**: `src/core/tool_contract.py` - Central tool registration and contract management
+- **Tool Protocol**: `src/tools/base_classes/tool_protocol.py` - Unified ToolRequest/ToolResult interface
+- **Service Manager**: `src/core/service_manager.py` - Shared service instances for tools
+- **Pipeline Orchestrator**: `src/core/pipeline_orchestrator.py` - Workflow execution
+
+### **Tool Implementation Structure**
+```
+src/tools/
+├── phase1/                     # Foundation tools (PDF→Entities→Graph→Query)
+│   ├── t01_pdf_loader_unified.py       # Real PDF processing
+│   ├── t15a_text_chunker_unified.py    # Real text chunking
+│   ├── t23a_spacy_ner_unified.py       # Real entity extraction
+│   └── ...
+├── base_classes/               # Tool contracts and protocols
+│   ├── tool_protocol.py        # ToolRequest/ToolResult interface
+│   └── ...
+└── contracts/                  # Tool contract definitions
 ```
 
-**Required Fix**: Replace simulation with real document processing pipeline using existing tools:
-- Import and use `T01PDFLoaderUnified`, `T15ATextChunkerUnified`, `T23ASpacyNERUnified` 
-- Initialize with `ServiceManager()` for real database connections
-- Execute actual tool pipeline: `pdf_loader.execute()` → `chunker.execute()` → `ner.execute()`
-- Return real processing results (entity counts, processing times, actual errors)
-- Remove all `asyncio.sleep()` and `random.random()` simulation patterns
+### **Integration Points**
+- **Contract Validation**: `tests/unit/test_tool_contracts.py` - Validates tool compliance
+- **Service Integration**: All tools use ServiceManager for database/service access
+- **MCP Adapter**: `src/orchestration/mcp_adapter.py` - External tool exposure
 
-**Success Criteria**: Batch scheduler processes real documents and extracts actual entities instead of sleeping
+## Critical Issues Identified by Contract Validation
 
-#### 2. Graph Visualizer - Fake Success Responses  
-**File**: `src/tools/phase2/interactive_graph_visualizer.py`  
-**Issue**: Lines 252-259 return fake success responses when database is unavailable  
-**Problem**: Tool lies about success status instead of failing fast
-
-**Current Violation**:
-```python
-# VIOLATION at line 252:
-if not self.is_connected:
-    return {
-        "status": "success",  # LIE - not actually successful
-        "result": "Visualization query executed in offline mode",
-        "message": "Database connection not available - returning mock response",
-        "nodes": 0,
-        "edges": 0
-    }
+### 🚨 **Issue 1: Tool Registry Not Populated**
+**Problem**: Contract validation shows 15 failed tests due to missing tool registrations
+**Evidence**: `pytest tests/unit/test_tool_contracts.py -v` shows:
+```
+AssertionError: Missing tools: ['T01_PDF_LOADER', 'T15A_TEXT_CHUNKER', 'T23A_SPACY_NER', ...]
 ```
 
-**Required Fix**: Fail fast with error status instead of lying about success:
-- Change `"status": "success"` to `"status": "error"`
-- Return proper error message with actionable information
-- Remove "offline mode" pretense - either connect to database or fail
-- Add error code like `"error_code": "DATABASE_UNAVAILABLE"`
-- Include connection troubleshooting info in error message
+**Root Cause**: Tools exist but are not registered in the tool registry system
 
-**Success Criteria**: Tool honestly reports failures instead of returning fake success
+**Required Fix**: 
+1. **Auto-Registration System**: Create tool auto-discovery that scans `src/tools/` and registers all unified tools
+2. **Contract Compliance**: Ensure all tools implement ToolRequest/ToolResult interface correctly
+3. **Registry Population**: Populate `get_tool_registry()` with all available tools
 
-#### 3. Mock APIs in Production Imports
-**File**: `src/tools/phase2/extraction_components/llm_integration.py`  
-**Issue**: Lines 506+ contain MockAPIProvider class in production code  
-**Problem**: Risk of production code accidentally using mock APIs instead of real ones
-
-**Current Violation**:
+**Implementation Steps**:
 ```python
-# VIOLATION at line 506:
-class MockAPIProvider:
-    """Provides mock LLM responses for testing."""
+# In src/core/tool_registry_auto.py (NEW FILE)
+def auto_register_all_tools():
+    """Auto-discover and register all tools in src/tools/"""
+    # Scan for *_unified.py files
+    # Import each tool class
+    # Validate implements UnifiedTool interface
+    # Register with tool registry
+    # Return registration results
+```
+
+**Success Criteria**: All contract tests pass - `pytest tests/unit/test_tool_contracts.py -v` shows 0 failures
+
+### 🚨 **Issue 2: ConfidenceScore Interface Mismatches**
+**Problem**: ConfidenceScore class missing required methods
+**Evidence**: Contract validation shows:
+```
+AttributeError: 'ConfidenceScore' object has no attribute 'combine_with'
+AttributeError: 'ConfidenceScore' object has no attribute 'decay'
+```
+
+**Required Fix**: Complete ConfidenceScore implementation with all required methods:
+- `combine_with()` - Combine confidence scores from multiple sources
+- `decay()` - Apply confidence decay over processing steps
+- Proper validation error handling
+- Quality tier conversion compliance
+
+### 🚨 **Issue 3: Tool Interface Standardization Gap**
+**Problem**: Tools may not implement unified ToolRequest/ToolResult interface consistently
+**Evidence**: Previous batch scheduler fix required manual interface adaptation
+
+**Required Fix**: 
+1. **Interface Audit**: Verify all `*_unified.py` tools implement `execute(ToolRequest) -> ToolResult`
+2. **Interface Migration**: Update any tools using legacy dictionary interfaces
+3. **Validation Testing**: Ensure all tools can be called via contract interface
+
+## Evidence Structure Requirements
+
+**Current Phase Evidence**: `evidence/current/Evidence_Phase_Tool_Contract_Integration.md`
+
+**Required Evidence Sections**:
+1. **Auto-Registration Results**
+   - Tool discovery scan results
+   - Registration success/failure rates
+   - Contract compliance verification
+   
+2. **Contract Validation Results**
+   - Full contract test suite results
+   - Interface compatibility verification  
+   - ConfidenceScore method implementation proof
+
+3. **Integration Testing Results**
+   - Tool execution via registry
+   - ToolRequest/ToolResult interface testing
+   - Service manager integration verification
+
+## Implementation Plan
+
+### **Step 1: Auto-Registration System**
+**File**: `src/core/tool_registry_auto.py` (NEW)
+```python
+def discover_unified_tools():
+    """Scan src/tools/ for *_unified.py files and return tool classes"""
     
-    def mock_extract(self, text: str, ontology: 'DomainOntology') -> Dict[str, Any]:
-        # Generate mock entities based on ontology types...
+def validate_tool_contract(tool_class):
+    """Verify tool implements UnifiedTool interface"""
+    
+def auto_register_all_tools():
+    """Auto-discover, validate, and register all tools"""
 ```
 
-**Required Fix**: Move mock classes to test-only location:
-- Create `tests/mocks/llm_mock_provider.py` for test-only mocks
-- Remove `MockAPIProvider` from production file
-- Update any test imports to use `from tests.mocks.llm_mock_provider import MockAPIProvider`
-- Ensure production code paths never import or use mock classes
-- Add validation to prevent accidental mock usage in production
-
-**Success Criteria**: No mock/test classes accessible from production code imports
-
-### ⚠️ Technical Debt Issues (Medium Priority)
-
-#### 4. Placeholder Algorithm Implementations
-**File**: `src/mcp_tools/algorithm_tools.py`  
-**Issue**: Lines 417-421 contain placeholder implementations that return fake data  
-**Problem**: Functions return placeholder classifications instead of real analysis
-
-**Current Violation**:
+### **Step 2: ConfidenceScore Completion**
+**File**: `src/core/confidence_score.py` (UPDATE)
 ```python
-# VIOLATION at line 417:
-# TODO: Implement actual analysis logic based on theory
-# This is a placeholder implementation
-classification = "placeholder"
-confidence = 0.5
+class ConfidenceScore:
+    def combine_with(self, other: 'ConfidenceScore') -> 'ConfidenceScore':
+        """Combine confidence scores from multiple sources"""
+        
+    def decay(self, factor: float) -> 'ConfidenceScore':
+        """Apply confidence decay over processing steps"""
 ```
 
-**Required Fix**: Implement actual algorithm logic or remove functions:
-- Either implement real classification algorithms based on theory
-- Or remove placeholder functions and return clear "not implemented" errors
-- Document which algorithms are needed vs. which should be removed
-- Replace fake confidence scores with real calculated values
+### **Step 3: Tool Interface Migration**
+**Files**: All `src/tools/phase1/*_unified.py` tools
+- Verify `execute(ToolRequest) -> ToolResult` signature
+- Update any legacy dictionary interfaces
+- Test via contract validation
 
-#### 5. UI Components with Placeholder Data Methods
-**Files**: Multiple UI files have placeholder data retrieval methods
-- `src/ui/enhanced_dashboard.py` line 451: "Helper methods for data retrieval (placeholders)"
-- `src/ui/research_analytics_dashboard.py` line 731: "Data retrieval methods (placeholders)"  
-- `src/ui/batch_processing_monitor.py` line 558: "Helper methods for data retrieval (placeholders)"
+### **Step 4: Integration Testing**
+**File**: `evidence/current/Evidence_Phase_Tool_Contract_Integration.md`
+- Document all tool registration results
+- Prove contract compliance with test results
+- Demonstrate tool execution via registry
 
-**Required Fix**: Implement real data retrieval or remove placeholder UI:
-- Connect to actual data sources (Neo4j, SQLite, service APIs)
-- Replace placeholder methods with real database queries
-- Remove UI components that can't be implemented with real data
-- Add proper error handling for data retrieval failures
+## Validation Commands
 
-#### 6. Incomplete API Integrations
-**File**: `src/api/cross_modal_api.py`  
-**Issue**: Line 195 has TODO for core service integration  
-**Problem**: API endpoints may not integrate with core pipeline services
-
-**Current Violation**:
-```python
-# TODO: When core services are fixed, integrate with pipeline:
-# from src.core.orchestration import PipelineOrchestrator, PipelineConfig, Phase
-```
-
-**Required Fix**: Complete API integration with core services:
-- Import and integrate with `PipelineOrchestrator`
-- Connect API endpoints to real service pipeline
-- Test API endpoints with actual data processing
-- Remove TODO comments once integration is complete
-
-## Implementation Standards
-
-### Zero Tolerance for Shortcuts
-- **NO `asyncio.sleep()` FOR PROCESSING** - Use actual document processing tools, not time delays
-- **NO FAKE SUCCESS RESPONSES** - Fail fast with honest error messages
-- **NO MOCK/TEST CODE IN PRODUCTION** - Keep test utilities in test-only directories
-- **NO PLACEHOLDER IMPLEMENTATIONS** - Either implement real functionality or remove features
-- **REAL SERVICE INTEGRATION** - Connect to actual databases, APIs, and processing pipelines
-
-### Evidence Requirements
-For each fix, create `Evidence_Fix_{TaskName}.md` with:
-1. **Before/After Code Comparison** - Show actual code changes made
-2. **Execution Evidence** - Logs proving real processing vs. simulation
-3. **Error Handling Evidence** - Demonstrate proper error responses
-4. **Integration Testing** - Show services work together correctly
-
-### Validation Commands
-
+### **Contract Validation**
 ```bash
-# Search for remaining simulation patterns
-grep -r "asyncio\.sleep.*processing\|simulate.*processing" src/
+# Run complete contract test suite
+python -m pytest tests/unit/test_tool_contracts.py -v
 
-# Find fake success responses  
-grep -r "status.*success.*mock\|status.*success.*fake" src/
+# Validate specific tool registration
+python -c "from src.core.tool_contract import get_tool_registry; print(get_tool_registry().list_tools())"
 
-# Find mock/test code in production
-find src/ -name "*.py" -exec grep -l "Mock\|mock.*class\|fake.*class" {} \;
-
-# Find placeholder implementations
-grep -r "placeholder.*implementation\|TODO.*implement" src/
+# Test auto-registration
+python -c "from src.core.tool_registry_auto import auto_register_all_tools; print(auto_register_all_tools())"
 ```
 
-### File Structure Reference
+### **Interface Testing**
+```bash
+# Test ToolRequest/ToolResult interface
+python scripts/validation/validate_mcp_tools_standalone.py
 
-**Core Processing Tools** (for batch scheduler fix):
-```
-src/tools/phase1/
-├── t01_pdf_loader_unified.py    # Real PDF processing
-├── t15a_text_chunker_unified.py # Real text chunking  
-├── t23a_spacy_ner_unified.py    # Real entity extraction
-└── base_tool.py                 # ToolRequest/ToolResult interfaces
+# Verify service manager integration
+python -c "from src.core.service_manager import ServiceManager; sm = ServiceManager(); print(sm.health_check())"
 ```
 
-**Service Integration** (for all fixes):
-```
-src/core/
-├── service_manager.py           # Real service connections
-└── pipeline_orchestrator.py    # Real workflow orchestration
-```
+## Success Criteria
+
+### **Phase Complete When**:
+1. **Contract tests pass**: `pytest tests/unit/test_tool_contracts.py -v` shows 0 failures
+2. **Tool registry populated**: All unified tools discoverable via registry
+3. **Interface standardization**: All tools use ToolRequest/ToolResult consistently
+4. **ConfidenceScore complete**: All required methods implemented and tested
+5. **Evidence documented**: Complete execution logs in evidence file
+
+### **Next Phase Preparation**:
+Once tool contracts are complete, next phase will focus on:
+- Agent orchestration with validated tool registry
+- Cross-modal analysis workflows
+- Performance optimization with real tool chains
 
 ## DO NOT
-- Add any fallback or mock patterns to production code
-- Hide errors with fake success responses
-- Use simulated processing instead of real tools
-- Leave placeholder implementations in production
-- Mix test utilities with production code
+- Create any fallback or mock patterns in production code
+- Hide contract validation failures behind workarounds
+- Use dictionary interfaces instead of ToolRequest/ToolResult
+- Manually register tools instead of using auto-discovery
+- Skip evidence documentation for any implementation claims
 
-## DO  
-- Fail fast when services are unavailable
-- Use real processing tools for all operations
-- Return honest error messages with actionable information
-- Implement complete functionality or remove incomplete features
-- Separate test code from production code clearly
+## DO
+- Implement complete auto-registration system
+- Fix all contract validation failures systematically  
+- Use ToolRequest/ToolResult interface consistently
+- Document all implementation with execution evidence
+- Test integration thoroughly before claiming success
 
-## Success Metrics
-- **No `asyncio.sleep()` patterns** in processing code
-- **No fake success responses** when operations fail
-- **No mock/test classes** accessible from production imports
-- **Real processing results** from actual tool execution
-- **Honest error handling** with proper status codes
+## Files Modified This Phase
+- `src/processing/enhanced_batch_scheduler.py` - Fixed simulation patterns with real tool calls
+- `src/tools/phase2/interactive_graph_visualizer.py` - Fixed fake success responses
+- `src/mcp_tools/algorithm_tools.py` - Fixed placeholder implementations
+- `src/ui/enhanced_dashboard.py` - Fixed placeholder data methods
+- `src/api/cross_modal_api.py` - Completed pipeline integration
+- Created: `tests/mocks/llm_mock_provider.py` - Test-only mock isolation
+
+Evidence of previous phase completion: `evidence/current/Evidence_Phase_Production_Readiness_Fixes.md`

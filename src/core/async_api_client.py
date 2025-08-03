@@ -147,7 +147,7 @@ class AsyncEnhancedAPIClient:
             'gpt_4_turbo': 'gpt-4-turbo,true,8192',
             'gpt_4o_mini': 'gpt-4o-mini,true,4096', 
             'claude_sonnet_4': 'claude-3-5-sonnet-20241022,false,8192',
-            'gemini_flash': 'gemini/gemini-1.5-flash,false,8192'
+            'gemini_flash': 'gemini/gemini-2.5-flash-lite,false,8192'
         }
         
         # Load from environment or use defaults
@@ -510,3 +510,8 @@ async def close_async_api_client():
     if _global_client is not None:
         # LiteLLM doesn't need explicit closing
         _global_client = None
+
+
+# Backward compatibility aliases
+AsyncOpenAIClient = AsyncEnhancedAPIClient
+AsyncGeminiClient = AsyncEnhancedAPIClient

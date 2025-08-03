@@ -1,0 +1,285 @@
+{
+  "theory_id": "uses_gratifications_katz_blumler_1974",
+  "theory_name": "Uses and Gratifications Theory",
+  "theory_version": "1.0",
+  "meta_schema_version": "11.1",
+  "created_date": "2025-07-26",
+  "theory_metadata": {
+    "primary_authors": [
+      "Elihu Katz",
+      "Jay G. Blumler",
+      "Michael Gurevitch"
+    ],
+    "publication_year": 1974,
+    "source_work": "Uses and Gratifications Research",
+    "theoretical_tradition": "Media studies, communication theory, audience research",
+    "original_purpose": "Explain why and how people actively seek out specific media to satisfy particular needs and gratifications"
+  },
+  "telos": {
+    "primary_purpose": "Understand audience motivations for media consumption and predict media choice based on gratification seeking",
+    "secondary_purposes": [
+      "Identify psychological and social needs served by media",
+      "Predict media usage patterns based on audience needs",
+      "Explain audience satisfaction with media content",
+      "Analyze active vs. passive media consumption"
+    ],
+    "theoretical_scope": "Individual-level media consumption behavior and motivation",
+    "domain_applicability": "Media consumption descriptions, audience surveys, communication behavior analysis, content preference expressions"
+  },
+  "classification": {
+    "analytical_tier": "explanatory",
+    "tier_justification": "Explains media consumption behavior through need-gratification relationships and enables prediction of usage patterns",
+    "paradigm": "functionalist-behavioral",
+    "level_of_analysis": "individual",
+    "temporal_scope": "process_oriented",
+    "complexity": "medium",
+    "formalization_level": "moderately_formalized"
+  },
+  "ontology": {
+    "core_entities": {
+      "audience_members": {
+        "definition": "Individual media consumers with specific needs and goals",
+        "properties": [
+          "demographic_characteristics",
+          "psychological_state",
+          "social_context"
+        ],
+        "examples": [
+          "readers",
+          "viewers",
+          "listeners",
+          "users"
+        ]
+      },
+      "media_content": {
+        "definition": "Communication messages, channels, or platforms available for consumption",
+        "properties": [
+          "content_type",
+          "channel",
+          "accessibility",
+          "content_characteristics"
+        ],
+        "examples": [
+          "news programs",
+          "entertainment shows",
+          "social media",
+          "newspapers",
+          "speeches"
+        ]
+      },
+      "needs": {
+        "definition": "Psychological or social deficiencies that create motivation for media consumption",
+        "properties": [
+          "need_type",
+          "intensity",
+          "specificity",
+          "origin"
+        ],
+        "need_categories": [
+          "cognitive",
+          "affective",
+          "personal_integrative",
+          "social_integrative",
+          "tension_release"
+        ]
+      },
+      "gratifications": {
+        "definition": "Satisfactions obtained from media consumption that fulfill underlying needs",
+        "properties": [
+          "gratification_type",
+          "satisfaction_level",
+          "expected_vs_obtained"
+        ],
+        "gratification_types": [
+          "gratifications_sought",
+          "gratifications_obtained"
+        ]
+      }
+    },
+    "need_taxonomy": {
+      "cognitive_needs": {
+        "definition": "Information-seeking, knowledge acquisition, understanding",
+        "examples": [
+          "surveillance",
+          "knowledge",
+          "information seeking",
+          "understanding current events"
+        ]
+      },
+      "affective_needs": {
+        "definition": "Emotional experiences, aesthetic pleasure, mood management",
+        "examples": [
+          "entertainment",
+          "relaxation",
+          "emotional release",
+          "mood enhancement"
+        ]
+      },
+      "personal_integrative_needs": {
+        "definition": "Self-concept reinforcement, identity, credibility, stability",
+        "examples": [
+          "personal identity",
+          "value reinforcement",
+          "self-understanding",
+          "credibility"
+        ]
+      },
+      "social_integrative_needs": {
+        "definition": "Social connection, belonging, interaction with others",
+        "examples": [
+          "social utility",
+          "conversational currency",
+          "social learning",
+          "companionship"
+        ]
+      },
+      "tension_release_needs": {
+        "definition": "Escape, diversion, stress relief",
+        "examples": [
+          "escapism",
+          "diversion",
+          "stress relief",
+          "fantasy"
+        ]
+      }
+    },
+    "process_components": {
+      "need_recognition": "Awareness of psychological or social deficiency requiring satisfaction",
+      "media_selection": "Choice of specific media content based on expected gratifications",
+      "exposure_behavior": "Actual consumption of selected media content",
+      "gratification_assessment": "Evaluation of satisfaction obtained relative to needs and expectations",
+      "feedback_loop": "Influence of obtained gratifications on future media selection"
+    }
+  },
+  "execution": {
+    "stage_1_comprehensive_structuring": {
+      "step_1_applicability_assessment": {
+        "description": "Evaluate text suitability for uses and gratifications analysis",
+        "criteria": {
+          "media_consumption_context": "Clear media usage or communication consumption scenario",
+          "audience_need_expressions": "Explicit or implicit expressions of psychological/social needs",
+          "gratification_seeking_behavior": "Evidence of active media selection or consumption motivation",
+          "satisfaction_evaluation": "Expressions of fulfillment, disappointment, or assessment of media experience"
+        },
+        "scoring": "0.0-1.0 scale based on presence and clarity of need-gratification dynamics",
+        "threshold": "0.6 minimum for meaningful uses and gratifications analysis"
+      },
+      "step_2_audience_identification": {
+        "description": "Identify media consumers and their characteristics",
+        "audience_analysis": [
+          "Extract demographic characteristics of media consumers",
+          "Identify psychological states or conditions",
+          "Determine social context and situational factors",
+          "Map audience roles and relationships to media content"
+        ],
+        "output_format": "audience_profile: {demographics, psychological_state, social_context}"
+      },
+      "step_3_media_content_analysis": {
+        "description": "Identify and characterize media content being consumed or referenced",
+        "content_analysis": [
+          "Categorize media types and channels",
+          "Identify content characteristics and features",
+          "Assess accessibility and availability",
+          "Determine content format and presentation style"
+        ],
+        "output_format": "media_inventory: {content_types, channels, characteristics, accessibility}"
+      },
+      "step_4_need_identification": {
+        "description": "Extract psychological and social needs expressed or implied in the text",
+        "need_extraction": [
+          "Identify cognitive needs (information, understanding, surveillance)",
+          "Extract affective needs (entertainment, emotional satisfaction, mood management)",
+          "Determine personal integrative needs (identity, values, credibility)",
+          "Find social integrative needs (connection, conversation, social learning)",
+          "Locate tension release needs (escape, diversion, stress relief)"
+        ],
+        "need_assessment": [
+          "Evaluate need intensity and specificity",
+          "Determine need origins (psychological vs. social)",
+          "Assess need urgency and temporal characteristics"
+        ],
+        "output_format": "need_profile: {cognitive, affective, personal_integrative, social_integrative, tension_release}"
+      },
+      "step_5_gratification_mapping": {
+        "description": "Identify gratifications sought and obtained from media consumption",
+        "gratification_analysis": [
+          "Extract expected gratifications (gratifications sought)",
+          "Identify actual satisfactions obtained (gratifications obtained)",
+          "Map gratifications to specific need categories",
+          "Assess satisfaction levels and fulfillment quality"
+        ],
+        "satisfaction_evaluation": [
+          "Compare expected vs. obtained gratifications",
+          "Identify gratification gaps or surpluses",
+          "Assess overall satisfaction with media experience"
+        ]
+      }
+    },
+    "stage_2_analytic_evaluation": {
+      "step_1_need_gratification_matching": {
+        "description": "Analyze how well media content matches audience needs and provides gratifications",
+        "matching_analysis": [
+          "Map specific gratifications to underlying needs",
+          "Assess efficiency of media choices for need satisfaction",
+          "Identify optimal vs. suboptimal media selection patterns",
+          "Evaluate audience sophistication in media selection"
+        ]
+      },
+      "step_2_consumption_pattern_analysis": {
+        "description": "Characterize media consumption behavior and motivations",
+        "pattern_analysis": [
+          "Identify active vs. passive consumption behaviors",
+          "Analyze selection criteria and decision-making processes",
+          "Assess consumption frequency and intensity patterns",
+          "Evaluate media repertoire and diversity"
+        ]
+      },
+      "step_3_satisfaction_assessment": {
+        "description": "Evaluate gratification fulfillment and audience satisfaction levels",
+        "satisfaction_analysis": [
+          "Measure satisfaction levels across need categories",
+          "Identify sources of gratification success or failure",
+          "Assess unexpected gratifications or disappointments",
+          "Evaluate likelihood of continued consumption"
+        ]
+      },
+      "step_4_prediction_generation": {
+        "description": "Predict future media consumption based on need-gratification patterns",
+        "prediction_analysis": [
+          "Predict media selection preferences based on need profiles",
+          "Forecast consumption frequency and duration",
+          "Anticipate satisfaction levels with different content types",
+          "Identify likely media abandonment or adoption patterns"
+        ]
+      }
+    }
+  },
+  "validation": {
+    "internal_consistency": {
+      "need_categorization_coherence": "All needs properly categorized within five-category taxonomy",
+      "gratification_mapping_validity": "Clear connections between specific gratifications and underlying needs",
+      "audience_characterization_completeness": "Comprehensive audience profiling across relevant dimensions",
+      "satisfaction_assessment_logic": "Consistent evaluation of gratification fulfillment levels"
+    },
+    "theoretical_fidelity": {
+      "active_audience_assumption": "Analysis treats audience as active, goal-oriented media selectors",
+      "need_gratification_linkage": "Clear connections established between psychological/social needs and media gratifications",
+      "functional_alternative_recognition": "Acknowledgment that different media can serve similar functions",
+      "individual_variation_accommodation": "Recognition of individual differences in needs and gratification patterns"
+    },
+    "empirical_validation": {
+      "need_identification_accuracy": "Valid identification of psychological and social needs from textual evidence",
+      "gratification_extraction_completeness": "Comprehensive identification of sought and obtained gratifications",
+      "satisfaction_measurement_validity": "Accurate assessment of gratification fulfillment levels",
+      "consumption_pattern_characterization": "Valid description of media usage behaviors and motivations"
+    },
+    "predictive_validation": {
+      "media_selection_prediction": "Accurate prediction of media choices based on need profiles",
+      "consumption_frequency_forecasting": "Valid prediction of usage patterns and intensity",
+      "satisfaction_prediction": "Accurate anticipation of gratification fulfillment levels",
+      "behavioral_continuity_prediction": "Valid prediction of continued vs. discontinued media consumption"
+    }
+  },
+  "mode": "open",
+  "schema_id": "uses_gratifications_katz_blumler_1974"
+}

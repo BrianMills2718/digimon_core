@@ -109,7 +109,7 @@ class WorkflowAgent:
             # Call LLM to generate workflow
             llm_response = self.api_client.generate_text(
                 prompt=workflow_prompt,
-                model="gemini-1.5-flash",
+                model = self._get_default_model(),
                 max_tokens=2048
             )
             
@@ -169,7 +169,7 @@ class WorkflowAgent:
             # Call LLM to generate workflow
             llm_response = self.api_client.generate_text(
                 prompt=workflow_prompt,
-                model="gemini-1.5-flash",
+                model = self._get_default_model(),
                 max_tokens=2048
             )
             

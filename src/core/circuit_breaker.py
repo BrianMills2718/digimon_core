@@ -223,6 +223,45 @@ class CircuitBreaker:
             self.last_failure_time = datetime.now()
             logger.warning(f"Circuit breaker '{self.name}' manually forced to OPEN")
     
+    def get_state(self) -> str:
+        """Get current circuit breaker state as string."""
+        with self._lock:
+            return self.state.value
+    
+    def can_execute(self) -> bool:
+        """Check if circuit breaker allows execution."""
+        with self._lock:
+            if self.state == CircuitBreakerState.CLOSED:
+                return True
+            elif self.state == CircuitBreakerState.HALF_OPEN:
+                return True
+            else:  # OPEN
+                return self._should_attempt_reset()
+    
+    def execute(self, operation: Callable) -> Any:
+        """Synchronous wrapper for execute operation (compatibility)."""
+        # For sync operation, just check state and call
+        if not self.can_execute():
+            raise CircuitBreakerError(self.name)
+        
+        try:
+            result = operation()
+            self.record_success()
+            return result
+        except Exception as e:
+            self.record_failure()
+            raise e
+    
+    def record_success(self) -> None:
+        """Record successful operation."""
+        with self._lock:
+            self._on_success()
+    
+    def record_failure(self) -> None:
+        """Record failed operation."""
+        with self._lock:
+            self._on_failure()
+    
     def __str__(self) -> str:
         """String representation of circuit breaker state"""
         with self._lock:
@@ -275,6 +314,19 @@ class CircuitBreakerManager:
         """
         with self._lock:
             return {name: cb.get_metrics() for name, cb in self._circuit_breakers.items()}
+    
+    def get_breaker(self, name: str, **kwargs) -> CircuitBreaker:
+        """
+        Alias for get_circuit_breaker for backward compatibility.
+        
+        Args:
+            name: Service name
+            **kwargs: Circuit breaker configuration parameters
+            
+        Returns:
+            CircuitBreaker instance
+        """
+        return self.get_circuit_breaker(name, **kwargs)
     
     def reset_all(self) -> None:
         """Reset all circuit breakers to CLOSED state"""

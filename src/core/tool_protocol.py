@@ -326,7 +326,7 @@ class Tool(ABC):
 class ToolExecutionError(Exception):
     """Exception raised when tool execution fails"""
     
-    def __init__(self, tool_name: str, error_message: str, original_error: Exception = None):
+    def __init__(self, tool_name: str, error_message: str, original_error: Optional[Exception] = None):
         self.tool_name = tool_name
         self.error_message = error_message
         self.original_error = original_error

@@ -1,0 +1,962 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Theory Meta-Schema v11.0",
+  "description": "Enhanced framework for representing executable social science theories with explicit scope documentation and theory applicability requirements",
+  "version": "11.0",
+  "type": "object",
+  "required": [
+    "theory_id",
+    "theory_name",
+    "version",
+    "classification",
+    "ontology",
+    "execution",
+    "telos",
+    "theoretical_scope"
+  ],
+  "properties": {
+    "theory_id": {
+      "type": "string",
+      "pattern": "^[a-z_][a-z0-9_]*$",
+      "description": "Unique identifier for the theory"
+    },
+    "theory_name": {
+      "type": "string",
+      "description": "Human-readable name of the theory"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+(\\.\\d+)?$",
+      "description": "Semantic version of this theory schema"
+    },
+    "authors": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Key theorists and contributors"
+    },
+    "publication_year": {
+      "type": "integer",
+      "minimum": 1900,
+      "maximum": 2030,
+      "description": "Year of seminal publication"
+    },
+    "description": {
+      "type": "string",
+      "description": "Concise summary of the theory"
+    },
+    "classification": {
+      "type": "object",
+      "required": [
+        "domain"
+      ],
+      "properties": {
+        "domain": {
+          "type": "object",
+          "required": [
+            "level",
+            "component",
+            "metatheory"
+          ],
+          "properties": {
+            "level": {
+              "type": "string",
+              "enum": [
+                "Micro",
+                "Meso",
+                "Macro"
+              ],
+              "description": "Level of analysis"
+            },
+            "component": {
+              "type": "string",
+              "enum": [
+                "Who",
+                "Whom",
+                "What",
+                "Channel",
+                "Effect"
+              ],
+              "description": "Component of influence"
+            },
+            "metatheory": {
+              "type": "string",
+              "enum": [
+                "Agentic",
+                "Structural",
+                "Interdependent"
+              ],
+              "description": "Causal metatheory"
+            }
+          }
+        },
+        "complexity_tier": {
+          "type": "string",
+          "enum": [
+            "direct",
+            "heuristic",
+            "simplified"
+          ],
+          "description": "Operationalization complexity level"
+        }
+      }
+    },
+    "theoretical_scope": {
+      "type": "object",
+      "required": [
+        "authors_stated_domain",
+        "exclusion_contexts"
+      ],
+      "description": "Explicit documentation of theory's domain and boundaries from original paper",
+      "properties": {
+        "authors_stated_domain": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Contexts/phenomena authors explicitly say their theory explains"
+        },
+        "exclusion_contexts": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Contexts where theory should not be applied based on author limitations or theoretical logic"
+        },
+        "authors_stated_limitations": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Limitations authors explicitly acknowledge in the original paper"
+        },
+        "boundary_conditions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Conditions under which theory predictions may not hold, as stated by authors"
+        },
+        "scope_citations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "claim": {
+                "type": "string"
+              },
+              "page_reference": {
+                "type": "string"
+              },
+              "context": {
+                "type": "string"
+              }
+            }
+          },
+          "description": "Specific citations from paper supporting scope claims"
+        }
+      }
+    },
+    "empirical_foundation": {
+      "type": "object",
+      "description": "Empirical evidence and claims from original paper only",
+      "properties": {
+        "authors_empirical_claims": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "claim",
+              "evidence_type",
+              "source_in_paper"
+            ],
+            "properties": {
+              "claim": {
+                "type": "string",
+                "description": "Specific empirical claim made by authors"
+              },
+              "evidence_type": {
+                "type": "string",
+                "enum": [
+                  "experimental",
+                  "correlational",
+                  "observational",
+                  "theoretical",
+                  "meta_analytic"
+                ],
+                "description": "Type of evidence authors provide"
+              },
+              "specific_statistic": {
+                "type": "string",
+                "description": "Exact statistic if provided (e.g., 'r = 0.45', 'p < 0.01')"
+              },
+              "source_in_paper": {
+                "type": "string",
+                "description": "Page number, section, or table where authors make this claim"
+              },
+              "study_context": {
+                "type": "string",
+                "description": "Context of study that produced this evidence"
+              }
+            }
+          }
+        },
+        "source_verification_required": {
+          "type": "boolean",
+          "default": true,
+          "description": "All empirical claims must be traceable to original paper"
+        }
+      }
+    },
+    "theory_comparisons": {
+      "type": "object",
+      "description": "Other theories discussed in original paper",
+      "properties": {
+        "authors_explicit_comparisons": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "other_theory": {
+                "type": "string"
+              },
+              "authors_comparison": {
+                "type": "string"
+              },
+              "claimed_advantage": {
+                "type": "string"
+              },
+              "page_reference": {
+                "type": "string"
+              }
+            }
+          },
+          "description": "Only theories authors explicitly compare to their own"
+        },
+        "cited_predecessors": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Earlier theories authors acknowledge building on"
+        }
+      }
+    },
+    "ontology": {
+      "type": "object",
+      "required": [
+        "entities",
+        "relationships"
+      ],
+      "properties": {
+        "entities": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "name",
+              "mcl_id"
+            ],
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              },
+              "mcl_id": {
+                "type": "string",
+                "description": "Master Concept Library primary key"
+              },
+              "dolce_parent": {
+                "type": "string",
+                "format": "uri",
+                "description": "IRI of closest DOLCE class"
+              },
+              "properties": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "name",
+                    "type"
+                  ],
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "type": {
+                      "type": "string"
+                    },
+                    "description": {
+                      "type": "string"
+                    },
+                    "constraints": {
+                      "type": "object"
+                    },
+                    "operationalization": {
+                      "type": "object",
+                      "properties": {
+                        "measurement_approach": {
+                          "type": "string"
+                        },
+                        "boundary_rules": {
+                          "type": "array"
+                        },
+                        "fuzzy_boundaries": {
+                          "type": "boolean"
+                        },
+                        "validation_examples": {
+                          "type": "array"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "relationships": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "name",
+              "source_role",
+              "target_role"
+            ],
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              },
+              "source_role": {
+                "type": "string"
+              },
+              "target_role": {
+                "type": "string"
+              },
+              "dolce_parent": {
+                "type": "string",
+                "format": "uri",
+                "description": "IRI of closest DOLCE relation"
+              },
+              "properties": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "name",
+                    "type"
+                  ],
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "type": {
+                      "type": "string"
+                    },
+                    "description": {
+                      "type": "string"
+                    },
+                    "constraints": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "execution": {
+      "type": "object",
+      "required": [
+        "process_type",
+        "analysis_steps"
+      ],
+      "properties": {
+        "mandatory_applicability_check": {
+          "type": "object",
+          "required": [
+            "step_id",
+            "method",
+            "description"
+          ],
+          "description": "Required first step to assess theory applicability before analysis",
+          "properties": {
+            "step_id": {
+              "type": "string",
+              "const": "theory_applicability_assessment"
+            },
+            "method": {
+              "type": "string",
+              "const": "llm_extraction"
+            },
+            "description": {
+              "type": "string",
+              "const": "Assess whether theory applies to this context before proceeding with analysis"
+            },
+            "required_outputs": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "minItems": 2,
+              "description": "Must include applicability_score and boundary_assessment"
+            },
+            "llm_prompts": {
+              "type": "object",
+              "required": [
+                "extraction_prompt",
+                "validation_prompt"
+              ],
+              "properties": {
+                "extraction_prompt": {
+                  "type": "string",
+                  "description": "Prompt to assess theory-context fit"
+                },
+                "validation_prompt": {
+                  "type": "string",
+                  "description": "Prompt to validate applicability assessment"
+                }
+              }
+            }
+          }
+        },
+        "process_type": {
+          "type": "string",
+          "enum": [
+            "sequential",
+            "iterative",
+            "workflow",
+            "adaptive"
+          ],
+          "description": "Process flow type"
+        },
+        "analysis_steps": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "step_id",
+              "method",
+              "description"
+            ],
+            "properties": {
+              "step_id": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              },
+              "method": {
+                "type": "string",
+                "enum": [
+                  "llm_extraction",
+                  "predefined_tool",
+                  "custom_script",
+                  "hybrid"
+                ],
+                "description": "Implementation method"
+              },
+              "inputs": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "outputs": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "conditions": {
+                "type": "object"
+              },
+              "applicability_threshold": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1,
+                "description": "Minimum applicability score required to execute this step"
+              },
+              "llm_prompts": {
+                "type": "object",
+                "description": "Prompts for LLM-based steps",
+                "properties": {
+                  "extraction_prompt": {
+                    "type": "string"
+                  },
+                  "validation_prompt": {
+                    "type": "string"
+                  },
+                  "classification_prompt": {
+                    "type": "string"
+                  },
+                  "context_instructions": {
+                    "type": "string"
+                  }
+                }
+              },
+              "tool_mapping": {
+                "type": "object",
+                "description": "Tool selection and configuration",
+                "properties": {
+                  "preferred_tool": {
+                    "type": "string"
+                  },
+                  "alternative_tools": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "tool_parameters": {
+                    "type": "object"
+                  },
+                  "parameter_adaptation": {
+                    "type": "object",
+                    "properties": {
+                      "method": {
+                        "type": "string"
+                      },
+                      "adaptation_logic": {
+                        "type": "string"
+                      },
+                      "wrapper_script": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              },
+              "custom_script": {
+                "type": "object",
+                "description": "Custom algorithm specification",
+                "properties": {
+                  "algorithm_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "business_logic": {
+                    "type": "string"
+                  },
+                  "implementation_hint": {
+                    "type": "string"
+                  },
+                  "inputs": {
+                    "type": "object",
+                    "patternProperties": {
+                      ".*": {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "type": "string"
+                          },
+                          "range": {
+                            "type": "array"
+                          },
+                          "description": {
+                            "type": "string"
+                          },
+                          "constraints": {
+                            "type": "object"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "outputs": {
+                    "type": "object",
+                    "patternProperties": {
+                      ".*": {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "type": "string"
+                          },
+                          "range": {
+                            "type": "array"
+                          },
+                          "description": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "test_cases": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "inputs": {
+                          "type": "object"
+                        },
+                        "expected_output": {},
+                        "description": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  },
+                  "validation_rules": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "tool_contracts": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "uncertainty_handling": {
+                "type": "object",
+                "properties": {
+                  "confidence_thresholds": {
+                    "type": "object"
+                  },
+                  "fallback_strategy": {
+                    "type": "string"
+                  },
+                  "uncertainty_propagation": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "cross_modal_mappings": {
+          "type": "object",
+          "description": "How theory maps across graph/table/vector modes",
+          "properties": {
+            "graph_representation": {
+              "type": "object"
+            },
+            "table_representation": {
+              "type": "object"
+            },
+            "vector_representation": {
+              "type": "object"
+            },
+            "mode_conversions": {
+              "type": "array"
+            }
+          }
+        },
+        "dynamic_adaptation": {
+          "type": "object",
+          "description": "For adaptive processes like Spiral of Silence",
+          "properties": {
+            "adaptation_triggers": {
+              "type": "array"
+            },
+            "state_variables": {
+              "type": "object"
+            },
+            "adaptation_rules": {
+              "type": "array"
+            }
+          }
+        }
+      }
+    },
+    "telos": {
+      "type": "object",
+      "required": [
+        "purpose",
+        "output_format",
+        "success_criteria"
+      ],
+      "properties": {
+        "purpose": {
+          "type": "string"
+        },
+        "output_format": {
+          "type": "string"
+        },
+        "success_criteria": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "analysis_tiers": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "descriptive",
+              "explanatory",
+              "predictive",
+              "interventionary"
+            ]
+          }
+        },
+        "applicability_requirements": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Conditions that must be met for successful theory application"
+        }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "description": "Theory validation and testing framework",
+      "properties": {
+        "operationalization_notes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Documented simplifications and assumptions"
+        },
+        "theory_tests": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "test_name": {
+                "type": "string"
+              },
+              "input_scenario": {
+                "type": "string"
+              },
+              "expected_theory_application": {
+                "type": "string"
+              },
+              "validation_criteria": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "boundary_cases": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "case_description": {
+                "type": "string"
+              },
+              "theory_applicability": {
+                "type": "string"
+              },
+              "expected_behavior": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "negative_finding_interpretation": {
+          "type": "object",
+          "description": "How to handle when expected patterns are absent",
+          "properties": {
+            "when_patterns_absent": {
+              "type": "string",
+              "description": "Interpretation guidance when predicted patterns don't appear"
+            },
+            "scope_refinement_implications": {
+              "type": "string",
+              "description": "What negative findings reveal about theory boundaries"
+            },
+            "alternative_explanations": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Other theories to consider when this one doesn't fit"
+            }
+          }
+        }
+      }
+    },
+    "post_hoc_enhancements": {
+      "type": "object",
+      "description": "Information added after original paper extraction by researchers or system",
+      "properties": {
+        "alternative_theories_identified": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "theory_name": {
+                "type": "string"
+              },
+              "relevance_context": {
+                "type": "string"
+              },
+              "added_by": {
+                "type": "string"
+              },
+              "date_added": {
+                "type": "string",
+                "format": "date"
+              }
+            }
+          },
+          "description": "Other theories researchers identified as relevant to similar contexts"
+        },
+        "external_validation_studies": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "study_citation": {
+                "type": "string"
+              },
+              "finding": {
+                "type": "string"
+              },
+              "support_level": {
+                "type": "string",
+                "enum": [
+                  "supports",
+                  "contradicts",
+                  "refines",
+                  "extends"
+                ]
+              },
+              "added_by": {
+                "type": "string"
+              }
+            }
+          },
+          "description": "Later studies that validated, challenged, or refined this theory"
+        },
+        "scope_refinements": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "refinement": {
+                "type": "string"
+              },
+              "context": {
+                "type": "string"
+              },
+              "evidence": {
+                "type": "string"
+              },
+              "added_by": {
+                "type": "string"
+              }
+            }
+          },
+          "description": "Boundary conditions discovered through later application"
+        }
+      }
+    },
+    "configuration": {
+      "type": "object",
+      "description": "Configurable aspects of theory application",
+      "properties": {
+        "tracing_level": {
+          "type": "string",
+          "enum": [
+            "minimal",
+            "standard",
+            "verbose",
+            "debug"
+          ],
+          "default": "standard"
+        },
+        "llm_models": {
+          "type": "object",
+          "properties": {
+            "extraction": {
+              "type": "string"
+            },
+            "reasoning": {
+              "type": "string"
+            },
+            "validation": {
+              "type": "string"
+            }
+          }
+        },
+        "performance_optimization": {
+          "type": "object",
+          "properties": {
+            "enable_caching": {
+              "type": "boolean"
+            },
+            "batch_processing": {
+              "type": "boolean"
+            },
+            "parallel_execution": {
+              "type": "boolean"
+            }
+          }
+        },
+        "fallback_strategies": {
+          "type": "object",
+          "properties": {
+            "missing_tools": {
+              "type": "string"
+            },
+            "low_confidence": {
+              "type": "string"
+            },
+            "edge_cases": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "mcl_id": {
+          "type": "string",
+          "description": "Master Concept Library primary key"
+        },
+        "created": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "modified": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "contributors": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "validation_status": {
+          "type": "string"
+        },
+        "implementation_status": {
+          "type": "string"
+        },
+        "test_coverage": {
+          "type": "number"
+        },
+        "source_paper_verified": {
+          "type": "boolean",
+          "description": "Whether empirical claims have been verified against original paper"
+        }
+      }
+    }
+  },
+  "mode": "open",
+  "schema_id": "theory_meta_schema_v11"
+}

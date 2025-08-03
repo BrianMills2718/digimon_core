@@ -1,0 +1,184 @@
+{
+  "workflow_id": "workflow_57d6a742",
+  "workflow_name": "CLI_climate_report",
+  "input": {
+    "pdf_path": "climate_report.pdf",
+    "query": "What organizations are mentioned?"
+  },
+  "steps": {
+    "pdf_loading": {
+      "status": "success",
+      "document": {
+        "document_id": "doc_93537247",
+        "document_ref": "storage://document/doc_93537247",
+        "file_path": "climate_report.pdf",
+        "file_name": "climate_report.pdf",
+        "file_size": 2635,
+        "page_count": 1,
+        "text": "Climate Change and Renewable Energy Report\nThe Intergovernmental Panel on Climate Change (IPCC), founded in 1988 by the United\nNations, released its latest report in March 2023. The report, authored by leading\nscientists including Dr. Sarah Johnson from MIT and Professor Michael Chen from\nStanford University, highlights urgent concerns about global warming.\nKey findings show that global temperatures have risen by 1.1 degrees Celsius since\n1850. The report emphasizes that immediate action is required to limit warming to 1.5\ndegrees by 2050.\nMajor renewable energy companies are responding to the crisis. SolarTech Industries,\nbased in Phoenix, Arizona, announced a $2 billion investment in solar panel\nmanufacturing. The company's CEO, Maria Rodriguez, stated that they plan to double\nproduction capacity by 2025.\nWindPower Global, headquartered in Copenhagen, Denmark, is developing offshore wind\nfarms in the North Sea. The company collaborated with GreenEnergy Solutions from\nBerlin, Germany to create the largest wind farm in Europe, which began operations in\nSeptember 2022.\nThe European Union passed the Green Deal Act in 2019, allocating \u20ac1 trillion for\nclimate initiatives. China announced its carbon neutrality goal for 2060, while the\nUnited States rejoined the Paris Agreement in 2021.",
+        "text_length": 1301,
+        "confidence": 0.5728266164779663,
+        "created_at": "2025-06-17T16:19:31.499185",
+        "tool_version": "1.0.0",
+        "extraction_method": "pypdf",
+        "quality_tier": "MEDIUM"
+      },
+      "confidence": 0.5728266164779663
+    },
+    "text_chunking": {
+      "status": "success",
+      "chunks": 1,
+      "total_tokens": 196
+    },
+    "entity_extraction": {
+      "status": "success",
+      "total_entities": 31,
+      "entity_types": {
+        "WORK_OF_ART": 1,
+        "DATE": 9,
+        "ORG": 7,
+        "PERSON": 3,
+        "GPE": 7,
+        "MONEY": 2,
+        "PRODUCT": 1,
+        "EVENT": 1
+      }
+    },
+    "relationship_extraction": {
+      "status": "success",
+      "total_relationships": 29,
+      "relationship_types": {
+        "LOCATED_IN": 3,
+        "CREATED": 1,
+        "RELATED_TO": 25
+      }
+    },
+    "entity_building": {
+      "status": "success",
+      "entities_created": 31,
+      "entity_types": {
+        "WORK_OF_ART": 1,
+        "DATE": 9,
+        "ORG": 7,
+        "PERSON": 3,
+        "GPE": 7,
+        "MONEY": 2,
+        "PRODUCT": 1,
+        "EVENT": 1
+      }
+    },
+    "edge_building": {
+      "status": "success",
+      "edges_created": 29,
+      "relationship_types": {
+        "LOCATED_IN": 3,
+        "CREATED": 1,
+        "RELATED_TO": 25
+      }
+    },
+    "pagerank_calculation": {
+      "status": "success",
+      "entities_ranked": 432,
+      "graph_stats": {
+        "node_count": 432,
+        "edge_count": 744,
+        "connected_components": 31
+      },
+      "top_entities": [
+        {
+          "entity_id": "entity_94d759a9",
+          "canonical_name": "rendlesham forest",
+          "entity_type": "ORG",
+          "pagerank_score": 0.01699,
+          "entity_confidence": 0.9729421136686986,
+          "calculated_at": "2025-06-17T16:19:31.864335",
+          "rank": 1,
+          "percentile": 100.0,
+          "pagerank_ref": "storage://pagerank/entity_94d759a9",
+          "quality_confidence": 0.8337375,
+          "quality_tier": "HIGH"
+        },
+        {
+          "entity_id": "entity_ea92be8c",
+          "canonical_name": "1996",
+          "entity_type": "DATE",
+          "pagerank_score": 0.016364,
+          "entity_confidence": 0.9575693359375,
+          "calculated_at": "2025-06-17T16:19:31.864243",
+          "rank": 2,
+          "percentile": 99.8,
+          "pagerank_ref": "storage://pagerank/entity_ea92be8c",
+          "quality_confidence": 0.832955,
+          "quality_tier": "HIGH"
+        },
+        {
+          "entity_id": "entity_e7f6282d",
+          "canonical_name": "england",
+          "entity_type": "GPE",
+          "pagerank_score": 0.012977,
+          "entity_confidence": 0.9738960453942418,
+          "calculated_at": "2025-06-17T16:19:31.864332",
+          "rank": 3,
+          "percentile": 99.5,
+          "pagerank_ref": "storage://pagerank/entity_e7f6282d",
+          "quality_confidence": 0.8287212500000001,
+          "quality_tier": "HIGH"
+        },
+        {
+          "entity_id": "entity_3becaee6",
+          "canonical_name": "ian",
+          "entity_type": "PERSON",
+          "pagerank_score": 0.01136,
+          "entity_confidence": 0.947256164441861,
+          "calculated_at": "2025-06-17T16:19:31.864385",
+          "rank": 4,
+          "percentile": 99.3,
+          "pagerank_ref": "storage://pagerank/entity_3becaee6",
+          "quality_confidence": 0.8267,
+          "quality_tier": "HIGH"
+        },
+        {
+          "entity_id": "entity_e5efce99",
+          "canonical_name": "the soviet union",
+          "entity_type": "GPE",
+          "pagerank_score": 0.010049,
+          "entity_confidence": 0.9975867745535713,
+          "calculated_at": "2025-06-17T16:19:31.864213",
+          "rank": 5,
+          "percentile": 99.1,
+          "pagerank_ref": "storage://pagerank/entity_e5efce99",
+          "quality_confidence": 0.8250612500000001,
+          "quality_tier": "HIGH"
+        }
+      ]
+    },
+    "query_execution": {
+      "status": "success",
+      "results_found": 0,
+      "search_stats": {}
+    }
+  },
+  "final_answer": {
+    "answer": "No answer found",
+    "confidence": 0.0,
+    "explanation": "No relevant entities found in the graph for this query"
+  },
+  "status": "success",
+  "workflow_summary": {
+    "chunks_created": 1,
+    "entities_extracted": 31,
+    "relationships_found": 29,
+    "graph_entities": 31,
+    "graph_edges": 29
+  },
+  "query_result": {
+    "status": "success",
+    "query": {},
+    "results": [],
+    "total_results": 0,
+    "search_stats": {},
+    "operation_id": "op_450652a7",
+    "message": "No entities found in query for graph traversal"
+  },
+  "confidence": 0.8
+}

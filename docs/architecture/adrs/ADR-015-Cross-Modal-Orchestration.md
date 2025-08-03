@@ -1,12 +1,14 @@
-# ADR-015: Cross-Modal Orchestration
+# ADR-015: Cross-Modal Orchestration Implementation
 
 **Status**: Accepted  
+**Implements**: [ADR-006: Cross-Modal Analysis Architecture](ADR-006-cross-modal-analysis.md) (foundational architectural decision)  
+**Related**: [ADR-009](ADR-009-Bi-Store-Database-Strategy.md) (Bi-store storage), [ADR-003](ADR-003-Vector-Store-Consolidation.md) (Vector operations)  
 **Date**: 2025-07-23  
-**Context**: Academic research requires flexible analysis across different data representations (graph, table, vector) with seamless conversion and source traceability.
+**Context**: This ADR provides detailed implementation specifications for the cross-modal analysis architecture established in ADR-006.
 
 ## Decision
 
-We will implement **cross-modal orchestration** enabling fluid movement between three analysis modes:
+This ADR provides the **detailed implementation specifications** for the cross-modal analysis architecture decided in [ADR-006](ADR-006-cross-modal-analysis.md). The implementation enables fluid orchestration between three analysis modes:
 
 1. **Graph Analysis**: Relationships, centrality, communities, paths
 2. **Table Analysis**: Statistical analysis, aggregations, correlations  
@@ -50,50 +52,9 @@ class CrossModalOrchestrator:
 3. **Analysis flexibility**: Researchers can switch modes based on research questions
 4. **Quality tracking**: Confidence scores maintained through conversions
 
-## Rationale
+## Implementation Focus
 
-### **Why Cross-Modal Analysis?**
-
-**1. Academic Research Diversity**:
-Different research questions require different analytical approaches:
-
-- **"Who are the most influential researchers?"** → Graph analysis (centrality)
-- **"What theories correlate with publication impact?"** → Table analysis (correlation)
-- **"Which papers are most similar to this one?"** → Vector analysis (similarity)
-- **"How do research communities form over time?"** → Graph analysis (community detection)
-
-**2. Research Method Integration**:
-Academic research often requires combining multiple analytical approaches:
-- **Exploratory phase**: Vector similarity to find related work
-- **Network analysis**: Graph analysis to understand relationships
-- **Statistical validation**: Table analysis for hypothesis testing
-- **Result synthesis**: Cross-modal integration for comprehensive understanding
-
-**3. Theory-Aware Processing**:
-Social science theories often specify particular analytical approaches:
-- **Stakeholder Theory**: Requires graph analysis (influence networks)
-- **Diffusion of Innovations**: Requires both graph (adoption networks) and table (adoption rates)
-- **Social Identity Theory**: Requires vector analysis (group similarity) and graph (group boundaries)
-
-### **Why Not Single-Mode Analysis?**
-
-**Graph-Only Analysis**:
-- ❌ **Statistical limitations**: Poor support for correlations, regression analysis
-- ❌ **Quantitative analysis**: Difficulty with statistical hypothesis testing
-- ❌ **Temporal analysis**: Limited support for time-series analysis
-- ❌ **Similarity search**: No efficient content-based similarity queries
-
-**Table-Only Analysis**:
-- ❌ **Relationship modeling**: Cannot efficiently model complex relationship networks
-- ❌ **Path analysis**: No support for network path analysis
-- ❌ **Community detection**: Cannot identify clusters in relationship networks
-- ❌ **Influence analysis**: Limited support for influence propagation models
-
-**Vector-Only Analysis**:
-- ❌ **Explicit relationships**: Cannot model explicit relationship types
-- ❌ **Network properties**: No access to network topology metrics
-- ❌ **Statistical analysis**: Limited support for traditional statistical methods
-- ❌ **Categorical analysis**: Difficulty with discrete categorical relationships
+This ADR focuses on the **concrete implementation details** for cross-modal orchestration. For the architectural rationale and decision context, see [ADR-006: Cross-Modal Analysis Architecture](ADR-006-cross-modal-analysis.md).
 
 ## Cross-Modal Architecture
 
@@ -421,7 +382,7 @@ Quality service must track confidence through conversions:
 
 ## Related ADRs
 
-- **ADR-006**: Cross-Modal Analysis (original cross-modal concept)
+- **[ADR-006: Cross-Modal Analysis Architecture](ADR-006-cross-modal-analysis.md)**: **Foundational Decision** - This ADR implements the architectural concepts established there
 - **ADR-009**: Bi-Store Database Strategy (graph and metadata storage for cross-modal)
 - **ADR-008**: Core Service Architecture (cross-modal integration with services)
 - **ADR-011**: Academic Research Focus (cross-modal designed for research flexibility)
