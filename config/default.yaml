@@ -1,33 +1,122 @@
 api:
   anthropic_api_key: ''
   google_api_key: ''
-  max_retries: 3
   openai_api_key: ''
-  timeout: 30
-llm:
-  primary_model: "gpt_4o_mini"
-  fallback_models:
-    - "gemini_flash" 
-    - "claude_sonnet_4"
-  timeout_seconds: 30
+  openai_base_url: 'https://api.openai.com/v1'
+  openai_model: 'text-embedding-3-small'
+  gemini_model: 'gemini-2.5-flash'
   max_retries: 3
-  fallback_on_rate_limit: true
-  fallback_on_timeout: true
-  fallback_on_error: true
-  models:
-    gpt_4_turbo: "gpt-4-turbo,true,8192"
-    gpt_4o_mini: "gpt-4o-mini,true,4096"
-    claude_sonnet_4: "claude-3-5-sonnet-20241022,false,8192"
-    gemini_flash: "gemini/gemini-1.5-flash,false,8192"
+  timeout: 30
+  retry_attempts: 3
+  timeout_seconds: 30
+  batch_processing_size: 10
+llm:
+  default_model: 'gemini-2.5-flash'
+  fallback_chain:
+    - model: 'gemini-2.5-flash'
+      provider: 'google'
+      max_retries: 3
+    - model: 'gpt-4-turbo'
+      provider: 'openai'
+
+# Structured Output Migration Feature Flags
+structured_output:
+  enabled_components:
+    llm_reasoning: true          # Enable for LLM reasoning engine
+    entity_extraction: false     # Enable for entity extraction tools  
+    mcp_adapter: false          # Enable for MCP adapter
+    llm_integration: false      # Enable for LLM integration component
+  
+  # Global settings for structured output
+  fail_fast: true              # Fail immediately on validation errors
+  log_failures: true           # Log all validation failures with context
+  token_limits:
+    default: 32000             # Default token limit for structured output
+    complex_reasoning: 65000   # For complex multi-step reasoning
+    simple_extraction: 16000   # For basic entity extraction
+  rate_limits:
+    openai: 60
+    google: 60
+    anthropic: 50
+  temperature_defaults:
+    extraction: 0.1
+    generation: 0.7
+    analysis: 0.3
+    classification: 0.0
+  providers:
+    openai:
+      provider: 'openai'
+      model: 'gpt-4-turbo'
+      api_key: ''
+      base_url: 'https://api.openai.com/v1'
+      max_retries: 3
+      timeout: 30
+      rate_limit: 60
+    google:
+      provider: 'google'
+      model: 'gemini-2.0-flash-exp'
+      api_key: ''
+      base_url: 'https://generativelanguage.googleapis.com/v1beta'
+      max_retries: 2
+      timeout: 30
+      rate_limit: 60
+    anthropic:
+      provider: 'anthropic'
+      model: 'claude-3-opus'
+      api_key: ''
+      base_url: 'https://api.anthropic.com/v1'
+      max_retries: 2
+      timeout: 30
+      rate_limit: 50
+  enable_fallbacks: true
+  enable_rate_limiting: true
+  enable_retry_logic: true
+  circuit_breaker_threshold: 5
+  circuit_breaker_timeout: 300
 database:
-  database: neo4j
   host: localhost
-  password: '${NEO4J_PASSWORD:-}'
   port: 7687
   username: neo4j
+  password: '${NEO4J_PASSWORD:-}'
+  database: neo4j
+  uri: ''
+  max_connection_pool_size: 50
+  connection_acquisition_timeout: 30
+  keep_alive: true
 system:
-  backup_enabled: true
-  encryption_enabled: true
   log_level: INFO
   max_workers: 4
+  backup_enabled: true
+  encryption_enabled: true
   metrics_enabled: true
+  health_check_interval: 60
+  environment: development
+  debug: false
+text_processing:
+  chunk_size: 512
+  semantic_similarity_threshold: 0.85
+  max_chunks_per_document: 100
+  chunk_overlap_size: 50
+entity_processing:
+  confidence_threshold: 0.7
+  chunk_overlap_size: 50
+  embedding_batch_size: 100
+  max_entities_per_chunk: 20
+graph_construction:
+  pagerank_iterations: 100
+  pagerank_damping_factor: 0.85
+  pagerank_tolerance: 1e-6
+  pagerank_min_score: 0.0001
+  max_relationships_per_entity: 50
+  graph_pruning_threshold: 0.1
+workflow:
+  storage_dir: './data/workflows'
+  checkpoint_interval: 10
+  max_retries: 3
+  timeout_seconds: 300
+theory:
+  enabled: false
+  schema_type: 'MASTER_CONCEPTS'
+  concept_library_path: 'src/ontology_library/master_concepts.py'
+  validation_enabled: true
+  enhancement_boost: 0.1
