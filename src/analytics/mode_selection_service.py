@@ -2,8 +2,8 @@
 """
 Mode Selection Service - LLM-driven intelligent mode selection for cross-modal analysis
 
-Implements intelligent mode selection using LLM reasoning with fallback rules,
-comprehensive error handling, and integration with the enhanced service manager.
+Implements intelligent mode selection using LLM reasoning with fail-fast error handling.
+NO FALLBACKS - system fails loudly if LLM unavailable to surface configuration issues.
 """
 
 import asyncio
@@ -16,6 +16,7 @@ from datetime import datetime
 from dataclasses import dataclass, asdict
 from enum import Enum
 import hashlib
+from pydantic import ValidationError
 
 try:
     from ..core.unified_service_interface import CoreService, ServiceResponse, create_service_response
@@ -93,8 +94,9 @@ class WorkflowStep:
 class ModeSelectionService(CoreService):
     """LLM-driven intelligent mode selection for cross-modal analysis
     
-    Provides intelligent mode selection using LLM reasoning with comprehensive
-    fallback strategies, performance optimization, and detailed decision tracking.
+    Provides intelligent mode selection using LLM reasoning with fail-fast error handling,
+    performance optimization, and detailed decision tracking. NO FALLBACKS - system
+    fails loudly if LLM unavailable to surface configuration issues.
     """
     
     def __init__(self, service_manager=None, llm_client=None):
@@ -102,22 +104,16 @@ class ModeSelectionService(CoreService):
         self.config = get_config()
         self.logger = get_logger("analytics.mode_selection_service")
         
-        # Initialize LLM client immediately if not provided
+        # Set LLM client - NO AUTOMATIC INITIALIZATION  
+        self.llm_client = llm_client
         if llm_client:
-            self.llm_client = llm_client
             self.logger.info("Using provided LLM client")
         else:
-            try:
-                self.llm_client = self._initialize_llm_client()
-                self.logger.info("LLM client initialized successfully")
-            except Exception as e:
-                self.logger.error(f"Failed to initialize LLM client: {e}")
-                self.llm_client = None  # Will cause failures later - no fallbacks
+            self.logger.warning("No LLM client provided - service will fail fast on operations requiring LLM")
         
         # Configuration
         self.confidence_threshold = 0.7
         self.max_reasoning_length = 2000
-        self.fallback_timeout = 5.0
         
         # Mode selection cache for performance
         self._selection_cache = {}
@@ -128,19 +124,17 @@ class ModeSelectionService(CoreService):
         self._stats_lock = threading.Lock()
         self._selection_times = []
         self._success_count = 0
-        self._fallback_count = 0
         
         self.logger.info("ModeSelectionService initialized")
     
     def _get_thread_safe_stats(self) -> Dict[str, Any]:
         """Get performance statistics in a thread-safe manner"""
         with self._stats_lock:
-            total_selections = self._success_count + self._fallback_count
+            total_selections = self._success_count
             return {
                 "total_selections": total_selections,
                 "success_count": self._success_count,
-                "fallback_count": self._fallback_count,
-                "success_rate": self._success_count / max(1, total_selections),
+                "success_rate": 1.0 if total_selections > 0 else 0.0,
                 "avg_selection_time": sum(self._selection_times) / max(1, len(self._selection_times))
             }
     
@@ -159,11 +153,10 @@ class ModeSelectionService(CoreService):
             # Update configuration
             self.confidence_threshold = config.get('confidence_threshold', 0.7)
             self.max_reasoning_length = config.get('max_reasoning_length', 2000)
-            self.fallback_timeout = config.get('fallback_timeout', 5.0)
             
-            # Initialize LLM client if not provided
-            if not self.llm_client and self.service_manager:
-                self.llm_client = self._initialize_llm_client()
+            # LLM client must be provided - no auto-initialization
+            if not self.llm_client:
+                raise RuntimeError("LLM client must be provided during initialization - no auto-initialization supported")
             
             self.logger.info("ModeSelectionService initialized successfully")
             return create_service_response(
@@ -220,7 +213,6 @@ class ModeSelectionService(CoreService):
             stats = {
                 "total_requests": performance_stats["total_selections"],
                 "successful_llm_selections": performance_stats["success_count"],
-                "fallback_selections": performance_stats["fallback_count"],
                 "cache_performance": {
                     "cache_size": len(self._selection_cache),
                     "cache_hits": self._cache_hits,
@@ -276,7 +268,6 @@ class ModeSelectionService(CoreService):
             "capabilities": [
                 "intelligent_mode_selection",
                 "llm_reasoning",
-                "fallback_rules", 
                 "confidence_scoring",
                 "workflow_generation"
             ],
@@ -285,7 +276,7 @@ class ModeSelectionService(CoreService):
             "performance_features": [
                 "caching",
                 "performance_tracking",
-                "timeout_handling"
+                "fail_fast_error_handling"
             ]
         }
     
@@ -295,7 +286,7 @@ class ModeSelectionService(CoreService):
         data_context: DataContext,
         preferences: Optional[Dict[str, Any]] = None
     ) -> ModeSelectionResult:
-        """Select optimal analysis mode using LLM reasoning with fallback
+        """Select optimal analysis mode using LLM reasoning - FAIL FAST if LLM unavailable
         
         Args:
             research_question: The research question being answered
@@ -304,54 +295,44 @@ class ModeSelectionService(CoreService):
             
         Returns:
             ModeSelectionResult with mode selection and reasoning
+            
+        Raises:
+            RuntimeError: If LLM client not available
+            ValidationError: If LLM selection validation fails
+            Exception: If LLM request fails
         """
         start_time = time.time()
         
-        try:
-            # Check cache first
-            cache_key = self._generate_cache_key(research_question, data_context, preferences)
-            cached_result = self._get_cached_selection(cache_key)
-            if cached_result:
-                self._cache_hits += 1
-                return cached_result
-            
-            self._cache_misses += 1
-            
-            # Attempt LLM-based selection
-            selection_result = await self._llm_mode_selection(
-                research_question, data_context, preferences
-            )
-            
-            # Validate LLM selection
-            if self._validate_selection(selection_result):
-                with self._stats_lock:
-                    self._success_count += 1
-                    self._selection_times.append(time.time() - start_time)
-                self._cache_selection(cache_key, selection_result)
-                
-                self.logger.info(f"LLM mode selection successful: {selection_result.primary_mode.value}")
-                return selection_result
-            else:
-                self.logger.warning("LLM selection validation failed, using fallback")
+        # Check cache first
+        cache_key = self._generate_cache_key(research_question, data_context, preferences)
+        cached_result = self._get_cached_selection(cache_key)
+        if cached_result:
+            self._cache_hits += 1
+            return cached_result
         
-        except Exception as e:
-            self.logger.warning(f"LLM mode selection failed: {e}, using fallback")
+        self._cache_misses += 1
         
-        # Use fallback selection
-        fallback_result = await self._fallback_mode_selection(
+        # FAIL FAST if LLM client not available
+        if not self.llm_client:
+            raise RuntimeError("LLM client not available - cannot perform mode selection. Check API configuration.")
+        
+        # Call LLM without timeout - let it take as long as needed
+        selection_result = await self._llm_mode_selection(
             research_question, data_context, preferences
         )
         
-        with self._stats_lock:
-            self._fallback_count += 1
-        self._cache_selection(cache_key, fallback_result)
+        # FAIL FAST on validation errors
+        if not self._validate_selection(selection_result):
+            raise ValidationError(f"LLM selection validation failed: confidence {selection_result.confidence} below threshold {self.confidence_threshold}")
         
-        duration = time.time() - start_time
+        # Success - cache and return
         with self._stats_lock:
-            self._selection_times.append(duration)
+            self._success_count += 1
+            self._selection_times.append(time.time() - start_time)
+        self._cache_selection(cache_key, selection_result)
         
-        self.logger.info(f"Fallback mode selection: {fallback_result.primary_mode.value}")
-        return fallback_result
+        self.logger.info(f"LLM mode selection successful: {selection_result.primary_mode.value}")
+        return selection_result
     
     async def _llm_mode_selection(
         self,
@@ -359,22 +340,17 @@ class ModeSelectionService(CoreService):
         data_context: DataContext,
         preferences: Optional[Dict[str, Any]]
     ) -> ModeSelectionResult:
-        """Use LLM to select optimal analysis mode"""
-        
-        if not self.llm_client:
-            raise Exception("LLM client not available")
+        """Use LLM to select optimal analysis mode - NO TIMEOUT, NO FALLBACK"""
         
         # Build comprehensive prompt
         prompt = self._build_mode_selection_prompt(research_question, data_context, preferences)
         
-        # Query LLM with timeout
+        # Query LLM without timeout - let underlying client handle timeouts
         try:
-            llm_response = await asyncio.wait_for(
-                self.llm_client.complete(prompt),
-                timeout=self.fallback_timeout
-            )
-        except asyncio.TimeoutError:
-            raise Exception("LLM request timed out")
+            llm_response = await self.llm_client.complete(prompt)
+        except Exception as e:
+            self.logger.error(f"LLM request failed: {e}")
+            raise RuntimeError(f"LLM request failed: {e}") from e
         
         # Parse LLM response
         selection_result = self._parse_llm_response(llm_response, data_context)
@@ -396,50 +372,6 @@ class ModeSelectionService(CoreService):
         
         return selection_result
     
-    async def _fallback_mode_selection(
-        self,
-        research_question: str,
-        data_context: DataContext,
-        preferences: Optional[Dict[str, Any]]
-    ) -> ModeSelectionResult:
-        """Rule-based fallback mode selection when LLM unavailable"""
-        
-        # Rule-based mode selection logic
-        primary_mode = self._rule_based_mode_selection(data_context, research_question)
-        secondary_modes = self._get_compatible_modes(primary_mode, data_context)
-        
-        # Generate reasoning explanation
-        reasoning = self._generate_fallback_reasoning(
-            primary_mode, secondary_modes, data_context, research_question
-        )
-        
-        # Calculate confidence based on data characteristics
-        confidence = self._calculate_fallback_confidence(data_context, primary_mode)
-        confidence_level = self._get_confidence_level(confidence)
-        
-        # Generate workflow steps
-        workflow_steps = self._generate_workflow_steps(
-            primary_mode, secondary_modes, data_context
-        )
-        
-        # Estimate performance
-        estimated_performance = self._estimate_performance(primary_mode, data_context)
-        
-        return ModeSelectionResult(
-            primary_mode=primary_mode,
-            secondary_modes=secondary_modes,
-            confidence=confidence,
-            confidence_level=confidence_level,
-            reasoning=reasoning,
-            workflow_steps=workflow_steps,
-            estimated_performance=estimated_performance,
-            fallback_used=True,
-            selection_metadata={
-                "selection_method": "rule_based_fallback",
-                "timestamp": datetime.now().isoformat(),
-                "data_context_hash": self._hash_data_context(data_context)
-            }
-        )
     
     def _build_mode_selection_prompt(
         self,
@@ -506,8 +438,17 @@ Provide a confidence score between 0.0 and 1.0, and explain your reasoning in de
         """Parse LLM response into structured mode selection result"""
         
         try:
+            # Clean up response - remove markdown code blocks if present
+            response_text = llm_response.strip()
+            if response_text.startswith('```json'):
+                # Remove markdown JSON code blocks
+                response_text = response_text.replace('```json', '').replace('```', '').strip()
+            elif response_text.startswith('```'):
+                # Remove generic code blocks
+                response_text = response_text.replace('```', '').strip()
+            
             # Try to parse JSON response
-            response_data = json.loads(llm_response.strip())
+            response_data = json.loads(response_text)
             
             # Extract and validate primary mode
             primary_mode_str = response_data.get('primary_mode', '').upper()
@@ -558,141 +499,6 @@ Provide a confidence score between 0.0 and 1.0, and explain your reasoning in de
             self.logger.error(f"Failed to parse LLM response: {e}")
             raise Exception(f"LLM response parsing failed: {e}")
     
-    def _rule_based_mode_selection(
-        self, 
-        data_context: DataContext,
-        research_question: str
-    ) -> AnalysisMode:
-        """Rule-based mode selection logic for fallback"""
-        
-        # Analyze research question for keywords
-        question_lower = research_question.lower()
-        
-        # High relationship density suggests graph analysis
-        if data_context.relationship_count > data_context.entity_count * 2:
-            if any(keyword in question_lower for keyword in ['network', 'connection', 'relationship', 'influence', 'path']):
-                return AnalysisMode.GRAPH_ANALYSIS
-        
-        # Semantic analysis keywords suggest vector analysis
-        if any(keyword in question_lower for keyword in ['similar', 'semantic', 'meaning', 'concept', 'cluster']):
-            return AnalysisMode.VECTOR_ANALYSIS
-        
-        # Statistical keywords suggest table analysis
-        if any(keyword in question_lower for keyword in ['statistic', 'aggregate', 'count', 'sum', 'average', 'trend']):
-            return AnalysisMode.TABLE_ANALYSIS
-        
-        # Complex scenarios suggest hybrid approaches
-        if data_context.complexity_score > 0.7:
-            if data_context.entity_count > 10000:
-                return AnalysisMode.COMPREHENSIVE_MULTIMODAL
-            elif data_context.has_temporal_data or data_context.has_spatial_data:
-                return AnalysisMode.HYBRID_GRAPH_TABLE
-        
-        # Default based on data characteristics
-        if data_context.relationship_count > data_context.entity_count:
-            return AnalysisMode.GRAPH_ANALYSIS
-        elif len(data_context.data_types) > 3:
-            return AnalysisMode.HYBRID_GRAPH_TABLE
-        else:
-            return AnalysisMode.TABLE_ANALYSIS
-    
-    def _get_compatible_modes(
-        self, 
-        primary_mode: AnalysisMode,
-        data_context: DataContext
-    ) -> List[AnalysisMode]:
-        """Get compatible secondary modes for the primary mode"""
-        
-        compatibility_map = {
-            AnalysisMode.GRAPH_ANALYSIS: [AnalysisMode.VECTOR_ANALYSIS, AnalysisMode.TABLE_ANALYSIS],
-            AnalysisMode.TABLE_ANALYSIS: [AnalysisMode.GRAPH_ANALYSIS, AnalysisMode.VECTOR_ANALYSIS],
-            AnalysisMode.VECTOR_ANALYSIS: [AnalysisMode.GRAPH_ANALYSIS, AnalysisMode.TABLE_ANALYSIS],
-            AnalysisMode.HYBRID_GRAPH_TABLE: [AnalysisMode.VECTOR_ANALYSIS],
-            AnalysisMode.HYBRID_GRAPH_VECTOR: [AnalysisMode.TABLE_ANALYSIS],
-            AnalysisMode.HYBRID_TABLE_VECTOR: [AnalysisMode.GRAPH_ANALYSIS],
-            AnalysisMode.COMPREHENSIVE_MULTIMODAL: []
-        }
-        
-        compatible_modes = compatibility_map.get(primary_mode, [])
-        
-        # Filter based on data context
-        filtered_modes = []
-        for mode in compatible_modes:
-            if self._is_mode_suitable(mode, data_context):
-                filtered_modes.append(mode)
-        
-        return filtered_modes[:2]  # Limit to 2 secondary modes
-    
-    def _is_mode_suitable(self, mode: AnalysisMode, data_context: DataContext) -> bool:
-        """Check if a mode is suitable for the given data context"""
-        
-        if mode == AnalysisMode.GRAPH_ANALYSIS:
-            return data_context.relationship_count > 0
-        elif mode == AnalysisMode.VECTOR_ANALYSIS:
-            return 'text' in data_context.data_types or 'document' in data_context.data_types
-        elif mode == AnalysisMode.TABLE_ANALYSIS:
-            return len(data_context.data_types) > 0
-        
-        return True
-    
-    def _generate_fallback_reasoning(
-        self,
-        primary_mode: AnalysisMode,
-        secondary_modes: List[AnalysisMode],
-        data_context: DataContext,
-        research_question: str
-    ) -> str:
-        """Generate reasoning explanation for fallback selection"""
-        
-        reasons = []
-        
-        # Data-driven reasons
-        if data_context.relationship_count > data_context.entity_count * 2:
-            reasons.append("High relationship density favors graph-based analysis")
-        
-        if data_context.complexity_score > 0.7:
-            reasons.append("High complexity score suggests multi-modal approach")
-        
-        if data_context.entity_count > 10000:
-            reasons.append("Large dataset requires efficient analysis methods")
-        
-        # Mode-specific reasoning
-        mode_reasoning = {
-            AnalysisMode.GRAPH_ANALYSIS: "Graph analysis chosen for relationship-heavy data structure",
-            AnalysisMode.TABLE_ANALYSIS: "Table analysis chosen for structured data aggregation",
-            AnalysisMode.VECTOR_ANALYSIS: "Vector analysis chosen for semantic similarity tasks",
-            AnalysisMode.COMPREHENSIVE_MULTIMODAL: "Comprehensive analysis chosen for complex multi-faceted research"
-        }
-        
-        reasons.append(mode_reasoning.get(primary_mode, f"{primary_mode.value} selected"))
-        
-        if secondary_modes:
-            reasons.append(f"Secondary modes ({', '.join(m.value for m in secondary_modes)}) provide complementary analysis")
-        
-        return ". ".join(reasons) + "."
-    
-    def _calculate_fallback_confidence(
-        self,
-        data_context: DataContext,
-        primary_mode: AnalysisMode
-    ) -> float:
-        """Calculate confidence score for fallback selection"""
-        
-        base_confidence = 0.6  # Base confidence for rule-based selection
-        
-        # Adjust based on data characteristics
-        if data_context.entity_count > 1000:
-            base_confidence += 0.1
-        
-        if data_context.relationship_count > data_context.entity_count:
-            if primary_mode == AnalysisMode.GRAPH_ANALYSIS:
-                base_confidence += 0.1
-        
-        if data_context.complexity_score > 0.8:
-            if primary_mode == AnalysisMode.COMPREHENSIVE_MULTIMODAL:
-                base_confidence += 0.1
-        
-        return min(0.85, max(0.3, base_confidence))  # Clamp to reasonable range
     
     def _get_confidence_level(self, confidence: float) -> ConfidenceLevel:
         """Convert confidence score to confidence level enum"""

@@ -21,7 +21,7 @@ from src.tools.phase1.t01_pdf_loader_unified import T01PDFLoaderUnified
 from src.tools.phase1.t15a_text_chunker_unified import T15ATextChunkerUnified
 from src.tools.phase1.t23a_spacy_ner_unified import T23ASpacyNERUnified
 from src.tools.phase1.t27_relationship_extractor_unified import T27RelationshipExtractorUnified
-from src.tools.phase1.t68_pagerank_calculator_unified import T68PageRankCalculatorUnified
+from src.tools.phase1.t68_pagerank_unified import T68PageRankCalculatorUnified
 from src.core.service_manager import ServiceManager
 from src.core.distributed_transaction_manager import DistributedTransactionManager
 

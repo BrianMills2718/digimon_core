@@ -21,7 +21,7 @@ class PageRankAdapter(BaseToolAdapter):
         super().__init__(config_manager)
         
         try:
-            from ...tools.phase1.t68_pagerank_calculator_unified import PageRankCalculatorUnified as _PageRankCalculator
+            from ...tools.phase1.t68_pagerank_unified import PageRankCalculatorUnified as _PageRankCalculator
             self._tool = _PageRankCalculator(self.identity_service, self.provenance_service, self.quality_service)
         except ImportError as e:
             logger.error(f"Failed to import PageRankCalculatorUnified: {e}")

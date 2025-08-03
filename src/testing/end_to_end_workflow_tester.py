@@ -29,7 +29,7 @@ from ..tools.phase1.t23a_spacy_ner_unified import T23ASpacyNERUnified
 from ..tools.phase1.t27_relationship_extractor_unified import T27RelationshipExtractorUnified
 from ..tools.phase1.t31_entity_builder_unified import T31EntityBuilderUnified
 from ..tools.phase1.t34_edge_builder_unified import T34EdgeBuilderUnified
-from ..tools.phase1.t68_pagerank_calculator_unified import T68PageRankCalculatorUnified
+from ..tools.phase1.t68_pagerank_unified import T68PageRankCalculatorUnified
 from ..tools.phase1.t49_multihop_query_unified import T49MultiHopQueryUnified
 from ..tools.base_tool import ToolRequest, ToolResult
 

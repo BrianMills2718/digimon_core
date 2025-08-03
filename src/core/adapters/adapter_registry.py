@@ -76,7 +76,7 @@ class OptimizedToolAdapterRegistry:
             self.logger.warning(f"EdgeBuilderUnified not available: {e}")
         
         try:
-            from ...tools.phase1.t68_pagerank_calculator_unified import PageRankCalculatorUnified as _PageRankCalculator
+            from ...tools.phase1.t68_pagerank_unified import PageRankCalculatorUnified as _PageRankCalculator
             tool_imports.append((_PageRankCalculator, "calculate_pagerank", "graph_data", "pagerank_results"))
         except ImportError as e:
             self.logger.warning(f"PageRankCalculatorUnified not available: {e}")
