@@ -131,8 +131,21 @@ class LLMReasoningEngine:
             # Build reasoning prompt from context
             reasoning_prompt = await self._build_reasoning_prompt(context)
             
-            # Execute LLM reasoning
-            llm_response = await self._execute_llm_reasoning(reasoning_prompt, context)
+            # Choose reasoning method based on feature flags
+            try:
+                from ..core.feature_flags import is_structured_output_enabled
+                use_structured = is_structured_output_enabled("llm_reasoning")
+            except ImportError:
+                self.logger.warning("Feature flags not available, using legacy reasoning")
+                use_structured = False
+            
+            # Execute LLM reasoning with chosen method
+            if use_structured:
+                self.logger.info(f"Using structured output for {context.reasoning_type.value} reasoning")
+                llm_response = await self._execute_structured_reasoning(reasoning_prompt, context)
+            else:
+                self.logger.info(f"Using legacy parsing for {context.reasoning_type.value} reasoning")
+                llm_response = await self._execute_llm_reasoning_legacy(reasoning_prompt, context)
             
             # Parse and structure the response
             reasoning_result = await self._parse_reasoning_response(llm_response, context)
@@ -396,8 +409,57 @@ Balance creativity with practical constraints and memory-based insights.
             ]
         }
     
-    async def _execute_llm_reasoning(self, prompt: str, context: ReasoningContext) -> str:
-        """Execute LLM reasoning with structured output using LiteLLM directly."""
+    async def _execute_structured_reasoning(self, prompt: str, context: ReasoningContext) -> str:
+        """Execute LLM reasoning using StructuredLLMService with Pydantic validation."""
+        try:
+            # Import required services
+            from ..core.structured_llm_service import get_structured_llm_service
+            from ..core.feature_flags import get_feature_flags, get_token_limit
+            from .reasoning_schema import ReasoningResponse, EntityExtractionResponse
+            
+            # Get services
+            structured_llm = get_structured_llm_service()
+            flags = get_feature_flags()
+            
+            # Choose schema based on task type
+            if context.task.task_type == "entity_extraction":
+                schema = EntityExtractionResponse
+                token_limit = get_token_limit("simple_extraction")
+            else:
+                schema = ReasoningResponse  
+                token_limit = get_token_limit("complex_reasoning")
+            
+            self.logger.info(f"Using structured output: {schema.__name__} schema, {token_limit} tokens")
+            
+            # Use StructuredLLMService for clean Pydantic validation
+            validated_response = structured_llm.structured_completion(
+                prompt=prompt,
+                schema=schema,
+                model="smart",  # Use Universal LLM Kit model names
+                temperature=self.llm_config.get("temperature", 0.1),
+                max_tokens=token_limit
+            )
+            
+            # Convert Pydantic model back to JSON string for compatibility
+            # with existing _parse_reasoning_response method
+            response_json = validated_response.model_dump_json(indent=2)
+            
+            self.logger.info(f"Structured reasoning successful with {schema.__name__}")
+            return response_json
+            
+        except Exception as e:
+            self.logger.error(f"Structured reasoning failed: {e}")
+            
+            # Fail fast as per coding philosophy - no fallback to manual parsing
+            if flags.should_fail_fast():
+                raise Exception(f"Structured reasoning failed for {context.reasoning_type.value}: {e}")
+            
+            # If fail-fast is disabled, fallback to legacy method
+            self.logger.warning("Falling back to legacy reasoning method")
+            return await self._execute_llm_reasoning_legacy(prompt, context)
+    
+    async def _execute_llm_reasoning_legacy(self, prompt: str, context: ReasoningContext) -> str:
+        """Legacy LLM reasoning with manual JSON parsing (will be removed in Phase 2.2)."""
         
         # Import structured output dependencies
         import litellm
