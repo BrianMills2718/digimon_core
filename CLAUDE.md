@@ -1,232 +1,451 @@
-# KGAS Development Instructions - Tool Contract Integration Phase
+# KGAS Development Instructions - Contract-First Tool Migration
 
-## Current Priority Tasks (2025-08-03)
+## ⚠️ **CRITICAL: CONTRACT-FIRST MIGRATION IN PROGRESS** ⚠️
 
-### 🎯 **PHASE: Tool Contract Integration & Registry Completion**
+**NO BACKWARDS COMPATIBILITY NEEDED** - Single developer environment, no production data.
 
-The previous phase successfully eliminated production readiness violations (fake processing, mock APIs, placeholder implementations). Evidence in `evidence/current/Evidence_Phase_Production_Readiness_Fixes.md` shows critical simulation patterns were replaced with real implementations.
+This system is undergoing a complete tool interface migration from multiple competing interfaces to a single contract-first design as specified in ADR-001 and ADR-028.
 
-**Current Phase Goal**: Complete tool contract integration and registry system to enable agent orchestration and systematic tool validation.
+## Current Migration Status (2025-08-05)
 
-## Coding Philosophy
+### 🎯 **Migration Goal**
+Unify all ~80 tools to use the contract-first KGASTool interface defined in `/src/core/tool_contract.py`, eliminating the current split between Tool protocol and BaseTool implementations.
 
-### **NO LAZY IMPLEMENTATIONS**
-- **NO mocking/stubs/fallbacks/pseudo-code/simplified implementations** in production code
-- **NO placeholder returns** - either implement real functionality or raise NotImplementedError
-- **NO fake success responses** - fail fast with honest error messages
+### 📊 **Current State**
+- **Orchestrator**: Uses Tool protocol from `/src/core/tool_protocol.py`
+- **Tools**: Mix of BaseTool and various interfaces
+- **Services**: API mismatches requiring adaptation
 
-### **FAIL-FAST PRINCIPLES**
-- **Surface errors immediately** - don't hide them behind fallbacks
-- **Honest error messages** with actionable troubleshooting information
-- **Real processing only** - eliminate all simulation patterns
+### ✅ **Analysis Complete**
+The following analysis documents provide full context:
+- `Contract_First_Uncertainty_Analysis.md` - Root cause analysis
+- `Interface_Mapping_Documentation.md` - Tool interface inventory
+- `Service_API_Documentation.md` - Service API gaps
+- `Contract_First_Revised_Plan.md` - 4-week migration plan
 
-### **EVIDENCE-BASED DEVELOPMENT**
-- **All claims require raw evidence** in structured evidence files under `evidence/current/`
-- **Raw execution logs required** for all functionality claims
-- **No success declarations without demonstrable proof** 
-- **Archive completed phases** to `evidence/completed/` to avoid chronological confusion
+## Task 1: Fix Validation Attribute Mismatch
 
-### **VALIDATION + SELF-HEALING**
-- **Every validator must have coupled self-healing capability**
-- **Contract validation must auto-register missing tools**
-- **System must detect and repair interface mismatches**
+**Goal**: Make ToolValidationResult compatible with orchestrator expectations
 
-## Codebase Structure
+### Investigation Required
+1. Open `/src/core/tool_contract.py`
+2. Find the `ToolValidationResult` class (around line 63)
+3. Verify it has `errors` attribute but not `validation_errors`
 
-### **Key Entry Points**
-- **Tool Registry**: `src/core/tool_contract.py` - Central tool registration and contract management
-- **Tool Protocol**: `src/tools/base_classes/tool_protocol.py` - Unified ToolRequest/ToolResult interface
-- **Service Manager**: `src/core/service_manager.py` - Shared service instances for tools
-- **Pipeline Orchestrator**: `src/core/pipeline_orchestrator.py` - Workflow execution
+### Implementation Steps
 
-### **Tool Implementation Structure**
-```
-src/tools/
-├── phase1/                     # Foundation tools (PDF→Entities→Graph→Query)
-│   ├── t01_pdf_loader_unified.py       # Real PDF processing
-│   ├── t15a_text_chunker_unified.py    # Real text chunking
-│   ├── t23a_spacy_ner_unified.py       # Real entity extraction
-│   └── ...
-├── base_classes/               # Tool contracts and protocols
-│   ├── tool_protocol.py        # ToolRequest/ToolResult interface
-│   └── ...
-└── contracts/                  # Tool contract definitions
-```
-
-### **Integration Points**
-- **Contract Validation**: `tests/unit/test_tool_contracts.py` - Validates tool compliance
-- **Service Integration**: All tools use ServiceManager for database/service access
-- **MCP Adapter**: `src/orchestration/mcp_adapter.py` - External tool exposure
-
-## Critical Issues Identified by Contract Validation
-
-### 🚨 **Issue 1: Tool Registry Not Populated**
-**Problem**: Contract validation shows 15 failed tests due to missing tool registrations
-**Evidence**: `pytest tests/unit/test_tool_contracts.py -v` shows:
-```
-AssertionError: Missing tools: ['T01_PDF_LOADER', 'T15A_TEXT_CHUNKER', 'T23A_SPACY_NER', ...]
-```
-
-**Root Cause**: Tools exist but are not registered in the tool registry system
-
-**Required Fix**: 
-1. **Auto-Registration System**: Create tool auto-discovery that scans `src/tools/` and registers all unified tools
-2. **Contract Compliance**: Ensure all tools implement ToolRequest/ToolResult interface correctly
-3. **Registry Population**: Populate `get_tool_registry()` with all available tools
-
-**Implementation Steps**:
-```python
-# In src/core/tool_registry_auto.py (NEW FILE)
-def auto_register_all_tools():
-    """Auto-discover and register all tools in src/tools/"""
-    # Scan for *_unified.py files
-    # Import each tool class
-    # Validate implements UnifiedTool interface
-    # Register with tool registry
-    # Return registration results
-```
-
-**Success Criteria**: All contract tests pass - `pytest tests/unit/test_tool_contracts.py -v` shows 0 failures
-
-### 🚨 **Issue 2: ConfidenceScore Interface Mismatches**
-**Problem**: ConfidenceScore class missing required methods
-**Evidence**: Contract validation shows:
-```
-AttributeError: 'ConfidenceScore' object has no attribute 'combine_with'
-AttributeError: 'ConfidenceScore' object has no attribute 'decay'
-```
-
-**Required Fix**: Complete ConfidenceScore implementation with all required methods:
-- `combine_with()` - Combine confidence scores from multiple sources
-- `decay()` - Apply confidence decay over processing steps
-- Proper validation error handling
-- Quality tier conversion compliance
-
-### 🚨 **Issue 3: Tool Interface Standardization Gap**
-**Problem**: Tools may not implement unified ToolRequest/ToolResult interface consistently
-**Evidence**: Previous batch scheduler fix required manual interface adaptation
-
-**Required Fix**: 
-1. **Interface Audit**: Verify all `*_unified.py` tools implement `execute(ToolRequest) -> ToolResult`
-2. **Interface Migration**: Update any tools using legacy dictionary interfaces
-3. **Validation Testing**: Ensure all tools can be called via contract interface
-
-## Evidence Structure Requirements
-
-**Current Phase Evidence**: `evidence/current/Evidence_Phase_Tool_Contract_Integration.md`
-
-**Required Evidence Sections**:
-1. **Auto-Registration Results**
-   - Tool discovery scan results
-   - Registration success/failure rates
-   - Contract compliance verification
+1. **Add compatibility property to ToolValidationResult**:
+   ```python
+   # In /src/core/tool_contract.py, add to ToolValidationResult class:
    
-2. **Contract Validation Results**
-   - Full contract test suite results
-   - Interface compatibility verification  
-   - ConfidenceScore method implementation proof
+   @property
+   def validation_errors(self) -> List[str]:
+       """Compatibility property for orchestrator expectations.
+       
+       The orchestrator expects 'validation_errors' but we use 'errors'.
+       This property provides compatibility during migration.
+       """
+       return self.errors
+   ```
 
-3. **Integration Testing Results**
-   - Tool execution via registry
-   - ToolRequest/ToolResult interface testing
-   - Service manager integration verification
+2. **Test the fix**:
+   Create `test_validation_compatibility.py`:
+   ```python
+   from src.core.tool_contract import ToolValidationResult
+   
+   # Test that both attributes work
+   result = ToolValidationResult(is_valid=False, errors=["Test error"])
+   assert result.errors == ["Test error"]
+   assert result.validation_errors == ["Test error"]  # Via property
+   print("✅ Validation compatibility confirmed")
+   ```
 
-## Implementation Plan
+3. **Run test**:
+   ```bash
+   python test_validation_compatibility.py
+   ```
 
-### **Step 1: Auto-Registration System**
-**File**: `src/core/tool_registry_auto.py` (NEW)
-```python
-def discover_unified_tools():
-    """Scan src/tools/ for *_unified.py files and return tool classes"""
-    
-def validate_tool_contract(tool_class):
-    """Verify tool implements UnifiedTool interface"""
-    
-def auto_register_all_tools():
-    """Auto-discover, validate, and register all tools"""
-```
+### Evidence Required
+Create `Evidence_Validation_Fix.md` showing:
+1. The property addition in tool_contract.py
+2. Test script output
+3. Confirmation both attributes accessible
 
-### **Step 2: ConfidenceScore Completion**
-**File**: `src/core/confidence_score.py` (UPDATE)
-```python
-class ConfidenceScore:
-    def combine_with(self, other: 'ConfidenceScore') -> 'ConfidenceScore':
-        """Combine confidence scores from multiple sources"""
-        
-    def decay(self, factor: float) -> 'ConfidenceScore':
-        """Apply confidence decay over processing steps"""
-```
+## Task 2: Update Orchestrator to Use ToolRequest/ToolResult
 
-### **Step 3: Tool Interface Migration**
-**Files**: All `src/tools/phase1/*_unified.py` tools
-- Verify `execute(ToolRequest) -> ToolResult` signature
-- Update any legacy dictionary interfaces
-- Test via contract validation
+**Goal**: Modify orchestrator to use contract-first interfaces directly
 
-### **Step 4: Integration Testing**
-**File**: `evidence/current/Evidence_Phase_Tool_Contract_Integration.md`
-- Document all tool registration results
-- Prove contract compliance with test results
-- Demonstrate tool execution via registry
+### Investigation Required
+1. Open `/src/core/orchestration/workflow_engines/sequential_engine.py`
+2. Find `execute_pipeline` method (around line 30)
+3. Note it expects `input_data: Dict[str, Any]`
+4. Note it calls `tool.execute(current_data)` passing dict
 
-## Validation Commands
+### Implementation Steps
 
-### **Contract Validation**
+1. **Update imports in sequential_engine.py**:
+   ```python
+   # Add to imports
+   from ...tool_contract import ToolRequest, ToolResult, KGASTool
+   ```
+
+2. **Change execute_pipeline signature**:
+   ```python
+   def execute_pipeline(self, tools: List[KGASTool], initial_request: ToolRequest,
+                       monitors: List[Any] = None) -> Dict[str, Any]:
+       """Execute pipeline tools sequentially using contract-first interface.
+       
+       Args:
+           tools: List of KGASTool implementations
+           initial_request: Initial ToolRequest for first tool
+           monitors: Optional execution monitors
+       """
+   ```
+
+3. **Update execution logic**:
+   ```python
+   # Replace current_data dict approach with ToolRequest/ToolResult
+   current_request = initial_request
+   
+   for i, tool in enumerate(tools):
+       # Validate using KGASTool interface
+       validation_result = tool.validate_input(current_request.input_data)
+       if not validation_result.is_valid:
+           raise ValueError(f"Validation failed: {validation_result.errors}")
+       
+       # Execute with ToolRequest
+       result = tool.execute(current_request)
+       
+       # Check result status
+       if result.status == "error":
+           raise RuntimeError(f"Tool failed: {result.error_details}")
+       
+       # Create next request from result
+       if i < len(tools) - 1:
+           current_request = ToolRequest(
+               input_data=result.data,
+               workflow_id=initial_request.workflow_id
+           )
+   ```
+
+4. **Remove field adapter usage**:
+   - Delete all references to `self.field_adapter`
+   - Remove field adapter imports
+   - Delete field adaptation logic
+
+5. **Test with simple tool**:
+   Create `test_orchestrator_update.py`:
+   ```python
+   from src.core.orchestration.workflow_engines.sequential_engine import SequentialEngine
+   from src.core.tool_contract import ToolRequest, KGASTool
+   from src.core.config_manager import ConfigManager
+   
+   # Create minimal test tool
+   class TestTool(KGASTool):
+       # Implement required methods
+       pass
+   
+   # Test orchestrator
+   config = ConfigManager()
+   engine = SequentialEngine(config)
+   request = ToolRequest(input_data={"test": "data"})
+   
+   # Should work with new interface
+   result = engine.execute_pipeline([TestTool()], request)
+   print("✅ Orchestrator updated successfully")
+   ```
+
+### Evidence Required
+Create `Evidence_Orchestrator_Update.md` showing:
+1. Diff of sequential_engine.py changes
+2. Test execution output
+3. Confirmation ToolRequest/ToolResult flow works
+
+## Task 3: Update Service APIs
+
+**Goal**: Fix service method mismatches without adapters
+
+### Investigation Required
+1. Check `Service_API_Documentation.md` for gaps:
+   - ProvenanceService missing `create_tool_execution_record`
+   - IdentityService missing `resolve_entity`
+2. Identify which tools use these missing methods
+
+### Implementation Steps
+
+#### 3.1 Update Tools Using ProvenanceService
+
+**Find affected tools**:
 ```bash
-# Run complete contract test suite
-python -m pytest tests/unit/test_tool_contracts.py -v
-
-# Validate specific tool registration
-python -c "from src.core.tool_contract import get_tool_registry; print(get_tool_registry().list_tools())"
-
-# Test auto-registration
-python -c "from src.core.tool_registry_auto import auto_register_all_tools; print(auto_register_all_tools())"
+grep -r "create_tool_execution_record" src/tools/
 ```
 
-### **Interface Testing**
+**For each tool found**, replace:
+```python
+# OLD: Single method call
+record = provenance.create_tool_execution_record(
+    tool_id=self.tool_id,
+    workflow_id=workflow_id,
+    input_summary=summary,
+    success=True
+)
+
+# NEW: Two-step process
+operation_id = provenance.start_operation(
+    tool_id=self.tool_id,
+    operation_type="tool_execution",
+    inputs=[input_summary],
+    parameters={"workflow_id": workflow_id}
+)
+provenance.complete_operation(
+    operation_id=operation_id,
+    success=True
+)
+```
+
+#### 3.2 Update Tools Using IdentityService
+
+**Find affected tools**:
 ```bash
-# Test ToolRequest/ToolResult interface
-python scripts/validation/validate_mcp_tools_standalone.py
-
-# Verify service manager integration
-python -c "from src.core.service_manager import ServiceManager; sm = ServiceManager(); print(sm.health_check())"
+grep -r "resolve_entity" src/tools/
 ```
+
+**For each tool found**, replace:
+```python
+# OLD: resolve_entity call
+entity_id = identity.resolve_entity(
+    surface_form=text,
+    entity_type=etype,
+    source_ref=source
+)
+
+# NEW: Use actual methods
+similar = identity.find_similar_entities(
+    surface_form=text,
+    entity_type=etype,
+    threshold=0.8
+)
+
+if similar:
+    entity_id = similar[0]['entity_id']
+    mention_id = identity.create_mention(
+        surface_form=text,
+        start_pos=0,
+        end_pos=len(text),
+        source_ref=source,
+        entity_id=entity_id
+    )
+else:
+    # Create new entity via mention
+    mention_id = identity.create_mention(
+        surface_form=text,
+        start_pos=0,
+        end_pos=len(text),
+        source_ref=source,
+        entity_type=etype
+    )
+    entity_data = identity.get_entity_by_mention(mention_id)
+    entity_id = entity_data['entity_id'] if entity_data else None
+```
+
+### Evidence Required
+Create `Evidence_Service_Updates.md` showing:
+1. List of tools updated
+2. Before/after code snippets
+3. Test confirmation that tools work with real service methods
+
+## Task 4: Migrate First Tool (T03TextLoader)
+
+**Goal**: Complete migration of simplest tool as template for others
+
+### Implementation Steps
+
+1. **Create new implementation** at `/src/tools/phase1/t03_text_loader_kgas.py`:
+   ```python
+   """T03 Text Loader - Contract-First Implementation"""
+   
+   from pathlib import Path
+   from typing import List, Dict, Any
+   import logging
+   
+   from src.core.tool_contract import (
+       KGASTool, ToolRequest, ToolResult, 
+       ToolValidationResult, ConfidenceScore
+   )
+   from src.core.service_manager import ServiceManager
+   
+   logger = logging.getLogger(__name__)
+   
+   
+   class T03TextLoaderKGAS(KGASTool):
+       """Text file loader implementing contract-first interface."""
+       
+       def __init__(self, service_manager: ServiceManager):
+           super().__init__(tool_id="T03", tool_name="Text File Loader")
+           self.service_manager = service_manager
+           self.description = "Loads text files with encoding detection"
+           
+       def execute(self, request: ToolRequest) -> ToolResult:
+           """Execute text loading with contract interface."""
+           try:
+               # Extract file path from request
+               file_path = request.input_data.get("file_path")
+               if not file_path:
+                   return self.create_error_result(
+                       request, "Missing required field: file_path"
+                   )
+               
+               # Load file
+               path = Path(file_path)
+               content = path.read_text(encoding='utf-8')
+               
+               # Track with provenance (using real methods)
+               op_id = self.service_manager.provenance_service.start_operation(
+                   tool_id=self.tool_id,
+                   operation_type="file_load",
+                   inputs=[str(file_path)],
+                   parameters={"encoding": "utf-8"}
+               )
+               
+               # Create result
+               result_data = {
+                   "content": content,
+                   "file_path": str(file_path),
+                   "size_bytes": len(content),
+                   "encoding": "utf-8"
+               }
+               
+               # Complete provenance
+               self.service_manager.provenance_service.complete_operation(
+                   operation_id=op_id,
+                   outputs=[f"Loaded {len(content)} bytes"],
+                   success=True
+               )
+               
+               # Return success result
+               return ToolResult(
+                   status="success",
+                   data=result_data,
+                   confidence=ConfidenceScore.create_high_confidence(1.0, 10),
+                   metadata={"tool_version": "1.0.0"},
+                   provenance=op_id,
+                   request_id=request.request_id
+               )
+               
+           except Exception as e:
+               return self.create_error_result(request, str(e))
+       
+       def validate_input(self, input_data: Any) -> ToolValidationResult:
+           """Validate input has required file_path."""
+           result = ToolValidationResult(is_valid=True)
+           
+           if not isinstance(input_data, dict):
+               result.add_error("Input must be a dictionary")
+               return result
+               
+           if "file_path" not in input_data:
+               result.add_error("Missing required field: file_path")
+               
+           file_path = input_data.get("file_path")
+           if file_path and not Path(file_path).exists():
+               result.add_error(f"File not found: {file_path}")
+               
+           return result
+       
+       def get_input_schema(self) -> Dict[str, Any]:
+           """Define input schema."""
+           return {
+               "type": "object",
+               "properties": {
+                   "file_path": {"type": "string", "description": "Path to text file"}
+               },
+               "required": ["file_path"]
+           }
+       
+       def get_output_schema(self) -> Dict[str, Any]:
+           """Define output schema."""
+           return {
+               "type": "object",
+               "properties": {
+                   "content": {"type": "string"},
+                   "file_path": {"type": "string"},
+                   "size_bytes": {"type": "integer"},
+                   "encoding": {"type": "string"}
+               },
+               "required": ["content", "file_path"]
+           }
+       
+       def get_theory_compatibility(self) -> List[str]:
+           """No theory compatibility for basic loader."""
+           return []
+   ```
+
+2. **Test the migrated tool**:
+   Create `test_t03_migration.py`:
+   ```python
+   from src.core.service_manager import ServiceManager
+   from src.core.tool_contract import ToolRequest
+   from src.tools.phase1.t03_text_loader_kgas import T03TextLoaderKGAS
+   
+   # Create test file
+   with open("test.txt", "w") as f:
+       f.write("Test content")
+   
+   # Test tool
+   service_manager = ServiceManager()
+   tool = T03TextLoaderKGAS(service_manager)
+   
+   request = ToolRequest(input_data={"file_path": "test.txt"})
+   result = tool.execute(request)
+   
+   assert result.status == "success"
+   assert result.data["content"] == "Test content"
+   print("✅ T03 successfully migrated to KGASTool")
+   ```
+
+3. **Update tool registry** to use new implementation
+
+4. **Delete old implementation** once confirmed working
+
+### Evidence Required
+Create `Evidence_T03_Migration.md` showing:
+1. Full new implementation
+2. Test output
+3. Comparison with old implementation
+4. Confirmation it works in pipeline
 
 ## Success Criteria
 
-### **Phase Complete When**:
-1. **Contract tests pass**: `pytest tests/unit/test_tool_contracts.py -v` shows 0 failures
-2. **Tool registry populated**: All unified tools discoverable via registry
-3. **Interface standardization**: All tools use ToolRequest/ToolResult consistently
-4. **ConfidenceScore complete**: All required methods implemented and tested
-5. **Evidence documented**: Complete execution logs in evidence file
+Each task is complete when:
 
-### **Next Phase Preparation**:
-Once tool contracts are complete, next phase will focus on:
-- Agent orchestration with validated tool registry
-- Cross-modal analysis workflows
-- Performance optimization with real tool chains
+1. **Task 1**: Both `errors` and `validation_errors` work on ToolValidationResult
+2. **Task 2**: Orchestrator uses ToolRequest/ToolResult throughout
+3. **Task 3**: No tools call non-existent service methods  
+4. **Task 4**: T03 fully migrated and old version deleted
 
-## DO NOT
-- Create any fallback or mock patterns in production code
-- Hide contract validation failures behind workarounds
-- Use dictionary interfaces instead of ToolRequest/ToolResult
-- Manually register tools instead of using auto-discovery
-- Skip evidence documentation for any implementation claims
+## Development Workflow
 
-## DO
-- Implement complete auto-registration system
-- Fix all contract validation failures systematically  
-- Use ToolRequest/ToolResult interface consistently
-- Document all implementation with execution evidence
-- Test integration thoroughly before claiming success
+For each task:
 
-## Files Modified This Phase
-- `src/processing/enhanced_batch_scheduler.py` - Fixed simulation patterns with real tool calls
-- `src/tools/phase2/interactive_graph_visualizer.py` - Fixed fake success responses
-- `src/mcp_tools/algorithm_tools.py` - Fixed placeholder implementations
-- `src/ui/enhanced_dashboard.py` - Fixed placeholder data methods
-- `src/api/cross_modal_api.py` - Completed pipeline integration
-- Created: `tests/mocks/llm_mock_provider.py` - Test-only mock isolation
+1. **Read existing code** to understand current state
+2. **Make minimal changes** to achieve goal
+3. **Test immediately** with focused test script
+4. **Document evidence** in markdown file
+5. **Commit with descriptive message**
 
-Evidence of previous phase completion: `evidence/current/Evidence_Phase_Production_Readiness_Fixes.md`
+## No Backwards Compatibility Rules
+
+- **Delete old code** as soon as new code works
+- **No adapter methods** - fix the real issue
+- **No bridge patterns** - direct implementation only
+- **No feature flags** - cut over directly
+
+## Next Phase After These Tasks
+
+Once these 4 tasks complete, proceed to:
+- Mass migration of T01-T14 (simple loaders)
+- Then T15A, T15B (processors)
+- Then T31, T34, T49, T68 (Neo4j tools)
+- Finally remaining analysis tools
+
+The goal is a single, clean contract-first interface across all tools within 4 weeks.
