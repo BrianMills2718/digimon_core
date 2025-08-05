@@ -70,6 +70,10 @@ class PipelineOrchestrator:
         self.logger = get_logger("core.orchestration.pipeline_orchestrator")
         self.config_manager = config_manager or get_config()
         
+        # Initialize pipeline validator
+        from ..pipeline_validator import PipelineValidator
+        self.pipeline_validator = PipelineValidator()
+        
         # Initialize workflow engines
         self._initialize_engines()
         
@@ -81,6 +85,10 @@ class PipelineOrchestrator:
         
         # Select engine based on optimization level
         self._select_execution_engine()
+        
+        # Validate pipeline if config provided
+        if self.config and self.config.tools:
+            self._validate_pipeline()
         
     def _initialize_engines(self):
         """Initialize workflow execution engines"""
@@ -111,6 +119,27 @@ class PipelineOrchestrator:
             self.execution_engine = self.parallel_engine
         else:  # ENHANCED
             self.execution_engine = self.anyio_engine
+    
+    def _validate_pipeline(self):
+        """Validate pipeline configuration before execution"""
+        is_valid, errors = self.pipeline_validator.validate_pipeline(self.config.tools)
+        
+        if not is_valid:
+            error_msg = "Pipeline validation failed:\n"
+            for error in errors:
+                error_msg += f"  - {error}\n"
+            
+            # Get suggestions
+            suggestions = self.pipeline_validator.suggest_fixes(errors)
+            if suggestions:
+                error_msg += "\nSuggestions:\n"
+                for suggestion in suggestions:
+                    error_msg += f"  - {suggestion}\n"
+            
+            self.logger.error(error_msg)
+            raise ValueError(error_msg)
+        
+        self.logger.info(f"Pipeline validated successfully with {len(self.config.tools)} tools")
             
     def execute(self, document_paths: List[str], queries: List[str] = None) -> Dict[str, Any]:
         """Execute pipeline with configured tools

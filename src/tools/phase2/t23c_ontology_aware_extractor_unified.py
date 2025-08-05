@@ -402,20 +402,115 @@ class OntologyAwareExtractor(BaseTool):
         self.logger.debug(f"Loaded ontology '{ontology.domain_name}' with {len(ontology.entity_types)} entity types")
     
     def _create_default_ontology(self) -> DomainOntology:
-        """Create default ontology for testing."""
+        """Create comprehensive default ontology with common entity and relationship types."""
         return DomainOntology(
-            domain_name="default_domain",
-            domain_description="Default domain for testing",
+            domain_name="comprehensive_default",
+            domain_description="Comprehensive default ontology covering common entity and relationship types",
             entity_types=[
-                EntityType(name="PERSON", description="People", attributes=["name"], examples=["John Doe"]),
-                EntityType(name="ORGANIZATION", description="Organizations", attributes=["name"], examples=["Apple Inc."]),
-                EntityType(name="LOCATION", description="Places", attributes=["name"], examples=["California"])
+                # People and roles
+                EntityType(name="PERSON", description="Individual people", 
+                          attributes=["name", "title", "affiliation"], 
+                          examples=["John Smith", "Dr. Sarah Chen", "Professor Johnson"]),
+                EntityType(name="JOB_ROLE", description="Job titles and professional roles", 
+                          attributes=["title", "level"], 
+                          examples=["engineer", "manager", "CEO", "researcher"]),
+                
+                # Organizations and groups
+                EntityType(name="ORGANIZATION", description="Companies, institutions, agencies", 
+                          attributes=["name", "type", "sector"], 
+                          examples=["Google", "Stanford University", "FDA"]),
+                EntityType(name="TEAM", description="Teams, departments, divisions", 
+                          attributes=["name", "organization"], 
+                          examples=["Engineering Team", "Marketing Department"]),
+                
+                # Technology and products
+                EntityType(name="TECHNOLOGY", description="Technologies, frameworks, tools", 
+                          attributes=["name", "type", "version"], 
+                          examples=["Kubernetes", "Python", "React", "Docker"]),
+                EntityType(name="PRODUCT", description="Products and services", 
+                          attributes=["name", "company", "category"], 
+                          examples=["iPhone", "AWS", "Microsoft Office"]),
+                
+                # Places and events
+                EntityType(name="LOCATION", description="Physical and geographical places", 
+                          attributes=["name", "type", "country"], 
+                          examples=["New York", "Silicon Valley", "Europe"]),
+                EntityType(name="EVENT", description="Conferences, meetings, occurrences", 
+                          attributes=["name", "date", "location"], 
+                          examples=["KubeCon", "WWDC", "board meeting"]),
+                
+                # Time and concepts
+                EntityType(name="DATE", description="Dates and time periods", 
+                          attributes=["value", "precision"], 
+                          examples=["2024", "January 2023", "Q3"]),
+                EntityType(name="CONCEPT", description="Abstract concepts and ideas", 
+                          attributes=["name", "domain"], 
+                          examples=["machine learning", "sustainability", "digital transformation"])
             ],
             relationship_types=[
-                RelationshipType(name="WORKS_FOR", description="Employment", 
-                               source_types=["PERSON"], target_types=["ORGANIZATION"], examples=["John works for Apple"])
+                # Employment and organizational
+                RelationshipType(name="WORKS_FOR", description="Employment relationship",
+                               source_types=["PERSON"], target_types=["ORGANIZATION"],
+                               examples=["John works for Google"]),
+                RelationshipType(name="HAS_ROLE", description="Person has a specific role",
+                               source_types=["PERSON"], target_types=["JOB_ROLE"],
+                               examples=["Sarah has role of engineer"]),
+                RelationshipType(name="LEADS", description="Leadership relationship",
+                               source_types=["PERSON"], target_types=["TEAM", "ORGANIZATION"],
+                               examples=["Alice leads the engineering team"]),
+                RelationshipType(name="MEMBER_OF", description="Membership in group",
+                               source_types=["PERSON"], target_types=["TEAM", "ORGANIZATION"],
+                               examples=["Bob is member of research team"]),
+                
+                # Collaboration and interaction
+                RelationshipType(name="COLLABORATES_WITH", description="Collaboration between entities",
+                               source_types=["PERSON", "ORGANIZATION"], target_types=["PERSON", "ORGANIZATION"],
+                               examples=["John collaborates with Sarah"]),
+                RelationshipType(name="REPORTS_TO", description="Reporting relationship",
+                               source_types=["PERSON", "TEAM"], target_types=["PERSON"],
+                               examples=["Team reports to VP"]),
+                
+                # Technology and development
+                RelationshipType(name="USES", description="Uses technology or tool",
+                               source_types=["PERSON", "ORGANIZATION", "TEAM"], target_types=["TECHNOLOGY", "PRODUCT"],
+                               examples=["Team uses Kubernetes"]),
+                RelationshipType(name="DEVELOPS", description="Develops or creates",
+                               source_types=["PERSON", "ORGANIZATION"], target_types=["TECHNOLOGY", "PRODUCT"],
+                               examples=["Google develops TensorFlow"]),
+                RelationshipType(name="WORKS_ON", description="Works on project or technology",
+                               source_types=["PERSON", "TEAM"], target_types=["TECHNOLOGY", "PRODUCT", "CONCEPT"],
+                               examples=["John works on cloud infrastructure"]),
+                
+                # Location and events
+                RelationshipType(name="LOCATED_IN", description="Located in a place",
+                               source_types=["PERSON", "ORGANIZATION", "EVENT"], target_types=["LOCATION"],
+                               examples=["Company located in Silicon Valley"]),
+                RelationshipType(name="ATTENDED", description="Attended an event",
+                               source_types=["PERSON"], target_types=["EVENT"],
+                               examples=["Sarah attended KubeCon"]),
+                RelationshipType(name="PRESENTED_AT", description="Presented at event",
+                               source_types=["PERSON"], target_types=["EVENT"],
+                               examples=["John presented at conference"]),
+                
+                # Ownership and investment
+                RelationshipType(name="OWNS", description="Ownership relationship",
+                               source_types=["PERSON", "ORGANIZATION"], target_types=["ORGANIZATION", "PRODUCT"],
+                               examples=["Company owns subsidiary"]),
+                RelationshipType(name="INVESTS_IN", description="Investment relationship",
+                               source_types=["PERSON", "ORGANIZATION"], target_types=["ORGANIZATION", "TECHNOLOGY"],
+                               examples=["VC invests in startup"]),
+                
+                # General relationships
+                RelationshipType(name="RELATED_TO", description="General relationship",
+                               source_types=["PERSON", "ORGANIZATION", "TECHNOLOGY"], 
+                               target_types=["PERSON", "ORGANIZATION", "TECHNOLOGY"],
+                               examples=["Entity A related to Entity B"])
             ],
-            extraction_patterns=["Extract entities and relationships"]
+            extraction_patterns=[
+                "Extract all entities and their relationships",
+                "Identify people, organizations, technologies, and their interactions",
+                "Find employment, collaboration, and technical relationships"
+            ]
         )
     
     def _process_entities(self, raw_entities: List[Dict], ontology: DomainOntology,

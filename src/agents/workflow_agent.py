@@ -402,6 +402,33 @@ Return ONLY the YAML workflow, no additional text or explanation.
                 self.logger.warning(f"Workflow not immediately executable: {exec_errors}")
                 # Still return workflow but mark as not ready
             
+            # Validate tool pipeline compatibility
+            from src.core.pipeline_validator import PipelineValidator
+            pipeline_validator = PipelineValidator()
+            
+            # Extract tool sequence from workflow
+            tool_sequence = []
+            for step in workflow.steps:
+                if step.tool_id:
+                    tool_sequence.append(step.tool_id)
+            
+            if tool_sequence:
+                is_compatible, compatibility_errors = pipeline_validator.validate_pipeline(tool_sequence)
+                if not is_compatible:
+                    self.logger.error(f"Pipeline compatibility validation failed:")
+                    for error in compatibility_errors:
+                        self.logger.error(f"  - {error}")
+                    
+                    # Get suggestions
+                    suggestions = pipeline_validator.suggest_fixes(compatibility_errors)
+                    if suggestions:
+                        self.logger.info("Suggestions to fix pipeline:")
+                        for suggestion in suggestions:
+                            self.logger.info(f"  - {suggestion}")
+                    
+                    # Return None to prevent execution of incompatible pipeline
+                    return None
+            
             return workflow
             
         except Exception as e:
