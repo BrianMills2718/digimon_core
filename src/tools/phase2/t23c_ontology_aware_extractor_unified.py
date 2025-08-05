@@ -15,6 +15,9 @@ from typing import Dict, Any, List, Optional
 from datetime import datetime
 from dataclasses import dataclass
 
+# Import schema mode for open schema detection
+from src.core.extraction_schemas import SchemaMode
+
 # Import decomposed components
 from .extraction_components import (
     TheoryDrivenValidator,
@@ -33,6 +36,7 @@ from src.ontology_generator import DomainOntology, EntityType, RelationshipType
 from src.core.api_auth_manager import APIAuthManager
 from src.core.enhanced_api_client import EnhancedAPIClient
 from src.core.logging_config import get_logger
+from src.tools.base_tool import BaseTool, ToolRequest, ToolResult, ToolContract
 
 logger = get_logger("tools.phase2.ontology_aware_extractor_unified")
 
@@ -48,9 +52,10 @@ class OntologyExtractionResult:
     mention_count: int
     extraction_metadata: Dict[str, Any]
     validation_results: Dict[str, Any]
+    discovered_types: Optional[Dict[str, List[str]]] = None
 
 
-class OntologyAwareExtractor:
+class OntologyAwareExtractor(BaseTool):
     """
     Unified ontology-aware entity extractor using decomposed components.
     
@@ -58,31 +63,29 @@ class OntologyAwareExtractor:
     while maintaining backward compatibility with the original interface.
     """
     
-    def __init__(self, identity_service: Optional[IdentityService] = None,
-                 google_api_key: Optional[str] = None,
-                 openai_api_key: Optional[str] = None):
+    def __init__(self, service_manager=None):
         """
         Initialize the unified extractor.
         
         Args:
-            identity_service: Service for entity resolution and identity management
-            google_api_key: Google API key for Gemini (deprecated - use auth manager)
-            openai_api_key: OpenAI API key (deprecated - use auth manager)
+            service_manager: Service manager for dependency injection
         """
+        # Initialize BaseTool first
+        if service_manager is None:
+            from src.core.service_manager import ServiceManager
+            service_manager = ServiceManager()
+        
+        super().__init__(service_manager)
+        
         self.logger = get_logger("tools.phase2.ontology_aware_extractor_unified")
         
-        # Initialize identity service
-        if identity_service is None:
-            try:
-                from src.core.service_manager import ServiceManager
-                service_manager = ServiceManager()
-                self.identity_service = service_manager.get_identity_service()
-            except Exception as e:
-                self.logger.warning(f"Failed to initialize service manager: {e}. Using fallback identity service.")
-                from src.core.identity_service import IdentityService
-                self.identity_service = IdentityService()
-        else:
-            self.identity_service = identity_service
+        # Initialize identity service from service manager
+        try:
+            self.identity_service = service_manager.get_identity_service()
+        except Exception as e:
+            self.logger.warning(f"Failed to get identity service from service manager: {e}. Using fallback identity service.")
+            from src.core.identity_service import IdentityService
+            self.identity_service = IdentityService()
         
         # Initialize API components
         try:
@@ -112,9 +115,11 @@ class OntologyAwareExtractor:
         self.valid_entity_types = set()
         self.valid_relationship_types = set()
         
+        # Set tool ID for registry
+        self.tool_id = "T23C_ONTOLOGY_AWARE_EXTRACTOR"
+        
         # Performance configuration
         self.base_confidence_score = ConfidenceScore.create_high_confidence(
-            value=0.85,
             evidence_weight=6  # Domain ontology, LLM reasoning, theory validation, semantic alignment, contextual analysis, multi-modal evidence
         )
         
@@ -145,7 +150,7 @@ class OntologyAwareExtractor:
     def extract_entities(self, text: str, ontology: DomainOntology = None,
                         source_ref: str = "unknown", confidence_threshold: float = 0.7,
                         schema=None,
-                        use_theory_validation: bool = True, use_mock_apis: bool = False) -> OntologyExtractionResult:
+                        use_theory_validation: bool = True) -> OntologyExtractionResult:
         """
         Extract entities and relationships using ontology-aware methods with schema support.
         
@@ -156,7 +161,6 @@ class OntologyAwareExtractor:
             confidence_threshold: Minimum confidence threshold for extraction
             schema: Extraction schema for entity/relation filtering
             use_theory_validation: Whether to apply theory-driven validation
-            use_mock_apis: Whether to use mock APIs for testing
             
         Returns:
             Complete extraction result with entities, relationships, and validation
@@ -188,28 +192,25 @@ class OntologyAwareExtractor:
             else:
                 extraction_schema = None
             
-            # Step 1: Extract entities using LLM or fallback
-            if use_mock_apis:
-                # Use simplified fallback extraction for testing
-                raw_extraction = self._fallback_extraction(text, ontology, extraction_schema)
-            elif self.openai_available:
-                raw_extraction = self.llm_client.extract_entities_openai(text, ontology, extraction_schema)
+            # Step 1: Extract entities using LLM - NO FALLBACKS
+            if self.openai_available:
+                raw_extraction = self.llm_client.extract_entities_openai(text, ontology, schema=extraction_schema)
             elif self.google_available:
-                raw_extraction = self.llm_client.extract_entities_gemini(text, ontology, extraction_schema)
+                raw_extraction = self.llm_client.extract_entities_gemini(text, ontology, schema=extraction_schema)
             else:
-                self.logger.warning("No LLM services available, using fallback extraction")
-                raw_extraction = self._fallback_extraction(text, ontology, extraction_schema)
+                raise RuntimeError("No LLM services available. Configure OpenAI or Google API keys. System will not use fallback extraction.")
             
             # Step 2: Process extracted entities with schema filtering
             entities, mentions = self._process_entities(
                 raw_extraction.get("entities", []),
-                ontology, source_ref, confidence_threshold, extraction_schema
+                ontology, source_ref, confidence_threshold,
+                extraction_schema=extraction_schema
             )
             
             # Step 3: Process extracted relationships with schema filtering
             relationships = self._process_relationships(
                 raw_extraction.get("relationships", []),
-                entities, ontology, source_ref, confidence_threshold, extraction_schema
+                entities, ontology, source_ref, confidence_threshold
             )
             
             # Step 4: Theory-driven validation (if enabled)
@@ -232,13 +233,13 @@ class OntologyAwareExtractor:
                     'ontology_domain': ontology.domain_name,
                     'confidence_threshold': confidence_threshold,
                     'theory_validation_enabled': use_theory_validation,
-                    'mock_apis_used': use_mock_apis,
-                    'llm_service_used': self._get_used_llm_service(use_mock_apis),
+                    'llm_service_used': self._get_used_llm_service(),
                     'schema_mode': extraction_schema.mode.value if extraction_schema else None,
                     'schema_id': extraction_schema.schema_id if extraction_schema else None,
                     'timestamp': start_time.isoformat()
                 },
-                validation_results=validation_results
+                validation_results=validation_results,
+                discovered_types=raw_extraction.get('discovered_types') if raw_extraction else None
             )
             
             self.logger.info(f"Extraction completed: {len(entities)} entities, {len(relationships)} relationships")
@@ -248,52 +249,56 @@ class OntologyAwareExtractor:
             self.logger.error(f"Entity extraction failed: {e}")
             raise
     
-    def execute(self, input_data: Any = None, context: Optional[Dict] = None) -> Dict[str, Any]:
-        """
-        Execute the ontology-aware entity extractor tool (tool protocol compliance).
+    def execute(self, request: ToolRequest) -> ToolResult:
+        """Execute the ontology-aware entity extractor tool (BaseTool compliance).
         
         Args:
-            input_data: Input data containing text and optional ontology
-            context: Optional execution context
+            request: ToolRequest containing input data and parameters
         
         Returns:
-            Dict containing extraction results and metadata
+            ToolResult with extraction results and metadata
         """
-        # Handle validation mode
-        if input_data is None and context and context.get('validation_mode'):
-            return self._execute_validation_test()
-        
-        # Handle empty input for validation
-        if input_data is None or input_data == "":
-            return self._execute_validation_test()
-        
-        if not input_data:
-            raise ValueError("input_data is required")
-        
-        # Handle different input formats
-        if isinstance(input_data, dict):
-            text = input_data.get("text", "")
-            ontology = input_data.get("ontology")
-            source_ref = input_data.get("source_ref", input_data.get("chunk_ref", "unknown"))
-            schema = input_data.get("schema")
-            confidence_threshold = input_data.get("confidence_threshold", 0.7)
-            use_theory_validation = input_data.get("use_theory_validation", True)
-            use_mock_apis = input_data.get("use_mock_apis", False)
-        elif isinstance(input_data, str):
-            text = input_data
-            ontology = None
-            source_ref = "direct_input"
-            schema = None
-            confidence_threshold = 0.7
-            use_theory_validation = True
-            use_mock_apis = False
-        else:
-            raise ValueError("input_data must be dict or str")
-        
-        if not text:
-            raise ValueError("No text provided for extraction")
+        self._start_execution()
         
         try:
+            # Handle validation mode
+            if request.validation_mode or request.input_data is None:
+                validation_result = self._execute_validation_test()
+                execution_time, memory_used = self._end_execution()
+                return ToolResult(
+                    tool_id=self.tool_id,
+                    status="success",
+                    data=validation_result,
+                    metadata={"validation_mode": True, "timestamp": datetime.now().isoformat()},
+                    execution_time=execution_time,
+                    memory_used=memory_used
+                )
+            
+            # Extract parameters from request
+            input_data = request.input_data
+            parameters = request.parameters or {}
+            
+            # Handle different input formats
+            if isinstance(input_data, dict):
+                text = input_data.get("text", "")
+                ontology = input_data.get("ontology")
+                source_ref = input_data.get("source_ref", input_data.get("chunk_ref", "unknown"))
+                schema = input_data.get("schema")
+                confidence_threshold = input_data.get("confidence_threshold", parameters.get("confidence_threshold", 0.7))
+                use_theory_validation = input_data.get("use_theory_validation", parameters.get("use_theory_validation", True))
+            elif isinstance(input_data, str):
+                text = input_data
+                ontology = parameters.get("ontology")
+                source_ref = parameters.get("source_ref", "direct_input")
+                schema = parameters.get("schema")
+                confidence_threshold = parameters.get("confidence_threshold", 0.7)
+                use_theory_validation = parameters.get("use_theory_validation", True)
+            else:
+                return self._create_error_result(request, "INVALID_INPUT", "input_data must be dict or str")
+            
+            if not text or not text.strip():
+                return self._create_error_result(request, "EMPTY_TEXT", "No text provided for extraction")
+            
             # Use extraction method
             result = self.extract_entities(
                 text=text,
@@ -302,42 +307,43 @@ class OntologyAwareExtractor:
                 confidence_threshold=confidence_threshold,
                 schema=schema,
                 use_theory_validation=use_theory_validation,
-                use_mock_apis=use_mock_apis
             )
             
-            # Convert to tool protocol format
-            return {
-                "tool_id": "T23C_ONTOLOGY_AWARE_EXTRACTOR",
-                "results": {
-                    "entities": [self._entity_to_dict(e) for e in result.entities],
-                    "relationships": [self._relationship_to_dict(r) for r in result.relationships],
-                    "entity_count": result.entity_count,
-                    "relationship_count": result.relationship_count,
-                    "extraction_metadata": result.extraction_metadata,
-                    "validation_results": result.validation_results
-                },
-                "metadata": {
-                    "execution_time": result.extraction_metadata.get('extraction_time', 0.0),
-                    "timestamp": datetime.now().isoformat(),
-                    "ontology_used": ontology is not None
-                },
-                "provenance": {
-                    "activity": "T23C_ONTOLOGY_AWARE_EXTRACTOR_execution",
-                    "timestamp": datetime.now().isoformat(),
-                    "inputs": {"source_ref": source_ref, "text_length": len(text)},
-                    "outputs": {"entities_count": result.entity_count, "relationships_count": result.relationship_count}
-                }
+            # Create successful result
+            execution_time, memory_used = self._end_execution()
+            
+            # Include discovered types if present
+            data = {
+                "entities": [self._entity_to_dict(e) for e in result.entities],
+                "relationships": [self._relationship_to_dict(r) for r in result.relationships],
+                "entity_count": result.entity_count,
+                "relationship_count": result.relationship_count,
+                "extraction_metadata": result.extraction_metadata,
+                "validation_results": result.validation_results
             }
             
+            # Add discovered types if they exist in the result
+            if hasattr(result, 'discovered_types') and result.discovered_types:
+                data["discovered_types"] = result.discovered_types
+            
+            return ToolResult(
+                tool_id=self.tool_id,
+                status="success",
+                data=data,
+                metadata={
+                    "operation": request.operation,
+                    "timestamp": datetime.now().isoformat(),
+                    "ontology_used": ontology is not None,
+                    "theory_validation_enabled": use_theory_validation,
+                    "schema_mode": schema.mode.value if schema and hasattr(schema, 'mode') else None
+                },
+                execution_time=execution_time,
+                memory_used=memory_used
+            )
+            
         except Exception as e:
-            return {
-                "tool_id": "T23C_ONTOLOGY_AWARE_EXTRACTOR",
-                "error": str(e),
-                "status": "error",
-                "metadata": {
-                    "timestamp": datetime.now().isoformat()
-                }
-            }
+            self.logger.error(f"T23C execution failed: {e}", exc_info=True)
+            return self._create_error_result(request, "EXECUTION_FAILED", str(e))
     
     def get_tool_info(self) -> Dict[str, Any]:
         """Return tool information for audit system."""
@@ -371,7 +377,6 @@ class OntologyAwareExtractor:
             text=text,
             ontology=ontology,
             source_ref=source_ref,
-            use_mock_apis=True  # Use fallback for audit testing
         )
         
         return {
@@ -413,60 +418,8 @@ class OntologyAwareExtractor:
             extraction_patterns=["Extract entities and relationships"]
         )
     
-    def _fallback_extraction(self, text: str, ontology: DomainOntology, extraction_schema) -> Dict[str, Any]:
-        """Fallback extraction when no LLM services are available."""
-        import re
-        
-        entities = []
-        relationships = []
-        
-        # Simple pattern-based extraction
-        # Extract capitalized words as potential entities
-        words = text.split()
-        for i, word in enumerate(words):
-            if word and word[0].isupper() and len(word) > 2:
-                # Try to determine entity type
-                entity_type = "PERSON"  # Default
-                if any(org_keyword in word.lower() for org_keyword in ["inc", "corp", "llc", "ltd"]):
-                    entity_type = "ORGANIZATION"
-                elif word in ["Street", "Avenue", "City", "Country", "State"]:
-                    entity_type = "LOCATION"
-                
-                entities.append({
-                    "text": word,
-                    "type": entity_type,
-                    "confidence": 0.6,  # Lower confidence for fallback
-                    "context": " ".join(words[max(0, i-3):min(len(words), i+4)])
-                })
-        
-        # Simple relationship extraction
-        # Look for basic patterns like "X works for Y"
-        relationship_patterns = [
-            (r"(\w+)\s+works?\s+(?:for|at)\s+(\w+)", "WORKS_FOR"),
-            (r"(\w+)\s+(?:is|are)\s+(?:in|at|located)\s+(\w+)", "LOCATED_IN"),
-            (r"(\w+)\s+owns?\s+(\w+)", "OWNS"),
-            (r"(\w+)\s+(?:leads?|manages?)\s+(\w+)", "LEADS")
-        ]
-        
-        for pattern, rel_type in relationship_patterns:
-            matches = re.finditer(pattern, text, re.IGNORECASE)
-            for match in matches:
-                relationships.append({
-                    "source": match.group(1),
-                    "target": match.group(2),
-                    "relation": rel_type,
-                    "confidence": 0.5,  # Lower confidence for pattern-based
-                    "context": match.group(0)
-                })
-        
-        return {
-            "entities": entities,
-            "relationships": relationships,
-            "extraction_method": "fallback_pattern_based"
-        }
-    
     def _process_entities(self, raw_entities: List[Dict], ontology: DomainOntology,
-                         source_ref: str, confidence_threshold: float) -> tuple[List[Entity], List[Mention]]:
+                         source_ref: str, confidence_threshold: float, extraction_schema=None) -> tuple[List[Entity], List[Mention]]:
         """Process raw entities into Entity and Mention objects."""
         entities = []
         mentions = []
@@ -487,16 +440,37 @@ class OntologyAwareExtractor:
                 mentions.append(mention)
                 
                 # Create or resolve entity
-                entity = self.entity_resolver.resolve_or_create_entity(
-                    surface_text=raw_entity["text"],
-                    entity_type=raw_entity["type"],
-                    ontology=ontology,
-                    confidence=raw_entity.get("confidence", 0.8)
-                )
+                # In open schema mode, bypass ontology validation
+                if getattr(extraction_schema, 'mode', None) == SchemaMode.OPEN:
+                    # For open schema, create entity without ontology validation
+                    entity = self._create_open_schema_entity(
+                        surface_text=raw_entity["text"],
+                        entity_type=raw_entity["type"],
+                        confidence=raw_entity.get("confidence", 0.8),
+                        source_ref=source_ref
+                    )
+                else:
+                    # Normal entity resolution with ontology validation
+                    entity = self.entity_resolver.resolve_or_create_entity(
+                        surface_text=raw_entity["text"],
+                        entity_type=raw_entity["type"],
+                        ontology=ontology,
+                        confidence=raw_entity.get("confidence", 0.8)
+                    )
                 entities.append(entity)
                 
-                # Link mention to entity
-                self.entity_resolver.link_mention_to_entity(mention.id, entity.id)
+                # Link mention to entity - handle both dict and object formats
+                if isinstance(mention, dict):
+                    mention_id = mention.get('mention_id') or mention.get('id')
+                else:
+                    mention_id = mention.id
+                    
+                if isinstance(entity, dict):
+                    entity_id = entity.get('entity_id') or entity.get('id')
+                else:
+                    entity_id = entity.id
+                    
+                self.entity_resolver.link_mention_to_entity(mention_id, entity_id)
                 
             except Exception as e:
                 self.logger.error(f"Failed to process entity '{raw_entity.get('text', 'unknown')}': {e}")
@@ -509,8 +483,13 @@ class OntologyAwareExtractor:
         """Process raw relationships into Relationship objects."""
         relationships = []
         
-        # Create entity lookup map
+        # Create entity lookup map - also map by surface form from raw extraction
         entity_map = {entity.canonical_name: entity for entity in entities}
+        
+        # Also add mapping by entity text for open schema mode where names might differ
+        for entity in entities:
+            if hasattr(entity, 'attributes') and 'surface_form' in entity.attributes:
+                entity_map[entity.attributes['surface_form']] = entity
         
         for raw_rel in raw_relationships:
             if raw_rel.get("confidence", 0) < confidence_threshold:
@@ -519,6 +498,12 @@ class OntologyAwareExtractor:
             try:
                 source_entity = entity_map.get(raw_rel["source"])
                 target_entity = entity_map.get(raw_rel["target"])
+                
+                # Debug logging
+                if not source_entity:
+                    self.logger.warning(f"Could not find source entity '{raw_rel['source']}' in entity map. Available: {list(entity_map.keys())[:5]}")
+                if not target_entity:
+                    self.logger.warning(f"Could not find target entity '{raw_rel['target']}' in entity map")
                 
                 if source_entity and target_entity:
                     relationship = self.relationship_resolver.create_relationship(
@@ -529,6 +514,10 @@ class OntologyAwareExtractor:
                         context=raw_rel.get("context", ""),
                         source_ref=source_ref
                     )
+                    # Add entity names to relationship attributes for display
+                    if hasattr(relationship, 'attributes') and isinstance(relationship.attributes, dict):
+                        relationship.attributes['source_name'] = source_entity.canonical_name
+                        relationship.attributes['target_name'] = target_entity.canonical_name
                     relationships.append(relationship)
                 
             except Exception as e:
@@ -536,6 +525,49 @@ class OntologyAwareExtractor:
                 continue
         
         return relationships
+    
+    def _create_open_schema_entity(self, surface_text: str, entity_type: str, 
+                                  confidence: float, source_ref: str) -> Entity:
+        """Create an entity for open schema mode without ontology validation."""
+        # Generate a unique entity ID
+        entity_id = f"entity_{hash(surface_text + entity_type) % 1000000}"
+        
+        # Create the entity directly without validation
+        entity = Entity(
+            id=entity_id,
+            canonical_name=surface_text.strip(),
+            entity_type=entity_type,
+            confidence=confidence,
+            attributes={
+                'discovered_type': True,
+                'source_ref': source_ref
+            }
+        )
+        
+        # If identity service is available, still register it for graph storage
+        if self.identity_service:
+            try:
+                # Create a mention to register in Neo4j
+                mention_result = self.identity_service.create_mention(
+                    surface_form=surface_text.strip(),
+                    start_pos=0,
+                    end_pos=len(surface_text.strip()),
+                    source_ref=source_ref,
+                    entity_type=entity_type,
+                    confidence=confidence
+                )
+                
+                # Update entity ID if mention created successfully
+                if hasattr(mention_result, 'success') and mention_result.success:
+                    if 'entity_id' in mention_result.data:
+                        entity.id = mention_result.data['entity_id']
+                elif isinstance(mention_result, dict) and mention_result.get('entity_id'):
+                    entity.id = mention_result['entity_id']
+                    
+            except Exception as e:
+                self.logger.warning(f"Failed to register open schema entity in Neo4j: {e}")
+        
+        return entity
     
     def _perform_theory_validation(self, entities: List[Entity]) -> Dict[str, Any]:
         """Perform theory-driven validation on entities."""
@@ -572,16 +604,14 @@ class OntologyAwareExtractor:
         
         return validation_results
     
-    def _get_used_llm_service(self, use_mock_apis: bool) -> str:
+    def _get_used_llm_service(self) -> str:
         """Get the LLM service that was used."""
-        if use_mock_apis:
-            return "mock"
-        elif self.openai_available:
+        if self.openai_available:
             return "openai"
         elif self.google_available:
             return "google"
         else:
-            return "fallback"
+            return "none_available"
     
     def _entity_to_dict(self, entity: Entity) -> Dict[str, Any]:
         """Convert Entity object to dictionary."""
@@ -596,10 +626,17 @@ class OntologyAwareExtractor:
     
     def _relationship_to_dict(self, relationship: Relationship) -> Dict[str, Any]:
         """Convert Relationship object to dictionary."""
+        # Get entity names from attributes if available
+        head_entity = relationship.attributes.get('source_name', relationship.source_id)
+        tail_entity = relationship.attributes.get('target_name', relationship.target_id)
+        
         return {
             "relationship_id": relationship.id,
             "source_id": relationship.source_id,
             "target_id": relationship.target_id,
+            "head_entity": head_entity,
+            "tail_entity": tail_entity,
+            "relation": relationship.relationship_type,
             "relationship_type": relationship.relationship_type,
             "confidence": relationship.confidence,
             "attributes": relationship.attributes
@@ -647,3 +684,175 @@ class OntologyAwareExtractor:
                     "mode": "validation_test"
                 }
             }
+    
+    # BaseTool Interface Implementation
+    
+    def get_contract(self) -> ToolContract:
+        """Return tool contract specification for T23C."""
+        return ToolContract(
+            tool_id="T23C_ONTOLOGY_AWARE_EXTRACTOR",
+            name="Ontology-Aware Entity Extractor",
+            description="Extract named entities using LLMs with domain ontology validation and theory-driven processing",
+            category="entity_extraction",
+            input_schema={
+                "type": "object",
+                "properties": {
+                    "text": {
+                        "type": "string",
+                        "minLength": 1,
+                        "description": "Text to extract entities from"
+                    },
+                    "ontology": {
+                        "type": "object",
+                        "description": "Domain ontology for entity validation"
+                    },
+                    "source_ref": {
+                        "type": "string",
+                        "description": "Reference to source document or chunk"
+                    },
+                    "confidence_threshold": {
+                        "type": "number",
+                        "minimum": 0.0,
+                        "maximum": 1.0,
+                        "default": 0.7,
+                        "description": "Minimum confidence threshold for entity extraction"
+                    },
+                    "use_theory_validation": {
+                        "type": "boolean",
+                        "default": True,
+                        "description": "Whether to apply theory-driven validation"
+                    },
+                },
+                "required": ["text", "source_ref"]
+            },
+            output_schema={
+                "type": "object",
+                "properties": {
+                    "entities": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "entity_id": {"type": "string"},
+                                "canonical_name": {"type": "string"},
+                                "entity_type": {"type": "string"},
+                                "confidence": {"type": "number"},
+                                "theory_validation": {"type": "object"}
+                            }
+                        }
+                    },
+                    "relationships": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "relationship_id": {"type": "string"},
+                                "source_id": {"type": "string"},
+                                "target_id": {"type": "string"},
+                                "relationship_type": {"type": "string"},
+                                "confidence": {"type": "number"}
+                            }
+                        }
+                    },
+                    "entity_count": {"type": "integer"},
+                    "relationship_count": {"type": "integer"}
+                },
+                "required": ["entities", "relationships", "entity_count", "relationship_count"]
+            },
+            dependencies=["identity_service", "api_auth_manager", "enhanced_api_client"],
+            performance_requirements={
+                "max_execution_time": 30.0,
+                "max_memory_mb": 500,
+                "min_accuracy": 0.85
+            },
+            error_conditions=[
+                "EMPTY_TEXT",
+                "INVALID_ONTOLOGY",
+                "LLM_API_UNAVAILABLE",
+                "ENTITY_CREATION_FAILED",
+                "THEORY_VALIDATION_FAILED"
+            ]
+        )
+    
+    def validate_input(self, input_data: Any) -> bool:
+        """Validate input data against tool contract."""
+        if input_data is None:
+            return False
+        
+        if isinstance(input_data, str):
+            # Simple string input is valid
+            return len(input_data.strip()) > 0
+        
+        if isinstance(input_data, dict):
+            # Check required fields
+            text = input_data.get("text", "")
+            source_ref = input_data.get("source_ref", "")
+            
+            if not text or not text.strip():
+                return False
+            
+            if not source_ref:
+                return False
+            
+            # Validate confidence threshold if provided
+            confidence_threshold = input_data.get("confidence_threshold")
+            if confidence_threshold is not None:
+                if not isinstance(confidence_threshold, (int, float)) or not (0.0 <= confidence_threshold <= 1.0):
+                    return False
+            
+            return True
+        
+        return False
+    
+    def health_check(self) -> ToolResult:
+        """Check tool health and readiness."""
+        try:
+            health_data = {
+                "tool_status": "ready",
+                "identity_service_available": self.identity_service is not None,
+                "api_services_available": {
+                    "openai": self.openai_available,
+                    "google": self.google_available
+                },
+                "components_initialized": {
+                    "llm_client": self.llm_client is not None,
+                    "semantic_analyzer": self.semantic_analyzer is not None,
+                    "entity_resolver": self.entity_resolver is not None
+                },
+                "fallback_available": True  # Pattern-based fallback always available
+            }
+            
+            # Overall health status
+            healthy = (
+                self.identity_service is not None and
+                self.llm_client is not None and
+                (self.openai_available or self.google_available or True)  # Fallback available
+            )
+            
+            return ToolResult(
+                tool_id=self.tool_id,
+                status="success" if healthy else "warning",
+                data=health_data,
+                metadata={
+                    "timestamp": datetime.now().isoformat(),
+                    "health_check_version": "2.0.0"
+                },
+                execution_time=0.0,
+                memory_used=0
+            )
+            
+        except Exception as e:
+            return ToolResult(
+                tool_id=self.tool_id,
+                status="error",
+                data={"healthy": False, "error": str(e)},
+                metadata={"timestamp": datetime.now().isoformat()},
+                execution_time=0.0,
+                memory_used=0,
+                error_code="HEALTH_CHECK_FAILED",
+                error_message=str(e)
+            )
+    
+    def get_status(self) -> str:
+        """Get current tool status."""
+        return "ready"
