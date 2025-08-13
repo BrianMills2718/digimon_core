@@ -42,6 +42,8 @@ python-dotenv>=1.0.0
 pyyaml>=6.0
 click>=8.1.0
 rich>=13.0.0
+PyJWT>=2.8.0
+bcrypt>=4.3.0
 
 # Testing
 pytest>=7.4.0
@@ -53,3 +55,12 @@ pytest-mock>=3.11.0
 black>=23.0.0
 ruff>=0.1.0
 mypy>=1.5.0
+
+# Optional dependencies for enhanced tool functionality
+markdown>=3.4.0  # For t04_markdown_loader
+chardet>=5.0.0  # For t03_text_loader, t14_email_parser encoding detection
+openpyxl>=3.1.0  # For t10_excel_loader
+aiofiles>=23.0.0  # For t41_async_text_embedder
+beautifulsoup4>=4.12.0  # For t13_web_scraper, t07_html_loader
+powerlaw>=1.5.0  # For t59_scale_free_analysis
+plotly>=5.15.0  # For visualization tools t54, t60

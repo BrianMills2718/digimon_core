@@ -17,6 +17,30 @@ htmlcov/
 .mypy_cache/
 .ruff_cache/
 
+# Evidence files should be organized in /evidence/ directory
+/Evidence_*.md
+/*FINAL*.md
+
+# Validation files should be organized in /validation/ directory
+/validate_*.py
+/*validation*.xml
+/*validation*.yaml
+/gemini_validation_*.md
+
+# Analysis files should be organized in /analysis/ directory
+/KGAS_*.md
+/ARCHITECTURAL_*.md
+
+# Reports should be organized in /reports/ directory
+/COVERAGE_*.md
+/CLAUDE_*.md
+/DOCUMENTATION_*.md
+
+# Temporary or generated files that shouldn't be at root
+/<async_generator*
+/repomix-*.xml
+/claim*-*.xml
+
 # IDEs
 .vscode/
 .idea/
@@ -87,6 +111,8 @@ Thumbs.db
 # Archive directories (historical and experimental files)
 docs/archive/
 archive/
+archived_2025_08_01/
+archived_2025_08_02/
 
 # Exclude historical planning documents that contain conflicting visions
 docs/archive/root_cleanup/
@@ -98,6 +124,13 @@ docs/core/mcp_llms_full_information.txt
 !.env.example
 !mcp_config.example.json
 !*.example.*
+# Gemini cache (regenerable)
+.gemini-cache/
+
+# Temporary organization files  
+*ORGANIZATION*.md
+*ANALYSIS*.md
+
 # Gemini Review Tool outputs
  gemini-review-tool/outputs/lit_review/
 lit_review/

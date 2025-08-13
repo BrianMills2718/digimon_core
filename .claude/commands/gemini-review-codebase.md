@@ -1,3 +1,0 @@
-Run `python gemini-review-tool/gemini_review.py --config gemini-review-tool/comprehensive-review.yaml`, summarize the output, then update the CLAUDE.md to be optimized to implement solutions to all the issues described by the gemini-review. The CLAUDE.md should be detailed enough so that a new LLM with nothing other than the context in the LLM and the files it points to could successfully implement the fixes.
-
-Note: If `comprehensive-review.yaml` does not exist, create it in the `gemini-review-tool/` directory or use an appropriate config file.

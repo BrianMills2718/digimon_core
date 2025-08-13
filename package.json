@@ -1,0 +1,28 @@
+{
+  "name": "digimons",
+  "version": "1.0.0",
+  "description": "--- status: living doc-type: readme governance: doc-governance ---",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs",
+    "example": "examples",
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/BrianMills2718/UKRF_2.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/BrianMills2718/UKRF_2/issues"
+  },
+  "homepage": "https://github.com/BrianMills2718/UKRF_2#readme",
+  "dependencies": {
+    "@anthropic-ai/claude-code": "^1.0.70"
+  }
+}
